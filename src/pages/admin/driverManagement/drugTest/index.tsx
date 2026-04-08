@@ -21,8 +21,8 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 
     const bgColors = {
         success: 'bg-green-50 border-green-200',
-        error: 'bg-red-50 border-red-200',
-        info: 'bg-blue-50 border-blue-200'
+        error: 'bg-card border-red-200',
+        info: 'bg-card border-blue-200'
     };
 
     useEffect(() => {
@@ -37,10 +37,10 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
             <div className="flex-shrink-0 mt-0.5">
                 {icons[notification.type]}
             </div>
-            <p className="flex-1 text-sm font-medium text-gray-900">{notification.message}</p>
+            <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
             <button
                 onClick={() => onClose(notification.id)}
-                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
             >
                 <FaTimes size={16} />
             </button>
@@ -438,7 +438,7 @@ const DrugTest = () => {
             case 'cancelled':
                 return 'bg-red-100 text-red-700';
             default:
-                return 'bg-gray-100 text-gray-700';
+                return 'bg-gray-100 text-primary';
         }
     };
 
@@ -476,7 +476,7 @@ const DrugTest = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#EDF8FF] p-6">
+        <div className="min-h-screen bg-main p-6">
             {/* Notifications */}
             <div className="fixed top-4 right-4 z-50 space-y-2">
                 {notifications.map(notification => (
@@ -492,11 +492,11 @@ const DrugTest = () => {
             <div className="mb-6">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                            <FlaskConical className="text-blue-600" size={32} />
+                        <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
+                            <FlaskConical className="text-[#00D1FF]" size={32} />
                             Drug Test Management
                         </h1>
-                        <p className="text-gray-600 mt-2">Manage driver drug test requests and tracking</p>
+                        <p className="text-secondary mt-2">Manage driver drug test requests and tracking</p>
                     </div>
                     <button
                         onClick={handleCreateRequestClick}
@@ -512,12 +512,12 @@ const DrugTest = () => {
             </div>
 
             {/* Filters */}
-            <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <div className="bg-card rounded-lg shadow-sm p-4 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                        <label className="block text-sm font-medium text-primary mb-2">Search</label>
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={20} />
                             <input
                                 type="text"
                                 placeholder="Search requests..."
@@ -533,7 +533,7 @@ const DrugTest = () => {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Drivers</label>
+                        <label className="block text-sm font-medium text-primary mb-2">Drivers</label>
                         <select
                             value={selectedDriver}
                             onChange={(e) => setSelectedDriver(e.target.value)}
@@ -548,7 +548,7 @@ const DrugTest = () => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Test Type</label>
+                        <label className="block text-sm font-medium text-primary mb-2">Test Type</label>
                         <select
                             value={selectedTestType}
                             onChange={(e) => setSelectedTestType(e.target.value)}
@@ -561,7 +561,7 @@ const DrugTest = () => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <label className="block text-sm font-medium text-primary mb-2">Status</label>
                         <select
                             value={selectedStatus}
                             onChange={(e) => setSelectedStatus(e.target.value)}
@@ -575,7 +575,7 @@ const DrugTest = () => {
                         </select>
                     </div>
                     <div className="flex items-end justify-between">
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-secondary">
                             Showing {filteredRequests.length} request(s)
                         </div>
                         <button
@@ -589,83 +589,83 @@ const DrugTest = () => {
             </div>
 
             {/* Requests Table */}
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="bg-card rounded-lg shadow-sm overflow-hidden">
                 {loading ? (
                     <div className="p-8 text-center">
                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        <p className="mt-4 text-gray-600">Loading drug test requests...</p>
+                        <p className="mt-4 text-secondary">Loading drug test requests...</p>
                     </div>
                 ) : filteredRequests.length === 0 ? (
                     <div className="p-12 text-center">
-                        <FlaskConical className="mx-auto text-gray-400 mb-4" size={48} />
-                        <p className="text-gray-600 text-lg mb-2">No drug test requests found</p>
-                        <p className="text-gray-500 text-sm mb-4">
+                        <FlaskConical className="mx-auto text-secondary mb-4" size={48} />
+                        <p className="text-secondary text-lg mb-2">No drug test requests found</p>
+                        <p className="text-secondary text-sm mb-4">
                             {drugTestRequests.length === 0 
                                 ? "No drug test requests are available. This may be because no company is assigned to your account."
                                 : "No drug test requests match your current filters."}
                         </p>
                         {drugTestRequests.length === 0 && (
-                            <p className="text-gray-400 text-xs">
+                            <p className="text-secondary text-xs">
                                 Please contact your administrator to assign a company.
                             </p>
                         )}
                         {drugTestRequests.length > 0 && (
-                            <p className="text-gray-500 text-sm">Click "Create Drug Test Request" to get started</p>
+                            <p className="text-secondary text-sm">Click "Create Drug Test Request" to get started</p>
                         )}
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-card border-b border-theme">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Driver</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Test Type</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Reason</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Scheduled Date</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Lab/Collection Site</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Documents</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Driver</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Test Type</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Reason</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Scheduled Date</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Lab/Collection Site</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Documents</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-gray-200">
                                 {filteredRequests.map((request) => (
                                     <tr 
                                         key={request._id} 
                                         onClick={() => handleViewDetails(request)}
-                                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                                     >
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900">{request.driverName || 'Unknown'}</div>
+                                            <div className="text-sm font-medium text-primary">{request.driverName || 'Unknown'}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{request.testType}</div>
+                                            <div className="text-sm text-primary">{request.testType}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="text-sm text-gray-900">{request.reason}</div>
+                                            <div className="text-sm text-primary">{request.reason}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">
+                                            <div className="text-sm text-primary">
                                                 {new Date(request.scheduledDate).toLocaleDateString()}
                                                 {request.scheduledTime && (
-                                                    <div className="text-xs text-gray-500">{request.scheduledTime}</div>
+                                                    <div className="text-xs text-secondary">{request.scheduledTime}</div>
                                                 )}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="text-sm text-gray-900">{request.labName}</div>
+                                            <div className="text-sm text-primary">{request.labName}</div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex items-center gap-2">
-                                                    <FileText size={14} className={request.consentFormUrl ? "text-green-600" : "text-gray-400"} />
-                                                    <span className={`text-xs ${request.consentFormUrl ? "text-green-600" : "text-gray-500"}`}>
+                                                    <FileText size={14} className={request.consentFormUrl ? "text-green-600" : "text-secondary"} />
+                                                    <span className={`text-xs ${request.consentFormUrl ? "text-green-600" : "text-secondary"}`}>
                                                         {request.consentFormUrl ? "Consent Form" : "No Consent Form"}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <FileText size={14} className={request.drugTestDocumentUrl ? "text-green-600" : "text-gray-400"} />
-                                                    <span className={`text-xs ${request.drugTestDocumentUrl ? "text-green-600" : "text-gray-500"}`}>
+                                                    <FileText size={14} className={request.drugTestDocumentUrl ? "text-green-600" : "text-secondary"} />
+                                                    <span className={`text-xs ${request.drugTestDocumentUrl ? "text-green-600" : "text-secondary"}`}>
                                                         {request.drugTestDocumentUrl ? "Test Result" : "No Test Result"}
                                                     </span>
                                                 </div>
@@ -680,7 +680,7 @@ const DrugTest = () => {
                                             <div className="flex items-center gap-3">
                                                 <button
                                                     onClick={() => handleViewDetails(request)}
-                                                    className="text-blue-600 hover:text-blue-800"
+                                                    className="text-[#00D1FF] hover:text-blue-800"
                                                     title="View Details"
                                                 >
                                                     <Eye size={18} />
@@ -694,7 +694,7 @@ const DrugTest = () => {
                                                 </button>
                                                 <button
                                                     onClick={() => request._id && handleDelete(request._id, `${request.driverName}'s ${request.testType} test`)}
-                                                    className="text-red-600 hover:text-red-800"
+                                                    className="text-[#A855F7] hover:text-red-800"
                                                     title="Delete"
                                                 >
                                                     <Trash2 size={18} />
@@ -720,16 +720,16 @@ const DrugTest = () => {
                     }}
                 >
                     <div 
-                        className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+                        className="bg-card rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
-                            <h2 className="text-2xl font-bold text-gray-900">
+                        <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex justify-between items-center z-10">
+                            <h2 className="text-2xl font-bold text-primary">
                                 {editingRequest ? 'Edit Drug Test Request' : 'Create Drug Test Request'}
                             </h2>
                             <button
                                 onClick={() => setShowRequestModal(false)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                                className="text-secondary hover:text-secondary transition-colors"
                             >
                                 <FaTimes size={24} />
                             </button>
@@ -738,7 +738,7 @@ const DrugTest = () => {
                         <form onSubmit={handleSubmit} className="p-6 space-y-6">
                             {/* Driver Selection */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-primary mb-2">
                                     Driver <span className="text-red-500">*</span>
                                 </label>
                                 <select
@@ -759,7 +759,7 @@ const DrugTest = () => {
                             {/* Test Type and Reason */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-medium text-primary mb-2">
                                         Test Type <span className="text-red-500">*</span>
                                     </label>
                                     <select
@@ -775,7 +775,7 @@ const DrugTest = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-medium text-primary mb-2">
                                         Reason <span className="text-red-500">*</span>
                                     </label>
                                     <select
@@ -795,11 +795,11 @@ const DrugTest = () => {
                             {/* Scheduled Date and Time */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-medium text-primary mb-2">
                                         Scheduled Date <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
-                                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={20} />
                                         <input
                                             type="date"
                                             value={formData.scheduledDate}
@@ -810,7 +810,7 @@ const DrugTest = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-medium text-primary mb-2">
                                         Scheduled Time
                                     </label>
                                     <input
@@ -824,7 +824,7 @@ const DrugTest = () => {
 
                             {/* Lab Name */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-primary mb-2">
                                     Lab Name <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -839,7 +839,7 @@ const DrugTest = () => {
 
                             {/* Collection Site Address */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-primary mb-2">
                                     Collection Site Address
                                 </label>
                                 <AddressSearch
@@ -863,14 +863,14 @@ const DrugTest = () => {
                             </div>
 
                             {/* Document Uploads */}
-                            <div className="border-t border-gray-200 pt-4">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <FileText className="text-blue-600" size={20} />
+                            <div className="border-t border-theme pt-4">
+                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                                    <FileText className="text-[#00D1FF]" size={20} />
                                     Document Uploads
                                 </h3>
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-primary mb-2">
                                             Drug Test Consent Form
                                         </label>
                                         {existingConsentFormUrl && !consentForm && (
@@ -884,7 +884,7 @@ const DrugTest = () => {
                                                         href={existingConsentFormUrl}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                                        className="text-xs text-[#00D1FF] hover:text-blue-800 underline"
                                                     >
                                                         View Document
                                                     </a>
@@ -898,14 +898,14 @@ const DrugTest = () => {
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                         {consentForm && (
-                                            <p className="text-xs text-gray-600 mt-1">New file selected: {consentForm.name}</p>
+                                            <p className="text-xs text-secondary mt-1">New file selected: {consentForm.name}</p>
                                         )}
                                         {existingConsentFormUrl && consentForm && (
                                             <p className="text-xs text-amber-600 mt-1">⚠️ New file will replace existing document</p>
                                         )}
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-primary mb-2">
                                             Drug Test Result Document
                                         </label>
                                         {existingDrugTestDocumentUrl && !drugTestDocument && (
@@ -919,7 +919,7 @@ const DrugTest = () => {
                                                         href={existingDrugTestDocumentUrl}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                                        className="text-xs text-[#00D1FF] hover:text-blue-800 underline"
                                                     >
                                                         View Document
                                                     </a>
@@ -933,7 +933,7 @@ const DrugTest = () => {
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                         {drugTestDocument && (
-                                            <p className="text-xs text-gray-600 mt-1">New file selected: {drugTestDocument.name}</p>
+                                            <p className="text-xs text-secondary mt-1">New file selected: {drugTestDocument.name}</p>
                                         )}
                                         {existingDrugTestDocumentUrl && drugTestDocument && (
                                             <p className="text-xs text-amber-600 mt-1">⚠️ New file will replace existing document</p>
@@ -943,11 +943,11 @@ const DrugTest = () => {
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+                            <div className="flex justify-end gap-4 pt-4 border-t border-theme">
                                 <button
                                     type="button"
                                     onClick={() => setShowRequestModal(false)}
-                                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
                                     disabled={saving}
                                 >
                                     Cancel
@@ -979,14 +979,14 @@ const DrugTest = () => {
                     }}
                 >
                     <div 
-                        className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+                        className="bg-card rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
-                            <h2 className="text-2xl font-bold text-gray-900">Drug Test Request Details</h2>
+                        <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex justify-between items-center z-10">
+                            <h2 className="text-2xl font-bold text-primary">Drug Test Request Details</h2>
                             <button
                                 onClick={() => setShowDetailsModal(false)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                                className="text-secondary hover:text-secondary transition-colors"
                             >
                                 <FaTimes size={24} />
                             </button>
@@ -995,26 +995,26 @@ const DrugTest = () => {
                         <div className="p-6 space-y-6">
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500 mb-1">Driver</label>
-                                    <p className="text-base font-semibold text-gray-900">{selectedRequest.driverName || 'Unknown'}</p>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Driver</label>
+                                    <p className="text-base font-semibold text-primary">{selectedRequest.driverName || 'Unknown'}</p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500 mb-1">Test Type</label>
-                                    <p className="text-base text-gray-900">{selectedRequest.testType}</p>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Test Type</label>
+                                    <p className="text-base text-primary">{selectedRequest.testType}</p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500 mb-1">Reason</label>
-                                    <p className="text-base text-gray-900">{selectedRequest.reason}</p>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Reason</label>
+                                    <p className="text-base text-primary">{selectedRequest.reason}</p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Status</label>
                                     <span className={`px-3 py-1 inline-flex text-sm font-semibold rounded-full ${getStatusColor(getDisplayStatus(selectedRequest))}`}>
                                         {getDisplayStatus(selectedRequest).toUpperCase()}
                                     </span>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500 mb-1">Scheduled Date</label>
-                                    <p className="text-base text-gray-900">
+                                    <label className="block text-sm font-medium text-secondary mb-1">Scheduled Date</label>
+                                    <p className="text-base text-primary">
                                         {new Date(selectedRequest.scheduledDate).toLocaleDateString('en-US', {
                                             year: 'numeric',
                                             month: 'long',
@@ -1024,29 +1024,29 @@ const DrugTest = () => {
                                 </div>
                                 {selectedRequest.scheduledTime && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-500 mb-1">Scheduled Time</label>
-                                        <p className="text-base text-gray-900">{selectedRequest.scheduledTime}</p>
+                                        <label className="block text-sm font-medium text-secondary mb-1">Scheduled Time</label>
+                                        <p className="text-base text-primary">{selectedRequest.scheduledTime}</p>
                                     </div>
                                 )}
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-500 mb-1">Lab Name</label>
-                                <p className="text-base text-gray-900">{selectedRequest.labName}</p>
+                                <label className="block text-sm font-medium text-secondary mb-1">Lab Name</label>
+                                <p className="text-base text-primary">{selectedRequest.labName}</p>
                             </div>
 
                             {selectedRequest.collectionSiteAddress && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-500 mb-1">Collection Site Address</label>
-                                    <p className="text-base text-gray-900">{selectedRequest.collectionSiteAddress}</p>
+                                    <label className="block text-sm font-medium text-secondary mb-1">Collection Site Address</label>
+                                    <p className="text-base text-primary">{selectedRequest.collectionSiteAddress}</p>
                                 </div>
                             )}
 
                             {/* Documents Section */}
                             {(selectedRequest.consentFormUrl || selectedRequest.drugTestDocumentUrl) && (
-                                <div className="border-t border-gray-200 pt-4">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                        <FileText className="text-blue-600" size={20} />
+                                <div className="border-t border-theme pt-4">
+                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                                        <FileText className="text-[#00D1FF]" size={20} />
                                         Documents
                                     </h3>
                                     <div className="space-y-3">
@@ -1054,13 +1054,13 @@ const DrugTest = () => {
                                             <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
                                                 <div className="flex items-center gap-2">
                                                     <FileText size={18} className="text-green-600" />
-                                                    <span className="text-sm font-medium text-gray-900">Drug Test Consent Form</span>
+                                                    <span className="text-sm font-medium text-primary">Drug Test Consent Form</span>
                                                 </div>
                                                 <a
                                                     href={selectedRequest.consentFormUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-sm text-blue-600 hover:text-blue-800 underline"
+                                                    className="text-sm text-[#00D1FF] hover:text-blue-800 underline"
                                                 >
                                                     View Document
                                                 </a>
@@ -1070,13 +1070,13 @@ const DrugTest = () => {
                                             <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
                                                 <div className="flex items-center gap-2">
                                                     <FileText size={18} className="text-green-600" />
-                                                    <span className="text-sm font-medium text-gray-900">Drug Test Result Document</span>
+                                                    <span className="text-sm font-medium text-primary">Drug Test Result Document</span>
                                                 </div>
                                                 <a
                                                     href={selectedRequest.drugTestDocumentUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-sm text-blue-600 hover:text-blue-800 underline"
+                                                    className="text-sm text-[#00D1FF] hover:text-blue-800 underline"
                                                 >
                                                     View Document
                                                 </a>
@@ -1086,29 +1086,29 @@ const DrugTest = () => {
                                 </div>
                             )}
 
-                            <div className="pt-4 border-t border-gray-200">
+                            <div className="pt-4 border-t border-theme">
                                 <div className="grid grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-500 mb-1 flex items-center gap-2">
+                                        <label className="block text-sm font-medium text-secondary mb-1 flex items-center gap-2">
                                             <Clock size={16} />
                                             Created At
                                         </label>
-                                        <p className="text-sm text-gray-600">{formatDateTime(selectedRequest.createdAt)}</p>
+                                        <p className="text-sm text-secondary">{formatDateTime(selectedRequest.createdAt)}</p>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-500 mb-1 flex items-center gap-2">
+                                        <label className="block text-sm font-medium text-secondary mb-1 flex items-center gap-2">
                                             <Clock size={16} />
                                             Last Updated
                                         </label>
-                                        <p className="text-sm text-gray-600">{formatDateTime(selectedRequest.updatedAt)}</p>
+                                        <p className="text-sm text-secondary">{formatDateTime(selectedRequest.updatedAt)}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+                            <div className="flex justify-end gap-4 pt-4 border-t border-theme">
                                 <button
                                     onClick={() => setShowDetailsModal(false)}
-                                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
                                 >
                                     Close
                                 </button>
@@ -1133,24 +1133,24 @@ const DrugTest = () => {
             {/* Delete Confirmation Modal */}
             {confirmDelete.open && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+                    <div className="bg-card rounded-xl shadow-2xl w-full max-w-md">
                         <div className="p-6">
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                                    <Trash2 className="w-6 h-6 text-red-600" />
+                                    <Trash2 className="w-6 h-6 text-[#A855F7]" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">Delete Drug Test</h3>
-                                    <p className="text-sm text-gray-500">This action cannot be undone</p>
+                                    <h3 className="text-lg font-semibold text-primary">Delete Drug Test</h3>
+                                    <p className="text-sm text-secondary">This action cannot be undone</p>
                                 </div>
                             </div>
-                            <p className="text-gray-700 mb-6">
-                                Are you sure you want to delete <span className="font-medium text-gray-900">{confirmDelete.name}</span>? This will permanently remove the drug test request and all associated data.
+                            <p className="text-primary mb-6">
+                                Are you sure you want to delete <span className="font-medium text-primary">{confirmDelete.name}</span>? This will permanently remove the drug test request and all associated data.
                             </p>
                             <div className="flex items-center justify-end gap-3">
                                 <button
                                     onClick={() => setConfirmDelete({ open: false, id: null, name: null })}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                                 >
                                     Cancel
                                 </button>

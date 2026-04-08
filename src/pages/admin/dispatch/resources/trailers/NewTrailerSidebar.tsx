@@ -143,21 +143,21 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
         <div className="fixed inset-0 z-50 overflow-hidden">
             <div className="absolute inset-0 bg-gray-500 bg-opacity-75" onClick={onClose}></div>
             
-            <div className="relative ml-auto h-full w-full max-w-2xl bg-white shadow-xl">
+            <div className="relative ml-auto h-full w-full max-w-2xl bg-card shadow-xl">
                 <div className="flex h-full flex-col">
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                    <div className="flex items-center justify-between border-b border-theme px-6 py-4">
                         <div className="flex items-center space-x-3">
                             <div className="flex-shrink-0">
-                                <Truck className="h-6 w-6 text-blue-600" />
+                                <Truck className="h-6 w-6 text-[#00D1FF]" />
                             </div>
-                            <h2 className="text-lg font-semibold text-gray-900">
+                            <h2 className="text-lg font-semibold text-primary">
                               {mode === 'edit' ? 'Update Trailer' : 'Add New Trailer'}
                             </h2>
                         </div>
                         <button
                             onClick={onClose}
-                            className="rounded-md p-2 text-gray-400 hover:text-gray-600"
+                            className="rounded-md p-2 text-secondary hover:text-secondary"
                         >
                             <X className="h-6 w-6" />
                         </button>
@@ -168,14 +168,14 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                         <div className="space-y-6">
                             {/* Basic Information */}
                             <div>
-                                <h3 className="text-sm font-medium text-gray-900 mb-4">Basic Information</h3>
+                                <h3 className="text-sm font-medium text-primary mb-4">Basic Information</h3>
                                 <div className="grid grid-cols-1 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label className="block text-sm font-medium text-primary mb-1">
                                             Internal ID *
                                         </label>
                                         <div className="relative">
-                                            <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                            <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary" />
                                             <input
                                                 type="text"
                                                 name="internalId"
@@ -191,7 +191,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label className="block text-sm font-medium text-primary mb-1">
                                             Trailer Name *
                                         </label>
                                         <input
@@ -209,7 +209,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-primary mb-1">
                                                 Make *
                                             </label>
                                             <input
@@ -226,7 +226,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-primary mb-1">
                                                 Model *
                                             </label>
                                             <input
@@ -244,11 +244,11 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label className="block text-sm font-medium text-primary mb-1">
                                             Year
                                         </label>
                                         <div className="relative">
-                                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary" />
                                             <input
                                                 type="number"
                                                 name="year"
@@ -265,14 +265,14 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
 
                             {/* Registration Details */}
                             <div>
-                                <h3 className="text-sm font-medium text-gray-900 mb-4">Registration Details</h3>
+                                <h3 className="text-sm font-medium text-primary mb-4">Registration Details</h3>
                                 <div className="grid grid-cols-1 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label className="block text-sm font-medium text-primary mb-1">
                                             Plate Number *
                                         </label>
                                         <div className="relative">
-                                            <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                            <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary" />
                                             <input
                                                 type="text"
                                                 name="plateNumber"
@@ -288,7 +288,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label className="block text-sm font-medium text-primary mb-1">
                                             VIN Number *
                                         </label>
                                         <input
@@ -305,7 +305,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label className="block text-sm font-medium text-primary mb-1">
                                             Capacity *
                                         </label>
                                         <input
@@ -322,7 +322,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label className="block text-sm font-medium text-primary mb-1">
                                             Trailer Type
                                         </label>
                                         <select
@@ -343,10 +343,10 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
 
                             {/* Status */}
                             <div>
-                                <h3 className="text-sm font-medium text-gray-900 mb-4">Status</h3>
+                                <h3 className="text-sm font-medium text-primary mb-4">Status</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label className="block text-sm font-medium text-primary mb-1">
                                             Status
                                         </label>
                                         <select
@@ -363,7 +363,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label className="block text-sm font-medium text-primary mb-1">
                                             Operation Status
                                         </label>
                                         <select
@@ -384,14 +384,14 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
 
                             {/* Location */}
                             <div>
-                                <h3 className="text-sm font-medium text-gray-900 mb-4">Current Location</h3>
+                                <h3 className="text-sm font-medium text-primary mb-4">Current Location</h3>
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label className="block text-sm font-medium text-primary mb-1">
                                             Address
                                         </label>
                                         <div className="relative">
-                                            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary" />
                                             <input
                                                 type="text"
                                                 name="address"
@@ -401,7 +401,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                                 placeholder="123 Main St, City, State"
                                             />
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-1">
+                                        <p className="text-xs text-secondary mt-1">
                                             Coordinates will be automatically fetched from this address
                                         </p>
                                     </div>
@@ -411,12 +411,12 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                     </form>
 
                     {/* Footer */}
-                    <div className="border-t border-gray-200 px-6 py-4">
+                    <div className="border-t border-theme px-6 py-4">
                         <div className="flex justify-end space-x-3">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 text-sm !mr-4 font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="px-4 py-2 text-sm !mr-4 font-medium text-primary bg-card border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 Cancel
                             </button>

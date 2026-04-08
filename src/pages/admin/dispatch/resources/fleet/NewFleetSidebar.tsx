@@ -41,7 +41,7 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
+    error: 'bg-card border-red-200',
   };
 
   React.useEffect(() => {
@@ -56,10 +56,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -79,12 +79,12 @@ const defaultFormData = {
   status: "active",
 };
 
-const NewFleetSidebar: FC<NewFleetSidebarProps> = ({ 
-  isOpen, 
+const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
+  isOpen,
   mode = 'create',
   initialData = null,
   onClose,
-  onSuccess 
+  onSuccess
 }) => {
   const [formData, setFormData] = useState(defaultFormData);
   const [loading, setLoading] = useState(false);
@@ -138,7 +138,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      
+
       // Prepare payload
       const payload = {
         ...formData,
@@ -188,31 +188,31 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
 
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001]"
+        className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] border-2 border-red-700"
         onClick={onClose}
       ></div>
 
       {/* Sidebar */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-2xl bg-white border-l border-gray-200 shadow-xl z-[10002] flex flex-col">
+      <div className="fixed right-0 top-0 h-full w-full max-w-2xl bg-card border-l border-theme shadow-xl z-[10002] flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 flex-shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="p-6 border-b border-theme flex-shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Truck className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-primary">
                   {mode === 'edit' ? 'Edit Fleet' : 'New Fleet'}
                 </h2>
-                <p className="text-sm text-gray-500 mt-0.5">
+                <p className="text-sm text-secondary mt-0.5">
                   {mode === 'edit' ? 'Update fleet information' : 'Create a new fleet'}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="text-secondary hover:text-secondary p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -225,7 +225,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
           <div className="space-y-6">
             {/* Fleet Name */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-primary mb-2">
                 Fleet Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -242,7 +242,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
             {/* Service Area & Parent Fleet */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-primary mb-2">
                   Service Area
                 </label>
                 <input
@@ -255,7 +255,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-primary mb-2">
                   Parent Fleet
                 </label>
                 <input
@@ -272,7 +272,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
             {/* Vendor & Zone */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-primary mb-2">
                   Vendor (ObjectId)
                 </label>
                 <input
@@ -285,7 +285,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-primary mb-2">
                   Zone
                 </label>
                 <input
@@ -302,7 +302,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
             {/* Manpower & Active Manpower */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-primary mb-2">
                   Man Power
                 </label>
                 <input
@@ -315,7 +315,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-primary mb-2">
                   Active Man Power
                 </label>
                 <input
@@ -331,7 +331,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
 
             {/* Task */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-primary mb-2">
                 Task / Mission
               </label>
               <input
@@ -346,7 +346,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
 
             {/* Status */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-primary mb-2">
                 Status <span className="text-red-500">*</span>
               </label>
               <select
@@ -364,12 +364,12 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 flex-shrink-0 bg-white shadow-lg">
+        <div className="p-6 border-t border-theme flex-shrink-0 bg-card shadow-lg">
           <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 border border-gray-300 !mr-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+              className="px-6 py-3 border border-gray-300 !mr-3 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
             >
               Cancel
             </button>
@@ -379,8 +379,8 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
               onClick={handleSubmit}
               className="px-6 py-3 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading 
-                ? (mode === 'edit' ? "Updating..." : "Creating...") 
+              {loading
+                ? (mode === 'edit' ? "Updating..." : "Creating...")
                 : (mode === 'edit' ? "Update Fleet" : "Create Fleet")
               }
             </button>

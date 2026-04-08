@@ -75,12 +75,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
       `}</style>
 
       <aside
-        className={`h-screen flex flex-col bg-white shadow-sm transition-all duration-300 ${isCollapsed ? "w-20" : "w-56"
+        className={`h-screen flex flex-col bg-card shadow-sm transition-all duration-300 ${isCollapsed ? "w-20" : "w-56"
           }`}
       >
         {/* --- LOGO SECTION --- */}
 
-        <div className="flex-shrink-0 flex justify-center items-center py-4 border-b border-gray-200">
+        <div className="flex-shrink-0 flex justify-center items-center py-4 border-b border-theme">
           <div
             className="cursor-pointer flex items-center justify-center"
             onClick={() => navigate(getDashboardRoute())}
@@ -121,14 +121,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                           : "flex items-center px-4 py-2 gap-3"
                         } ${openMenus.includes(link.key)
                           ? "bg-[#42aeec]/10"
-                          : "hover:bg-gray-50"
+                          : "hover:bg-[rgba(255,255,255,0.03)]"
                         }`}
                       title={link.label}
                     >
                       <span
                         className={`${isCollapsed ? "text-2xl" : "text-xl"} ${openMenus.includes(link.key)
                             ? "text-[#42aeec]"
-                            : "text-gray-600 group-hover:text-[#42aeec]"
+                            : "text-secondary group-hover:text-[#42aeec]"
                           }`}
                       >
                         {link.icon}
@@ -139,16 +139,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                           <span
                             className={`flex-1 text-sm ${openMenus.includes(link.key)
                                 ? "text-[#42aeec]"
-                                : "text-gray-700 group-hover:text-[#42aeec]"
+                                : "text-primary group-hover:text-[#42aeec]"
                               }`}
                           >
                             {link.label}
                           </span>
 
                           {openMenus.includes(link.key) ? (
-                            <FaChevronDown className="text-xs text-gray-400" />
+                            <FaChevronDown className="text-xs text-secondary" />
                           ) : (
-                            <FaChevronRight className="text-xs text-gray-400" />
+                            <FaChevronRight className="text-xs text-secondary" />
                           )}
                         </>
                       )}
@@ -156,7 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
 
                     {/* CHILD LINKS */}
                     {!isCollapsed && openMenus.includes(link.key) && (
-                      <ul className="bg-gray-50">
+                      <ul className="bg-card">
                         {link.children.map((child: any) => {
                           const pathname = window.location.pathname;
                           const activeState = isActiveLink(
@@ -171,7 +171,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                                 to={child.key}
                                 className={`flex items-center px-4 py-2 pl-12 text-sm transition ${activeState
                                     ? "text-[#42aeec] bg-[#42aeec]/10"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-[#42aeec]"
+                                    : "text-secondary hover:bg-gray-100 hover:text-[#42aeec]"
                                   }`}
                               >
                                 <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>
@@ -201,7 +201,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                           : "flex items-center px-4 py-2 gap-3"
                         } ${activeState
                           ? "text-[#42aeec] bg-[#42aeec]/10"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-[#42aeec]"
+                          : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[#42aeec]"
                         }`;
                     }}
                   >

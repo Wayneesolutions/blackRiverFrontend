@@ -491,14 +491,14 @@ const DriverList = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen p-4 bg-gray-50 px-6 flex items-center justify-center">
-                <div className="text-gray-500">Loading drivers...</div>
+            <div className="min-h-screen p-4 bg-card px-6 flex items-center justify-center">
+                <div className="text-secondary">Loading drivers...</div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen p-4 bg-[#EDF8FF] px-6">
+        <div className="min-h-screen p-4 bg-main px-6">
             <div className="w-full mx-auto p-2">
                 {/* Header */}
                 <div className="mb-8">
@@ -559,7 +559,7 @@ const DriverList = () => {
                     </div>
 
                     {/* With Vehicle */}
-                    <div className="rounded-xl p-4 bg-purple-50 border border-purple-200">
+                    <div className="rounded-xl p-4 bg-card border border-purple-200">
                         <div className="text-2xl font-bold text-purple-600 mb-1">
                             {stats.withVehicle}
                         </div>
@@ -577,11 +577,11 @@ const DriverList = () => {
                     </div>
 
                     {/* Unassigned */}
-                    <div className="rounded-xl p-4 bg-orange-50 border border-orange-200">
-                        <div className="text-2xl font-bold text-orange-600 mb-1">
+                    <div className="rounded-xl p-4 bg-card border border-orange-200">
+                        <div className="text-2xl font-bold text-[#F59E0B] mb-1">
                             {stats.withoutVehicle}
                         </div>
-                        <div className="text-sm font-medium text-orange-600">
+                        <div className="text-sm font-medium text-[#F59E0B]">
                             Unassigned
                         </div>
                         <div className="w-full bg-orange-100 rounded-full h-1 mt-2">
@@ -597,7 +597,7 @@ const DriverList = () => {
 
 
                 {/* Filters and Search */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-6 overflow-hidden">
+                <div className="bg-card rounded-xl shadow-sm border border-slate-200 mb-6 overflow-hidden">
                     <div className="p-6 border-b border-slate-100">
                         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                             <div className="flex-1">
@@ -617,7 +617,7 @@ const DriverList = () => {
                                 <div className="relative">
                                     <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                                     <select
-                                        className="pl-10 pr-8 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white min-w-40 transition-colors duration-150"
+                                        className="pl-10 pr-8 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-card min-w-40 transition-colors duration-150"
                                         value={filterStatus}
                                         onChange={(e) => setFilterStatus(e.target.value)}
                                     >
@@ -700,7 +700,7 @@ const DriverList = () => {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-slate-100">
+                            <tbody className="bg-card divide-y divide-slate-100">
                                 {currentDrivers.length === 0 ? (
                                     <tr>
                                         <td colSpan={9} className="px-6 py-12 text-center">
@@ -727,8 +727,8 @@ const DriverList = () => {
                                         >
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
-                                                    <div className="p-2 bg-blue-50 rounded-lg mr-3 border border-blue-100">
-                                                        <User className="w-5 h-5 text-blue-600" />
+                                                    <div className="p-2 bg-card rounded-lg mr-3 border border-blue-100">
+                                                        <User className="w-5 h-5 text-[#00D1FF]" />
                                                     </div>
                                                     <div className="text-sm font-semibold text-slate-900">
                                                         {driver.internalId}
@@ -754,7 +754,7 @@ const DriverList = () => {
                                                     <div 
                                                         className={`w-10 h-10 rounded-full mr-3 bg-blue-100 flex items-center justify-center border border-blue-200 ${driver.avatar || driver.profileImageUrl ? 'hidden' : ''}`}
                                                     >
-                                                        <User className="w-5 h-5 text-blue-600" />
+                                                        <User className="w-5 h-5 text-[#00D1FF]" />
                                                     </div>
                                                     <div>
                                                         <div className="text-sm font-medium text-slate-900">
@@ -792,7 +792,7 @@ const DriverList = () => {
                                                 {(driver.details?.vehicle || driver.vehicle) && (
                                                     <div className="flex items-center space-x-1 mt-2 ml-6">
                                                         <Truck className="w-3 h-3 text-blue-500" />
-                                                        <span className="text-xs text-blue-600 font-medium">
+                                                        <span className="text-xs text-[#00D1FF] font-medium">
                                                             {(driver.vehicle || driver.details?.vehicle)?.plateNumber || 'N/A'}
                                                         </span>
                                                     </div>
@@ -832,7 +832,7 @@ const DriverList = () => {
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                                                 <button
                                                     onClick={() => handleViewDetails(driver)}
-                                                    className="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors duration-150 text-sm font-medium"
+                                                    className="inline-flex items-center space-x-1 text-[#00D1FF] hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors duration-150 text-sm font-medium"
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                     <span>Details</span>
@@ -852,14 +852,14 @@ const DriverList = () => {
                                 <button
                                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                     disabled={currentPage === 1}
-                                    className="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                    className="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-card hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                                 >
                                     Previous
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                                     disabled={currentPage === totalPages}
-                                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-card hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                                 >
                                     Next
                                 </button>
@@ -877,7 +877,7 @@ const DriverList = () => {
                                         <button
                                             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                             disabled={currentPage === 1}
-                                            className="relative inline-flex items-center px-3 py-2 rounded-l-lg border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                            className="relative inline-flex items-center px-3 py-2 rounded-l-lg border border-slate-300 bg-card text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                                         >
                                             <ChevronLeft className="h-4 w-4" />
                                         </button>
@@ -889,8 +889,8 @@ const DriverList = () => {
                                                     key={page}
                                                     onClick={() => setCurrentPage(page)}
                                                     className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-150 ${currentPage === page
-                                                        ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                                        : 'bg-white border-slate-300 text-slate-500 hover:bg-slate-50'
+                                                        ? 'z-10 bg-card border-blue-500 text-[#00D1FF]'
+                                                        : 'bg-card border-slate-300 text-slate-500 hover:bg-slate-50'
                                                         }`}
                                                 >
                                                     {page}
@@ -901,7 +901,7 @@ const DriverList = () => {
                                         <button
                                             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                                             disabled={currentPage === totalPages}
-                                            className="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                            className="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-slate-300 bg-card text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                                         >
                                             <ChevronRight className="h-4 w-4" />
                                         </button>
@@ -916,7 +916,7 @@ const DriverList = () => {
                 {showDetails && selectedDriver && (
                     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] overflow-hidden">
                         <div className="absolute inset-0" onClick={() => setShowDetails(false)} />
-                        <div className="absolute inset-y-0 right-0 max-w-2xl w-full bg-white shadow-xl">
+                        <div className="absolute inset-y-0 right-0 max-w-2xl w-full bg-card shadow-xl">
                             <div className="flex h-full flex-col">
                                 {/* Header */}
                                 <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
@@ -937,7 +937,7 @@ const DriverList = () => {
                                             <div 
                                                 className={`w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center border border-blue-200 ${selectedDriver.avatar || selectedDriver.profileImageUrl ? 'hidden' : ''}`}
                                             >
-                                                <User className="w-6 h-6 text-blue-600" />
+                                                <User className="w-6 h-6 text-[#00D1FF]" />
                                             </div>
                                             <div>
                                                 <h2 className="text-xl font-bold text-slate-900">
@@ -959,9 +959,9 @@ const DriverList = () => {
                                 <div className="flex-1 overflow-y-auto">
                                     <div className="p-6 space-y-6">
                                         {/* Basic Information */}
-                                        <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                        <div className="bg-card border border-slate-200 rounded-lg p-6">
                                             <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                <User className="w-5 h-5 mr-2 text-blue-600" />
+                                                <User className="w-5 h-5 mr-2 text-[#00D1FF]" />
                                                 Driver Information
                                             </h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1001,7 +1001,7 @@ const DriverList = () => {
                                         </div>
 
                                         {/* Status */}
-                                        <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                        <div className="bg-card border border-slate-200 rounded-lg p-6">
                                             <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
                                                 <Activity className="w-5 h-5 mr-2 text-purple-600" />
                                                 Status
@@ -1015,9 +1015,9 @@ const DriverList = () => {
                                         </div>
 
                                         {/* Location Information */}
-                                        <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                        <div className="bg-card border border-slate-200 rounded-lg p-6">
                                             <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                <MapPin className="w-5 h-5 mr-2 text-red-600" />
+                                                <MapPin className="w-5 h-5 mr-2 text-[#A855F7]" />
                                                 Current Location
                                             </h3>
                                             <div className="space-y-2">
@@ -1042,9 +1042,9 @@ const DriverList = () => {
 
                                         {/* Vehicle Information */}
                                         {(selectedDriver.details?.vehicle || selectedDriver.vehicle) ? (
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                            <div className="bg-card border border-slate-200 rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <Truck className="w-5 h-5 mr-2 text-orange-600" />
+                                                    <Truck className="w-5 h-5 mr-2 text-[#F59E0B]" />
                                                     Assigned Vehicle
                                                 </h3>
                                                 {(() => {
@@ -1126,9 +1126,9 @@ const DriverList = () => {
                                                 })()}
                                             </div>
                                         ) : (
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                            <div className="bg-card border border-slate-200 rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <Truck className="w-5 h-5 mr-2 text-orange-600" />
+                                                    <Truck className="w-5 h-5 mr-2 text-[#F59E0B]" />
                                                     Assigned Vehicle
                                                 </h3>
                                                 <div className="text-sm text-slate-500 italic">No vehicle assigned</div>
@@ -1155,18 +1155,18 @@ const DriverList = () => {
 
                         {/* Sidebar Panel */}
                         <div
-                            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+                            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
                         >
                             <div className="p-6">
                                 {/* Header */}
-                                <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                                    <h2 className="text-2xl font-bold text-gray-900">Driver Details</h2>
+                                <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                                    <h2 className="text-2xl font-bold text-primary">Driver Details</h2>
                                     <button
                                         onClick={() => {
                                             setShowDetailsSidebar(false);
                                             setTimeout(() => setSelectedDriver(null), 300);
                                         }}
-                                        className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                                        className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
                                     >
                                         <X size={24} />
                                     </button>
@@ -1224,46 +1224,46 @@ const DriverList = () => {
                                     </div>
 
                                     {/* Personal Information */}
-                                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                        <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                            <User size={20} className="text-blue-600" />
+                                    <div className="bg-card p-6 rounded-lg border border-theme">
+                                        <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                            <User size={20} className="text-[#00D1FF]" />
                                             Personal Information
                                         </h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Full Name</p>
-                                                <p className="font-medium text-gray-900">{selectedDriver.name}</p>
+                                                <p className="text-sm text-secondary mb-1">Full Name</p>
+                                                <p className="font-medium text-primary">{selectedDriver.name}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Email</p>
-                                                <p className="font-medium text-gray-900">{selectedDriver.email || "—"}</p>
+                                                <p className="text-sm text-secondary mb-1">Email</p>
+                                                <p className="font-medium text-primary">{selectedDriver.email || "—"}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Phone</p>
-                                                <p className="font-medium text-gray-900">{selectedDriver.phone || "—"}</p>
+                                                <p className="text-sm text-secondary mb-1">Phone</p>
+                                                <p className="font-medium text-primary">{selectedDriver.phone || "—"}</p>
                                             </div>
                                             {selectedDriver.country && (
                                                 <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Country</p>
-                                                    <p className="font-medium text-gray-900">{selectedDriver.country}</p>
+                                                    <p className="text-sm text-secondary mb-1">Country</p>
+                                                    <p className="font-medium text-primary">{selectedDriver.country}</p>
                                                 </div>
                                             )}
                                             {selectedDriver.details?.employeeCode && (
                                                 <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Employee Code</p>
-                                                    <p className="font-medium text-gray-900">{selectedDriver.details.employeeCode}</p>
+                                                    <p className="text-sm text-secondary mb-1">Employee Code</p>
+                                                    <p className="font-medium text-primary">{selectedDriver.details.employeeCode}</p>
                                                 </div>
                                             )}
                                             {selectedDriver.details?.licenceNumber && (
                                                 <div>
-                                                    <p className="text-sm text-gray-500 mb-1">License Number</p>
-                                                    <p className="font-medium text-gray-900">{selectedDriver.details.licenceNumber}</p>
+                                                    <p className="text-sm text-secondary mb-1">License Number</p>
+                                                    <p className="font-medium text-primary">{selectedDriver.details.licenceNumber}</p>
                                                 </div>
                                             )}
                                             {selectedDriver.joinDate && (
                                                 <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Join Date</p>
-                                                    <p className="font-medium text-gray-900">
+                                                    <p className="text-sm text-secondary mb-1">Join Date</p>
+                                                    <p className="font-medium text-primary">
                                                         {new Date(selectedDriver.joinDate).toLocaleDateString('en-US', {
                                                             year: 'numeric',
                                                             month: 'long',
@@ -1278,22 +1278,22 @@ const DriverList = () => {
                                     {/* Location Information */}
                                     {selectedDriver.location?.address && (
                                         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
-                                            <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                                <MapPin size={20} className="text-blue-600" />
+                                            <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                                <MapPin size={20} className="text-[#00D1FF]" />
                                                 Location
                                             </h4>
                                             <div>
-                                                <p className="text-sm text-gray-600 mb-1">Current Address</p>
-                                                <p className="font-medium text-gray-900">{selectedDriver.location.address}</p>
+                                                <p className="text-sm text-secondary mb-1">Current Address</p>
+                                                <p className="font-medium text-primary">{selectedDriver.location.address}</p>
                                             </div>
                                         </div>
                                     )}
 
                                     {/* Vehicle Information */}
                                     {(selectedDriver.details?.vehicle || selectedDriver.vehicle) && (
-                                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                            <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                                <Truck size={20} className="text-blue-600" />
+                                        <div className="bg-card p-6 rounded-lg border border-theme">
+                                            <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                                <Truck size={20} className="text-[#00D1FF]" />
                                                 Assigned Vehicle
                                             </h4>
                                             {(() => {
@@ -1301,63 +1301,63 @@ const DriverList = () => {
                                                 return (
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Plate Number</p>
-                                                            <p className="font-medium text-gray-900">{vehicle?.plateNumber || 'N/A'}</p>
+                                                            <p className="text-sm text-secondary mb-1">Plate Number</p>
+                                                            <p className="font-medium text-primary">{vehicle?.plateNumber || 'N/A'}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Vehicle ID</p>
-                                                            <p className="font-medium text-gray-900">{vehicle?.internalId || 'N/A'}</p>
+                                                            <p className="text-sm text-secondary mb-1">Vehicle ID</p>
+                                                            <p className="font-medium text-primary">{vehicle?.internalId || 'N/A'}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Make / Model</p>
-                                                            <p className="font-medium text-gray-900">{vehicle?.make || ''} {vehicle?.model || ''}</p>
+                                                            <p className="text-sm text-secondary mb-1">Make / Model</p>
+                                                            <p className="font-medium text-primary">{vehicle?.make || ''} {vehicle?.model || ''}</p>
                                                         </div>
                                                         {vehicle?.year && (
                                                             <div>
-                                                                <p className="text-sm text-gray-500 mb-1">Year</p>
-                                                                <p className="font-medium text-gray-900">{vehicle.year}</p>
+                                                                <p className="text-sm text-secondary mb-1">Year</p>
+                                                                <p className="font-medium text-primary">{vehicle.year}</p>
                                                             </div>
                                                         )}
                                                         {vehicle?.type && (
                                                             <div>
-                                                                <p className="text-sm text-gray-500 mb-1">Type</p>
-                                                                <p className="font-medium text-gray-900">{vehicle.type}</p>
+                                                                <p className="text-sm text-secondary mb-1">Type</p>
+                                                                <p className="font-medium text-primary">{vehicle.type}</p>
                                                             </div>
                                                         )}
                                                         {vehicle?.ownership && (
                                                             <div>
-                                                                <p className="text-sm text-gray-500 mb-1">Ownership</p>
-                                                                <p className="font-medium text-gray-900">{vehicle.ownership}</p>
+                                                                <p className="text-sm text-secondary mb-1">Ownership</p>
+                                                                <p className="font-medium text-primary">{vehicle.ownership}</p>
                                                             </div>
                                                         )}
                                                         {vehicle?.currentLocation?.address && (
                                                             <div className="md:col-span-2">
-                                                                <p className="text-sm text-gray-500 mb-1">Vehicle Location</p>
-                                                                <p className="font-medium text-gray-900">{vehicle.currentLocation.address}</p>
+                                                                <p className="text-sm text-secondary mb-1">Vehicle Location</p>
+                                                                <p className="font-medium text-primary">{vehicle.currentLocation.address}</p>
                                                             </div>
                                                         )}
                                                         {vehicle?.speed !== undefined && (
                                                             <div>
-                                                                <p className="text-sm text-gray-500 mb-1">Speed</p>
-                                                                <p className="font-medium text-gray-900">{vehicle.speed} km/h</p>
+                                                                <p className="text-sm text-secondary mb-1">Speed</p>
+                                                                <p className="font-medium text-primary">{vehicle.speed} km/h</p>
                                                             </div>
                                                         )}
                                                         {vehicle?.fuelLevel !== undefined && (
                                                             <div>
-                                                                <p className="text-sm text-gray-500 mb-1">Fuel Level</p>
-                                                                <p className="font-medium text-gray-900">{vehicle.fuelLevel}%</p>
+                                                                <p className="text-sm text-secondary mb-1">Fuel Level</p>
+                                                                <p className="font-medium text-primary">{vehicle.fuelLevel}%</p>
                                                             </div>
                                                         )}
                                                         {vehicle?.odometer !== undefined && (
                                                             <div>
-                                                                <p className="text-sm text-gray-500 mb-1">Odometer</p>
-                                                                <p className="font-medium text-gray-900">{vehicle.odometer.toLocaleString()} km</p>
+                                                                <p className="text-sm text-secondary mb-1">Odometer</p>
+                                                                <p className="font-medium text-primary">{vehicle.odometer.toLocaleString()} km</p>
                                                             </div>
                                                         )}
                                                         {vehicle?.engineOn !== undefined && (
                                                             <div>
-                                                                <p className="text-sm text-gray-500 mb-1">Engine Status</p>
-                                                                <p className="font-medium text-gray-900">{vehicle.engineOn ? 'On' : 'Off'}</p>
+                                                                <p className="text-sm text-secondary mb-1">Engine Status</p>
+                                                                <p className="font-medium text-primary">{vehicle.engineOn ? 'On' : 'Off'}</p>
                                                             </div>
                                                         )}
                                                     </div>
@@ -1368,22 +1368,22 @@ const DriverList = () => {
 
                                     {/* Performance Metrics */}
                                     {(selectedDriver.milesToday !== undefined || selectedDriver.avgSpeed !== undefined) && (
-                                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                            <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                                <Activity size={20} className="text-blue-600" />
+                                        <div className="bg-card p-6 rounded-lg border border-theme">
+                                            <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                                <Activity size={20} className="text-[#00D1FF]" />
                                                 Performance Metrics
                                             </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {selectedDriver.milesToday !== undefined && (
                                                     <div>
-                                                        <p className="text-sm text-gray-500 mb-1">Miles Today</p>
-                                                        <p className="font-medium text-gray-900">{selectedDriver.milesToday.toLocaleString()} mi</p>
+                                                        <p className="text-sm text-secondary mb-1">Miles Today</p>
+                                                        <p className="font-medium text-primary">{selectedDriver.milesToday.toLocaleString()} mi</p>
                                                     </div>
                                                 )}
                                                 {selectedDriver.avgSpeed !== undefined && (
                                                     <div>
-                                                        <p className="text-sm text-gray-500 mb-1">Average Speed</p>
-                                                        <p className="font-medium text-gray-900">{selectedDriver.avgSpeed} mph</p>
+                                                        <p className="text-sm text-secondary mb-1">Average Speed</p>
+                                                        <p className="font-medium text-primary">{selectedDriver.avgSpeed} mph</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -1391,13 +1391,13 @@ const DriverList = () => {
                                     )}
 
                                     {/* Action Buttons */}
-                                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                                         <button
                                             onClick={() => {
                                                 setShowDetailsSidebar(false);
                                                 setTimeout(() => setSelectedDriver(null), 300);
                                             }}
-                                            className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                                            className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
                                         >
                                             Close
                                         </button>

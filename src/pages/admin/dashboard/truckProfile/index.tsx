@@ -81,8 +81,8 @@ type TruckProfileData = {
     actualStartDate?: Date;
     actualEndDate?: Date;
   }>;
-    compliance: {
-      cvsa: {
+  compliance: {
+    cvsa: {
       lastInspection: string;
       result: string;
       violations: string[];
@@ -110,7 +110,7 @@ type TruckProfileData = {
       resolution: string;
     }>;
   };
-    fleet: {
+  fleet: {
     serviceLogs: Array<{
       id: string;
       date: string;
@@ -206,10 +206,10 @@ const TruckProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-6 bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen p-6 bg-card flex items-center justify-center border-2 border-red-700">
         <div className="text-center">
-          <FaSpinner className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading truck profile...</p>
+          <FaSpinner className="w-12 h-12 text-[#00D1FF] animate-spin mx-auto mb-4" />
+          <p className="text-secondary">Loading truck profile...</p>
         </div>
       </div>
     );
@@ -217,9 +217,9 @@ const TruckProfile = () => {
 
   if (!truckProfile) {
     return (
-      <div className="min-h-screen p-6 bg-gray-50">
+      <div className="min-h-screen p-6 bg-card">
         <div className="max-w-7xl mx-auto">
-          <p className="text-gray-600">No truck profile found.</p>
+          <p className="text-secondary">No truck profile found.</p>
         </div>
       </div>
     );
@@ -229,7 +229,7 @@ const TruckProfile = () => {
 
   return (
     <div
-      className="min-h-screen bg-gray-50"
+      className="min-h-screen bg-card border-2 border-red-700"
       style={{ padding: 'calc(1.5rem * 0.99)' }}
     >
       <div className="max-w-7xl mx-auto" style={{ gap: 'calc(2rem * 0.99)' }}>
@@ -322,7 +322,7 @@ const TruckProfile = () => {
         </header>
 
         <section
-          className="rounded-2xl bg-white grid grid-cols-1 lg:grid-cols-4"
+          className="rounded-2xl bg-card grid grid-cols-1 lg:grid-cols-4"
           style={{
             ...sectionCardStyle,
             border: `1px solid ${FLEET_COLORS.primary}`,
@@ -342,8 +342,8 @@ const TruckProfile = () => {
             <p style={{ fontSize: 'calc(0.875rem * 0.99)', color: '#6B7280', marginTop: 'calc(0.5rem * 0.99)' }}>
               {truckProfile.currentDriver ? (
                 <>
-              Assigned Driver:{" "}
-              <span className="font-semibold" style={{ color: '#1F2937' }}>
+                  Assigned Driver:{" "}
+                  <span className="font-semibold" style={{ color: '#1F2937' }}>
                     {truckProfile.currentDriver.name}
                   </span>
                   {truckProfile.currentDriver.phone && (
@@ -355,8 +355,8 @@ const TruckProfile = () => {
               )}
             </p>
             <div className="flex flex-wrap" style={{ marginTop: 'calc(1rem * 0.99)', gap: 'calc(0.75rem * 0.99)' }}>
-              <span className="rounded-full font-semibold border" style={{ 
-                fontSize: 'calc(0.75rem * 0.99)', 
+              <span className="rounded-full font-semibold border" style={{
+                fontSize: 'calc(0.75rem * 0.99)',
                 padding: 'calc(0.25rem * 0.99) calc(0.75rem * 0.99)',
                 backgroundColor: '#F0FDF4',
                 color: '#15803D',
@@ -364,8 +364,8 @@ const TruckProfile = () => {
               }}>
                 {truckProfile.status}
               </span>
-              <span className="rounded-full font-semibold border" style={{ 
-                fontSize: 'calc(0.75rem * 0.99)', 
+              <span className="rounded-full font-semibold border" style={{
+                fontSize: 'calc(0.75rem * 0.99)',
                 padding: 'calc(0.25rem * 0.99) calc(0.75rem * 0.99)',
                 backgroundColor: '#EFF6FF',
                 color: '#1D4ED8',
@@ -374,8 +374,8 @@ const TruckProfile = () => {
                 {truckProfile.operationStatus}
               </span>
               {truckProfile.currentAssignment && (
-                <span className="rounded-full font-semibold border" style={{ 
-                  fontSize: 'calc(0.75rem * 0.99)', 
+                <span className="rounded-full font-semibold border" style={{
+                  fontSize: 'calc(0.75rem * 0.99)',
                   padding: 'calc(0.25rem * 0.99) calc(0.75rem * 0.99)',
                   backgroundColor: '#FAF5FF',
                   color: '#7C3AED',
@@ -387,7 +387,7 @@ const TruckProfile = () => {
             </div>
           </div>
           <div className="flex flex-col lg:col-span-2 sm:flex-row" style={{ gap: 'calc(1rem * 0.99)' }}>
-            <div className="flex-1 rounded-2xl bg-gray-50" style={{ 
+            <div className="flex-1 rounded-2xl bg-card" style={{
               border: `1px solid ${FLEET_COLORS.primary}40`,
               padding: 'calc(1rem * 0.99)',
             }}>
@@ -399,7 +399,7 @@ const TruckProfile = () => {
               </p>
               <p style={{ fontSize: 'calc(0.75rem * 0.99)', color: '#6B7280', marginTop: 'calc(0.25rem * 0.99)' }}>Last recorded via CAN bus</p>
             </div>
-            <div className="flex-1 rounded-2xl bg-gray-50" style={{ 
+            <div className="flex-1 rounded-2xl bg-card" style={{
               border: `1px solid ${FLEET_COLORS.primary}40`,
               padding: 'calc(1rem * 0.99)',
             }}>
@@ -410,7 +410,7 @@ const TruckProfile = () => {
                 {truckProfile.currentAssignment ? 'Active' : 'Available'}
               </p>
               <p style={{ fontSize: 'calc(0.75rem * 0.99)', color: '#6B7280', marginTop: 'calc(0.25rem * 0.99)' }}>
-                {truckProfile.currentAssignment 
+                {truckProfile.currentAssignment
                   ? `${truckProfile.currentAssignment.type === 'load' ? 'Load' : 'Trip'}: ${truckProfile.currentAssignment.loadNumber || truckProfile.currentAssignment.tripNumber || 'N/A'}`
                   : 'No active assignment'}
               </p>
@@ -420,19 +420,19 @@ const TruckProfile = () => {
 
         {/* Current Assignment Section */}
         {truckProfile.currentAssignment && (
-          <section className="rounded-2xl bg-white" style={{
+          <section className="rounded-2xl bg-card" style={{
             ...sectionCardStyle,
             border: `1px solid ${FLEET_COLORS.primary}`,
             padding: 'calc(1.5rem * 0.99)',
             marginBottom: 'calc(2rem * 0.99)',
           }}>
-            <div className="flex items-center text-sm" style={{ 
-              gap: 'calc(0.75rem * 0.99)', 
+            <div className="flex items-center text-sm" style={{
+              gap: 'calc(0.75rem * 0.99)',
               color: '#6B7280',
               fontSize: 'calc(0.875rem * 0.99)',
               marginBottom: 'calc(1rem * 0.99)'
             }}>
-              <FaRoute className="text-blue-600" />
+              <FaRoute className="text-[#00D1FF]" />
               Current Assignment
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 'calc(1rem * 0.99)' }}>
@@ -508,14 +508,14 @@ const TruckProfile = () => {
         )}
 
         {/* Assignment History Section */}
-        <section className="rounded-2xl bg-white" style={{
+        <section className="rounded-2xl bg-card" style={{
           ...sectionCardStyle,
           border: `1px solid ${FLEET_COLORS.primary}`,
           padding: 'calc(1.5rem * 0.99)',
           marginBottom: 'calc(2rem * 0.99)',
         }}>
-          <div className="flex items-center text-sm" style={{ 
-            gap: 'calc(0.75rem * 0.99)', 
+          <div className="flex items-center text-sm" style={{
+            gap: 'calc(0.75rem * 0.99)',
             color: '#6B7280',
             fontSize: 'calc(0.875rem * 0.99)',
             marginBottom: 'calc(1rem * 0.99)'
@@ -525,30 +525,30 @@ const TruckProfile = () => {
           </div>
           {filteredAssignmentHistory.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm" style={{ 
+              <table className="min-w-full text-sm" style={{
                 borderCollapse: 'separate',
                 borderSpacing: 0,
                 fontSize: 'calc(0.875rem * 0.99)'
               }}>
                 <thead className="uppercase" style={{ fontSize: 'calc(0.75rem * 0.99)', color: '#6B7280' }}>
                   <tr>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Date</th>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Type</th>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Driver</th>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Load/Trip #</th>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Status</th>
@@ -556,16 +556,16 @@ const TruckProfile = () => {
                 </thead>
                 <tbody>
                   {filteredAssignmentHistory.map((assignment) => (
-                    <tr key={`${assignment.type}-${assignment.id}`} style={{ 
+                    <tr key={`${assignment.type}-${assignment.id}`} style={{
                       color: '#374151',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}20`
-                    }} className="hover:bg-gray-50">
+                    }} className="hover:bg-[rgba(255,255,255,0.03)]">
                       <td style={{ padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)' }}>
-                        {assignment.assignedAt 
+                        {assignment.assignedAt
                           ? new Date(assignment.assignedAt).toLocaleDateString()
                           : assignment.actualStartDate
-                          ? new Date(assignment.actualStartDate).toLocaleDateString()
-                          : 'N/A'}
+                            ? new Date(assignment.actualStartDate).toLocaleDateString()
+                            : 'N/A'}
                       </td>
                       <td style={{ padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)' }}>
                         <span className="capitalize">{assignment.type}</span>
@@ -588,8 +588,8 @@ const TruckProfile = () => {
                           ...(assignment.status === 'completed' || assignment.status === 'delivered'
                             ? { backgroundColor: '#F0FDF4', color: '#15803D', borderColor: '#86EFAC' }
                             : assignment.status === 'in-progress' || assignment.status === 'in-delivery'
-                            ? { backgroundColor: '#EFF6FF', color: '#1D4ED8', borderColor: '#93C5FD' }
-                            : { backgroundColor: '#F9FAFB', color: '#374151', borderColor: '#E5E7EB' })
+                              ? { backgroundColor: '#EFF6FF', color: '#1D4ED8', borderColor: '#93C5FD' }
+                              : { backgroundColor: '#F9FAFB', color: '#374151', borderColor: '#E5E7EB' })
                         }}>
                           {assignment.status}
                         </span>
@@ -605,68 +605,68 @@ const TruckProfile = () => {
         </section>
 
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4" style={{ gap: 'calc(1rem * 0.99)', marginBottom: 'calc(2rem * 0.99)' }}>
-          <div className="rounded-2xl bg-white" style={{
+          <div className="rounded-2xl bg-card" style={{
             ...sectionCardStyle,
             border: `1px solid ${FLEET_COLORS.primary}`,
             padding: 'calc(1.25rem * 0.99)',
           }}>
-            <div className="flex items-center text-sm" style={{ 
-              gap: 'calc(0.75rem * 0.99)', 
+            <div className="flex items-center text-sm" style={{
+              gap: 'calc(0.75rem * 0.99)',
               color: '#6B7280',
               fontSize: 'calc(0.875rem * 0.99)'
             }}>
               <FaShieldAlt className="text-green-600" />
               CVSA Snapshot
             </div>
-            <p className="font-semibold" style={{ 
+            <p className="font-semibold" style={{
               marginTop: 'calc(0.5rem * 0.99)',
               fontSize: 'calc(0.875rem * 0.99)',
               color: '#111827'
             }}>
               {compliance.cvsa.lastInspection}
             </p>
-            <p style={{ 
+            <p style={{
               fontSize: 'calc(0.75rem * 0.99)',
               color: '#6B7280',
               marginBottom: 'calc(0.5rem * 0.99)'
             }}>
               Result:{" "}
               <span className="font-semibold" style={{
-                color: compliance.cvsa.result === 'Pass' ? '#15803D' : 
-                       compliance.cvsa.result === 'Fail' ? '#DC2626' : 
-                       '#D97706'
+                color: compliance.cvsa.result === 'Pass' ? '#15803D' :
+                  compliance.cvsa.result === 'Fail' ? '#DC2626' :
+                    '#D97706'
               }}>
                 {compliance.cvsa.result}
               </span>
             </p>
             {compliance.cvsa.violations.length > 0 ? (
-            <ul className="list-disc list-inside" style={{ 
-              fontSize: 'calc(0.75rem * 0.99)',
-              color: '#4B5563',
-              gap: 'calc(0.25rem * 0.99)'
-            }}>
+              <ul className="list-disc list-inside" style={{
+                fontSize: 'calc(0.75rem * 0.99)',
+                color: '#4B5563',
+                gap: 'calc(0.25rem * 0.99)'
+              }}>
                 {compliance.cvsa.violations.map((item, idx) => (
                   <li key={idx} style={{ marginTop: 'calc(0.25rem * 0.99)' }}>{item}</li>
-              ))}
-            </ul>
+                ))}
+              </ul>
             ) : (
               <p style={{ fontSize: 'calc(0.75rem * 0.99)', color: '#9CA3AF' }}>No violations</p>
             )}
-            <p style={{ 
-              fontSize: 'calc(0.75rem * 0.99)', 
+            <p style={{
+              fontSize: 'calc(0.75rem * 0.99)',
               color: '#9CA3AF',
               marginTop: 'calc(0.75rem * 0.99)'
             }}>Officer {compliance.cvsa.officer}</p>
           </div>
 
-          <div className="rounded-2xl bg-white" style={{
+          <div className="rounded-2xl bg-card" style={{
             ...sectionCardStyle,
             border: `1px solid ${FLEET_COLORS.primary}`,
             padding: 'calc(1.25rem * 0.99)',
             gap: 'calc(0.75rem * 0.99)'
           }}>
-            <div className="flex items-center text-sm" style={{ 
-              gap: 'calc(0.75rem * 0.99)', 
+            <div className="flex items-center text-sm" style={{
+              gap: 'calc(0.75rem * 0.99)',
               color: '#6B7280',
               fontSize: 'calc(0.875rem * 0.99)',
               marginBottom: 'calc(0.75rem * 0.99)'
@@ -676,42 +676,42 @@ const TruckProfile = () => {
             </div>
             {compliance.tickets.length > 0 ? (
               compliance.tickets.map((ticket) => (
-              <div key={ticket.id} className="rounded-xl bg-gray-50" style={{ 
-                padding: 'calc(0.75rem * 0.99)',
-                fontSize: 'calc(0.75rem * 0.99)',
-                color: '#374151',
-                border: '1px solid #FDE68A',
-                marginBottom: 'calc(0.75rem * 0.99)'
-              }}>
-                <div className="flex justify-between">
-                  <span className="font-semibold">{ticket.category}</span>
+                <div key={ticket.id} className="rounded-xl bg-card" style={{
+                  padding: 'calc(0.75rem * 0.99)',
+                  fontSize: 'calc(0.75rem * 0.99)',
+                  color: '#374151',
+                  border: '1px solid #FDE68A',
+                  marginBottom: 'calc(0.75rem * 0.99)'
+                }}>
+                  <div className="flex justify-between">
+                    <span className="font-semibold">{ticket.category}</span>
                     <span style={{
-                      color: ticket.status === 'Paid' ? '#16A34A' : 
-                             ticket.status === 'Contested' ? '#2563EB' : 
-                             '#DC2626'
+                      color: ticket.status === 'Paid' ? '#16A34A' :
+                        ticket.status === 'Contested' ? '#2563EB' :
+                          '#DC2626'
                     }}>
                       {ticket.status}
                     </span>
+                  </div>
+                  <div className="flex justify-between" style={{ color: '#6B7280', marginTop: 'calc(0.25rem * 0.99)' }}>
+                    <span>{ticket.issued}</span>
+                    <span>${ticket.amount}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between" style={{ color: '#6B7280', marginTop: 'calc(0.25rem * 0.99)' }}>
-                  <span>{ticket.issued}</span>
-                  <span>${ticket.amount}</span>
-                </div>
-              </div>
               ))
             ) : (
               <p style={{ fontSize: 'calc(0.75rem * 0.99)', color: '#9CA3AF' }}>No tickets</p>
             )}
           </div>
 
-          <div className="rounded-2xl bg-white" style={{
+          <div className="rounded-2xl bg-card" style={{
             ...sectionCardStyle,
             border: `1px solid ${FLEET_COLORS.primary}`,
             padding: 'calc(1.25rem * 0.99)',
             gap: 'calc(0.75rem * 0.99)'
           }}>
-            <div className="flex items-center text-sm" style={{ 
-              gap: 'calc(0.75rem * 0.99)', 
+            <div className="flex items-center text-sm" style={{
+              gap: 'calc(0.75rem * 0.99)',
               color: '#6B7280',
               fontSize: 'calc(0.875rem * 0.99)',
               marginBottom: 'calc(0.75rem * 0.99)'
@@ -721,50 +721,50 @@ const TruckProfile = () => {
             </div>
             {compliance.incidents.length > 0 ? (
               compliance.incidents.map((incident) => (
-              <div key={incident.id} className="rounded-xl bg-gray-50" style={{ 
-                padding: 'calc(0.75rem * 0.99)',
-                fontSize: 'calc(0.75rem * 0.99)',
-                color: '#374151',
-                border: '1px solid #FECACA',
-                marginBottom: 'calc(0.75rem * 0.99)'
-              }}>
-                <div className="flex justify-between font-semibold">
-                  <span>{incident.type}</span>
+                <div key={incident.id} className="rounded-xl bg-card" style={{
+                  padding: 'calc(0.75rem * 0.99)',
+                  fontSize: 'calc(0.75rem * 0.99)',
+                  color: '#374151',
+                  border: '1px solid #FECACA',
+                  marginBottom: 'calc(0.75rem * 0.99)'
+                }}>
+                  <div className="flex justify-between font-semibold">
+                    <span>{incident.type}</span>
                     <span style={{
-                      color: incident.severity === 'Low' ? '#16A34A' : 
-                             incident.severity === 'Medium' ? '#D97706' : 
-                             '#DC2626'
+                      color: incident.severity === 'Low' ? '#16A34A' :
+                        incident.severity === 'Medium' ? '#D97706' :
+                          '#DC2626'
                     }}>
                       {incident.severity}
                     </span>
+                  </div>
+                  <p style={{ color: '#6B7280', marginTop: 'calc(0.25rem * 0.99)' }}>{incident.date}</p>
+                  <p style={{ color: '#4B5563', marginTop: 'calc(0.25rem * 0.99)' }}>{incident.resolution}</p>
                 </div>
-                <p style={{ color: '#6B7280', marginTop: 'calc(0.25rem * 0.99)' }}>{incident.date}</p>
-                <p style={{ color: '#4B5563', marginTop: 'calc(0.25rem * 0.99)' }}>{incident.resolution}</p>
-              </div>
               ))
             ) : (
               <p style={{ fontSize: 'calc(0.75rem * 0.99)', color: '#9CA3AF' }}>No incidents</p>
             )}
           </div>
 
-          <div className="rounded-2xl bg-white" style={{
+          <div className="rounded-2xl bg-card" style={{
             ...sectionCardStyle,
             border: `1px solid ${FLEET_COLORS.primary}`,
             padding: 'calc(1.25rem * 0.99)',
             gap: 'calc(0.75rem * 0.99)'
           }}>
-            <div className="flex items-center text-sm" style={{ 
-              gap: 'calc(0.75rem * 0.99)', 
+            <div className="flex items-center text-sm" style={{
+              gap: 'calc(0.75rem * 0.99)',
               color: '#6B7280',
               fontSize: 'calc(0.875rem * 0.99)',
               marginBottom: 'calc(0.75rem * 0.99)'
             }}>
-              <FaExclamationTriangle className="text-orange-600" />
+              <FaExclamationTriangle className="text-[#F59E0B]" />
               Accidents
             </div>
             {compliance.accidents.length > 0 ? (
               compliance.accidents.map((accident) => (
-                <div key={accident.id} className="rounded-xl bg-gray-50" style={{ 
+                <div key={accident.id} className="rounded-xl bg-card" style={{
                   padding: 'calc(0.75rem * 0.99)',
                   fontSize: 'calc(0.75rem * 0.99)',
                   color: '#374151',
@@ -774,9 +774,9 @@ const TruckProfile = () => {
                   <div className="flex justify-between font-semibold">
                     <span>{accident.type}</span>
                     <span style={{
-                      color: accident.severity === 'Low' ? '#16A34A' : 
-                             accident.severity === 'Medium' ? '#D97706' : 
-                             '#DC2626'
+                      color: accident.severity === 'Low' ? '#16A34A' :
+                        accident.severity === 'Medium' ? '#D97706' :
+                          '#DC2626'
                     }}>
                       {accident.severity}
                     </span>
@@ -792,42 +792,42 @@ const TruckProfile = () => {
         </section>
 
         <section className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 'calc(1rem * 0.99)', marginBottom: 'calc(2rem * 0.99)' }}>
-          <div className="rounded-2xl bg-white" style={{
+          <div className="rounded-2xl bg-card" style={{
             ...sectionCardStyle,
             border: `1px solid ${FLEET_COLORS.primary}`,
             padding: 'calc(1.25rem * 0.99)',
             gap: 'calc(1rem * 0.99)'
           }}>
-            <div className="flex items-center text-sm" style={{ 
-              gap: 'calc(0.75rem * 0.99)', 
+            <div className="flex items-center text-sm" style={{
+              gap: 'calc(0.75rem * 0.99)',
               color: '#6B7280',
               fontSize: 'calc(0.875rem * 0.99)',
               marginBottom: 'calc(1rem * 0.99)'
             }}>
-              <FaClipboardCheck className="text-blue-600" />
+              <FaClipboardCheck className="text-[#00D1FF]" />
               Service log with prices
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm" style={{ 
+              <table className="min-w-full text-sm" style={{
                 borderCollapse: 'separate',
                 borderSpacing: 0,
                 fontSize: 'calc(0.875rem * 0.99)'
               }}>
                 <thead className="uppercase" style={{ fontSize: 'calc(0.75rem * 0.99)', color: '#6B7280' }}>
                   <tr>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Date</th>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Vendor</th>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Description</th>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Cost</th>
@@ -836,19 +836,19 @@ const TruckProfile = () => {
                 <tbody>
                   {fleet.serviceLogs.length > 0 ? (
                     fleet.serviceLogs.map((service) => (
-                    <tr key={service.id} style={{ 
-                      color: '#374151',
-                      borderBottom: `1px solid ${FLEET_COLORS.primary}20`
-                    }}>
-                      <td style={{ padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)' }}>{service.date}</td>
-                      <td style={{ padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)' }}>{service.vendor}</td>
-                      <td style={{ padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)' }}>{service.description}</td>
-                      <td style={{ padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)' }} className="font-semibold">${service.cost}</td>
-                    </tr>
+                      <tr key={service.id} style={{
+                        color: '#374151',
+                        borderBottom: `1px solid ${FLEET_COLORS.primary}20`
+                      }}>
+                        <td style={{ padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)' }}>{service.date}</td>
+                        <td style={{ padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)' }}>{service.vendor}</td>
+                        <td style={{ padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)' }}>{service.description}</td>
+                        <td style={{ padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)' }} className="font-semibold">${service.cost}</td>
+                      </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} style={{ 
+                      <td colSpan={4} style={{
                         padding: 'calc(1rem * 0.99) calc(0.75rem * 0.99)',
                         textAlign: 'center',
                         color: '#6B7280',
@@ -863,14 +863,14 @@ const TruckProfile = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white" style={{
+          <div className="rounded-2xl bg-card" style={{
             ...sectionCardStyle,
             border: `1px solid ${FLEET_COLORS.primary}`,
             padding: 'calc(1.25rem * 0.99)',
             gap: 'calc(1rem * 0.99)'
           }}>
-            <div className="flex items-center text-sm" style={{ 
-              gap: 'calc(0.75rem * 0.99)', 
+            <div className="flex items-center text-sm" style={{
+              gap: 'calc(0.75rem * 0.99)',
               color: '#6B7280',
               fontSize: 'calc(0.875rem * 0.99)',
               marginBottom: 'calc(1rem * 0.99)'
@@ -879,26 +879,26 @@ const TruckProfile = () => {
               Issues & repairs
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm" style={{ 
+              <table className="min-w-full text-sm" style={{
                 borderCollapse: 'separate',
                 borderSpacing: 0,
                 fontSize: 'calc(0.875rem * 0.99)'
               }}>
                 <thead className="uppercase" style={{ fontSize: 'calc(0.75rem * 0.99)', color: '#6B7280' }}>
                   <tr>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Date</th>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Issue</th>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Resolution</th>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Downtime</th>
@@ -907,7 +907,7 @@ const TruckProfile = () => {
                 <tbody>
                   {fleet.repairs.length > 0 ? (
                     fleet.repairs.map((repair) => (
-                      <tr key={repair.id} style={{ 
+                      <tr key={repair.id} style={{
                         color: '#374151',
                         borderBottom: `1px solid ${FLEET_COLORS.primary}20`
                       }}>
@@ -919,7 +919,7 @@ const TruckProfile = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} style={{ 
+                      <td colSpan={4} style={{
                         padding: 'calc(1rem * 0.99) calc(0.75rem * 0.99)',
                         textAlign: 'center',
                         color: '#6B7280',
@@ -936,14 +936,14 @@ const TruckProfile = () => {
         </section>
 
         <section className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 'calc(1rem * 0.99)' }}>
-          <div className="rounded-2xl bg-white" style={{
+          <div className="rounded-2xl bg-card" style={{
             ...sectionCardStyle,
             border: `1px solid ${FLEET_COLORS.primary}`,
             padding: 'calc(1.25rem * 0.99)',
             gap: 'calc(1rem * 0.99)'
           }}>
-            <div className="flex items-center text-sm" style={{ 
-              gap: 'calc(0.75rem * 0.99)', 
+            <div className="flex items-center text-sm" style={{
+              gap: 'calc(0.75rem * 0.99)',
               color: '#6B7280',
               fontSize: 'calc(0.875rem * 0.99)',
               marginBottom: 'calc(1rem * 0.99)'
@@ -952,26 +952,26 @@ const TruckProfile = () => {
               Spare parts usage
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm" style={{ 
+              <table className="min-w-full text-sm" style={{
                 borderCollapse: 'separate',
                 borderSpacing: 0,
                 fontSize: 'calc(0.875rem * 0.99)'
               }}>
                 <thead className="uppercase" style={{ fontSize: 'calc(0.75rem * 0.99)', color: '#6B7280' }}>
                   <tr>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Part</th>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Qty</th>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Cost</th>
-                    <th className="text-left" style={{ 
+                    <th className="text-left" style={{
                       padding: 'calc(0.5rem * 0.99) calc(0.75rem * 0.99)',
                       borderBottom: `1px solid ${FLEET_COLORS.primary}40`
                     }}>Reference</th>
@@ -980,7 +980,7 @@ const TruckProfile = () => {
                 <tbody>
                   {fleet.spareParts.length > 0 ? (
                     fleet.spareParts.map((part) => (
-                      <tr key={`${part.reference}-${part.partName}`} style={{ 
+                      <tr key={`${part.reference}-${part.partName}`} style={{
                         color: '#374151',
                         borderBottom: `1px solid ${FLEET_COLORS.primary}20`
                       }}>
@@ -992,7 +992,7 @@ const TruckProfile = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} style={{ 
+                      <td colSpan={4} style={{
                         padding: 'calc(1rem * 0.99) calc(0.75rem * 0.99)',
                         textAlign: 'center',
                         color: '#6B7280',

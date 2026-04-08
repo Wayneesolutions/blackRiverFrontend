@@ -352,7 +352,7 @@ const ProfessionalFleetTracker: React.FC = () => {
     <div className="flex h-screen bg-gray-100">
       {/* Left Sidebar */}
       <div
-        className={`bg-white shadow-xl transition-all duration-300 ease-in-out ${isSidebarOpen ? "w-96" : "w-0"
+        className={`bg-card shadow-xl transition-all duration-300 ease-in-out ${isSidebarOpen ? "w-96" : "w-0"
           } overflow-hidden`}
       >
         <div className="h-full flex flex-col">
@@ -365,7 +365,7 @@ const ProfessionalFleetTracker: React.FC = () => {
               </h2>
               <button
                 onClick={() => setIsSidebarOpen(false)}
-                className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+                className="p-1 hover:bg-card/20 rounded-lg transition-colors"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -373,11 +373,11 @@ const ProfessionalFleetTracker: React.FC = () => {
 
             {/* Search Bar */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
               <input
                 type="text"
                 placeholder="Search by plate number..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/90 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
+                className="w-full pl-10 pr-4 py-2 rounded-lg bg-card/90 text-primary placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -388,7 +388,7 @@ const ProfessionalFleetTracker: React.FC = () => {
           <div className="flex-1 overflow-y-auto p-4">
             {filteredVehicles.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500">No vehicles found</p>
+                <p className="text-secondary">No vehicles found</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -396,8 +396,8 @@ const ProfessionalFleetTracker: React.FC = () => {
                   <div
                     key={v._id}
                     className={`p-4 rounded-xl cursor-pointer transition-all duration-200 border-2 relative group ${selectedVehicle?._id === v._id
-                        ? "bg-blue-50 border-blue-400 shadow-md"
-                        : "bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm"
+                        ? "bg-card border-blue-400 shadow-md"
+                        : "bg-card border-theme hover:border-blue-300 hover:shadow-sm"
                       }`}
                   >
                     {/* Open in New Tab Button */}
@@ -406,16 +406,16 @@ const ProfessionalFleetTracker: React.FC = () => {
                         e.stopPropagation();
                         openVehicleInNewTab(v);
                       }}
-                      className="absolute top-2 right-2 p-2 bg-white rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-50 z-10"
+                      className="absolute top-2 right-2 p-2 bg-card rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-50 z-10"
                       title="Open in new tab"
                     >
-                      <ExternalLink className="w-4 h-4 text-blue-600" />
+                      <ExternalLink className="w-4 h-4 text-[#00D1FF]" />
                     </button>
 
                     <div onClick={() => handleVehicleClick(v)}>
                       {/* Plate Number & Status */}
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-bold text-lg text-gray-800">
+                        <h3 className="font-bold text-lg text-primary">
                           {v.plateNumber}
                         </h3>
                         <span
@@ -431,17 +431,17 @@ const ProfessionalFleetTracker: React.FC = () => {
 
                       {/* Vehicle Details */}
                       <div className="space-y-2 text-sm">
-                        <div className="flex items-center gap-2 text-gray-600">
+                        <div className="flex items-center gap-2 text-secondary">
                           <User className="w-4 h-4" />
                           <span>
                             {v?.driver ? v?.driver?.name : "No driver assigned"}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-600">
+                        <div className="flex items-center gap-2 text-secondary">
                           <MapPin className="w-4 h-4" />
                           <span className="truncate">{v.currentLocation?.address}</span>
                         </div>
-                        <div className="flex items-center justify-between text-gray-500 mt-2 pt-2 border-t border-gray-200">
+                        <div className="flex items-center justify-between text-secondary mt-2 pt-2 border-t border-theme">
                           <span className="flex items-center gap-1">
                             <Gauge className="w-4 h-4" />
                             {v.speed} km/h
@@ -494,10 +494,10 @@ const ProfessionalFleetTracker: React.FC = () => {
               <Popup>
                 <div className="p-2">
                   <p className="font-semibold text-sm">{selectedVehicle.plateNumber}</p>
-                  <p className="text-xs text-gray-600">{selectedVehicle.make} {selectedVehicle.model} ({selectedVehicle.year})</p>
-                  <p className="text-xs text-gray-500 mt-1">{selectedVehicle.currentLocation?.address || 'Location unknown'}</p>
+                  <p className="text-xs text-secondary">{selectedVehicle.make} {selectedVehicle.model} ({selectedVehicle.year})</p>
+                  <p className="text-xs text-secondary mt-1">{selectedVehicle.currentLocation?.address || 'Location unknown'}</p>
                   {selectedVehicle.driver && (
-                    <p className="text-xs text-blue-600 mt-1">Driver: {selectedVehicle.driver.name}</p>
+                    <p className="text-xs text-[#00D1FF] mt-1">Driver: {selectedVehicle.driver.name}</p>
                   )}
                   <div className="flex gap-4 mt-2 text-xs">
                     <span className="flex items-center gap-1">
@@ -517,7 +517,7 @@ const ProfessionalFleetTracker: React.FC = () => {
 
         {/* Advanced Info Panel */}
         {selectedVehicle && isInfoPanelOpen && (
-          <div className="absolute top-6 right-6 bg-white rounded-2xl shadow-2xl w-96 overflow-hidden border border-gray-200">
+          <div className="absolute top-6 right-6 bg-card rounded-2xl shadow-2xl w-96 overflow-hidden border border-theme">
             {/* Header */}
             <div
               className="p-4 text-white"
@@ -530,14 +530,14 @@ const ProfessionalFleetTracker: React.FC = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={openInNewTab}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                    className="p-2 hover:bg-card/20 rounded-lg transition-colors"
                     title="Open selected vehicle in new tab"
                   >
                     <ExternalLink className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setIsInfoPanelOpen(false)}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                    className="p-2 hover:bg-card/20 rounded-lg transition-colors"
                     title="Close"
                   >
                     <X className="w-4 h-4" />
@@ -552,8 +552,8 @@ const ProfessionalFleetTracker: React.FC = () => {
             {/* Content */}
             <div className="p-5 space-y-4 max-h-96 overflow-y-auto">
               {/* Status Row */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="text-gray-600 font-medium">Status</span>
+              <div className="flex items-center justify-between p-3 bg-card rounded-lg">
+                <span className="text-secondary font-medium">Status</span>
                 <span
                   className="px-3 py-1 rounded-full text-xs font-bold"
                   style={{
@@ -567,12 +567,12 @@ const ProfessionalFleetTracker: React.FC = () => {
 
               {/* Metrics Grid */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <div className="flex items-center gap-2 text-blue-600 mb-1">
+                <div className="p-3 bg-card rounded-lg">
+                  <div className="flex items-center gap-2 text-[#00D1FF] mb-1">
                     <Gauge className="w-4 h-4" />
                     <span className="text-xs font-medium">Speed</span>
                   </div>
-                  <p className="text-xl font-bold text-gray-800">
+                  <p className="text-xl font-bold text-primary">
                     {selectedVehicle.speed} <span className="text-sm">km/h</span>
                   </p>
                 </div>
@@ -582,7 +582,7 @@ const ProfessionalFleetTracker: React.FC = () => {
                     <Fuel className="w-4 h-4" />
                     <span className="text-xs font-medium">Fuel</span>
                   </div>
-                  <p className="text-xl font-bold text-gray-800">
+                  <p className="text-xl font-bold text-primary">
                     {selectedVehicle.fuelLevel} <span className="text-sm">%</span>
                   </p>
                 </div>
@@ -590,17 +590,17 @@ const ProfessionalFleetTracker: React.FC = () => {
 
               {/* Details */}
               <div className="space-y-3">
-                <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">Odometer</span>
-                  <span className="font-semibold text-gray-800">
+                <div className="flex justify-between py-2 border-b border-theme">
+                  <span className="text-secondary">Odometer</span>
+                  <span className="font-semibold text-primary">
                     {selectedVehicle.odometer.toLocaleString()} km
                   </span>
                 </div>
 
-                <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">Engine</span>
+                <div className="flex justify-between py-2 border-b border-theme">
+                  <span className="text-secondary">Engine</span>
                   <span
-                    className={`font-semibold ${selectedVehicle.engineOn ? "text-green-600" : "text-red-600"
+                    className={`font-semibold ${selectedVehicle.engineOn ? "text-green-600" : "text-[#A855F7]"
                       }`}
                   >
                     {selectedVehicle.engineOn ? "On ✓" : "Off ✗"}
@@ -608,9 +608,9 @@ const ProfessionalFleetTracker: React.FC = () => {
                 </div>
 
                 {selectedVehicle.driver && (
-                  <div className="flex justify-between py-2 border-b border-gray-200">
-                    <span className="text-gray-600">Driver</span>
-                    <span className="font-semibold text-gray-800">
+                  <div className="flex justify-between py-2 border-b border-theme">
+                    <span className="text-secondary">Driver</span>
+                    <span className="font-semibold text-primary">
                       {selectedVehicle.driver.name}
                     </span>
                   </div>
@@ -618,10 +618,10 @@ const ProfessionalFleetTracker: React.FC = () => {
 
                 <div className="py-2">
                   <div className="flex items-start gap-2">
-                    <MapPin className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
+                    <MapPin className="w-4 h-4 text-secondary mt-1 flex-shrink-0" />
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Location</p>
-                      <p className="text-sm text-gray-800">
+                      <p className="text-xs text-secondary mb-1">Location</p>
+                      <p className="text-sm text-primary">
                         {selectedVehicle.currentLocation?.address}
                       </p>
                     </div>
@@ -636,10 +636,10 @@ const ProfessionalFleetTracker: React.FC = () => {
         {selectedVehicle && !isInfoPanelOpen && (
           <button
             onClick={() => setIsInfoPanelOpen(true)}
-            className="absolute top-6 right-6 bg-white p-3 rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-gray-200"
+            className="absolute top-6 right-6 bg-card p-3 rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-theme"
             title="Show vehicle info"
           >
-            <Activity className="w-5 h-5 text-blue-600" />
+            <Activity className="w-5 h-5 text-[#00D1FF]" />
           </button>
         )}
       </div>

@@ -164,7 +164,7 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 
     const bgColors = {
         success: 'bg-green-50 border-green-200',
-        error: 'bg-red-50 border-red-200',
+        error: 'bg-card border-red-200',
         info: ''
     };
 
@@ -183,10 +183,10 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
             <div className="flex-shrink-0 mt-0.5">
                 {icons[notification.type]}
             </div>
-            <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+            <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
             <button
                 onClick={() => onClose(notification.id)}
-                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
             >
                 <FaTimes size={16} />
             </button>
@@ -476,10 +476,10 @@ const SparePartsInventory = () => {
 
     if (loading) {
         return (
-            <div className="p-6 min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="p-6 min-h-screen bg-card flex items-center justify-center">
                 <div className="text-center">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                    <p className="mt-4 text-gray-600">Loading spare parts...</p>
+                    <p className="mt-4 text-secondary">Loading spare parts...</p>
                 </div>
             </div>
         );
@@ -811,8 +811,8 @@ const SparePartsInventory = () => {
     };
 
     const getStockStatus = (stockQty: number, minStockLevel: number) => {
-        if (stockQty <= minStockLevel) return { status: 'Low Stock', color: 'text-red-600 bg-red-50' };
-        if (stockQty <= minStockLevel * 2) return { status: 'Medium Stock', color: 'text-yellow-600 bg-yellow-50' };
+        if (stockQty <= minStockLevel) return { status: 'Low Stock', color: 'text-[#A855F7] bg-card' };
+        if (stockQty <= minStockLevel * 2) return { status: 'Medium Stock', color: 'text-[#00FFA3] bg-card' };
         return { status: 'Good Stock', color: 'text-green-600 bg-green-50' };
     };
 
@@ -875,7 +875,7 @@ const SparePartsInventory = () => {
                 <button
                     ref={buttonRef}
                     onClick={() => setShowDropdown(!showDropdown)}
-                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                    className="p-2 text-secondary hover:text-primary hover:bg-gray-100 rounded-full transition-colors"
                     title="More actions"
                 >
                     <FaEllipsisH size={16} />
@@ -884,7 +884,7 @@ const SparePartsInventory = () => {
                 {showDropdown && (
                     <div
                         ref={dropdownRef}
-                        className="fixed w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-[101]"
+                        className="fixed w-48 bg-card rounded-lg shadow-xl border border-theme py-1 z-[101]"
                         style={{
                             top: `${position.top}px`,
                             right: `${position.right}px`
@@ -912,9 +912,9 @@ const SparePartsInventory = () => {
                                 setShowEditModal(true);
                                 setShowDropdown(false);
                             }}
-                            className="flex items-center gap-3 w-full px-4 py-2 text-sm !text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="flex items-center gap-3 w-full px-4 py-2 text-sm !text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                         >
-                            <FaEdit size={14} className="text-blue-600" />
+                            <FaEdit size={14} className="text-[#00D1FF]" />
                             Edit Part
                         </button>
                         <button
@@ -925,9 +925,9 @@ const SparePartsInventory = () => {
                                 setShowUsageModal(true);
                                 setShowDropdown(false);
                             }}
-                            className="flex items-center gap-3 w-full px-4 py-2 text-sm !text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="flex items-center gap-3 w-full px-4 py-2 text-sm !text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                         >
-                            <FaHistory size={14} className="text-orange-600" />
+                            <FaHistory size={14} className="text-[#F59E0B]" />
                             Use Part
                         </button>
 
@@ -937,18 +937,18 @@ const SparePartsInventory = () => {
                                 setShowDetailsModal(true);
                                 setShowDropdown(false);
                             }}
-                            className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="flex items-center gap-3 w-full px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                         >
                             <FaEye size={14} className="text-green-600" />
                             View Details
                         </button>
-                        <div className="border-t border-gray-100 my-1"></div>
+                        <div className="border-t border-theme my-1"></div>
                         <button
                             onClick={() => {
                                 handleDeletePart(part);
                                 setShowDropdown(false);
                             }}
-                            className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                            className="flex items-center gap-3 w-full px-4 py-2 text-sm text-[#A855F7] hover:bg-red-50 transition-colors"
                         >
                             <FaTrash size={14} />
                             Delete Part
@@ -965,7 +965,7 @@ const SparePartsInventory = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <div className="lg:col-span-1">
                     <div className="relative">
-                        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={18} />
                         <input
                             type="text"
                             placeholder="Search parts..."
@@ -978,45 +978,45 @@ const SparePartsInventory = () => {
                 </div>
 
                 <div className="lg:col-span-3 grid grid-cols-4 gap-4">
-                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                        <div className="text-2xl font-bold text-gray-900">{spareParts.length}</div>
-                        <div className="text-gray-600 text-sm">Total Parts</div>
+                    <div className="bg-card p-4 rounded-lg shadow-sm border border-theme">
+                        <div className="text-2xl font-bold text-primary">{spareParts.length}</div>
+                        <div className="text-secondary text-sm">Total Parts</div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                        <div className="text-2xl font-bold text-red-600">
+                    <div className="bg-card p-4 rounded-lg shadow-sm border border-theme">
+                        <div className="text-2xl font-bold text-[#A855F7]">
                             {spareParts.filter(part => part.stockQty <= part.minStockLevel).length}
                         </div>
-                        <div className="text-gray-600 text-sm">Low Stock</div>
+                        <div className="text-secondary text-sm">Low Stock</div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <div className="bg-card p-4 rounded-lg shadow-sm border border-theme">
                         <div className="text-2xl font-bold" style={{ color: ACCENT_PRIMARY }}>
                             {spareParts.reduce((total, part) => total + part.stockQty, 0)}
                         </div>
-                        <div className="text-gray-600 text-sm">Total Stock</div>
+                        <div className="text-secondary text-sm">Total Stock</div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <div className="bg-card p-4 rounded-lg shadow-sm border border-theme">
                         <div className="text-2xl font-bold text-green-600">
                             ${spareParts.reduce((total, part) => total + (part.stockQty * part.buyingPrice), 0).toFixed(2)}
                         </div>
-                        <div className="text-gray-600 text-sm">Inventory Value</div>
+                        <div className="text-secondary text-sm">Inventory Value</div>
                     </div>
                 </div>
             </div>
 
             {/* Parts Table */}
             {loading ? (
-                <div className="bg-white rounded-lg shadow-sm p-12 text-center border border-gray-200">
+                <div className="bg-card rounded-lg shadow-sm p-12 text-center border border-theme">
                     <div
                         className="animate-spin rounded-full h-16 w-16 border-b-4 mx-auto mb-4"
                         style={{ borderColor: 'rgba(1, 106, 178, 0.2)', borderBottomColor: ACCENT_PRIMARY }}
                     ></div>
-                    <p className="text-gray-500 text-lg">Loading spare parts...</p>
+                    <p className="text-secondary text-lg">Loading spare parts...</p>
                 </div>
             ) : filteredParts.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                <div className="bg-card rounded-lg shadow-sm border border-theme p-12 text-center">
                     <FaBox className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">No Spare Parts Found</h3>
-                    <p className="text-gray-500 mb-4">
+                    <h3 className="text-xl font-semibold text-primary mb-2">No Spare Parts Found</h3>
+                    <p className="text-secondary mb-4">
                         {searchTerm
                             ? 'No parts match your search.'
                             : 'Get started by adding your first spare part.'}
@@ -1033,51 +1033,51 @@ const SparePartsInventory = () => {
                     )}
                 </div>
             ) : (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div className="bg-card rounded-lg shadow-sm border border-theme">
                     <div className="overflow-x-auto overflow-y-visible">
                         <table className="w-full">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-card">
                                 <tr>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Part Number
                                     </th>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Part Name
                                     </th>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Category
                                     </th>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Description
                                     </th>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Stock Qty
                                     </th>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Min/Max Stock
                                     </th>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Buying Price
                                     </th>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Selling Price
                                     </th>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Purchase Date
                                     </th>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Supplier
                                     </th>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Location
                                     </th>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Condition
                                     </th>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Warranty
                                     </th>
-                                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-4 py-2 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
@@ -1089,29 +1089,29 @@ const SparePartsInventory = () => {
                                     return (
                                         <tr
                                             key={part._id}
-                                            className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                            className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                                             onClick={() => {
                                                 setSelectedPart(part);
                                                 setShowDetailsModal(true);
                                             }}
                                         >
                                             <td className="px-4 py-2 whitespace-nowrap">
-                                                <div className="text-xs font-semibold text-gray-900">{part.partNumber || 'N/A'}</div>
+                                                <div className="text-xs font-semibold text-primary">{part.partNumber || 'N/A'}</div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap">
-                                                <div className="text-xs font-medium text-gray-900">{part.partName || 'N/A'}</div>
+                                                <div className="text-xs font-medium text-primary">{part.partName || 'N/A'}</div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap">
-                                                <div className="text-xs text-gray-600">{part.category || 'N/A'}</div>
+                                                <div className="text-xs text-secondary">{part.category || 'N/A'}</div>
                                             </td>
                                             <td className="px-4 py-2">
-                                                <div className="text-xs text-gray-600 max-w-xs truncate" title={part.description || 'N/A'}>
+                                                <div className="text-xs text-secondary max-w-xs truncate" title={part.description || 'N/A'}>
                                                     {part.description || 'N/A'}
                                                 </div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="text-xs font-medium text-gray-900">{part.stockQty || 0}</div>
+                                                    <div className="text-xs font-medium text-primary">{part.stockQty || 0}</div>
                                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${stockStatus.color}`}>
                                                         {stockStatus.status}
                                                     </span>
@@ -1121,46 +1121,46 @@ const SparePartsInventory = () => {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap">
-                                                <div className="text-xs text-gray-600">
+                                                <div className="text-xs text-secondary">
                                                     <div>Min: {part.minStockLevel || 0}</div>
                                                     <div>Max: {part.maxStockLevel || 0}</div>
                                                 </div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap">
-                                                <div className="text-xs text-gray-900">
+                                                <div className="text-xs text-primary">
                                                     ${part.buyingPrice ? part.buyingPrice.toFixed(2) : '0.00'}
                                                 </div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap">
-                                                <div className="text-xs text-gray-900">
+                                                <div className="text-xs text-primary">
                                                     ${part.sellingPrice ? part.sellingPrice.toFixed(2) : '0.00'}
                                                 </div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap">
-                                                <div className="text-xs text-gray-600">
+                                                <div className="text-xs text-secondary">
                                                     {part.purchaseDate ? formatDate(part.purchaseDate) : 'N/A'}
                                                 </div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap">
-                                                <div className="text-xs text-gray-900">{supplier?.name || 'N/A'}</div>
+                                                <div className="text-xs text-primary">{supplier?.name || 'N/A'}</div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap">
-                                                <div className="text-xs text-gray-600">{part.location || 'N/A'}</div>
+                                                <div className="text-xs text-secondary">{part.location || 'N/A'}</div>
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap">
                                                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${part.condition === 'new' ? 'bg-green-100 text-green-800' :
                                                     part.condition === 'refurbished' ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-gray-100 text-gray-800'
+                                                        'bg-gray-100 text-primary'
                                                     }`}>
                                                     {part.condition ? part.condition.charAt(0).toUpperCase() + part.condition.slice(1) : 'N/A'}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap">
-                                                <div className="text-xs text-gray-600">
+                                                <div className="text-xs text-secondary">
                                                     {part.warrantyPeriod ? `${part.warrantyPeriod} months` : 'N/A'}
                                                 </div>
                                                 {part.warrantyExpiry && (
-                                                    <div className="text-xs text-gray-500">
+                                                    <div className="text-xs text-secondary">
                                                         Exp: {formatDate(part.warrantyExpiry)}
                                                     </div>
                                                 )}
@@ -1196,14 +1196,14 @@ const SparePartsInventory = () => {
         bgColor: string;
         iconColor: string;
     }) => (
-        <div className="bg-white rounded-lg p-3 shadow-sm border border-transparent hover:border-blue-100 transition-all">
+        <div className="bg-card rounded-lg p-3 shadow-sm border border-transparent hover:border-blue-100 transition-all">
             <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
-                    <h3 className="text-sm font-bold text-gray-900 mb-1">{title}</h3>
+                    <h3 className="text-sm font-bold text-primary mb-1">{title}</h3>
                     <div className="flex items-baseline gap-2 mb-0.5">
-                        <span className="text-xl font-bold text-gray-900">{value}</span>
+                        <span className="text-xl font-bold text-primary">{value}</span>
                     </div>
-                    <p className="text-xs text-gray-400">{subtitle}</p>
+                    <p className="text-xs text-secondary">{subtitle}</p>
                 </div>
                 <div className={`${bgColor} rounded-lg p-2 shadow-sm`}>
                     <Icon className={iconColor} size={20} />
@@ -1217,7 +1217,7 @@ const SparePartsInventory = () => {
     const totalValue = spareParts.reduce((acc, p) => acc + (p.stockQty * p.buyingPrice), 0);
 
     return (
-        <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
+        <div className="min-h-screen pb-10" >
             <div className="relative w-full mx-auto p-2">
 
 
@@ -1240,7 +1240,7 @@ const SparePartsInventory = () => {
                                 <button
                                     onClick={handleExportParts}
                                     disabled={exporting}
-                                    className="inline-flex items-center gap-2 rounded-lg bg-white text-green-600 px-4 py-2 font-bold text-sm shadow-sm hover:bg-white/90 transition disabled:opacity-60"
+                                    className="inline-flex items-center gap-2 rounded-lg bg-card text-green-600 px-4 py-2 font-bold text-sm shadow-sm hover:bg-card/90 transition disabled:opacity-60"
                                 >
                                     <Download className="w-4 h-4" />
                                     {exporting ? 'Exporting...' : 'Export'}
@@ -1254,7 +1254,7 @@ const SparePartsInventory = () => {
                                 </button>
                                 <button
                                     onClick={() => setShowAddModal(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-white text-[#0ea3d8] rounded-lg hover:bg-white/90 shadow-sm transition-all font-bold text-sm"
+                                    className="flex items-center gap-2 px-4 py-2 bg-card text-[#0ea3d8] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
                                 >
                                     <FaPlus /> Add New Part
                                 </button>
@@ -1268,16 +1268,16 @@ const SparePartsInventory = () => {
                             value={totalParts}
                             subtitle="In Inventory"
                             icon={FaBox}
-                            bgColor="bg-blue-50"
-                            iconColor="text-blue-600"
+                            bgColor="bg-card"
+                            iconColor="text-[#00D1FF]"
                         />
                         <StatCard
                             title="Low Stock"
                             value={lowStockParts}
                             subtitle="Needs Reorder"
                             icon={FaExclamationTriangle}
-                            bgColor="bg-red-50"
-                            iconColor="text-red-600"
+                            bgColor="bg-card"
+                            iconColor="text-[#A855F7]"
                         />
                         <StatCard
                             title="Total Value"
@@ -1303,12 +1303,12 @@ const SparePartsInventory = () => {
             {/* Add Part Modal */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4">Add New Spare Part</h3>
+                    <div className="bg-card rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <h3 className="text-lg font-bold text-primary mb-4">Add New Spare Part</h3>
                         <form onSubmit={handleAddPart} className="space-y-4" key="add-form">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Part Number <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -1321,7 +1321,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Part Name <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -1337,7 +1337,7 @@ const SparePartsInventory = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Category
                                     </label>
                                     <select
@@ -1355,7 +1355,7 @@ const SparePartsInventory = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Condition
                                     </label>
                                     <select
@@ -1371,7 +1371,7 @@ const SparePartsInventory = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-primary mb-1">
                                     Description
                                 </label>
                                 <textarea
@@ -1385,7 +1385,7 @@ const SparePartsInventory = () => {
 
                             <div className="grid grid-cols-3 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Stock Quantity <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -1399,7 +1399,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Min Stock Level
                                     </label>
                                     <input
@@ -1412,7 +1412,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Max Stock Level
                                     </label>
                                     <input
@@ -1428,7 +1428,7 @@ const SparePartsInventory = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Buying Price
                                     </label>
                                     <input
@@ -1442,7 +1442,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Selling Price
                                     </label>
                                     <input
@@ -1459,7 +1459,7 @@ const SparePartsInventory = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Purchase Date
                                     </label>
                                     <input
@@ -1470,7 +1470,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Supplier
                                     </label>
                                     <select
@@ -1492,7 +1492,7 @@ const SparePartsInventory = () => {
                                                 {supplier.name}
                                             </option>
                                         ))}
-                                        <option value="__create_new__" className="text-blue-600 font-semibold">
+                                        <option value="__create_new__" className="text-[#00D1FF] font-semibold">
                                             + Create New Supplier
                                         </option>
                                     </select>
@@ -1501,7 +1501,7 @@ const SparePartsInventory = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Location
                                     </label>
                                     <AddressSearch
@@ -1519,7 +1519,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Warranty Period (months)
                                     </label>
                                     <input
@@ -1537,7 +1537,7 @@ const SparePartsInventory = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowAddModal(false)}
-                                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    className="px-4 py-2 text-secondary border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                                     disabled={submitting}
                                 >
                                     Cancel
@@ -1559,12 +1559,12 @@ const SparePartsInventory = () => {
             {/* Edit Part Modal */}
             {showEditModal && selectedPart && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4">Edit Spare Part</h3>
+                    <div className="bg-card rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <h3 className="text-lg font-bold text-primary mb-4">Edit Spare Part</h3>
                         <form onSubmit={handleEditPart} className="space-y-4" key="edit-form">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Part Number <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -1577,7 +1577,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Part Name <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -1593,7 +1593,7 @@ const SparePartsInventory = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Category
                                     </label>
                                     <select
@@ -1611,7 +1611,7 @@ const SparePartsInventory = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Condition
                                     </label>
                                     <select
@@ -1627,7 +1627,7 @@ const SparePartsInventory = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-primary mb-1">
                                     Description
                                 </label>
                                 <textarea
@@ -1641,7 +1641,7 @@ const SparePartsInventory = () => {
 
                             <div className="grid grid-cols-3 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Stock Quantity <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -1655,7 +1655,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Min Stock Level
                                     </label>
                                     <input
@@ -1668,7 +1668,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Max Stock Level
                                     </label>
                                     <input
@@ -1684,7 +1684,7 @@ const SparePartsInventory = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Buying Price
                                     </label>
                                     <input
@@ -1698,7 +1698,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Selling Price
                                     </label>
                                     <input
@@ -1715,7 +1715,7 @@ const SparePartsInventory = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Purchase Date
                                     </label>
                                     <input
@@ -1726,7 +1726,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Supplier
                                     </label>
                                     <select
@@ -1748,7 +1748,7 @@ const SparePartsInventory = () => {
                                                 {supplier.name}
                                             </option>
                                         ))}
-                                        <option value="__create_new__" className="text-blue-600 font-semibold">
+                                        <option value="__create_new__" className="text-[#00D1FF] font-semibold">
                                             + Create New Supplier
                                         </option>
                                     </select>
@@ -1757,7 +1757,7 @@ const SparePartsInventory = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Location
                                     </label>
                                     <AddressSearch
@@ -1775,7 +1775,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Warranty Period (months)
                                     </label>
                                     <input
@@ -1796,7 +1796,7 @@ const SparePartsInventory = () => {
                                         setShowEditModal(false);
                                         setSelectedPart(null);
                                     }}
-                                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    className="px-4 py-2 text-secondary border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                                     disabled={submitting}
                                 >
                                     Cancel
@@ -1818,11 +1818,11 @@ const SparePartsInventory = () => {
             {/* Add Supplier Modal */}
             {showSupplierModal && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4">Add New Supplier</h3>
+                    <div className="bg-card rounded-lg p-6 w-full max-w-md">
+                        <h3 className="text-lg font-bold text-primary mb-4">Add New Supplier</h3>
                         <form onSubmit={handleAddSupplier} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-primary mb-1">
                                     Supplier Name <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -1835,7 +1835,7 @@ const SparePartsInventory = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-primary mb-1">
                                     Contact Person <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -1848,7 +1848,7 @@ const SparePartsInventory = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-primary mb-1">
                                     Email <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -1861,7 +1861,7 @@ const SparePartsInventory = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-primary mb-1">
                                     Phone
                                 </label>
                                 <input
@@ -1889,7 +1889,7 @@ const SparePartsInventory = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowSupplierModal(false)}
-                                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    className="px-4 py-2 text-secondary border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                                 >
                                     Cancel
                                 </button>
@@ -1907,17 +1907,17 @@ const SparePartsInventory = () => {
 
             {deleteModalOpen && deleteTarget && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                        <h3 className="text-lg font-bold text-gray-900 mb-3">Delete Spare Part</h3>
-                        <p className="text-sm text-gray-600 mb-6">
+                    <div className="bg-card rounded-lg p-6 w-full max-w-md">
+                        <h3 className="text-lg font-bold text-primary mb-3">Delete Spare Part</h3>
+                        <p className="text-sm text-secondary mb-6">
                             Are you sure you want to delete{' '}
-                            <span className="font-semibold text-gray-900">{deleteTarget.partName}</span>? This action cannot be undone.
+                            <span className="font-semibold text-primary">{deleteTarget.partName}</span>? This action cannot be undone.
                         </p>
                         <div className="flex justify-end gap-3">
                             <button
                                 onClick={closeDeleteModal}
                                 disabled={deleteLoading}
-                                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="px-4 py-2 text-secondary border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                                 Cancel
                             </button>
@@ -1936,15 +1936,15 @@ const SparePartsInventory = () => {
             {/* Invoice Modal */}
             {showInvoiceModal && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4">Create Invoice</h3>
+                    <div className="bg-card rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <h3 className="text-lg font-bold text-primary mb-4">Create Invoice</h3>
 
                         {/* Customer Information */}
                         <div className="mb-6">
-                            <h4 className="text-md font-semibold text-gray-800 mb-3">Customer Information</h4>
+                            <h4 className="text-md font-semibold text-primary mb-3">Customer Information</h4>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Customer Name <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -1957,7 +1957,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Email
                                     </label>
                                     <input
@@ -1969,7 +1969,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Phone
                                     </label>
                                     <input
@@ -1981,7 +1981,7 @@ const SparePartsInventory = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-primary mb-1">
                                         Tax Rate (%)
                                     </label>
                                     <input
@@ -1995,7 +1995,7 @@ const SparePartsInventory = () => {
                                 </div>
                             </div>
                             <div className="mt-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-primary mb-1">
                                     Address
                                 </label>
                                 <textarea
@@ -2010,19 +2010,19 @@ const SparePartsInventory = () => {
 
                         {/* Invoice Items */}
                         <div className="mb-6">
-                            <h4 className="text-md font-semibold text-gray-800 mb-3">Invoice Items</h4>
+                            <h4 className="text-md font-semibold text-primary mb-3">Invoice Items</h4>
                             {invoiceRef.current.items.length === 0 ? (
-                                <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                                <div className="text-center py-8 text-secondary bg-card rounded-lg">
                                     <FaShoppingCart className="h-12 w-12 text-gray-300 mx-auto mb-2" />
                                     <p>No items added yet. Add parts from the inventory.</p>
                                 </div>
                             ) : (
                                 <div className="space-y-3">
                                     {invoiceRef.current.items.map((item) => (
-                                        <div key={item.partId} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                                        <div key={item.partId} className="flex items-center gap-4 p-3 bg-card rounded-lg">
                                             <div className="flex-1">
-                                                <div className="font-medium text-gray-900">{item.partName}</div>
-                                                <div className="text-sm text-gray-500">{item.partNumber}</div>
+                                                <div className="font-medium text-primary">{item.partName}</div>
+                                                <div className="text-sm text-secondary">{item.partNumber}</div>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <input
@@ -2032,11 +2032,11 @@ const SparePartsInventory = () => {
                                                     onChange={(e) => updateInvoiceItemQuantity(item.partId, parseInt(e.target.value))}
                                                     className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
                                                 />
-                                                <span className="text-sm text-gray-600">× ${item.unitPrice.toFixed(2)}</span>
-                                                <span className="font-medium text-gray-900">${item.totalPrice.toFixed(2)}</span>
+                                                <span className="text-sm text-secondary">× ${item.unitPrice.toFixed(2)}</span>
+                                                <span className="font-medium text-primary">${item.totalPrice.toFixed(2)}</span>
                                                 <button
                                                     onClick={() => removeItemFromInvoice(item.partId)}
-                                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                    className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
                                                 >
                                                     <FaTrash size={12} />
                                                 </button>
@@ -2050,7 +2050,7 @@ const SparePartsInventory = () => {
                         {/* Invoice Totals */}
                         {invoiceRef.current.items.length > 0 && (
                             <div className="mb-6">
-                                <div className="bg-gray-50 p-4 rounded-lg">
+                                <div className="bg-card p-4 rounded-lg">
                                     <div className="flex justify-between text-sm mb-2">
                                         <span>Subtotal:</span>
                                         <span>${invoiceRef.current.items.reduce((sum, item) => sum + item.totalPrice, 0).toFixed(2)}</span>
@@ -2070,7 +2070,7 @@ const SparePartsInventory = () => {
                         <div className="flex justify-end space-x-3">
                             <button
                                 onClick={() => setShowInvoiceModal(false)}
-                                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                className="px-4 py-2 text-secondary border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                             >
                                 Cancel
                             </button>
@@ -2088,13 +2088,13 @@ const SparePartsInventory = () => {
             {/* Use Part Modal */}
             {showUsageModal && selectedPart && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+                    <div className="bg-card rounded-lg p-6 w-full max-w-2xl">
                         <div className="flex justify-between items-start mb-6">
                             <div>
-                                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                                <h3 className="text-xl font-bold text-primary mb-2">
                                     Use Spare Part
                                 </h3>
-                                <p className="text-sm text-gray-600">Record usage of this part for a truck</p>
+                                <p className="text-sm text-secondary">Record usage of this part for a truck</p>
                             </div>
                             <button
                                 onClick={() => {
@@ -2105,7 +2105,7 @@ const SparePartsInventory = () => {
                                 }}
                                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                             >
-                                <FaTimes className="text-gray-500" size={18} />
+                                <FaTimes className="text-secondary" size={18} />
                             </button>
                         </div>
 
@@ -2138,28 +2138,28 @@ const SparePartsInventory = () => {
 
                         <form onSubmit={handleUsePart} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                <label className="block text-sm font-semibold text-primary mb-2">
                                     Unit (Truck/Trailer) <span className="text-red-500">*</span>
                                 </label>
                                 {loadingUnits ? (
-                                    <div className="flex items-center justify-center py-8 bg-gray-50 rounded-lg">
+                                    <div className="flex items-center justify-center py-8 bg-card rounded-lg">
                                         <div
                                             className="animate-spin rounded-full h-8 w-8 border-b-2"
                                             style={{ borderColor: 'rgba(1, 106, 178, 0.2)', borderBottomColor: ACCENT_PRIMARY }}
                                         ></div>
-                                        <span className="ml-3 text-sm text-gray-500">Loading units...</span>
+                                        <span className="ml-3 text-sm text-secondary">Loading units...</span>
                                     </div>
                                 ) : units.length === 0 ? (
-                                    <div className="py-8 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
-                                        <FaExclamationCircle className="text-yellow-600 mx-auto mb-2" size={24} />
+                                    <div className="py-8 bg-card border border-yellow-200 rounded-lg text-center">
+                                        <FaExclamationCircle className="text-[#00FFA3] mx-auto mb-2" size={24} />
                                         <p className="text-sm text-yellow-800">No vehicles or trailers available</p>
-                                        <p className="text-xs text-yellow-600 mt-1">Add vehicles or trailers to your fleet first</p>
+                                        <p className="text-xs text-[#00FFA3] mt-1">Add vehicles or trailers to your fleet first</p>
                                     </div>
                                 ) : (
                                     <select
                                         defaultValue={usageDataRef.current.unitNumber}
                                         onChange={(e) => usageDataRef.current.unitNumber = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all bg-white"
+                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all bg-card"
                                         style={focusRingStyle}
                                         required
                                     >
@@ -2173,7 +2173,7 @@ const SparePartsInventory = () => {
                                 )}
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                <label className="block text-sm font-semibold text-primary mb-2">
                                     Quantity Used <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -2191,7 +2191,7 @@ const SparePartsInventory = () => {
                                     max={selectedPart.stockQty}
                                     required
                                 />
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-secondary mt-1">
                                     Available: {selectedPart.stockQty} units | After use: {selectedPart.stockQty - (parseInt(qtyUsedInput) || 0)} units
                                 </p>
                             </div>
@@ -2203,7 +2203,7 @@ const SparePartsInventory = () => {
                                         setSelectedPart(null);
                                         usageDataRef.current = { unitNumber: '', qtyUsed: '' };
                                     }}
-                                    className="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                                    className="px-5 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                                     disabled={submitting}
                                 >
                                     Cancel
@@ -2225,10 +2225,10 @@ const SparePartsInventory = () => {
             {/* Part Details Modal */}
             {showDetailsModal && selectedPart && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <div className="sticky top-0 bg-white border-b px-6 py-4 rounded-t-2xl z-10">
+                    <div className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="sticky top-0 bg-card border-b px-6 py-4 rounded-t-2xl z-10">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-bold text-gray-800">
+                                <h3 className="text-xl font-bold text-primary">
                                     Part Details: {selectedPart.partName}
                                 </h3>
                                 <button
@@ -2238,7 +2238,7 @@ const SparePartsInventory = () => {
                                     }}
                                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                                 >
-                                    <FaTimes className="text-gray-500" size={20} />
+                                    <FaTimes className="text-secondary" size={20} />
                                 </button>
                             </div>
                         </div>
@@ -2252,36 +2252,36 @@ const SparePartsInventory = () => {
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="border border-gray-200 rounded-xl p-4">
-                                    <div className="text-sm text-gray-600">Part Number</div>
-                                    <div className="text-lg font-bold text-gray-900">{selectedPart.partNumber}</div>
+                                <div className="border border-theme rounded-xl p-4">
+                                    <div className="text-sm text-secondary">Part Number</div>
+                                    <div className="text-lg font-bold text-primary">{selectedPart.partNumber}</div>
                                 </div>
-                                <div className="border border-gray-200 rounded-xl p-4">
-                                    <div className="text-sm text-gray-600">Category</div>
-                                    <div className="text-lg font-bold text-gray-900">{selectedPart.category}</div>
+                                <div className="border border-theme rounded-xl p-4">
+                                    <div className="text-sm text-secondary">Category</div>
+                                    <div className="text-lg font-bold text-primary">{selectedPart.category}</div>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="border border-gray-200 rounded-xl p-4">
-                                    <div className="text-sm text-gray-600">Buying Price</div>
-                                    <div className="text-lg font-bold text-gray-900">${selectedPart.buyingPrice.toFixed(2)}</div>
+                                <div className="border border-theme rounded-xl p-4">
+                                    <div className="text-sm text-secondary">Buying Price</div>
+                                    <div className="text-lg font-bold text-primary">${selectedPart.buyingPrice.toFixed(2)}</div>
                                 </div>
-                                <div className="border border-gray-200 rounded-xl p-4">
-                                    <div className="text-sm text-gray-600">Selling Price</div>
-                                    <div className="text-lg font-bold text-gray-900">${selectedPart.sellingPrice.toFixed(2)}</div>
+                                <div className="border border-theme rounded-xl p-4">
+                                    <div className="text-sm text-secondary">Selling Price</div>
+                                    <div className="text-lg font-bold text-primary">${selectedPart.sellingPrice.toFixed(2)}</div>
                                 </div>
                             </div>
 
                             <div className="border-t pt-4">
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
-                                        <span className="text-gray-600 font-medium">Created:</span>
-                                        <span className="ml-2 text-gray-900">{formatDate(selectedPart.createdAt)}</span>
+                                        <span className="text-secondary font-medium">Created:</span>
+                                        <span className="ml-2 text-primary">{formatDate(selectedPart.createdAt)}</span>
                                     </div>
                                     <div>
-                                        <span className="text-gray-600 font-medium">Last Updated:</span>
-                                        <span className="ml-2 text-gray-900">{formatDate(selectedPart.updatedAt)}</span>
+                                        <span className="text-secondary font-medium">Last Updated:</span>
+                                        <span className="ml-2 text-primary">{formatDate(selectedPart.updatedAt)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -2292,7 +2292,7 @@ const SparePartsInventory = () => {
                                         setShowDetailsModal(false);
                                         setSelectedPart(null);
                                     }}
-                                    className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                                    className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                                 >
                                     Close
                                 </button>
@@ -2333,10 +2333,10 @@ const SparePartsInventory = () => {
             {/* Invoice Details Modal */}
             {showInvoiceDetailsModal && selectedInvoice && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <div className="sticky top-0 bg-white border-b px-6 py-4 rounded-t-2xl z-10">
+                    <div className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="sticky top-0 bg-card border-b px-6 py-4 rounded-t-2xl z-10">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-bold text-gray-800">
+                                <h3 className="text-xl font-bold text-primary">
                                     Invoice Details: {selectedInvoice.invoiceNumber}
                                 </h3>
                                 <button
@@ -2346,7 +2346,7 @@ const SparePartsInventory = () => {
                                     }}
                                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                                 >
-                                    <FaTimes className="text-gray-500" size={20} />
+                                    <FaTimes className="text-secondary" size={20} />
                                 </button>
                             </div>
                         </div>
@@ -2368,44 +2368,44 @@ const SparePartsInventory = () => {
 
                             {/* Customer Information */}
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="border border-gray-200 rounded-xl p-4">
-                                    <div className="text-sm text-gray-600">Customer</div>
-                                    <div className="text-lg font-bold text-gray-900">{selectedInvoice.customerName}</div>
-                                    <div className="text-sm text-gray-500">{selectedInvoice.customerEmail}</div>
-                                    <div className="text-sm text-gray-500">{selectedInvoice.customerPhone}</div>
+                                <div className="border border-theme rounded-xl p-4">
+                                    <div className="text-sm text-secondary">Customer</div>
+                                    <div className="text-lg font-bold text-primary">{selectedInvoice.customerName}</div>
+                                    <div className="text-sm text-secondary">{selectedInvoice.customerEmail}</div>
+                                    <div className="text-sm text-secondary">{selectedInvoice.customerPhone}</div>
                                 </div>
-                                <div className="border border-gray-200 rounded-xl p-4">
-                                    <div className="text-sm text-gray-600">Status</div>
+                                <div className="border border-theme rounded-xl p-4">
+                                    <div className="text-sm text-secondary">Status</div>
                                     <div className={`text-lg font-bold ${selectedInvoice.status === 'paid' ? 'text-green-600' :
-                                        selectedInvoice.status === 'sent' ? 'text-blue-600' :
-                                            selectedInvoice.status === 'draft' ? 'text-yellow-600' :
-                                                'text-red-600'
+                                        selectedInvoice.status === 'sent' ? 'text-[#00D1FF]' :
+                                            selectedInvoice.status === 'draft' ? 'text-[#00FFA3]' :
+                                                'text-[#A855F7]'
                                         }`}>
                                         {selectedInvoice.status.charAt(0).toUpperCase() + selectedInvoice.status.slice(1)}
                                     </div>
-                                    <div className="text-sm text-gray-500">Due: {new Date(selectedInvoice.dueDate).toLocaleDateString()}</div>
+                                    <div className="text-sm text-secondary">Due: {new Date(selectedInvoice.dueDate).toLocaleDateString()}</div>
                                 </div>
                             </div>
 
                             {/* Invoice Items */}
-                            <div className="border border-gray-200 rounded-xl p-5">
-                                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <div className="border border-theme rounded-xl p-5">
+                                <h4 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
                                     <FaFileInvoice size={20} style={{ color: ACCENT_PRIMARY }} />
                                     Invoice Items
                                 </h4>
                                 <div className="space-y-3">
                                     {selectedInvoice.items.map((item, index) => (
-                                        <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                        <div key={index} className="bg-card rounded-lg p-4 border border-theme">
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <div className="font-medium text-gray-900">{item.partName}</div>
-                                                    <div className="text-sm text-gray-500">{item.partNumber}</div>
+                                                    <div className="font-medium text-primary">{item.partName}</div>
+                                                    <div className="text-sm text-secondary">{item.partNumber}</div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <div className="font-medium text-gray-900">
+                                                    <div className="font-medium text-primary">
                                                         {item.quantity} × ${item.unitPrice.toFixed(2)}
                                                     </div>
-                                                    <div className="text-sm text-gray-600">
+                                                    <div className="text-sm text-secondary">
                                                         Total: ${item.totalPrice.toFixed(2)}
                                                     </div>
                                                 </div>
@@ -2416,7 +2416,7 @@ const SparePartsInventory = () => {
                             </div>
 
                             {/* Invoice Totals */}
-                            <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="bg-card p-4 rounded-lg">
                                 <div className="flex justify-between text-sm mb-2">
                                     <span>Subtotal:</span>
                                     <span>${selectedInvoice.subtotal.toFixed(2)}</span>
@@ -2433,21 +2433,21 @@ const SparePartsInventory = () => {
 
                             {/* Notes */}
                             {selectedInvoice.notes && (
-                                <div className="border border-gray-200 rounded-xl p-4">
-                                    <h4 className="text-sm font-semibold text-gray-800 mb-2">Notes</h4>
-                                    <p className="text-sm text-gray-600">{selectedInvoice.notes}</p>
+                                <div className="border border-theme rounded-xl p-4">
+                                    <h4 className="text-sm font-semibold text-primary mb-2">Notes</h4>
+                                    <p className="text-sm text-secondary">{selectedInvoice.notes}</p>
                                 </div>
                             )}
 
                             {/* Invoice Dates */}
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
-                                    <span className="text-gray-600 font-medium">Created:</span>
-                                    <span className="ml-2 text-gray-900">{new Date(selectedInvoice.createdAt).toLocaleDateString()}</span>
+                                    <span className="text-secondary font-medium">Created:</span>
+                                    <span className="ml-2 text-primary">{new Date(selectedInvoice.createdAt).toLocaleDateString()}</span>
                                 </div>
                                 <div>
-                                    <span className="text-gray-600 font-medium">Due Date:</span>
-                                    <span className="ml-2 text-gray-900">{new Date(selectedInvoice.dueDate).toLocaleDateString()}</span>
+                                    <span className="text-secondary font-medium">Due Date:</span>
+                                    <span className="ml-2 text-primary">{new Date(selectedInvoice.dueDate).toLocaleDateString()}</span>
                                 </div>
                             </div>
 
@@ -2458,7 +2458,7 @@ const SparePartsInventory = () => {
                                         setShowInvoiceDetailsModal(false);
                                         setSelectedInvoice(null);
                                     }}
-                                    className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                                    className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                                 >
                                     Close
                                 </button>

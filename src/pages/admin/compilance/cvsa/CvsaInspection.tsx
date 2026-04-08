@@ -146,9 +146,9 @@ interface ToastNotification {
 const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
   const toneStyles: Record<NotificationType, { bg: string; border: string; icon: React.ReactNode }> = {
     success: { bg: 'bg-green-50 border-green-200', border: '', icon: <FaCheckCircle className="text-green-600" size={20} /> },
-    error: { bg: 'bg-red-50 border-red-200', border: '', icon: <FaExclamationCircle className="text-red-600" size={20} /> },
+    error: { bg: 'bg-card border-red-200', border: '', icon: <FaExclamationCircle className="text-[#A855F7]" size={20} /> },
     info: { bg: '', border: '', icon: <FaInfoCircle className="text-[var(--accent-color)]" size={20} /> },
-    warning: { bg: 'bg-yellow-50 border-yellow-200', border: '', icon: <FaExclamationTriangle className="text-yellow-600" size={20} /> }
+    warning: { bg: 'bg-card border-yellow-200', border: '', icon: <FaExclamationTriangle className="text-[#00FFA3]" size={20} /> }
   };
 
   const infoStyle =
@@ -164,10 +164,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
       <div className="flex-shrink-0 mt-0.5">
         {toneStyles[notification.type].icon}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -461,13 +461,13 @@ const CvsaInspection: React.FC = () => {
       case 'pass':
         return <FaCheckCircle className="text-green-600" size={20} />;
       case 'fail':
-        return <FaTimesCircle className="text-red-600" size={20} />;
+        return <FaTimesCircle className="text-[#A855F7]" size={20} />;
       case 'warning':
-        return <FaExclamationTriangle className="text-yellow-600" size={20} />;
+        return <FaExclamationTriangle className="text-[#00FFA3]" size={20} />;
       case 'out-of-service':
         return <FaBan className="text-red-800" size={20} />;
       default:
-        return <FaClipboardCheck className="text-gray-600" size={20} />;
+        return <FaClipboardCheck className="text-secondary" size={20} />;
     }
   };
 
@@ -482,20 +482,20 @@ const CvsaInspection: React.FC = () => {
       case 'out-of-service':
         return 'bg-red-200 text-red-900 border-red-300';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-primary border-theme';
     }
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'minor':
-        return 'text-yellow-600';
+        return 'text-[#00FFA3]';
       case 'major':
-        return 'text-orange-600';
+        return 'text-[#F59E0B]';
       case 'critical':
-        return 'text-red-600';
+        return 'text-[#A855F7]';
       default:
-        return 'text-gray-600';
+        return 'text-secondary';
     }
   };
 
@@ -814,16 +814,16 @@ const CvsaInspection: React.FC = () => {
     return (
       <div
         onClick={onClick}
-        className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+        className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
       >
         <div className="flex items-start justify-between mb-2">
           {/* Left side content */}
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-gray-900 mb-1">{title}</h3>
+            <h3 className="text-sm font-bold text-primary mb-1">{title}</h3>
             <div className="flex items-baseline gap-2 mb-0.5">
-              <span className="text-xl font-bold text-gray-900">{value}</span>
+              <span className="text-xl font-bold text-primary">{value}</span>
             </div>
-            {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
+            {subtitle && <p className="text-xs text-secondary">{subtitle}</p>}
           </div>
 
           {/* Right side icon */}
@@ -865,12 +865,12 @@ const CvsaInspection: React.FC = () => {
               </div>
               <div className="flex items-center gap-3">
                 {/* Country Toggle */}
-                <div className="bg-gray-50 rounded-lg p-1 flex border border-white/20">
+                <div className="bg-card rounded-lg p-1 flex border border-white/20">
                   <button
                     onClick={() => setActiveTab('canada')}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all
       ${activeTab === 'canada'
-                        ? 'bg-white shadow-sm'
+                        ? 'bg-card shadow-sm'
                         : 'hover:bg-black/5'
                       }`}
                   >
@@ -902,7 +902,7 @@ const CvsaInspection: React.FC = () => {
                     onClick={() => setActiveTab('usa')}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all
       ${activeTab === 'usa'
-                        ? 'bg-white shadow-sm'
+                        ? 'bg-card shadow-sm'
                         : 'hover:bg-black/5'
                       }`}
                   >
@@ -950,8 +950,8 @@ const CvsaInspection: React.FC = () => {
               title="Total"
               value={stats.total}
               icon={<FaClipboardCheck />}
-              bgColor="bg-blue-50"
-              iconColor="text-blue-600"
+              bgColor="bg-card"
+              iconColor="text-[#00D1FF]"
             />
             <StatCard
               title="Passed"
@@ -964,15 +964,15 @@ const CvsaInspection: React.FC = () => {
               title="Failed"
               value={stats.fail}
               icon={<FaTimesCircle />}
-              bgColor="bg-red-50"
-              iconColor="text-red-600"
+              bgColor="bg-card"
+              iconColor="text-[#A855F7]"
             />
             <StatCard
               title="Warning"
               value={stats.warning}
               icon={<FaExclamationTriangle />}
-              bgColor="bg-yellow-50"
-              iconColor="text-yellow-600"
+              bgColor="bg-card"
+              iconColor="text-[#00FFA3]"
             />
             <StatCard
               title="Out of Svc"
@@ -990,12 +990,12 @@ const CvsaInspection: React.FC = () => {
 
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+        <div className="bg-card rounded-lg shadow-sm border border-theme p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
             <div className="flex flex-col md:flex-row gap-4 flex-1">
               <div className="flex-1">
                 <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                   <input
                     type="text"
                     placeholder="Search inspections..."
@@ -1006,7 +1006,7 @@ const CvsaInspection: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <FaFilter className="text-gray-500" size={16} />
+                <FaFilter className="text-secondary" size={16} />
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -1021,7 +1021,7 @@ const CvsaInspection: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Items per page:</label>
+              <label className="text-sm text-secondary">Items per page:</label>
               <select
                 value={pageSize}
                 onChange={(e) => {
@@ -1041,9 +1041,9 @@ const CvsaInspection: React.FC = () => {
         </div>
 
         {/* Inspections Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-bold text-gray-800">
+        <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+          <div className="px-6 py-4 border-b border-theme">
+            <h3 className="text-lg font-bold text-primary">
               {activeTab.toUpperCase()} Inspections ({total > 0 ? total : filteredInspections.length})
             </h3>
           </div>
@@ -1051,13 +1051,13 @@ const CvsaInspection: React.FC = () => {
           {loading ? (
             <div className="text-center py-16">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-color)] mx-auto mb-4"></div>
-              <p className="text-xl font-semibold text-gray-500">Loading inspections...</p>
+              <p className="text-xl font-semibold text-secondary">Loading inspections...</p>
             </div>
           ) : filteredInspections.length === 0 ? (
             <div className="text-center py-16">
               <FaClipboardCheck size={64} className="mx-auto mb-4 text-gray-300" />
-              <p className="text-xl font-semibold text-gray-500">No inspections found</p>
-              <p className="text-gray-400 mt-2">Try adjusting your filters or search criteria</p>
+              <p className="text-xl font-semibold text-secondary">No inspections found</p>
+              <p className="text-secondary mt-2">Try adjusting your filters or search criteria</p>
             </div>
           ) : (
             <>
@@ -1103,122 +1103,122 @@ const CvsaInspection: React.FC = () => {
                   className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
                 >
                   <table className="w-full min-w-[1200px]">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-card">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky left-0 bg-card z-10">
                         Inspection ID
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Date
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Location
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Country
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Vehicle
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Driver
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Inspector
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Report #
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Level
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Jurisdiction
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         USDOT #
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         OOS Issued
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Violations
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky right-0 bg-gray-50 z-10">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky right-0 bg-card z-10">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-gray-200">
                     {filteredInspections.map((inspection) => (
                       <tr 
                         key={inspection._id} 
-                        className="hover:bg-gray-50 cursor-pointer"
+                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
                         onClick={() => handleViewInspection(inspection)}
                       >
-                        <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-white z-10">
-                          <div className="text-sm font-medium text-gray-900">
+                        <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-card z-10">
+                          <div className="text-sm font-medium text-primary">
                             {inspection.inspectionId || 'N/A'}
                           </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-primary">
                             <div className="flex items-center gap-1">
-                              <FaCalendarAlt className="text-gray-400" size={12} />
+                              <FaCalendarAlt className="text-secondary" size={12} />
                               {inspection.date ? formatDate(inspection.date) : 'N/A'}
                             </div>
                             {inspection.timeOfInspection && (
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className="text-xs text-secondary mt-1">
                                 {inspection.timeOfInspection}
                               </div>
                             )}
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="text-sm text-gray-900 max-w-[200px] truncate" title={inspection.location || 'N/A'}>
+                          <div className="text-sm text-primary max-w-[200px] truncate" title={inspection.location || 'N/A'}>
                             <div className="flex items-center gap-1">
-                              <FaMapMarkerAlt className="text-gray-400 flex-shrink-0" size={12} />
+                              <FaMapMarkerAlt className="text-secondary flex-shrink-0" size={12} />
                               {inspection.location || 'N/A'}
                             </div>
                           </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 uppercase">
+                          <div className="text-sm text-primary uppercase">
                             {inspection.country === 'canada' ? (
                               <span className="flex items-center gap-1">
-                                <FaFlag className="text-red-600" size={14} />
+                                <FaFlag className="text-[#A855F7]" size={14} />
                                 CA
                               </span>
                             ) : (
                               <span className="flex items-center gap-1">
-                                <FaFlagUsa className="text-blue-600" size={14} />
+                                <FaFlagUsa className="text-[#00D1FF]" size={14} />
                                 USA
                               </span>
                             )}
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="text-sm text-gray-900 max-w-[180px]">
+                          <div className="text-sm text-primary max-w-[180px]">
                             <div className="font-medium truncate" title={getVehicleInfo(inspection.vehicle)}>
                               {getVehicleInfo(inspection.vehicle) || 'N/A'}
                             </div>
                             {typeof inspection.vehicle === 'object' && inspection.vehicle?.internalId && (
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-secondary">
                                 ID: {inspection.vehicle.internalId}
                               </div>
                             )}
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="text-sm text-gray-900 max-w-[150px]">
+                          <div className="text-sm text-primary max-w-[150px]">
                             <div className="truncate" title={getDriverName(inspection.driver)}>
                               {getDriverName(inspection.driver) || 'N/A'}
                             </div>
                             {inspection.driverLicenseNumber && (
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-secondary">
                                 DL: {inspection.driverLicenseNumber}
                               </div>
                             )}
@@ -1233,64 +1233,64 @@ const CvsaInspection: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="text-sm text-gray-900 max-w-[150px] truncate" title={inspection.inspectorName || 'N/A'}>
+                          <div className="text-sm text-primary max-w-[150px] truncate" title={inspection.inspectorName || 'N/A'}>
                             {inspection.inspectorName || 'N/A'}
                           </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-primary">
                             {inspection.reportNumber || 'N/A'}
                           </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-primary">
                             {inspection.inspectionLevel ? `Level ${inspection.inspectionLevel}` : 'N/A'}
                           </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-primary">
                             {inspection.jurisdiction || 'N/A'}
                           </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-primary">
                             {inspection.carrierUSDOTNumber || 'N/A'}
                           </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="text-sm">
                             {inspection.outOfServiceIssued ? (
-                              <span className="text-red-600 font-medium">Yes</span>
+                              <span className="text-[#A855F7] font-medium">Yes</span>
                             ) : (
-                              <span className="text-gray-500">No</span>
+                              <span className="text-secondary">No</span>
                             )}
                             {inspection.outOfServiceReleaseDate && (
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className="text-xs text-secondary mt-1">
                                 Released: {formatDate(inspection.outOfServiceReleaseDate)}
                               </div>
                             )}
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-primary">
                             {inspection.violations && inspection.violations.length > 0 ? (
                               <div className="flex flex-col gap-1">
-                                <span className="text-red-600 font-medium">{inspection.violations.length} violation(s)</span>
+                                <span className="text-[#A855F7] font-medium">{inspection.violations.length} violation(s)</span>
                                 {inspection.violations.slice(0, 2).map((v, idx) => (
-                                  <span key={idx} className="text-xs text-gray-600 truncate max-w-[150px]" title={v.description}>
+                                  <span key={idx} className="text-xs text-secondary truncate max-w-[150px]" title={v.description}>
                                     {v.code}: {v.description}
                                   </span>
                                 ))}
                                 {inspection.violations.length > 2 && (
-                                  <span className="text-xs text-gray-500">+{inspection.violations.length - 2} more</span>
+                                  <span className="text-xs text-secondary">+{inspection.violations.length - 2} more</span>
                                 )}
                               </div>
                             ) : (
-                              <span className="text-gray-500">None</span>
+                              <span className="text-secondary">None</span>
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-white z-10" onClick={(e) => e.stopPropagation()}>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-card z-10" onClick={(e) => e.stopPropagation()}>
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleViewInspection(inspection)}
@@ -1308,7 +1308,7 @@ const CvsaInspection: React.FC = () => {
                             </button>
                             <button
                               onClick={() => handleDeleteInspection(inspection)}
-                              className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                              className="text-[#A855F7] hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete Inspection"
                             >
                               <FaTrash size={16} />
@@ -1324,8 +1324,8 @@ const CvsaInspection: React.FC = () => {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
-                  <div className="text-sm text-gray-700">
+                <div className="px-6 py-4 border-t border-theme flex items-center justify-between bg-card">
+                  <div className="text-sm text-primary">
                     Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{' '}
                     <span className="font-medium">{Math.min(currentPage * pageSize, total)}</span> of{' '}
                     <span className="font-medium">{total}</span> inspections
@@ -1335,8 +1335,8 @@ const CvsaInspection: React.FC = () => {
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
                       className={`px-3 py-2 rounded-lg border ${currentPage === 1
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                        ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
+                        : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-gray-300'
                         }`}
                     >
                       <FaChevronLeft size={14} />
@@ -1361,7 +1361,7 @@ const CvsaInspection: React.FC = () => {
                             onClick={() => setCurrentPage(pageNum)}
                             className={`px-3 py-2 rounded-lg text-sm font-medium ${currentPage === pageNum
                               ? 'bg-[var(--accent-color)] text-white'
-                              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                              : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-gray-300'
                               }`}
                           >
                             {pageNum}
@@ -1374,8 +1374,8 @@ const CvsaInspection: React.FC = () => {
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
                       className={`px-3 py-2 rounded-lg border ${currentPage === totalPages
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                        ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
+                        : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-gray-300'
                         }`}
                     >
                       <FaChevronRight size={14} />
@@ -1391,44 +1391,44 @@ const CvsaInspection: React.FC = () => {
         {showViewModal && selectedInspection && (
           <>
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] transition-all duration-300" onClick={() => setShowViewModal(false)} />
-            <div className="fixed top-0 right-0 h-full w-full sm:w-[500px] bg-white shadow-2xl transform transition-transform duration-300 ease-out z-[101] border-l border-gray-200 overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b px-4 py-3 z-10">
+            <div className="fixed top-0 right-0 h-full w-full sm:w-[500px] bg-card shadow-2xl transform transition-transform duration-300 ease-out z-[101] border-l border-theme overflow-y-auto">
+              <div className="sticky top-0 bg-card border-b px-4 py-3 z-10">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-base font-bold text-gray-800">
+                  <h3 className="text-base font-bold text-primary">
                     {selectedInspection.inspectionId}
                   </h3>
                   <button
                     onClick={() => setShowViewModal(false)}
                     className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                   >
-                    <FaTimesCircle className="text-gray-500" size={18} />
+                    <FaTimesCircle className="text-secondary" size={18} />
                   </button>
                 </div>
               </div>
 
               <div className="p-3 space-y-2">
                 {/* Inspection Overview */}
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <h4 className="text-sm font-bold text-gray-800 mb-2">Overview</h4>
+                <div className="bg-card rounded-lg p-3">
+                  <h4 className="text-sm font-bold text-primary mb-2">Overview</h4>
                   <div className="grid grid-cols-1 gap-2">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Inspection ID</label>
-                      <p className="text-sm font-semibold text-gray-800">{selectedInspection.inspectionId}</p>
+                      <label className="block text-xs font-medium text-secondary mb-0.5">Inspection ID</label>
+                      <p className="text-sm font-semibold text-primary">{selectedInspection.inspectionId}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Country</label>
-                      <p className="text-sm font-semibold text-gray-800 uppercase">{selectedInspection.country}</p>
+                      <label className="block text-xs font-medium text-secondary mb-0.5">Country</label>
+                      <p className="text-sm font-semibold text-primary uppercase">{selectedInspection.country}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Date</label>
-                      <p className="text-sm font-semibold text-gray-800">{formatDate(selectedInspection.date)}</p>
+                      <label className="block text-xs font-medium text-secondary mb-0.5">Date</label>
+                      <p className="text-sm font-semibold text-primary">{formatDate(selectedInspection.date)}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Location</label>
-                      <p className="text-sm font-semibold text-gray-800">{selectedInspection.location}</p>
+                      <label className="block text-xs font-medium text-secondary mb-0.5">Location</label>
+                      <p className="text-sm font-semibold text-primary">{selectedInspection.location}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Status</label>
+                      <label className="block text-xs font-medium text-secondary mb-0.5">Status</label>
                       <div className="flex items-center gap-2">
                         {getStatusIcon(selectedInspection.status)}
                         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${getStatusBadgeColor(selectedInspection.status)}`}>
@@ -1437,31 +1437,31 @@ const CvsaInspection: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Inspector</label>
-                      <p className="text-sm font-semibold text-gray-800">{selectedInspection.inspectorName}</p>
+                      <label className="block text-xs font-medium text-secondary mb-0.5">Inspector</label>
+                      <p className="text-sm font-semibold text-primary">{selectedInspection.inspectorName}</p>
                     </div>
                     {selectedInspection.reportNumber && (
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Report Number</label>
-                        <p className="text-sm font-semibold text-gray-800">{selectedInspection.reportNumber}</p>
+                        <label className="block text-xs font-medium text-secondary mb-0.5">Report Number</label>
+                        <p className="text-sm font-semibold text-primary">{selectedInspection.reportNumber}</p>
                       </div>
                     )}
                     {selectedInspection.inspectionLevel && (
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Inspection Level</label>
-                        <p className="text-sm font-semibold text-gray-800">Level {selectedInspection.inspectionLevel}</p>
+                        <label className="block text-xs font-medium text-secondary mb-0.5">Inspection Level</label>
+                        <p className="text-sm font-semibold text-primary">Level {selectedInspection.inspectionLevel}</p>
                       </div>
                     )}
                     {selectedInspection.jurisdiction && (
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Jurisdiction</label>
-                        <p className="text-sm font-semibold text-gray-800">{selectedInspection.jurisdiction}</p>
+                        <label className="block text-xs font-medium text-secondary mb-0.5">Jurisdiction</label>
+                        <p className="text-sm font-semibold text-primary">{selectedInspection.jurisdiction}</p>
                       </div>
                     )}
                     {selectedInspection.timeOfInspection && (
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Time</label>
-                        <p className="text-sm font-semibold text-gray-800">{selectedInspection.timeOfInspection}</p>
+                        <label className="block text-xs font-medium text-secondary mb-0.5">Time</label>
+                        <p className="text-sm font-semibold text-primary">{selectedInspection.timeOfInspection}</p>
                       </div>
                     )}
                   </div>
@@ -1470,30 +1470,30 @@ const CvsaInspection: React.FC = () => {
                 {/* Official Document Information */}
                 {(selectedInspection.reportNumber || selectedInspection.inspectionLevel || selectedInspection.jurisdiction || selectedInspection.timeOfInspection) && (
                   <div className="rounded-lg p-3" style={{ backgroundColor: ACCENT_SOFT }}>
-                    <h4 className="text-xs font-bold text-gray-800 mb-2">Document Info</h4>
+                    <h4 className="text-xs font-bold text-primary mb-2">Document Info</h4>
                     <div className="grid grid-cols-1 gap-2">
                       {selectedInspection.reportNumber && (
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Report Number</label>
-                          <p className="text-sm font-semibold text-gray-800">{selectedInspection.reportNumber}</p>
+                          <label className="block text-xs font-medium text-secondary mb-0.5">Report Number</label>
+                          <p className="text-sm font-semibold text-primary">{selectedInspection.reportNumber}</p>
                         </div>
                       )}
                       {selectedInspection.inspectionLevel && (
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Level</label>
-                          <p className="text-sm font-semibold text-gray-800">Level {selectedInspection.inspectionLevel}</p>
+                          <label className="block text-xs font-medium text-secondary mb-0.5">Level</label>
+                          <p className="text-sm font-semibold text-primary">Level {selectedInspection.inspectionLevel}</p>
                         </div>
                       )}
                       {selectedInspection.jurisdiction && (
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Jurisdiction</label>
-                          <p className="text-sm font-semibold text-gray-800">{selectedInspection.jurisdiction}</p>
+                          <label className="block text-xs font-medium text-secondary mb-0.5">Jurisdiction</label>
+                          <p className="text-sm font-semibold text-primary">{selectedInspection.jurisdiction}</p>
                         </div>
                       )}
                       {selectedInspection.timeOfInspection && (
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Time</label>
-                          <p className="text-sm font-semibold text-gray-800">{selectedInspection.timeOfInspection}</p>
+                          <label className="block text-xs font-medium text-secondary mb-0.5">Time</label>
+                          <p className="text-sm font-semibold text-primary">{selectedInspection.timeOfInspection}</p>
                         </div>
                       )}
                     </div>
@@ -1503,24 +1503,24 @@ const CvsaInspection: React.FC = () => {
                 {/* Driver & Carrier Information */}
                 {(selectedInspection.driverLicenseNumber || selectedInspection.carrierUSDOTNumber || selectedInspection.carrierMotorCarrierNumber) && (
                   <div className="bg-green-50 rounded-lg p-3">
-                    <h4 className="text-xs font-bold text-gray-800 mb-2">Driver & Carrier</h4>
+                    <h4 className="text-xs font-bold text-primary mb-2">Driver & Carrier</h4>
                     <div className="grid grid-cols-1 gap-2">
                       {selectedInspection.driverLicenseNumber && (
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-0.5">DL Number</label>
-                          <p className="text-sm font-semibold text-gray-800">{selectedInspection.driverLicenseNumber}</p>
+                          <label className="block text-xs font-medium text-secondary mb-0.5">DL Number</label>
+                          <p className="text-sm font-semibold text-primary">{selectedInspection.driverLicenseNumber}</p>
                         </div>
                       )}
                       {selectedInspection.carrierUSDOTNumber && (
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-0.5">USDOT Number</label>
-                          <p className="text-sm font-semibold text-gray-800">{selectedInspection.carrierUSDOTNumber}</p>
+                          <label className="block text-xs font-medium text-secondary mb-0.5">USDOT Number</label>
+                          <p className="text-sm font-semibold text-primary">{selectedInspection.carrierUSDOTNumber}</p>
                         </div>
                       )}
                       {selectedInspection.carrierMotorCarrierNumber && (
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-0.5">MC Number</label>
-                          <p className="text-sm font-semibold text-gray-800">{selectedInspection.carrierMotorCarrierNumber}</p>
+                          <label className="block text-xs font-medium text-secondary mb-0.5">MC Number</label>
+                          <p className="text-sm font-semibold text-primary">{selectedInspection.carrierMotorCarrierNumber}</p>
                         </div>
                       )}
                     </div>
@@ -1529,24 +1529,24 @@ const CvsaInspection: React.FC = () => {
 
                 {/* Out-of-Service Information */}
                 {(selectedInspection.outOfServiceIssued || selectedInspection.defectRepairNeeded || selectedInspection.outOfServiceReleaseDate) && (
-                  <div className="bg-red-50 rounded-lg p-3">
-                    <h4 className="text-xs font-bold text-gray-800 mb-2">OOS Info</h4>
+                  <div className="bg-card rounded-lg p-3">
+                    <h4 className="text-xs font-bold text-primary mb-2">OOS Info</h4>
                     <div className="grid grid-cols-1 gap-2">
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-0.5">OOS Issued</label>
-                        <p className="text-sm font-semibold text-gray-800">
+                        <label className="block text-xs font-medium text-secondary mb-0.5">OOS Issued</label>
+                        <p className="text-sm font-semibold text-primary">
                           {selectedInspection.outOfServiceIssued ? (
-                            <span className="text-red-600">Yes</span>
+                            <span className="text-[#A855F7]">Yes</span>
                           ) : (
                             <span className="text-green-600">No</span>
                           )}
                         </p>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Repair Needed</label>
-                        <p className="text-sm font-semibold text-gray-800">
+                        <label className="block text-xs font-medium text-secondary mb-0.5">Repair Needed</label>
+                        <p className="text-sm font-semibold text-primary">
                           {selectedInspection.defectRepairNeeded ? (
-                            <span className="text-red-600">Yes</span>
+                            <span className="text-[#A855F7]">Yes</span>
                           ) : (
                             <span className="text-green-600">No</span>
                           )}
@@ -1554,8 +1554,8 @@ const CvsaInspection: React.FC = () => {
                       </div>
                       {selectedInspection.outOfServiceReleaseDate && (
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-0.5">Release Date</label>
-                          <p className="text-sm font-semibold text-gray-800">{formatDate(selectedInspection.outOfServiceReleaseDate)}</p>
+                          <label className="block text-xs font-medium text-secondary mb-0.5">Release Date</label>
+                          <p className="text-sm font-semibold text-primary">{formatDate(selectedInspection.outOfServiceReleaseDate)}</p>
                         </div>
                       )}
                     </div>
@@ -1565,7 +1565,7 @@ const CvsaInspection: React.FC = () => {
                 {/* Documentation */}
                 {(selectedInspection.documentLink || (selectedInspection.documents && selectedInspection.documents.length > 0)) && (
                   <div className="bg-[var(--accent-soft)] rounded-lg p-3">
-                    <h4 className="text-xs font-bold text-gray-800 mb-2">Documentation</h4>
+                    <h4 className="text-xs font-bold text-primary mb-2">Documentation</h4>
                     {selectedInspection.documents && selectedInspection.documents.length > 0 ? (
                       <div className="space-y-2">
                         {selectedInspection.documents.map((doc: any, index: number) => {
@@ -1573,7 +1573,7 @@ const CvsaInspection: React.FC = () => {
                           const fileName = doc.documentUrl?.split('/').pop() || `Document ${index + 1}`;
                           return (
                             <div key={index}>
-                              <label className="block text-xs font-medium text-gray-600 mb-0.5">Document {index + 1}</label>
+                              <label className="block text-xs font-medium text-secondary mb-0.5">Document {index + 1}</label>
                               <a
                                 href={documentUrl}
                                 target="_blank"
@@ -1588,7 +1588,7 @@ const CvsaInspection: React.FC = () => {
                       </div>
                     ) : selectedInspection.documentLink ? (
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Link</label>
+                        <label className="block text-xs font-medium text-secondary mb-0.5">Link</label>
                         <a
                           href={selectedInspection.documentLink}
                           target="_blank"
@@ -1604,26 +1604,26 @@ const CvsaInspection: React.FC = () => {
 
                 {/* Vehicle & Driver Info */}
                 <div className="rounded-lg p-3" style={{ backgroundColor: ACCENT_SOFT }}>
-                  <h4 className="text-xs font-bold text-gray-800 mb-2">Vehicle & Driver</h4>
+                  <h4 className="text-xs font-bold text-primary mb-2">Vehicle & Driver</h4>
                   <div className="grid grid-cols-1 gap-2">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Vehicle</label>
-                      <p className="text-sm font-semibold text-gray-800">{getVehicleInfo(selectedInspection.vehicle)}</p>
+                      <label className="block text-xs font-medium text-secondary mb-0.5">Vehicle</label>
+                      <p className="text-sm font-semibold text-primary">{getVehicleInfo(selectedInspection.vehicle)}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Driver</label>
-                      <p className="text-sm font-semibold text-gray-800">{getDriverName(selectedInspection.driver)}</p>
+                      <label className="block text-xs font-medium text-secondary mb-0.5">Driver</label>
+                      <p className="text-sm font-semibold text-primary">{getDriverName(selectedInspection.driver)}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Violations */}
                 {selectedInspection.violations && selectedInspection.violations.length > 0 && (
-                  <div className="bg-red-50 rounded-lg p-3">
-                    <h4 className="text-xs font-bold text-gray-800 mb-2">Violations ({selectedInspection.violations.length})</h4>
+                  <div className="bg-card rounded-lg p-3">
+                    <h4 className="text-xs font-bold text-primary mb-2">Violations ({selectedInspection.violations.length})</h4>
                     <div className="space-y-2">
                       {selectedInspection.violations.map((violation) => (
-                        <div key={violation._id} className="bg-white rounded p-2 border border-red-200">
+                        <div key={violation._id} className="bg-card rounded p-2 border border-red-200">
                           <div className="flex items-start gap-2">
                             <span className="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded">
                               {violation.code}
@@ -1632,7 +1632,7 @@ const CvsaInspection: React.FC = () => {
                               {violation.severity.toUpperCase()}
                             </span>
                           </div>
-                          <p className="text-xs text-gray-800 mt-1">{violation.description}</p>
+                          <p className="text-xs text-primary mt-1">{violation.description}</p>
                         </div>
                       ))}
                     </div>
@@ -1641,17 +1641,17 @@ const CvsaInspection: React.FC = () => {
 
                 {/* Notes */}
                 {selectedInspection.notes && (
-                  <div className="bg-yellow-50 rounded-lg p-3">
-                    <h4 className="text-xs font-bold text-gray-800 mb-2">Notes</h4>
-                    <p className="text-xs text-gray-800">{selectedInspection.notes}</p>
+                  <div className="bg-card rounded-lg p-3">
+                    <h4 className="text-xs font-bold text-primary mb-2">Notes</h4>
+                    <p className="text-xs text-primary">{selectedInspection.notes}</p>
                   </div>
                 )}
               </div>
 
-              <div className="sticky bottom-0 bg-gray-50 px-3 py-2 flex justify-end gap-2 border-t">
+              <div className="sticky bottom-0 bg-card px-3 py-2 flex justify-end gap-2 border-t">
                 <button
                   onClick={() => setShowViewModal(false)}
-                  className="px-4 py-1.5 text-xs bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 font-medium transition-colors"
+                  className="px-4 py-1.5 text-xs bg-card border border-gray-300 text-primary rounded hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                 >
                   Close
                 </button>
@@ -1664,11 +1664,11 @@ const CvsaInspection: React.FC = () => {
         {showAddModal && (
           <>
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] transition-all duration-500" onClick={() => setShowAddModal(false)} />
-            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-gray-200">
+            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-card shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-theme">
               <div className="h-full flex flex-col">
                 <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between" style={{ background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`, }}>
                   <h3 className="text-xl font-bold text-white">Add Inspection</h3>
-                  <button onClick={() => setShowAddModal(false)} className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
+                  <button onClick={() => setShowAddModal(false)} className="text-white hover:bg-card/20 p-2 rounded-lg transition-colors">
                     <FaTimes size={20} />
                   </button>
                 </div>
@@ -1676,7 +1676,7 @@ const CvsaInspection: React.FC = () => {
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Country <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-primary mb-1">Country <span className="text-red-500">*</span></label>
                         <select
                           value={inspectionForm.country || activeTab}
                           onChange={(e) => setInspectionForm(prev => ({ ...prev, country: e.target.value as 'canada' | 'usa' }))}
@@ -1690,7 +1690,7 @@ const CvsaInspection: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Date</label>
                         <input
                           type="date"
                           value={inspectionForm.date || ''}
@@ -1699,7 +1699,7 @@ const CvsaInspection: React.FC = () => {
                         />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-primary mb-1">Location <span className="text-red-500">*</span></label>
                         <AddressSearch
                           placeholder="Enter inspection location"
                           value={inspectionForm.location}
@@ -1719,7 +1719,7 @@ const CvsaInspection: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-primary mb-1">Status <span className="text-red-500">*</span></label>
                         <select
                           value={inspectionForm.status}
                           onChange={(e) => setInspectionForm(prev => ({ ...prev, status: e.target.value as Inspection['status'] }))}
@@ -1732,7 +1732,7 @@ const CvsaInspection: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Inspector</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Inspector</label>
                         <input
                           type="text"
                           placeholder="Inspector name"
@@ -1742,7 +1742,7 @@ const CvsaInspection: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Driver <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-primary mb-1">Driver <span className="text-red-500">*</span></label>
                         <select
                           value={typeof inspectionForm.driver === 'string' ? inspectionForm.driver : inspectionForm.driver?._id || ''}
                           onChange={(e) => setInspectionForm(prev => ({ ...prev, driver: e.target.value }))}
@@ -1755,7 +1755,7 @@ const CvsaInspection: React.FC = () => {
                         </select>
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-primary mb-1">Vehicle <span className="text-red-500">*</span></label>
                         <select
                           value={typeof inspectionForm.vehicle === 'string' ? inspectionForm.vehicle : inspectionForm.vehicle?._id || ''}
                           onChange={(e) => setInspectionForm(prev => ({ ...prev, vehicle: e.target.value }))}
@@ -1774,7 +1774,7 @@ const CvsaInspection: React.FC = () => {
                         </select>
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Notes</label>
                         <textarea
                           placeholder="Additional notes"
                           value={inspectionForm.notes || ''}
@@ -1787,10 +1787,10 @@ const CvsaInspection: React.FC = () => {
 
                     {/* Official Document Numbers Section */}
                     <div className="border-t pt-6 mt-6">
-                      <h4 className="text-lg font-bold text-gray-800 mb-4">Official Document Information</h4>
+                      <h4 className="text-lg font-bold text-primary mb-4">Official Document Information</h4>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Report Number <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-primary mb-1">Report Number <span className="text-red-500">*</span></label>
                           <input
                             type="text"
                             placeholder="Inspection Report Number"
@@ -1800,7 +1800,7 @@ const CvsaInspection: React.FC = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Inspection Level</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Inspection Level</label>
                           <select
                             value={inspectionForm.inspectionLevel || 'I'}
                             onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectionLevel: e.target.value as 'I' | 'II' | 'III' | 'IV' | 'V' }))}
@@ -1814,7 +1814,7 @@ const CvsaInspection: React.FC = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Jurisdiction (State/Province)</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Jurisdiction (State/Province)</label>
                           <input
                             type="text"
                             placeholder="e.g., ON, TX, CA"
@@ -1824,7 +1824,7 @@ const CvsaInspection: React.FC = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Time of Inspection</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Time of Inspection</label>
                           <input
                             type="time"
                             value={inspectionForm.timeOfInspection || ''}
@@ -1837,10 +1837,10 @@ const CvsaInspection: React.FC = () => {
 
                     {/* Driver & Carrier Information Section */}
                     <div className="border-t pt-6 mt-6">
-                      <h4 className="text-lg font-bold text-gray-800 mb-4">Driver & Carrier Information</h4>
+                      <h4 className="text-lg font-bold text-primary mb-4">Driver & Carrier Information</h4>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Driver License Number</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Driver License Number</label>
                           <input
                             type="text"
                             placeholder="Driver's License Number"
@@ -1850,7 +1850,7 @@ const CvsaInspection: React.FC = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Carrier USDOT Number</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Carrier USDOT Number</label>
                           <input
                             type="text"
                             placeholder="USDOT Number (USA only)"
@@ -1860,7 +1860,7 @@ const CvsaInspection: React.FC = () => {
                           />
                         </div>
                         <div className="col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Carrier MC Number</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Carrier MC Number</label>
                           <input
                             type="text"
                             placeholder="Motor Carrier Number (if applicable)"
@@ -1874,10 +1874,10 @@ const CvsaInspection: React.FC = () => {
 
                     {/* Out-of-Service Information Section */}
                     <div className="border-t pt-6 mt-6">
-                      <h4 className="text-lg font-bold text-gray-800 mb-4">Out-of-Service Information</h4>
+                      <h4 className="text-lg font-bold text-primary mb-4">Out-of-Service Information</h4>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                          <label className="flex items-center gap-2 text-sm font-medium text-primary mb-1">
                             <input
                               type="checkbox"
                               checked={inspectionForm.outOfServiceIssued || false}
@@ -1888,7 +1888,7 @@ const CvsaInspection: React.FC = () => {
                           </label>
                         </div>
                         <div>
-                          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                          <label className="flex items-center gap-2 text-sm font-medium text-primary mb-1">
                             <input
                               type="checkbox"
                               checked={inspectionForm.defectRepairNeeded || false}
@@ -1900,7 +1900,7 @@ const CvsaInspection: React.FC = () => {
                         </div>
                         {inspectionForm.outOfServiceIssued && (
                           <div className="col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Out-of-Service Release Date</label>
+                            <label className="block text-sm font-medium text-primary mb-1">Out-of-Service Release Date</label>
                             <input
                               type="date"
                               value={inspectionForm.outOfServiceReleaseDate || ''}
@@ -1914,9 +1914,9 @@ const CvsaInspection: React.FC = () => {
 
                     {/* Document Link Section */}
                     <div className="border-t pt-6 mt-6">
-                      <h4 className="text-lg font-bold text-gray-800 mb-4">Documentation</h4>
+                      <h4 className="text-lg font-bold text-primary mb-4">Documentation</h4>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Upload Documents (PDF/Image) - Multiple files allowed</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Upload Documents (PDF/Image) - Multiple files allowed</label>
                         <input
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png,.gif"
@@ -1934,11 +1934,11 @@ const CvsaInspection: React.FC = () => {
                         />
                         {inspectionForm.documents && inspectionForm.documents.length > 0 && (
                           <div className="mt-3 space-y-2">
-                            <p className="text-sm font-medium text-gray-700">Selected files ({inspectionForm.documents.length}):</p>
+                            <p className="text-sm font-medium text-primary">Selected files ({inspectionForm.documents.length}):</p>
                             <div className="space-y-1">
                               {inspectionForm.documents.map((file, index) => (
-                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                  <span className="text-sm text-gray-700">{file instanceof File ? file.name : 'Unknown file'}</span>
+                                <div key={index} className="flex items-center justify-between p-2 bg-card rounded-lg">
+                                  <span className="text-sm text-primary">{file instanceof File ? file.name : 'Unknown file'}</span>
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -1947,7 +1947,7 @@ const CvsaInspection: React.FC = () => {
                                         documents: (prev.documents || []).filter((_, i) => i !== index) as File[]
                                       }));
                                     }}
-                                    className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                    className="text-[#A855F7] hover:text-red-800 text-sm font-medium"
                                   >
                                     Remove
                                   </button>
@@ -1957,7 +1957,7 @@ const CvsaInspection: React.FC = () => {
                           </div>
                         )}
                         {inspectionForm.documentLink && !inspectionForm.documentLink.startsWith('blob:') && (
-                          <p className="mt-2 text-sm text-gray-600">
+                          <p className="mt-2 text-sm text-secondary">
                             Current document: <a href={inspectionForm.documentLink} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">{inspectionForm.documentLink}</a>
                           </p>
                         )}
@@ -1965,8 +1965,8 @@ const CvsaInspection: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
-                  <button type="button" onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">Cancel</button>
+                <div className="flex-shrink-0 bg-card px-6 py-4 flex justify-end gap-3 border-t">
+                  <button type="button" onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors">Cancel</button>
                   <button type="button" onClick={saveNewInspection} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                     {loading ? 'Saving...' : 'Save Inspection'}
                   </button>
@@ -1980,11 +1980,11 @@ const CvsaInspection: React.FC = () => {
         {showEditModal && selectedInspection && (
           <>
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] transition-all duration-500" onClick={() => setShowEditModal(false)} />
-            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-gray-200">
+            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-card shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-theme">
               <div className="h-full flex flex-col">
                 <div className="flex-shrink-0  px-6 py-4 flex items-center justify-between" style={{ background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`, }}>
                   <h3 className="text-xl font-bold text-white">Edit Inspection: {selectedInspection.inspectionId}</h3>
-                  <button onClick={() => setShowEditModal(false)} className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors">
+                  <button onClick={() => setShowEditModal(false)} className="text-white hover:bg-card/20 p-2 rounded-lg transition-colors">
                     <FaTimes size={20} />
                   </button>
                 </div>
@@ -1992,7 +1992,7 @@ const CvsaInspection: React.FC = () => {
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Country <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-primary mb-1">Country <span className="text-red-500">*</span></label>
                         <select
                           value={inspectionForm.country || (selectedInspection?.country || activeTab)}
                           onChange={(e) => setInspectionForm(prev => ({ ...prev, country: e.target.value as 'canada' | 'usa' }))}
@@ -2006,15 +2006,15 @@ const CvsaInspection: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Date</label>
                         <input type="date" value={inspectionForm.date || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, date: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent" />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-primary mb-1">Location <span className="text-red-500">*</span></label>
                         <input type="text" value={inspectionForm.location || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, location: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-primary mb-1">Status <span className="text-red-500">*</span></label>
                         <select value={inspectionForm.status} onChange={(e) => setInspectionForm(prev => ({ ...prev, status: e.target.value as Inspection['status'] }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent">
                           <option value="pass">Pass</option>
                           <option value="fail">Fail</option>
@@ -2023,11 +2023,11 @@ const CvsaInspection: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Inspector</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Inspector</label>
                         <input type="text" value={inspectionForm.inspectorName || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectorName: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Driver <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-primary mb-1">Driver <span className="text-red-500">*</span></label>
                         <select
                           value={typeof inspectionForm.driver === 'string' ? inspectionForm.driver : inspectionForm.driver?._id || ''}
                           onChange={(e) => setInspectionForm(prev => ({ ...prev, driver: e.target.value }))}
@@ -2040,7 +2040,7 @@ const CvsaInspection: React.FC = () => {
                         </select>
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-primary mb-1">Vehicle <span className="text-red-500">*</span></label>
                         <select
                           value={typeof inspectionForm.vehicle === 'string' ? inspectionForm.vehicle : inspectionForm.vehicle?._id || ''}
                           onChange={(e) => setInspectionForm(prev => ({ ...prev, vehicle: e.target.value }))}
@@ -2059,17 +2059,17 @@ const CvsaInspection: React.FC = () => {
                         </select>
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Notes</label>
                         <textarea value={inspectionForm.notes || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, notes: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent" rows={3} />
                       </div>
                     </div>
 
                     {/* Official Document Numbers Section */}
                     <div className="border-t pt-6 mt-6">
-                      <h4 className="text-lg font-bold text-gray-800 mb-4">Official Document Information</h4>
+                      <h4 className="text-lg font-bold text-primary mb-4">Official Document Information</h4>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Report Number <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-primary mb-1">Report Number <span className="text-red-500">*</span></label>
                           <input
                             type="text"
                             placeholder="Inspection Report Number"
@@ -2079,7 +2079,7 @@ const CvsaInspection: React.FC = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Inspection Level</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Inspection Level</label>
                           <select
                             value={inspectionForm.inspectionLevel || 'I'}
                             onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectionLevel: e.target.value as 'I' | 'II' | 'III' | 'IV' | 'V' }))}
@@ -2093,7 +2093,7 @@ const CvsaInspection: React.FC = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Jurisdiction (State/Province)</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Jurisdiction (State/Province)</label>
                           <input
                             type="text"
                             placeholder="e.g., ON, TX, CA"
@@ -2103,7 +2103,7 @@ const CvsaInspection: React.FC = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Time of Inspection</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Time of Inspection</label>
                           <input
                             type="time"
                             value={inspectionForm.timeOfInspection || ''}
@@ -2116,10 +2116,10 @@ const CvsaInspection: React.FC = () => {
 
                     {/* Driver & Carrier Information Section */}
                     <div className="border-t pt-6 mt-6">
-                      <h4 className="text-lg font-bold text-gray-800 mb-4">Driver & Carrier Information</h4>
+                      <h4 className="text-lg font-bold text-primary mb-4">Driver & Carrier Information</h4>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Driver License Number</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Driver License Number</label>
                           <input
                             type="text"
                             placeholder="Driver's License Number"
@@ -2129,7 +2129,7 @@ const CvsaInspection: React.FC = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Carrier USDOT Number</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Carrier USDOT Number</label>
                           <input
                             type="text"
                             placeholder="USDOT Number (USA only)"
@@ -2139,7 +2139,7 @@ const CvsaInspection: React.FC = () => {
                           />
                         </div>
                         <div className="col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Carrier MC Number</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Carrier MC Number</label>
                           <input
                             type="text"
                             placeholder="Motor Carrier Number (if applicable)"
@@ -2153,10 +2153,10 @@ const CvsaInspection: React.FC = () => {
 
                     {/* Out-of-Service Information Section */}
                     <div className="border-t pt-6 mt-6">
-                      <h4 className="text-lg font-bold text-gray-800 mb-4">Out-of-Service Information</h4>
+                      <h4 className="text-lg font-bold text-primary mb-4">Out-of-Service Information</h4>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                          <label className="flex items-center gap-2 text-sm font-medium text-primary mb-1">
                             <input
                               type="checkbox"
                               checked={inspectionForm.outOfServiceIssued || false}
@@ -2167,7 +2167,7 @@ const CvsaInspection: React.FC = () => {
                           </label>
                         </div>
                         <div>
-                          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                          <label className="flex items-center gap-2 text-sm font-medium text-primary mb-1">
                             <input
                               type="checkbox"
                               checked={inspectionForm.defectRepairNeeded || false}
@@ -2179,7 +2179,7 @@ const CvsaInspection: React.FC = () => {
                         </div>
                         {inspectionForm.outOfServiceIssued && (
                           <div className="col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Out-of-Service Release Date</label>
+                            <label className="block text-sm font-medium text-primary mb-1">Out-of-Service Release Date</label>
                             <input
                               type="date"
                               value={inspectionForm.outOfServiceReleaseDate || ''}
@@ -2193,9 +2193,9 @@ const CvsaInspection: React.FC = () => {
 
                     {/* Document Link Section */}
                     <div className="border-t pt-6 mt-6">
-                      <h4 className="text-lg font-bold text-gray-800 mb-4">Documentation</h4>
+                      <h4 className="text-lg font-bold text-primary mb-4">Documentation</h4>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Upload Documents (PDF/Image) - Multiple files allowed</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Upload Documents (PDF/Image) - Multiple files allowed</label>
                         <input
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png,.gif"
@@ -2213,11 +2213,11 @@ const CvsaInspection: React.FC = () => {
                         />
                         {inspectionForm.documents && inspectionForm.documents.length > 0 && (
                           <div className="mt-3 space-y-2">
-                            <p className="text-sm font-medium text-gray-700">Selected files ({inspectionForm.documents.length}):</p>
+                            <p className="text-sm font-medium text-primary">Selected files ({inspectionForm.documents.length}):</p>
                             <div className="space-y-1">
                               {inspectionForm.documents.map((file, index) => (
-                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                  <span className="text-sm text-gray-700">{file instanceof File ? file.name : 'Unknown file'}</span>
+                                <div key={index} className="flex items-center justify-between p-2 bg-card rounded-lg">
+                                  <span className="text-sm text-primary">{file instanceof File ? file.name : 'Unknown file'}</span>
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -2226,7 +2226,7 @@ const CvsaInspection: React.FC = () => {
                                         documents: (prev.documents || []).filter((_, i) => i !== index) as File[]
                                       }));
                                     }}
-                                    className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                    className="text-[#A855F7] hover:text-red-800 text-sm font-medium"
                                   >
                                     Remove
                                   </button>
@@ -2236,7 +2236,7 @@ const CvsaInspection: React.FC = () => {
                           </div>
                         )}
                         {inspectionForm.documentLink && !inspectionForm.documentLink.startsWith('blob:') && (
-                          <p className="mt-2 text-sm text-gray-600">
+                          <p className="mt-2 text-sm text-secondary">
                             Current document: <a href={inspectionForm.documentLink} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">{inspectionForm.documentLink}</a>
                           </p>
                         )}
@@ -2244,8 +2244,8 @@ const CvsaInspection: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
-                  <button onClick={() => setShowEditModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors">Cancel</button>
+                <div className="flex-shrink-0 bg-card px-6 py-4 flex justify-end gap-3 border-t">
+                  <button onClick={() => setShowEditModal(false)} className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors">Cancel</button>
                   <button onClick={updateInspection} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                     {loading ? 'Updating...' : 'Update Inspection'}
                   </button>
@@ -2258,17 +2258,17 @@ const CvsaInspection: React.FC = () => {
         {/* Delete Confirmation Modal */}
         {showDeleteModal && inspectionToDelete && (
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md">
               <div className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 bg-red-100 rounded-full">
-                    <FaTimesCircle className="text-red-600" size={24} />
+                    <FaTimesCircle className="text-[#A855F7]" size={24} />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-800">Delete Inspection</h3>
+                  <h3 className="text-lg font-bold text-primary">Delete Inspection</h3>
                 </div>
-                <p className="text-gray-600 mb-6">Are you sure you want to delete inspection <span className="font-semibold">{inspectionToDelete.inspectionId}</span>? This action cannot be undone.</p>
+                <p className="text-secondary mb-6">Are you sure you want to delete inspection <span className="font-semibold">{inspectionToDelete.inspectionId}</span>? This action cannot be undone.</p>
                 <div className="flex justify-end gap-3">
-                  <button onClick={() => { setShowDeleteModal(false); setInspectionToDelete(null); }} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors" disabled={loading}>Cancel</button>
+                  <button onClick={() => { setShowDeleteModal(false); setInspectionToDelete(null); }} className="px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 font-medium transition-colors" disabled={loading}>Cancel</button>
                   <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-60" disabled={loading}>
                     {loading ? 'Deleting...' : 'Delete'}
                   </button>

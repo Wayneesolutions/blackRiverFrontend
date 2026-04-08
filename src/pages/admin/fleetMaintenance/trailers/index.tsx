@@ -1329,15 +1329,15 @@ const TrailersPage: React.FC = () => {
         if (sortConfig.key !== key) {
             return (
                 <div className="flex flex-col">
-                    <ChevronUp className="w-3 h-3 text-gray-400" />
-                    <ChevronDown className="w-3 h-3 text-gray-400 -mt-1" />
+                    <ChevronUp className="w-3 h-3 text-secondary" />
+                    <ChevronDown className="w-3 h-3 text-secondary -mt-1" />
                 </div>
             );
         }
         return sortConfig.direction === 'asc' ? (
-            <ChevronUp className="w-3 h-3 text-gray-700" />
+            <ChevronUp className="w-3 h-3 text-primary" />
         ) : (
-            <ChevronDown className="w-3 h-3 text-gray-700" />
+            <ChevronDown className="w-3 h-3 text-primary" />
         );
     };
 
@@ -1394,14 +1394,14 @@ const TrailersPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#EDF8FF] p-6">
+        <div className="min-h-screen bg-main p-6">
             <div className="max-w-full mx-auto">
                 {/* Header Section */}
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h1 className="text-3xl font-bold text-gray-900">Trailers</h1>
+                        <h1 className="text-3xl font-bold text-primary">Trailers</h1>
                         <div className="flex items-center gap-3">
-                            <span className="text-2xl font-bold text-gray-700">({filteredTrailers.length})</span>
+                            <span className="text-2xl font-bold text-primary">({filteredTrailers.length})</span>
                             <button
                                 onClick={handleExportTrailers}
                                 title="Export to Excel"
@@ -1455,8 +1455,8 @@ const TrailersPage: React.FC = () => {
                 </div>
 
                 {/* Navigation Tabs */}
-                <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="flex border-b border-gray-200 overflow-x-auto">
+                <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+                    <div className="flex border-b border-theme overflow-x-auto">
                         {/* All Tab */}
                         <button
                             onClick={() => {
@@ -1465,7 +1465,7 @@ const TrailersPage: React.FC = () => {
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'All'
                                 ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                                : 'text-gray-600 hover:bg-gray-50'
+                                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
                             <div className="font-semibold">
@@ -1485,14 +1485,14 @@ const TrailersPage: React.FC = () => {
                                     }}
                                     className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === yard._id
                                         ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                                        : 'text-gray-600 hover:bg-gray-50'
+                                        : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                         }`}
                                 >
                                     <div>
                                         <div className="font-semibold">
                                             {yard.yardName} ({getCountByCategory(yard._id!)})
                                         </div>
-                                        <div className="text-xs text-gray-500 mt-1">
+                                        <div className="text-xs text-secondary mt-1">
                                             {yard.yardCode}
                                         </div>
                                     </div>
@@ -1507,7 +1507,7 @@ const TrailersPage: React.FC = () => {
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'External'
                                 ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                                : 'text-gray-600 hover:bg-gray-50'
+                                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
                             <div className="font-semibold">
@@ -1523,7 +1523,7 @@ const TrailersPage: React.FC = () => {
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'Unassigned'
                                 ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                                : 'text-gray-600 hover:bg-gray-50'
+                                : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
                             <div className="font-semibold">
@@ -1534,11 +1534,11 @@ const TrailersPage: React.FC = () => {
                 </div>
 
                 {/* Search and Filter Bar */}
-                <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme p-4">
                     <div className="flex flex-wrap items-center gap-4">
                         {/* Search Input */}
                         <div className="flex items-center gap-2 flex-1 min-w-[300px]">
-                            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
+                            <label className="text-sm font-medium text-primary whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
                             <input
                                 type="text"
                                 placeholder="Search..."
@@ -1551,7 +1551,7 @@ const TrailersPage: React.FC = () => {
 
                         {/* Global Filters */}
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-gray-700">Sort By:</label>
+                            <label className="text-sm font-medium text-primary">Sort By:</label>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
@@ -1565,7 +1565,7 @@ const TrailersPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-gray-700">Compliance Status:</label>
+                            <label className="text-sm font-medium text-primary">Compliance Status:</label>
                             <select
                                 value={complianceStatus}
                                 onChange={(e) => setComplianceStatus(e.target.value)}
@@ -1579,7 +1579,7 @@ const TrailersPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-gray-700">Operating Status:</label>
+                            <label className="text-sm font-medium text-primary">Operating Status:</label>
                             <select
                                 value={operatingStatus}
                                 onChange={(e) => setOperatingStatus(e.target.value)}
@@ -1598,13 +1598,13 @@ const TrailersPage: React.FC = () => {
                 </div>
 
                 {/* Data Table */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-card border-b border-theme">
                                 <tr>
                                     {/* Trailer # */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Trailer #</span>
                                             <button onClick={() => handleSort('trailerNumber')} className="flex flex-col">
@@ -1621,7 +1621,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Plate # */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Plate #</span>
                                             <button onClick={() => handleSort('plateNumber')} className="flex flex-col">
@@ -1638,7 +1638,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Type */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Type</span>
                                             <button onClick={() => handleSort('type')} className="flex flex-col">
@@ -1655,7 +1655,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Ownership */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Ownership</span>
                                             <button onClick={() => handleSort('ownership')} className="flex flex-col">
@@ -1665,7 +1665,7 @@ const TrailersPage: React.FC = () => {
                                         <select
                                             value={filters.ownership}
                                             onChange={(e) => setFilters({ ...filters, ownership: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="COMPANY ASSET">Company Asset</option>
@@ -1674,7 +1674,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Last Dispatch */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Last Dispatch</span>
                                             <button onClick={() => handleSort('lastDispatch')} className="flex flex-col">
@@ -1691,7 +1691,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Last Dispatch Date */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Last Dispatch Date</span>
                                             <button onClick={() => handleSort('lastDispatchDate')} className="flex flex-col">
@@ -1708,7 +1708,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Last Drop Location */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Last Drop Location</span>
                                             <button onClick={() => handleSort('lastDropLocation')} className="flex flex-col">
@@ -1725,7 +1725,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Notes */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Notes</span>
                                         </div>
@@ -1739,7 +1739,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Operating Status */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Operating Status</span>
                                             <button onClick={() => handleSort('operatingStatus')} className="flex flex-col">
@@ -1749,7 +1749,7 @@ const TrailersPage: React.FC = () => {
                                         <select
                                             value={filters.operatingStatus}
                                             onChange={(e) => setFilters({ ...filters, operatingStatus: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="IN SERVICE">In Service</option>
@@ -1759,15 +1759,15 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Loaded Status */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Loaded Status</span>
-                                            <HelpCircle className="w-4 h-4 text-gray-400" />
+                                            <HelpCircle className="w-4 h-4 text-secondary" />
                                         </div>
                                         <select
                                             value={filters.loadedStatus}
                                             onChange={(e) => setFilters({ ...filters, loadedStatus: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="LOADED">Loaded</option>
@@ -1777,14 +1777,14 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Compliance */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Compliance</span>
                                         </div>
                                         <select
                                             value={filters.compliance}
                                             onChange={(e) => setFilters({ ...filters, compliance: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="COMPLIANT">Compliant</option>
@@ -1793,15 +1793,15 @@ const TrailersPage: React.FC = () => {
                                         </select>
                                     </th>
                                     {/* Actions */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <span>Actions</span>
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-gray-200">
                                 {filteredTrailers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={12} className="px-4 py-8 text-center text-gray-500">
+                                        <td colSpan={12} className="px-4 py-8 text-center text-secondary">
                                             No trailers found
                                         </td>
                                     </tr>
@@ -1809,15 +1809,15 @@ const TrailersPage: React.FC = () => {
                                     filteredTrailers.map((trailer) => (
                                         <tr
                                         onClick={() => handleEditTrailer(trailer._id || trailer.id || '')}
-                                        key={trailer._id || trailer.id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-4 py-3 text-sm text-gray-900">{trailer.trailerNumber || trailer.trailer || trailer.unitNumber}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{trailer.plateNumber}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{trailer.type}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{trailer.ownership}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{trailer.lastDispatch || ''}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{typeof trailer.lastDispatchDate === 'string' ? trailer.lastDispatchDate : (trailer.lastDispatchDate ? trailer.lastDispatchDate.toString() : '')}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{trailer.lastDropLocation || ''}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">
+                                        key={trailer._id || trailer.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                            <td className="px-4 py-3 text-sm text-primary">{trailer.trailerNumber || trailer.trailer || trailer.unitNumber}</td>
+                                            <td className="px-4 py-3 text-sm text-primary">{trailer.plateNumber}</td>
+                                            <td className="px-4 py-3 text-sm text-primary">{trailer.type}</td>
+                                            <td className="px-4 py-3 text-sm text-primary">{trailer.ownership}</td>
+                                            <td className="px-4 py-3 text-sm text-primary">{trailer.lastDispatch || ''}</td>
+                                            <td className="px-4 py-3 text-sm text-primary">{typeof trailer.lastDispatchDate === 'string' ? trailer.lastDispatchDate : (trailer.lastDispatchDate ? trailer.lastDispatchDate.toString() : '')}</td>
+                                            <td className="px-4 py-3 text-sm text-primary">{trailer.lastDropLocation || ''}</td>
+                                            <td className="px-4 py-3 text-sm text-primary">
                                                 {trailer.notes ? (
                                                     <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center">
                                                         <span className="text-xs">!</span>
@@ -1853,14 +1853,14 @@ const TrailersPage: React.FC = () => {
                                                 <div className="flex items-center gap-2">
                                                     <button
                                                         onClick={() => handleEditTrailer(trailer._id || trailer.id || '')}
-                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                                        className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                                                         title="Edit"
                                                     >
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteClick(trailer._id || trailer.id || '')}
-                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                        className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                                         title="Delete"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -1883,12 +1883,12 @@ const TrailersPage: React.FC = () => {
                         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] transition-all duration-300"
                         onClick={() => setShowSidebar(false)}
                     />
-                    <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[85vw] xl:w-[80vw] bg-white shadow-2xl z-[101] flex overflow-hidden">
+                    <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[85vw] xl:w-[80vw] bg-card shadow-2xl z-[101] flex overflow-hidden">
                         {/* Left Sidebar - Image Upload & Navigation */}
-                        <div className="w-48 bg-white border-r border-gray-200 flex flex-col">
+                        <div className="w-48 bg-card border-r border-theme flex flex-col">
                             {/* Image Upload Section */}
-                            <div className="p-3 border-b border-gray-200 bg-white">
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-white"
+                            <div className="p-3 border-b border-theme bg-card">
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-card"
                                     onClick={() => {
                                         const input = document.createElement('input');
                                         input.type = 'file';
@@ -1911,8 +1911,8 @@ const TrailersPage: React.FC = () => {
                                         <img src={selectedImage} alt="Trailer" className="w-full h-20 object-cover rounded" />
                                     ) : (
                                         <>
-                                            <ImageIcon className="w-8 h-8 text-gray-400 mb-1" />
-                                            <span className="text-xs text-gray-500">Select Image</span>
+                                            <ImageIcon className="w-8 h-8 text-secondary mb-1" />
+                                            <span className="text-xs text-secondary">Select Image</span>
                                         </>
                                     )}
                                 </div>
@@ -1931,7 +1931,7 @@ const TrailersPage: React.FC = () => {
                                             onClick={() => setActiveStep(step)}
                                             className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
                                                 ? 'bg-[#42aeec] !text-white shadow-sm'
-                                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                                                : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                 }`}
                                         >
                                             {step}
@@ -1945,8 +1945,8 @@ const TrailersPage: React.FC = () => {
                         {/* Main Content Area */}
                         <div className="flex-1 flex flex-col overflow-hidden">
                             {/* Header */}
-                            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
-                                <h2 className="text-xl font-bold text-gray-900">New Trailer</h2>
+                            <div className="flex items-center justify-between p-4 border-b border-theme bg-card">
+                                <h2 className="text-xl font-bold text-primary">New Trailer</h2>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={handleSaveTrailer}
@@ -1957,7 +1957,7 @@ const TrailersPage: React.FC = () => {
                                     </button>
                                     <button
                                         onClick={() => setShowSidebar(false)}
-                                        className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                                        className="p-1.5 text-secondary hover:text-secondary transition-colors"
                                     >
                                         <X className="w-5 h-5" />
                                     </button>
@@ -1965,14 +1965,14 @@ const TrailersPage: React.FC = () => {
                             </div>
 
                             {/* Content Area - scrollable; footer stays at bottom */}
-                            <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-gray-50">
+                            <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-card">
                                 {/* Details Step */}
                                 {activeStep === 'Details' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-gray-900">Basic Information</h3>
+                                        <h3 className="text-base font-semibold text-primary">Basic Information</h3>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Unit #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -1984,7 +1984,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     VIN #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -1996,7 +1996,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Plate #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2008,7 +2008,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Registration Country<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2025,7 +2025,7 @@ const TrailersPage: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Registration Province/State</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">Registration Province/State</label>
                                                 <input
                                                     type="text"
                                                     value={formData.registrationProvince}
@@ -2036,7 +2036,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Make<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2048,7 +2048,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Model<span className="text-red-500">*</span></label>
+                                                <label className="block text-sm font-medium text-primary mb-1">Model<span className="text-red-500">*</span></label>
                                                 <input
                                                     type="text"
                                                     placeholder="Model"
@@ -2058,7 +2058,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Year<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2070,7 +2070,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Type<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2085,7 +2085,7 @@ const TrailersPage: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Weight<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2097,7 +2097,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     UoM<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2110,7 +2110,7 @@ const TrailersPage: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Status<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2126,14 +2126,14 @@ const TrailersPage: React.FC = () => {
                                         </div>
 
                                         <div className="mt-4">
-                                            <h3 className="text-base font-semibold text-gray-900 mb-2">Ownership Information</h3>
+                                            <h3 className="text-base font-semibold text-primary mb-2">Ownership Information</h3>
                                             <div className="flex gap-2">
                                                 <button
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, ownership: 'COMPANY ASSET', subType: '' })}
                                                     className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'COMPANY ASSET'
                                                         ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                        : 'bg-gray-200 text-primary hover:bg-gray-300'
                                                         }`}
                                                 >
                                                     COMPANY ASSET
@@ -2143,7 +2143,7 @@ const TrailersPage: React.FC = () => {
                                                     onClick={() => setFormData({ ...formData, ownership: 'THIRD PARTY ASSET', subType: '' })}
                                                     className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'THIRD PARTY ASSET'
                                                         ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                        : 'bg-gray-200 text-primary hover:bg-gray-300'
                                                         }`}
                                                 >
                                                     THIRD PARTY ASSET
@@ -2152,7 +2152,7 @@ const TrailersPage: React.FC = () => {
                                         </div>
 
                                         <div className="mt-4">
-                                            <h3 className="text-base font-semibold text-gray-900 mb-2">Yard</h3>
+                                            <h3 className="text-base font-semibold text-primary mb-2">Yard</h3>
                                             <select
                                                 value={formData.yard}
                                                 onChange={(e) => setFormData({ ...formData, yard: e.target.value })}
@@ -2169,7 +2169,7 @@ const TrailersPage: React.FC = () => {
 
                                         {(formData.ownership === 'COMPANY ASSET' || formData.ownership === 'THIRD PARTY ASSET') && (
                                             <div className="mt-4">
-                                                <h3 className="text-base font-semibold text-gray-900 mb-2">Sub-Type</h3>
+                                                <h3 className="text-base font-semibold text-primary mb-2">Sub-Type</h3>
                                                 <div className="flex gap-2">
                                                     {formData.ownership === 'COMPANY ASSET' ? (
                                                         <>
@@ -2178,7 +2178,7 @@ const TrailersPage: React.FC = () => {
                                                                 onClick={() => setFormData({ ...formData, subType: 'HIGHWAY USE' })}
                                                                 className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.subType === 'HIGHWAY USE'
                                                                     ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
                                                                     }`}
                                                             >
                                                                 HIGHWAY USE
@@ -2188,7 +2188,7 @@ const TrailersPage: React.FC = () => {
                                                                 onClick={() => setFormData({ ...formData, subType: 'CITY USE' })}
                                                                 className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.subType === 'CITY USE'
                                                                     ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
                                                                     }`}
                                                             >
                                                                 CITY USE
@@ -2198,7 +2198,7 @@ const TrailersPage: React.FC = () => {
                                                                 onClick={() => setFormData({ ...formData, subType: 'STORAGE USE' })}
                                                                 className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.subType === 'STORAGE USE'
                                                                     ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
                                                                     }`}
                                                             >
                                                                 STORAGE USE
@@ -2211,7 +2211,7 @@ const TrailersPage: React.FC = () => {
                                                                 onClick={() => setFormData({ ...formData, subType: 'RENTAL' })}
                                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors ${formData.subType === 'RENTAL'
                                                                     ? 'bg-gray-700 text-white'
-                                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
                                                                     }`}
                                                             >
                                                                 RENTAL
@@ -2221,7 +2221,7 @@ const TrailersPage: React.FC = () => {
                                                                 onClick={() => setFormData({ ...formData, subType: 'OTHER' })}
                                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors ${formData.subType === 'OTHER'
                                                                     ? 'bg-gray-700 text-white'
-                                                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
                                                                     }`}
                                                             >
                                                                 OTHER
@@ -2237,7 +2237,7 @@ const TrailersPage: React.FC = () => {
                                 {/* Inspections Step */}
                                 {activeStep === 'Inspections' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-gray-900">Trailer Inspections</h3>
+                                        <h3 className="text-base font-semibold text-primary">Trailer Inspections</h3>
 
                                         {/* Inspection Type Tabs */}
                                         <div className="flex gap-2">
@@ -2245,8 +2245,8 @@ const TrailersPage: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setInspectionType('One Time')}
                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors border-2 ${inspectionType === 'One Time'
-                                                    ? 'bg-white border-gray-700 text-gray-900'
-                                                    : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                                                    ? 'bg-card border-gray-700 text-primary'
+                                                    : 'bg-card border-gray-300 text-primary hover:border-gray-400'
                                                     }`}
                                             >
                                                 One Time
@@ -2255,8 +2255,8 @@ const TrailersPage: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setInspectionType('Recurring')}
                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors border-2 ${inspectionType === 'Recurring'
-                                                    ? 'bg-white border-gray-700 text-gray-900'
-                                                    : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                                                    ? 'bg-card border-gray-700 text-primary'
+                                                    : 'bg-card border-gray-300 text-primary hover:border-gray-400'
                                                     }`}
                                             >
                                                 Recurring
@@ -2268,9 +2268,9 @@ const TrailersPage: React.FC = () => {
                                             <div className="space-y-4">
                                                 <div className="flex gap-2 items-end bg-gray-100 p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
                                                         <div className="relative">
-                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
                                                                 type="date"
                                                                 value={inspectionForm.expiryDate}
@@ -2280,7 +2280,7 @@ const TrailersPage: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
@@ -2290,17 +2290,17 @@ const TrailersPage: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                         {inspectionForm.file ? (
-                                                            <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                                                <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                                                <span className="text-sm text-gray-700 truncate flex-1">
+                                                            <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card">
+                                                                <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
+                                                                <span className="text-sm text-primary truncate flex-1">
                                                                     {inspectionForm.file.name}
                                                                 </span>
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => setInspectionForm({ ...inspectionForm, file: null })}
-                                                                    className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                                                    className="text-secondary hover:text-[#A855F7] transition-colors flex-shrink-0"
                                                                     title="Remove file"
                                                                 >
                                                                     <X className="w-4 h-4" />
@@ -2326,7 +2326,7 @@ const TrailersPage: React.FC = () => {
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, ignoreExpiration: e.target.checked })}
                                                             className="w-4 h-4"
                                                         />
-                                                        <label className="text-sm text-gray-700">Ignore Expiration</label>
+                                                        <label className="text-sm text-primary">Ignore Expiration</label>
                                                     </div>
                                                     {editingInspectionId && editingInspectionType === 'oneTime' ? (
                                                         <>
@@ -2383,32 +2383,32 @@ const TrailersPage: React.FC = () => {
                                                         </button>
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-gray-500">Click row to edit • Drag to reorder</p>
-                                                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                                <p className="text-sm text-secondary">Click row to edit • Drag to reorder</p>
+                                                <div className="bg-card rounded-lg border border-theme overflow-hidden">
                                                     <table className="w-full">
-                                                        <thead className="bg-gray-50">
+                                                        <thead className="bg-card">
                                                             <tr>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Expiry Date</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Ignore Expiration</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Expiry Date</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             {oneTimeInspections.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                                    <td colSpan={5} className="px-4 py-8 text-center text-secondary">No Data</td>
                                                                 </tr>
                                                             ) : (
                                                                 oneTimeInspections.map((inspection) => (
                                                                     <tr 
                                                                         key={inspection.id} 
                                                                         onClick={() => handleEditInspection(inspection, 'oneTime')}
-                                                                        className={`border-t border-gray-200 hover:bg-gray-50 cursor-pointer ${editingInspectionId === inspection.id ? 'bg-blue-50' : ''}`}
+                                                                        className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingInspectionId === inspection.id ? 'bg-card' : ''}`}
                                                                     >
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.expiryDate}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.description}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.expiryDate}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.description}</td>
                                                                         <td className="px-4 py-2 text-sm">
                                                                             {inspection.fileName ? (
                                                                                 inspection.fileUrl ? (
@@ -2417,7 +2417,7 @@ const TrailersPage: React.FC = () => {
                                                                                         target="_blank"
                                                                                         rel="noopener noreferrer"
                                                                                         onClick={(e) => e.stopPropagation()}
-                                                                                        className="text-blue-600 hover:underline flex items-center gap-1"
+                                                                                        className="text-[#00D1FF] hover:underline flex items-center gap-1"
                                                                                     >
                                                                                         <FileText className="w-4 h-4" />
                                                                                         {inspection.fileName.length > 20
@@ -2425,7 +2425,7 @@ const TrailersPage: React.FC = () => {
                                                                                             : inspection.fileName}
                                                                                     </a>
                                                                                 ) : (
-                                                                                    <span className="text-gray-600 flex items-center gap-1">
+                                                                                    <span className="text-secondary flex items-center gap-1">
                                                                                         <FileText className="w-4 h-4" />
                                                                                         {inspection.fileName.length > 20
                                                                                             ? inspection.fileName.substring(0, 20) + '...'
@@ -2433,22 +2433,22 @@ const TrailersPage: React.FC = () => {
                                                                                     </span>
                                                                                 )
                                                                             ) : (
-                                                                                <span className="text-gray-400">No file</span>
+                                                                                <span className="text-secondary">No file</span>
                                                                             )}
                                                                         </td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                         <td className="px-4 py-2 text-sm">
                                                                             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                                                                 <button
                                                                                     onClick={() => handleEditInspection(inspection, 'oneTime')}
-                                                                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                                    className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
                                                                                     title="Edit"
                                                                                 >
                                                                                     <Edit className="w-4 h-4" />
                                                                                 </button>
                                                                                 <button
                                                                                     onClick={() => handleDeleteInspection(inspection.id, 'oneTime')}
-                                                                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                                    className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
                                                                                     title="Delete"
                                                                                 >
                                                                                     <Trash2 className="w-4 h-4" />
@@ -2469,9 +2469,9 @@ const TrailersPage: React.FC = () => {
                                             <div className="space-y-4">
                                                 <div className="flex gap-2 items-end bg-gray-100 p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Scheduled On</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Scheduled On</label>
                                                         <div className="relative">
-                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
                                                                 type="date"
                                                                 value={inspectionForm.scheduledOn}
@@ -2481,7 +2481,7 @@ const TrailersPage: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">After</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">After</label>
                                                         <input
                                                             type="text"
                                                             placeholder="After"
@@ -2491,7 +2491,7 @@ const TrailersPage: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Unit</label>
                                                         <select
                                                             value={inspectionForm.unit}
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, unit: e.target.value })}
@@ -2504,7 +2504,7 @@ const TrailersPage: React.FC = () => {
                                                         </select>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
@@ -2514,17 +2514,17 @@ const TrailersPage: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                         {inspectionForm.file ? (
-                                                            <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                                                <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                                                <span className="text-sm text-gray-700 truncate flex-1">
+                                                            <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card">
+                                                                <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
+                                                                <span className="text-sm text-primary truncate flex-1">
                                                                     {inspectionForm.file.name}
                                                                 </span>
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => setInspectionForm({ ...inspectionForm, file: null })}
-                                                                    className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                                                    className="text-secondary hover:text-[#A855F7] transition-colors flex-shrink-0"
                                                                     title="Remove file"
                                                                 >
                                                                     <X className="w-4 h-4" />
@@ -2550,7 +2550,7 @@ const TrailersPage: React.FC = () => {
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, ignoreExpiration: e.target.checked })}
                                                             className="w-4 h-4"
                                                         />
-                                                        <label className="text-sm text-gray-700">Ignore Expiration</label>
+                                                        <label className="text-sm text-primary">Ignore Expiration</label>
                                                     </div>
                                                     {editingInspectionId && editingInspectionType === 'recurring' ? (
                                                         <>
@@ -2614,35 +2614,35 @@ const TrailersPage: React.FC = () => {
                                                         </button>
                                                     )}
                                                 </div>
-                                                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                                <div className="bg-card rounded-lg border border-theme overflow-hidden">
                                                     <table className="w-full">
-                                                        <thead className="bg-gray-50">
+                                                        <thead className="bg-card">
                                                             <tr>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Scheduled On</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">After</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Unit</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Ignore Expiration</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Scheduled On</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">After</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Unit</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             {recurringInspections.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                                    <td colSpan={7} className="px-4 py-8 text-center text-secondary">No Data</td>
                                                                 </tr>
                                                             ) : (
                                                                 recurringInspections.map((inspection) => (
                                                                     <tr 
                                                                         key={inspection.id} 
                                                                         onClick={() => handleEditInspection(inspection, 'recurring')}
-                                                                        className={`border-t border-gray-200 hover:bg-gray-50 cursor-pointer ${editingInspectionId === inspection.id ? 'bg-blue-50' : ''}`}
+                                                                        className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingInspectionId === inspection.id ? 'bg-card' : ''}`}
                                                                     >
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.scheduledOn}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.after}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.unit}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.description}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.scheduledOn}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.after}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.unit}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.description}</td>
                                                                         <td className="px-4 py-2 text-sm">
                                                                             {inspection.fileName ? (
                                                                                 inspection.fileUrl ? (
@@ -2651,7 +2651,7 @@ const TrailersPage: React.FC = () => {
                                                                                         target="_blank"
                                                                                         rel="noopener noreferrer"
                                                                                         onClick={(e) => e.stopPropagation()}
-                                                                                        className="text-blue-600 hover:underline flex items-center gap-1"
+                                                                                        className="text-[#00D1FF] hover:underline flex items-center gap-1"
                                                                                     >
                                                                                         <FileText className="w-4 h-4" />
                                                                                         {inspection.fileName.length > 20
@@ -2659,7 +2659,7 @@ const TrailersPage: React.FC = () => {
                                                                                             : inspection.fileName}
                                                                                     </a>
                                                                                 ) : (
-                                                                                    <span className="text-gray-600 flex items-center gap-1">
+                                                                                    <span className="text-secondary flex items-center gap-1">
                                                                                         <FileText className="w-4 h-4" />
                                                                                         {inspection.fileName.length > 20
                                                                                             ? inspection.fileName.substring(0, 20) + '...'
@@ -2667,22 +2667,22 @@ const TrailersPage: React.FC = () => {
                                                                                     </span>
                                                                                 )
                                                                             ) : (
-                                                                                <span className="text-gray-400">No file</span>
+                                                                                <span className="text-secondary">No file</span>
                                                                             )}
                                                                         </td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                         <td className="px-4 py-2 text-sm">
                                                                             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                                                                 <button
                                                                                     onClick={() => handleEditInspection(inspection, 'recurring')}
-                                                                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                                    className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
                                                                                     title="Edit"
                                                                                 >
                                                                                     <Edit className="w-4 h-4" />
                                                                                 </button>
                                                                                 <button
                                                                                     onClick={() => handleDeleteInspection(inspection.id, 'recurring')}
-                                                                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                                    className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
                                                                                     title="Delete"
                                                                                 >
                                                                                     <Trash2 className="w-4 h-4" />
@@ -2703,13 +2703,13 @@ const TrailersPage: React.FC = () => {
                                 {/* Documents Step (no tabs; single list with Title) */}
                                 {activeStep === 'Documents' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-gray-900">Documents</h3>
+                                        <h3 className="text-base font-semibold text-primary">Documents</h3>
 
                                         {/* Document Form */}
                                         <div className="bg-gray-100 p-4 rounded-lg space-y-4">
                                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Title</label>
                                                     <input
                                                         type="text"
                                                         placeholder="Title"
@@ -2719,9 +2719,9 @@ const TrailersPage: React.FC = () => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
                                                     <div className="relative">
-                                                        <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                                        <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                         <input
                                                             type="date"
                                                             value={documentForm.expiryDate}
@@ -2731,7 +2731,7 @@ const TrailersPage: React.FC = () => {
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                     <input
                                                         type="text"
                                                         placeholder="Description"
@@ -2743,18 +2743,18 @@ const TrailersPage: React.FC = () => {
                                             </div>
                                             <div className="flex flex-wrap gap-4 items-end">
                                                 <div className="min-w-[200px]">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                                                    <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                     {documentForm.file ? (
-                                                        <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                                            <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                                            <span className="text-sm text-gray-700 truncate flex-1">{documentForm.file.name}</span>
+                                                        <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card">
+                                                            <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
+                                                            <span className="text-sm text-primary truncate flex-1">{documentForm.file.name}</span>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
                                                                     setDocumentForm({ ...documentForm, file: null });
                                                                     if (documentFileInputRef.current) documentFileInputRef.current.value = '';
                                                                 }}
-                                                                className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                                                className="text-secondary hover:text-[#A855F7] transition-colors flex-shrink-0"
                                                                 title="Remove file"
                                                             >
                                                                 <X className="w-4 h-4" />
@@ -2773,7 +2773,7 @@ const TrailersPage: React.FC = () => {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => documentFileInputRef.current?.click()}
-                                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium flex items-center justify-center gap-2"
+                                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium flex items-center justify-center gap-2"
                                                             >
                                                                 <Upload className="w-4 h-4" />
                                                                 <span>Select File</span>
@@ -2788,7 +2788,7 @@ const TrailersPage: React.FC = () => {
                                                         onChange={(e) => setDocumentForm({ ...documentForm, ignoreExpiration: e.target.checked })}
                                                         className="w-4 h-4"
                                                     />
-                                                    <label className="text-sm text-gray-700">Ignore Expiration</label>
+                                                    <label className="text-sm text-primary">Ignore Expiration</label>
                                                 </div>
                                                 {editingDocumentId ? (
                                                     <>
@@ -2822,70 +2822,70 @@ const TrailersPage: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        <p className="text-sm text-gray-500">Click row to edit</p>
+                                        <p className="text-sm text-secondary">Click row to edit</p>
 
                                         {/* Documents Table */}
-                                        <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                                        <div className="bg-card rounded-lg border border-theme overflow-x-auto">
                                             <table className="w-full min-w-[800px]">
-                                                <thead className="bg-gray-50">
+                                                <thead className="bg-card">
                                                     <tr>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Title</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Expiry Date</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Ignore Expiration</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Title</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Expiry Date</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {documents.length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={6} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                            <td colSpan={6} className="px-4 py-8 text-center text-secondary">No Data</td>
                                                         </tr>
                                                     ) : (
                                                         documents.map((doc) => (
                                                             <tr
                                                                 key={doc.id}
                                                                 onClick={() => handleEditDocument(doc)}
-                                                                className={`border-t border-gray-200 hover:bg-gray-50 cursor-pointer ${editingDocumentId === doc.id ? 'bg-blue-50' : ''}`}
+                                                                className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingDocumentId === doc.id ? 'bg-card' : ''}`}
                                                             >
-                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.title || '-'}</td>
-                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.expiryDate || '-'}</td>
-                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.description || '-'}</td>
-                                                                <td className="px-4 py-2 text-sm text-gray-900">
+                                                                <td className="px-4 py-2 text-sm text-primary">{doc.title || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-primary">{doc.expiryDate || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-primary">{doc.description || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-primary">
                                                                     {doc.fileUrl ? (
                                                                         <a
                                                                             href={doc.fileUrl}
                                                                             target="_blank"
                                                                             rel="noopener noreferrer"
                                                                             onClick={(e) => e.stopPropagation()}
-                                                                            className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
+                                                                            className="flex items-center gap-2 text-[#00D1FF] hover:text-blue-800"
                                                                         >
                                                                             <FileText className="w-4 h-4" />
                                                                             <span>{doc.fileName || 'View File'}</span>
                                                                         </a>
                                                                     ) : doc.file ? (
-                                                                        <span className="flex items-center gap-2 text-gray-700">
+                                                                        <span className="flex items-center gap-2 text-primary">
                                                                             <FileText className="w-4 h-4" />
                                                                             <span>{doc.file.name}</span>
                                                                         </span>
                                                                     ) : (
-                                                                        <span className="text-gray-400">No file</span>
+                                                                        <span className="text-secondary">No file</span>
                                                                     )}
                                                                 </td>
-                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                <td className="px-4 py-2 text-sm text-primary">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                 <td className="px-4 py-2 text-sm" onClick={(e) => e.stopPropagation()}>
                                                                     <div className="flex items-center gap-2">
                                                                         <button
                                                                             onClick={() => handleEditDocument(doc)}
-                                                                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                            className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
                                                                             title="Edit"
                                                                         >
                                                                             <Edit className="w-4 h-4" />
                                                                         </button>
                                                                         <button
                                                                             onClick={() => handleDeleteDocument(doc.id)}
-                                                                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                            className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
                                                                             title="Delete"
                                                                         >
                                                                             <Trash2 className="w-4 h-4" />
@@ -2904,27 +2904,27 @@ const TrailersPage: React.FC = () => {
                                 {/* Notes Step */}
                                 {activeStep === 'Notes' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-gray-900">Notes</h3>
+                                        <h3 className="text-base font-semibold text-primary">Notes</h3>
 
                                         {/* Note Form */}
                                         <div className="flex gap-4 items-end bg-gray-100 p-4 rounded-lg">
                                             <div className="flex-1">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">Note</label>
                                                 <input
                                                     type="text"
                                                     placeholder="Note"
                                                     value={noteForm.note}
                                                     onChange={(e) => setNoteForm({ ...noteForm, note: e.target.value })}
-                                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">Category</label>
                                                 <div className="relative">
                                                     <select
                                                         value={noteForm.category}
                                                         onChange={(e) => setNoteForm({ ...noteForm, category: e.target.value })}
-                                                        className="px-3 py-2 pr-8 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none min-w-[150px]"
+                                                        className="px-3 py-2 pr-8 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none min-w-[150px]"
                                                     >
                                                         <option value="Category">Category</option>
                                                         <option value="Safety">Safety</option>
@@ -2933,7 +2933,7 @@ const TrailersPage: React.FC = () => {
                                                         <option value="General">General</option>
                                                         <option value="Maintenance">Maintenance</option>
                                                     </select>
-                                                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                 </div>
                                             </div>
                                             {editingNoteId && (
@@ -2976,33 +2976,33 @@ const TrailersPage: React.FC = () => {
                                         </div>
 
                                         {/* Notes Table */}
-                                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                        <div className="bg-card rounded-lg border border-theme overflow-hidden">
                                             <table className="w-full">
-                                                <thead className="bg-gray-50 border-b border-gray-200">
+                                                <thead className="bg-card border-b border-theme">
                                                     <tr>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Note</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Category</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Note</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Category</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-200">
                                                     {notes.length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={3} className="px-4 py-12 text-center text-gray-500 text-sm">No Data</td>
+                                                            <td colSpan={3} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>
                                                         </tr>
                                                     ) : (
                                                         notes.map((note) => (
-                                                            <tr key={note.id} className={`hover:bg-gray-50 transition-colors ${editingNoteId === note.id ? 'bg-blue-50' : ''}`}>
-                                                                <td className="px-4 py-3 text-sm text-gray-900">{note.note}</td>
-                                                                <td className="px-4 py-3 text-sm text-gray-900">{note.category}</td>
-                                                                <td className="px-4 py-3 text-sm text-gray-900">
+                                                            <tr key={note.id} className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${editingNoteId === note.id ? 'bg-card' : ''}`}>
+                                                                <td className="px-4 py-3 text-sm text-primary">{note.note}</td>
+                                                                <td className="px-4 py-3 text-sm text-primary">{note.category}</td>
+                                                                <td className="px-4 py-3 text-sm text-primary">
                                                                     <div className="flex items-center gap-2">
                                                                         <button
                                                                             onClick={() => {
                                                                                 setEditingNoteId(note.id);
                                                                                 setNoteForm({ note: note.note, category: note.category });
                                                                             }}
-                                                                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                            className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
                                                                             title="Edit"
                                                                         >
                                                                             <Edit className="w-4 h-4" />
@@ -3015,7 +3015,7 @@ const TrailersPage: React.FC = () => {
                                                                                     setNoteForm({ note: '', category: 'Category' });
                                                                                 }
                                                                             }}
-                                                                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                            className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
                                                                             title="Delete"
                                                                         >
                                                                             <Trash2 className="w-4 h-4" />
@@ -3033,7 +3033,7 @@ const TrailersPage: React.FC = () => {
 
                             </div>
                             {/* Footer: Previous/Next fixed at bottom */}
-                            <div className="flex-shrink-0 border-t border-gray-200 bg-white px-4 py-3">
+                            <div className="flex-shrink-0 border-t border-theme bg-card px-4 py-3">
                                 <div className="flex justify-between gap-3">
                                     <button
                                         onClick={handlePrevious}
@@ -3041,7 +3041,7 @@ const TrailersPage: React.FC = () => {
                                         className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                                             getPreviousStep()
                                                 ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                                : 'bg-gray-200 text-secondary cursor-not-allowed'
                                         }`}
                                     >
                                         <ChevronLeft className="w-3.5 h-3.5" />
@@ -3053,7 +3053,7 @@ const TrailersPage: React.FC = () => {
                                         className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                                             getNextStep()
                                                 ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                                : 'bg-gray-200 text-secondary cursor-not-allowed'
                                         }`}
                                     >
                                         Next
@@ -3083,7 +3083,7 @@ const TrailersPage: React.FC = () => {
 
             {/* Validation Errors Display */}
             {validationErrors.length > 0 && (
-                <div className="fixed bottom-4 right-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg shadow-lg max-w-md z-[10001]">
+                <div className="fixed bottom-4 right-4 bg-card border-l-4 border-red-500 p-4 rounded-lg shadow-lg max-w-md z-[10001]">
                     <div className="flex items-start">
                         <div className="flex-shrink-0">
                             <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -3100,7 +3100,7 @@ const TrailersPage: React.FC = () => {
                         </div>
                         <button
                             onClick={() => setValidationErrors([])}
-                            className="ml-3 flex-shrink-0 text-red-400 hover:text-red-600"
+                            className="ml-3 flex-shrink-0 text-red-400 hover:text-[#A855F7]"
                         >
                             <X className="w-5 h-5" />
                         </button>

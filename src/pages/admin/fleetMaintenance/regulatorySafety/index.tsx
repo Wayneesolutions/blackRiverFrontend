@@ -75,7 +75,7 @@ const Toast: React.FC<{ notification: NotificationState; onClose: () => void }> 
   const colors =
     notification.type === 'success'
       ? 'border-green-200 bg-green-50 text-green-800'
-      : 'border-red-200 bg-red-50 text-red-800';
+      : 'border-red-200 bg-card text-red-800';
 
   return (
     <div className="fixed top-6 right-6 z-[1200] w-full max-w-sm animate-slide-in">
@@ -94,7 +94,7 @@ const Toast: React.FC<{ notification: NotificationState; onClose: () => void }> 
 
 const getExpiryStatus = (expiry?: string) => {
   if (!expiry) {
-    return { status: 'unknown', color: 'bg-gray-100 text-gray-600', text: 'Not Set' };
+    return { status: 'unknown', color: 'bg-gray-100 text-secondary', text: 'Not Set' };
   }
   const today = new Date();
   const expiryDate = new Date(expiry);
@@ -508,7 +508,7 @@ const RegulatorySafety: React.FC = () => {
                 <button
                   onClick={handleExportSafety}
                   disabled={exporting}
-                  className="inline-flex items-center gap-2 rounded-lg bg-white text-green-600 px-4 py-2 font-bold text-sm shadow-sm hover:bg-white/90 transition disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-lg bg-card text-green-600 px-4 py-2 font-bold text-sm shadow-sm hover:bg-card/90 transition disabled:opacity-60"
                 >
                   <Download className="w-4 h-4" />
                   {exporting ? 'Exporting...' : 'Export'}
@@ -537,13 +537,13 @@ const RegulatorySafety: React.FC = () => {
           {notification && <Toast notification={notification} onClose={() => setNotification(null)} />}
 
           {error && !requiresCompanySetup && (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">{error}</div>
+            <div className="mb-4 rounded-lg border border-red-200 bg-card px-4 py-3 text-red-700">{error}</div>
           )}
 
           {/* Search */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-4">
+          <div className="bg-card rounded-lg shadow-sm border border-theme p-4 mb-4">
             <div className="relative">
-              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
               <input
                 type="text"
                 placeholder="Search by unit number, make/model, invoice, or decal number..."
@@ -565,13 +565,13 @@ const RegulatorySafety: React.FC = () => {
 
           {/* Record Count */}
           <div className="flex flex-wrap items-center gap-3 mb-4">
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-secondary">
               Showing {filteredRecords.length} safety record{filteredRecords.length === 1 ? '' : 's'}
             </span>
           </div>
 
           {/* Table */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
             <style>{`
               .top-scrollbar-container::-webkit-scrollbar {
@@ -630,13 +630,13 @@ const RegulatorySafety: React.FC = () => {
                 <tbody className="divide-y divide-gray-200">
                   {loading ? (
                     <tr>
-                      <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={10} className="px-6 py-12 text-center text-secondary">
                         Loading safety records...
                       </td>
                     </tr>
                   ) : filteredRecords.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={10} className="px-6 py-12 text-center text-secondary">
                         No safety records found
                       </td>
                     </tr>
@@ -652,22 +652,22 @@ const RegulatorySafety: React.FC = () => {
                       return (
                         <tr
                           key={record._id}
-                          className={`hover:bg-gray-50 transition-colors cursor-pointer ${rowAccent}`}
+                          className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer ${rowAccent}`}
                           onClick={() => {
                             setSelectedRecord(record);
                             setShowRecordDetails(true);
                           }}
                         >
-                          <td className="px-6 py-4 font-medium text-gray-900">{record.unitNo}</td>
+                          <td className="px-6 py-4 font-medium text-primary">{record.unitNo}</td>
                           <td className="px-6 py-4">
                             <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                               {record.unitType || 'Unit'}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-gray-900">{record.makeModel || '—'}</td>
-                          <td className="px-6 py-4 text-gray-900">
+                          <td className="px-6 py-4 text-primary">{record.makeModel || '—'}</td>
+                          <td className="px-6 py-4 text-primary">
                             <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4 text-gray-400" />
+                              <Calendar className="w-4 h-4 text-secondary" />
                               {formatDate(record.safetyExpiryDate)}
                             </div>
                           </td>
@@ -679,22 +679,22 @@ const RegulatorySafety: React.FC = () => {
                               {status.text}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-gray-600 font-mono text-sm">{record.safetyDecalNumber || '—'}</td>
-                          <td className="px-6 py-4 text-gray-600 font-mono text-sm">{record.safetyPaperNumber || '—'}</td>
-                          <td className="px-6 py-4 text-gray-900">{record.shopName || '—'}</td>
-                          <td className="px-6 py-4 text-gray-600 font-mono text-sm">{record.invoiceNo || '—'}</td>
+                          <td className="px-6 py-4 text-secondary font-mono text-sm">{record.safetyDecalNumber || '—'}</td>
+                          <td className="px-6 py-4 text-secondary font-mono text-sm">{record.safetyPaperNumber || '—'}</td>
+                          <td className="px-6 py-4 text-primary">{record.shopName || '—'}</td>
+                          <td className="px-6 py-4 text-secondary font-mono text-sm">{record.invoiceNo || '—'}</td>
                           <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => handleEditRecord(record)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
                                 title="Edit"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleDeleteRecord(record)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
                                 title="Delete"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -724,18 +724,18 @@ const RegulatorySafety: React.FC = () => {
 
               {/* Sidebar Panel */}
               <div
-                className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+                className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
               >
                 <div className="p-6">
                   {/* Header */}
-                  <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                    <h2 className="text-2xl font-bold text-gray-900">Safety Record Details</h2>
+                  <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                    <h2 className="text-2xl font-bold text-primary">Safety Record Details</h2>
                     <button
                       onClick={() => {
                         setShowRecordDetails(false);
                         setTimeout(() => setSelectedRecord(null), 300);
                       }}
-                      className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                      className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
                     >
                       <X size={24} />
                     </button>
@@ -766,27 +766,27 @@ const RegulatorySafety: React.FC = () => {
                     </div>
 
                     {/* Record Information */}
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                      <h4 className="font-semibold text-gray-900 mb-4 text-lg">Safety Information</h4>
+                    <div className="bg-card p-6 rounded-lg border border-theme">
+                      <h4 className="font-semibold text-primary mb-4 text-lg">Safety Information</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Unit Number</p>
-                          <p className="font-medium text-gray-900">{selectedRecord.unitNo || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Unit Number</p>
+                          <p className="font-medium text-primary">{selectedRecord.unitNo || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Unit Type</p>
-                          <p className="font-medium text-gray-900">{selectedRecord.unitType || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Unit Type</p>
+                          <p className="font-medium text-primary">{selectedRecord.unitType || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Make / Model</p>
-                          <p className="font-medium text-gray-900">{selectedRecord.makeModel || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Make / Model</p>
+                          <p className="font-medium text-primary">{selectedRecord.makeModel || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Safety Expiry Date</p>
-                          <p className="font-medium text-gray-900">{formatDate(selectedRecord.safetyExpiryDate)}</p>
+                          <p className="text-sm text-secondary mb-1">Safety Expiry Date</p>
+                          <p className="font-medium text-primary">{formatDate(selectedRecord.safetyExpiryDate)}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Status</p>
+                          <p className="text-sm text-secondary mb-1">Status</p>
                           {(() => {
                             const status = getExpiryStatus(selectedRecord.safetyExpiryDate);
                             return (
@@ -800,38 +800,38 @@ const RegulatorySafety: React.FC = () => {
                           })()}
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Safety Decal Number</p>
-                          <p className="font-medium text-gray-900 font-mono">{selectedRecord.safetyDecalNumber || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Safety Decal Number</p>
+                          <p className="font-medium text-primary font-mono">{selectedRecord.safetyDecalNumber || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Safety Paper Number</p>
-                          <p className="font-medium text-gray-900 font-mono">{selectedRecord.safetyPaperNumber || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Safety Paper Number</p>
+                          <p className="font-medium text-primary font-mono">{selectedRecord.safetyPaperNumber || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Shop Name</p>
-                          <p className="font-medium text-gray-900">{selectedRecord.shopName || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Shop Name</p>
+                          <p className="font-medium text-primary">{selectedRecord.shopName || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Invoice Number</p>
-                          <p className="font-medium text-gray-900 font-mono">{selectedRecord.invoiceNo || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Invoice Number</p>
+                          <p className="font-medium text-primary font-mono">{selectedRecord.invoiceNo || "—"}</p>
                         </div>
                       </div>
                       {selectedRecord.notes && (
                         <div className="mt-4">
-                          <p className="text-sm text-gray-500 mb-1">Notes</p>
-                          <p className="font-medium text-gray-900">{selectedRecord.notes}</p>
+                          <p className="text-sm text-secondary mb-1">Notes</p>
+                          <p className="font-medium text-primary">{selectedRecord.notes}</p>
                         </div>
                       )}
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                       <button
                         onClick={() => {
                           setShowRecordDetails(false);
                           setTimeout(() => setSelectedRecord(null), 300);
                         }}
-                        className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                        className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
                       >
                         Close
                       </button>
@@ -857,21 +857,21 @@ const RegulatorySafety: React.FC = () => {
         (showAddModal || showEditModal) && (
           <>
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={closeModals} />
-            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl z-[101] border-l border-gray-200">
+            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-card shadow-2xl z-[101] border-l border-theme">
               <div className="h-full flex flex-col">
                 <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
                   <h2 className="text-2xl font-bold">{showAddModal ? 'Add Safety Record' : 'Edit Safety Record'}</h2>
-                  <button onClick={closeModals} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                  <button onClick={closeModals} className="p-2 hover:bg-card/20 rounded-lg transition-colors">
                     <FaTimes className="w-5 h-5" />
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
                   {formError && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">{formError}</div>
+                    <div className="rounded-lg border border-red-200 bg-card px-4 py-2 text-sm text-red-700">{formError}</div>
                   )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Unit No. *</label>
+                      <label className="block text-sm font-medium text-primary mb-2">Unit No. *</label>
                       <select
                         value={formData.unitNo}
                         onChange={(e) => setFormData({ ...formData, unitNo: e.target.value })}
@@ -895,7 +895,7 @@ const RegulatorySafety: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Safety Expiry Date *</label>
+                      <label className="block text-sm font-medium text-primary mb-2">Safety Expiry Date *</label>
                       <input
                         type="date"
                         value={formData.safetyExpiryDate}
@@ -913,7 +913,7 @@ const RegulatorySafety: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Safety Decal Number *</label>
+                      <label className="block text-sm font-medium text-primary mb-2">Safety Decal Number *</label>
                       <input
                         type="text"
                         value={formData.safetyDecalNumber}
@@ -932,7 +932,7 @@ const RegulatorySafety: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Safety Paper Number</label>
+                      <label className="block text-sm font-medium text-primary mb-2">Safety Paper Number</label>
                       <input
                         type="text"
                         value={formData.safetyPaperNumber}
@@ -951,7 +951,7 @@ const RegulatorySafety: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Shop Name *</label>
+                      <label className="block text-sm font-medium text-primary mb-2">Shop Name *</label>
                       <input
                         type="text"
                         value={formData.shopName}
@@ -970,7 +970,7 @@ const RegulatorySafety: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Invoice No.</label>
+                      <label className="block text-sm font-medium text-primary mb-2">Invoice No.</label>
                       <input
                         type="text"
                         value={formData.invoiceNo}
@@ -989,7 +989,7 @@ const RegulatorySafety: React.FC = () => {
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                      <label className="block text-sm font-medium text-primary mb-2">Notes</label>
                       <textarea
                         value={formData.notes}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -1009,10 +1009,10 @@ const RegulatorySafety: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-200">
+                <div className="flex-shrink-0 bg-card px-6 py-4 flex justify-end gap-3 border-t border-theme">
                   <button
                     onClick={closeModals}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     Cancel
                   </button>
@@ -1041,18 +1041,18 @@ const RegulatorySafety: React.FC = () => {
                 setSelectedRecord(null);
               }}
             />
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-[9999] w-full max-w-md">
+            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card rounded-xl shadow-2xl z-[9999] w-full max-w-md">
               <div className="p-6">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                    <FaExclamationCircle className="text-red-600" size={24} />
+                    <FaExclamationCircle className="text-[#A855F7]" size={24} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">Delete Safety Record</h3>
-                    <p className="text-sm text-gray-500">This action cannot be undone</p>
+                    <h3 className="text-lg font-bold text-primary">Delete Safety Record</h3>
+                    <p className="text-sm text-secondary">This action cannot be undone</p>
                   </div>
                 </div>
-                <p className="text-gray-700 mb-6">
+                <p className="text-primary mb-6">
                   Are you sure you want to delete this safety record for unit <strong>{selectedRecord.unitNo}</strong>?
                 </p>
                 <div className="flex justify-end gap-3">
@@ -1061,7 +1061,7 @@ const RegulatorySafety: React.FC = () => {
                       setShowDeleteModal(false);
                       setSelectedRecord(null);
                     }}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     Cancel
                   </button>

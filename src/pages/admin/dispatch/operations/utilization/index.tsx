@@ -173,14 +173,14 @@ const UtilizationPage = () => {
       );
     }
     return (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-primary">
         Empty
       </span>
     );
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+    <div className="min-h-screen" >
       <div className="relative w-full mx-auto">
    
 
@@ -197,15 +197,15 @@ const UtilizationPage = () => {
           </div>
 
           {/* Tabs */}
-          <div className="bg-white rounded-lg shadow-sm mb-4">
-            <div className="border-b border-gray-200">
+          <div className="bg-card rounded-lg shadow-sm mb-4">
+            <div className="border-b border-theme">
               <nav className="flex -mb-px">
                 <button
                   onClick={() => setActiveTab("trucks")}
                   className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === "trucks"
                       ? "border-[#42aeec] text-[#42aeec]"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      : "border-transparent text-secondary hover:text-primary hover:border-gray-300"
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -218,7 +218,7 @@ const UtilizationPage = () => {
                   className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === "trailers"
                       ? "border-[#42aeec] text-[#42aeec]"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      : "border-transparent text-secondary hover:text-primary hover:border-gray-300"
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -230,7 +230,7 @@ const UtilizationPage = () => {
             </div>
 
             {/* Search Bar */}
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-4 border-b border-theme">
               <div className="relative">
                 <input
                   type="text"
@@ -239,123 +239,123 @@ const UtilizationPage = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                 />
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
               </div>
             </div>
 
             {/* Table */}
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-card border-b border-theme">
                   <tr>
                     {activeTab === "trucks" ? (
                       <>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                           Unit/Plate
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                           Make/Model/Year
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                           Driver
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                           Location
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                           Details
                         </th>
                       </>
                     ) : (
                       <>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                           Trailer/Plate
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                           Make/Model/Type
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                           Attached Vehicle
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                           Location
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                           Load Status
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                           Service Status
                         </th>
                       </>
                     )}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-gray-200">
                   {loading ? (
                     <tr>
-                      <td colSpan={activeTab === "trucks" ? 6 : 6} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={activeTab === "trucks" ? 6 : 6} className="px-6 py-8 text-center text-secondary">
                         Loading...
                       </td>
                     </tr>
                   ) : activeTab === "trucks" ? (
                     filteredTrucks.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                        <td colSpan={6} className="px-6 py-8 text-center text-secondary">
                           No trucks found
                         </td>
                       </tr>
                     ) : (
                       filteredTrucks.map((truck) => (
-                        <tr key={truck.id} className="hover:bg-gray-50 transition-colors">
+                        <tr key={truck.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                           <td className="px-6 py-4">
-                            <div className="text-sm font-medium text-gray-900">{truck.plateNumber || 'N/A'}</div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-sm font-medium text-primary">{truck.plateNumber || 'N/A'}</div>
+                            <div className="text-xs text-secondary">
                               Unit: {truck.unitNumber || truck.internalId || 'N/A'}
                             </div>
                             {truck.vinNumber && (
-                              <div className="text-xs text-gray-400">VIN: {truck.vinNumber}</div>
+                              <div className="text-xs text-secondary">VIN: {truck.vinNumber}</div>
                             )}
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm text-gray-900">{truck.make || 'N/A'} {truck.model || ''}</div>
+                            <div className="text-sm text-primary">{truck.make || 'N/A'} {truck.model || ''}</div>
                             {truck.year && (
-                              <div className="text-xs text-gray-500">Year: {truck.year}</div>
+                              <div className="text-xs text-secondary">Year: {truck.year}</div>
                             )}
                             {truck.type && (
-                              <div className="text-xs text-gray-500">Type: {truck.type}</div>
+                              <div className="text-xs text-secondary">Type: {truck.type}</div>
                             )}
                           </td>
                           <td className="px-6 py-4">
                             {truck.driver ? (
                               <>
-                                <div className="text-sm text-gray-900">{truck.driver.name || 'N/A'}</div>
+                                <div className="text-sm text-primary">{truck.driver.name || 'N/A'}</div>
                                 {truck.driver.phone && (
-                                  <div className="text-xs text-gray-500">{truck.driver.phone}</div>
+                                  <div className="text-xs text-secondary">{truck.driver.phone}</div>
                                 )}
                               </>
                             ) : (
-                              <div className="text-sm text-gray-400">No driver assigned</div>
+                              <div className="text-sm text-secondary">No driver assigned</div>
                             )}
                           </td>
                           <td className="px-6 py-4">
-                            <div className="flex items-center text-sm text-gray-900">
-                              <MapPin className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                            <div className="flex items-center text-sm text-primary">
+                              <MapPin className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
                               <span className="truncate max-w-xs">{truck.currentLocation || 'Unknown'}</span>
                             </div>
                             {truck.speed !== undefined && truck.speed > 0 && (
-                              <div className="text-xs text-gray-500">Speed: {truck.speed} km/h</div>
+                              <div className="text-xs text-secondary">Speed: {truck.speed} km/h</div>
                             )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {getServiceStatusBadge(truck.serviceStatus)}
                             {truck.operationStatus && (
-                              <div className="text-xs text-gray-500 mt-1">{truck.operationStatus}</div>
+                              <div className="text-xs text-secondary mt-1">{truck.operationStatus}</div>
                             )}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
+                          <td className="px-6 py-4 text-sm text-secondary">
                             {truck.odometer !== undefined && (
                               <div>Odometer: {truck.odometer.toLocaleString()} km</div>
                             )}
@@ -366,7 +366,7 @@ const UtilizationPage = () => {
                               <div>Capacity: {truck.capacity}</div>
                             )}
                             {truck.trailer && (
-                              <div className="text-xs text-blue-600">Trailer: {truck.trailer.unitNumber || truck.trailer.trailer || truck.trailer.plateNumber}</div>
+                              <div className="text-xs text-[#00D1FF]">Trailer: {truck.trailer.unitNumber || truck.trailer.trailer || truck.trailer.plateNumber}</div>
                             )}
                           </td>
                         </tr>
@@ -375,76 +375,76 @@ const UtilizationPage = () => {
                   ) : (
                     filteredTrailers.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                        <td colSpan={6} className="px-6 py-8 text-center text-secondary">
                           No trailers found
                         </td>
                       </tr>
                     ) : (
                       filteredTrailers.map((trailer) => (
-                        <tr key={trailer.id} className="hover:bg-gray-50 transition-colors">
+                        <tr key={trailer.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                           <td className="px-6 py-4">
-                            <div className="text-sm font-medium text-gray-900">{trailer.plateNumber || 'N/A'}</div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-sm font-medium text-primary">{trailer.plateNumber || 'N/A'}</div>
+                            <div className="text-xs text-secondary">
                               Trailer: {trailer.trailerNumber || trailer.trailer || 'N/A'}
                             </div>
                             {(trailer.unitNumber || trailer.internalId) && (
-                              <div className="text-xs text-gray-400">
+                              <div className="text-xs text-secondary">
                                 Unit: {trailer.unitNumber || trailer.internalId}
                               </div>
                             )}
                           </td>
                           <td className="px-6 py-4">
                             {(trailer.make || trailer.model) && (
-                              <div className="text-sm text-gray-900">{trailer.make || ''} {trailer.model || ''}</div>
+                              <div className="text-sm text-primary">{trailer.make || ''} {trailer.model || ''}</div>
                             )}
                             {trailer.type && (
-                              <div className="text-xs text-gray-500">Type: {trailer.type}</div>
+                              <div className="text-xs text-secondary">Type: {trailer.type}</div>
                             )}
                             {trailer.year && (
-                              <div className="text-xs text-gray-500">Year: {trailer.year}</div>
+                              <div className="text-xs text-secondary">Year: {trailer.year}</div>
                             )}
                           </td>
                           <td className="px-6 py-4">
                             {trailer.attachedVehicle ? (
                               <>
-                                <div className="text-sm text-gray-900">
+                                <div className="text-sm text-primary">
                                   {trailer.attachedVehicle.unitNumber || trailer.attachedVehicle.plateNumber || 'N/A'}
                                 </div>
                                 {(trailer.attachedVehicle.make || trailer.attachedVehicle.model) && (
-                                  <div className="text-xs text-gray-500">
+                                  <div className="text-xs text-secondary">
                                     {trailer.attachedVehicle.make} {trailer.attachedVehicle.model}
                                   </div>
                                 )}
                               </>
                             ) : (
-                              <div className="text-sm text-gray-400">Not attached</div>
+                              <div className="text-sm text-secondary">Not attached</div>
                             )}
                             {trailer.isAttached && (
                               <div className="text-xs text-green-600">Attached</div>
                             )}
                           </td>
                           <td className="px-6 py-4">
-                            <div className="flex items-center text-sm text-gray-900">
-                              <MapPin className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                            <div className="flex items-center text-sm text-primary">
+                              <MapPin className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
                               <span className="truncate max-w-xs">{trailer.currentLocation || 'Unknown'}</span>
                             </div>
                             {trailer.speed !== undefined && trailer.speed > 0 && (
-                              <div className="text-xs text-gray-500">Speed: {trailer.speed} km/h</div>
+                              <div className="text-xs text-secondary">Speed: {trailer.speed} km/h</div>
                             )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {getTrailerStatusBadge(trailer.trailerStatus)}
                             {trailer.loadedStatus && (
-                              <div className="text-xs text-gray-500 mt-1">{trailer.loadedStatus}</div>
+                              <div className="text-xs text-secondary mt-1">{trailer.loadedStatus}</div>
                             )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {getServiceStatusBadge(trailer.serviceStatus)}
                             {trailer.operationStatus && (
-                              <div className="text-xs text-gray-500 mt-1">{trailer.operationStatus}</div>
+                              <div className="text-xs text-secondary mt-1">{trailer.operationStatus}</div>
                             )}
                             {trailer.capacity && (
-                              <div className="text-xs text-gray-500 mt-1">Cap: {trailer.capacity}</div>
+                              <div className="text-xs text-secondary mt-1">Cap: {trailer.capacity}</div>
                             )}
                           </td>
                         </tr>

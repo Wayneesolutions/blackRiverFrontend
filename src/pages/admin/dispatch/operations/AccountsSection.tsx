@@ -138,21 +138,21 @@ const AccountsSection = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-card p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Accounts Section</h1>
-        <p className="text-gray-600 mt-1">Payment Tracking & Management</p>
+        <h1 className="text-3xl font-bold text-primary">Accounts Section</h1>
+        <p className="text-secondary mt-1">Payment Tracking & Management</p>
       </div>
 
       {/* Payment Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="bg-card rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm mb-1">Total Due</p>
-              <p className="text-3xl font-bold text-red-600">{formatCurrency(totalDue)}</p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-secondary text-sm mb-1">Total Due</p>
+              <p className="text-3xl font-bold text-[#A855F7]">{formatCurrency(totalDue)}</p>
+              <p className="text-xs text-secondary mt-1">
                 {loads.filter(l => l.paymentStatus === 'due').length} loads
               </p>
             </div>
@@ -160,12 +160,12 @@ const AccountsSection = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="bg-card rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm mb-1">Total Paid</p>
+              <p className="text-secondary text-sm mb-1">Total Paid</p>
               <p className="text-3xl font-bold text-green-600">{formatCurrency(totalPaid)}</p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-secondary mt-1">
                 {loads.filter(l => l.paymentStatus === 'paid').length} loads
               </p>
             </div>
@@ -173,28 +173,28 @@ const AccountsSection = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="bg-card rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm mb-1">Total Revenue</p>
-              <p className="text-3xl font-bold text-blue-600">
+              <p className="text-secondary text-sm mb-1">Total Revenue</p>
+              <p className="text-3xl font-bold text-[#00D1FF]">
                 {formatCurrency(totalDue + totalPaid)}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-secondary mt-1">
                 {loads.length} total loads
               </p>
             </div>
-            <FaDollarSign className="text-blue-600" size={32} />
+            <FaDollarSign className="text-[#00D1FF]" size={32} />
           </div>
         </div>
       </div>
 
       {/* Payment Tracking Table */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
+      <div className="bg-card rounded-xl shadow-lg p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Payment Tracking</h3>
+          <h3 className="text-lg font-semibold text-primary">Payment Tracking</h3>
           <div className="flex items-center gap-3">
-            <FaFilter className="text-gray-600" />
+            <FaFilter className="text-secondary" />
             <select
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value)}
@@ -209,22 +209,22 @@ const AccountsSection = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-card border-b border-theme">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Load #</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Order #</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Customer</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Amount</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Delivery Date</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Payment Status</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Paid Date</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Load #</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Order #</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Customer</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Amount</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Delivery Date</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Payment Status</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Paid Date</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredLoads.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-secondary">
                     <FaTruck className="mx-auto mb-3 text-gray-300" size={48} />
                     <p>No payments to track</p>
                   </td>
@@ -232,13 +232,13 @@ const AccountsSection = () => {
               ) : (
                 filteredLoads.map((load) => (
                   <tr key={load._id} className="hover:bg-blue-50">
-                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-blue-600">
+                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-[#00D1FF]">
                       {load.loadNumber || load._id}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                       {load.orderNumber || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
                       {load.customer || load.customerName || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -246,13 +246,13 @@ const AccountsSection = () => {
                         {formatCurrency(load.amount || load.rate || 0)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                       {load.deliveryDate ? new Date(load.deliveryDate).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <PaymentStatusBadge status={load.paymentStatus || 'due'} />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                       {load.paidDate ? new Date(load.paidDate).toLocaleDateString() : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

@@ -256,12 +256,12 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 bg-black/30 backdrop-blur-sm">
           <div
             ref={searchRef}
-            className="bg-white rounded-lg shadow-2xl w-full max-w-2xl mx-4"
+            className="bg-card rounded-lg shadow-2xl w-full max-w-2xl mx-4"
           >
-            <form onSubmit={handleSearchSubmit} className="p-4 border-b border-gray-200">
+            <form onSubmit={handleSearchSubmit} className="p-4 border-b border-theme">
               <div className="relative">
                 <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                  <Search className="text-gray-400" size={20} />
+                  <Search className="text-secondary" size={20} />
                 </div>
                 <input
                   ref={inputRef}
@@ -281,7 +281,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                   }}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                  <X className="text-gray-400" size={20} />
+                  <X className="text-secondary" size={20} />
                 </button>
               </div>
             </form>
@@ -294,21 +294,21 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                       key={action.id}
                       onClick={() => handleActionSelect(action)}
                       className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${index === selectedIndex
-                        ? 'bg-blue-50 border-blue-500'
+                        ? 'bg-card border-blue-500'
                         : 'border-transparent hover:border-blue-300'
                         }`}
                     >
                       <div className={`flex-shrink-0 ${index === selectedIndex ? 'scale-110' : ''} transition-transform`}>
                         <div className={`p-2 rounded-lg ${action.type === 'create' ? 'bg-green-100 text-green-700' :
                           action.type === 'navigation' ? 'bg-blue-100 text-blue-700' :
-                            'bg-gray-100 text-gray-700'
+                            'bg-gray-100 text-primary'
                           }`}>
                           {action.icon}
                         </div>
                       </div>
                       <div className="flex-1 text-left min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-gray-900 truncate">{action.title}</span>
+                          <span className="font-semibold text-primary truncate">{action.title}</span>
                           {action.type === 'create' && (
                             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
                               New
@@ -320,22 +320,22 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-500 mt-0.5 truncate">
+                        <p className="text-sm text-secondary mt-0.5 truncate">
                           {action.description}
                         </p>
                       </div>
                       <ArrowRight
                         className={`flex-shrink-0 transition-all ${index === selectedIndex
-                          ? 'text-blue-600 opacity-100 translate-x-0'
-                          : 'text-gray-400 opacity-0 -translate-x-1'
+                          ? 'text-[#00D1FF] opacity-100 translate-x-0'
+                          : 'text-secondary opacity-0 -translate-x-1'
                           }`}
                         size={18}
                       />
                     </button>
                   ))}
                 </div>
-                <div className="border-t border-gray-200 px-4 py-2 bg-gray-50">
-                  <p className="text-xs text-gray-500 text-center">
+                <div className="border-t border-theme px-4 py-2 bg-card">
+                  <p className="text-xs text-secondary text-center">
                     {filteredActions.length} result{filteredActions.length !== 1 ? 's' : ''} • Use ↑↓ to navigate, Enter to select
                   </p>
                 </div>
@@ -344,7 +344,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
 
             {searchQuery.trim() !== "" && filteredActions.length === 0 && (
               <div className="p-8">
-                <p className="text-sm text-gray-500 text-center">
+                <p className="text-sm text-secondary text-center">
                   No actions found for "{searchQuery}"
                 </p>
               </div>
@@ -352,7 +352,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
 
             {searchQuery.trim() === "" && (
               <div className="p-8">
-                <p className="text-sm text-gray-500 text-center">
+                <p className="text-sm text-secondary text-center">
                   Type to search for actions, pages, or create new items
                 </p>
               </div>
@@ -368,18 +368,18 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
           onClick={cancelLogout}
         >
           <div
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all"
+            className="bg-card rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-theme">
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                  <LogOut className="text-red-600" size={24} />
+                  <LogOut className="text-[#A855F7]" size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">Confirm Logout</h3>
-                  <p className="text-sm text-gray-500 mt-1">Are you sure you want to logout?</p>
+                  <h3 className="text-xl font-bold text-primary">Confirm Logout</h3>
+                  <p className="text-sm text-secondary mt-1">Are you sure you want to logout?</p>
                 </div>
               </div>
             </div>
@@ -395,10 +395,10 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+            <div className="p-6 border-t border-theme flex justify-end gap-3">
               <button
                 onClick={cancelLogout}
-                className="px-6 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                className="px-6 py-2.5 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
               >
                 Cancel
               </button>

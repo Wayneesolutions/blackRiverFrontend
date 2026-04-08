@@ -146,9 +146,9 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
 
 
   const getUrgencyIcon = (daysUntilExpiry: number) => {
-    if (daysUntilExpiry <= 7) return <AlertTriangle className="w-4 h-4 text-red-600" />;
-    if (daysUntilExpiry <= 14) return <Clock className="w-4 h-4 text-orange-600" />;
-    return <Calendar className="w-4 h-4 text-yellow-600" />;
+    if (daysUntilExpiry <= 7) return <AlertTriangle className="w-4 h-4 text-[#A855F7]" />;
+    if (daysUntilExpiry <= 14) return <Clock className="w-4 h-4 text-[#F59E0B]" />;
+    return <Calendar className="w-4 h-4 text-[#00FFA3]" />;
   };
 
   // Don't show popup if it's not open
@@ -178,12 +178,12 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
 
   return (
     <div className="fixed top-4 right-4 z-[9999] max-w-md w-full">
-      <div className="bg-white rounded-xl shadow-2xl border border-red-200 overflow-hidden transform transition-all duration-500 ease-in-out animate-slide-in">
+      <div className="bg-card rounded-xl shadow-2xl border border-red-200 overflow-hidden transform transition-all duration-500 ease-in-out animate-slide-in">
         {/* Header with gradient background */}
         <div className="bg-gradient-to-r from-red-500 to-orange-500 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <div className="p-2 bg-card/20 rounded-lg backdrop-blur-sm">
                 <AlertTriangle className="w-6 h-6 text-white animate-pulse" />
               </div>
               <div>
@@ -195,7 +195,7 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
             </div>
             <button
               onClick={handleClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 group"
+              className="p-2 hover:bg-card/20 rounded-lg transition-all duration-200 group"
             >
               <X className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </button>
@@ -203,19 +203,19 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-4 bg-white">
+        <div className="p-4 bg-card">
           {loading ? (
             <div className="flex items-center justify-center py-6">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-500"></div>
-              <span className="ml-3 text-gray-600 text-sm">Loading...</span>
+              <span className="ml-3 text-secondary text-sm">Loading...</span>
             </div>
           ) : (
             <div className="space-y-3">
               {expiringDocuments.slice(0, 3).map((doc) => {
                 const daysUntilExpiry = getDaysUntilExpiry(doc.expiryDate!);
-                const urgencyColor = daysUntilExpiry <= 7 ? 'border-red-300 bg-red-50' :
-                  daysUntilExpiry <= 14 ? 'border-orange-300 bg-orange-50' :
-                    'border-yellow-300 bg-yellow-50';
+                const urgencyColor = daysUntilExpiry <= 7 ? 'border-red-300 bg-card' :
+                  daysUntilExpiry <= 14 ? 'border-orange-300 bg-card' :
+                    'border-yellow-300 bg-card';
 
                 return (
                   <div
@@ -226,7 +226,7 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           {getUrgencyIcon(daysUntilExpiry)}
-                          <h3 className="font-semibold text-gray-800 text-sm">{doc.documentType}</h3>
+                          <h3 className="font-semibold text-primary text-sm">{doc.documentType}</h3>
                           <span className={`text-xs px-2 py-1 rounded-full font-medium ${daysUntilExpiry <= 7 ? 'bg-red-100 text-red-700' :
                               daysUntilExpiry <= 14 ? 'bg-orange-100 text-orange-700' :
                                 'bg-yellow-100 text-yellow-700'
@@ -237,16 +237,16 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
 
                         {doc.employee && (
                           <div className="flex items-center gap-1 mb-1">
-                            <User className="w-3 h-3 text-gray-500" />
-                            <span className="text-xs text-gray-700 font-medium">
+                            <User className="w-3 h-3 text-secondary" />
+                            <span className="text-xs text-primary font-medium">
                               {doc.employee.name}
                             </span>
                           </div>
                         )}
 
                         <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-gray-500" />
-                          <span className="text-xs text-gray-600">
+                          <Calendar className="w-3 h-3 text-secondary" />
+                          <span className="text-xs text-secondary">
                             Expires: {formatDate(doc.expiryDate!)}
                           </span>
                         </div>
@@ -258,7 +258,7 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
 
               {expiringDocuments.length > 3 && (
                 <div className="text-center pt-2">
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-secondary">
                     +{expiringDocuments.length - 3} more documents expiring
                   </span>
                 </div>
@@ -268,11 +268,11 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+        <div className="bg-card px-4 py-3 border-t border-theme">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-green-600" />
-              <span className="text-xs text-gray-600">Review documents urgently</span>
+              <span className="text-xs text-secondary">Review documents urgently</span>
             </div>
 
             <button

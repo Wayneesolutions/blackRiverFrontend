@@ -100,8 +100,8 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200'
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200'
   };
 
   useEffect(() => {
@@ -116,10 +116,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-900">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -1734,15 +1734,15 @@ const DriverManagement = () => {
     if (sortConfig.key !== key) {
       return (
         <div className="flex flex-col">
-          <ChevronUp className="w-3 h-3 text-gray-400" />
-          <ChevronDown className="w-3 h-3 text-gray-400 -mt-1" />
+          <ChevronUp className="w-3 h-3 text-secondary" />
+          <ChevronDown className="w-3 h-3 text-secondary -mt-1" />
         </div>
       );
     }
     return sortConfig.direction === 'asc' ? (
-      <ChevronUp className="w-3 h-3 text-gray-700" />
+      <ChevronUp className="w-3 h-3 text-primary" />
     ) : (
-      <ChevronDown className="w-3 h-3 text-gray-700" />
+      <ChevronDown className="w-3 h-3 text-primary" />
     );
   };
 
@@ -3584,25 +3584,25 @@ const DriverManagement = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#EDF8FF] p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-main p-6 flex items-center justify-center">
         <div className="text-center">
-          <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading drivers...</p>
+          <RefreshCw className="w-8 h-8 animate-spin text-[#00D1FF] mx-auto mb-4" />
+          <p className="text-secondary">Loading drivers...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF] p-6">
+    <div className="min-h-screen bg-main p-6">
       <div className="max-w-full mx-auto">
         {/* Header Section */}
         <div className="mb-6">
 
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">Drivers</h1>
+            <h1 className="text-3xl font-bold text-primary">Drivers</h1>
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-gray-700">({getTabCount(activeTab)})</span>
+              <span className="text-2xl font-bold text-primary">({getTabCount(activeTab)})</span>
               <button
                 onClick={handleExportDrivers}
                 title="Export to Excel"
@@ -3627,12 +3627,12 @@ const DriverManagement = () => {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex gap-6 border-b-2 border-gray-200">
+          <div className="flex gap-6 border-b-2 border-theme">
             <button
               onClick={() => setActiveTab('all')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'all'
                   ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-secondary hover:text-primary'
                 }`}
             >
               All ({getTabCount('all')})
@@ -3641,7 +3641,7 @@ const DriverManagement = () => {
               onClick={() => setActiveTab('external')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'external'
                   ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-secondary hover:text-primary'
                 }`}
             >
               External ({getTabCount('external')})
@@ -3650,7 +3650,7 @@ const DriverManagement = () => {
               onClick={() => setActiveTab('unassigned')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'unassigned'
                   ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-secondary hover:text-primary'
                 }`}
             >
               Unassigned ({getTabCount('unassigned')})
@@ -3659,12 +3659,12 @@ const DriverManagement = () => {
         </div>
 
         {/* Search and Filter Bar */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+        <div className="bg-card rounded-lg shadow-sm p-4 mb-4">
           <div className="flex flex-wrap items-center gap-4">
             {/* Search Input */}
             <div className="flex-1 min-w-[250px]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Drivers Licence #, Passport #, Or Name"
@@ -3679,7 +3679,7 @@ const DriverManagement = () => {
 
             {/* Filter By */}
             <div className="flex flex-col">
-              <label className="text-xs text-gray-600 mb-1">Filter By</label>
+              <label className="text-xs text-secondary mb-1">Filter By</label>
               <select
                 value={filterBy}
                 onChange={(e) => setFilterBy(e.target.value)}
@@ -3693,7 +3693,7 @@ const DriverManagement = () => {
 
             {/* Category */}
             <div className="flex flex-col">
-              <label className="text-xs text-gray-600 mb-1">Category</label>
+              <label className="text-xs text-secondary mb-1">Category</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -3707,7 +3707,7 @@ const DriverManagement = () => {
 
             {/* Compliance Status */}
             <div className="flex flex-col">
-              <label className="text-xs text-gray-600 mb-1">Compliance Status</label>
+              <label className="text-xs text-secondary mb-1">Compliance Status</label>
               <select
                 value={complianceStatus}
                 onChange={(e) => setComplianceStatus(e.target.value)}
@@ -3722,7 +3722,7 @@ const DriverManagement = () => {
 
             {/* Sort By */}
             <div className="flex flex-col">
-              <label className="text-xs text-gray-600 mb-1">Sort By</label>
+              <label className="text-xs text-secondary mb-1">Sort By</label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -3741,11 +3741,11 @@ const DriverManagement = () => {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-card rounded-lg shadow-sm overflow-hidden">
           {/* Top Horizontal Scrollbar */}
           <div 
             ref={topScrollRef}
-            className="overflow-x-auto overflow-y-hidden border-b border-gray-200"
+            className="overflow-x-auto overflow-y-hidden border-b border-theme"
             style={{ 
               height: '17px'
             }}
@@ -3769,12 +3769,12 @@ const DriverManagement = () => {
             }}
           >
             <table className="w-full min-w-[1200px]">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-card border-b border-theme">
                 <tr>
                   {/* Photo */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-xs text-gray-700 uppercase">Photo</span>
+                      <span className="font-medium text-xs text-primary uppercase">Photo</span>
                     </div>
                   </th>
 
@@ -3783,7 +3783,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('driverId')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                        className="flex items-center gap-2 hover:text-primary font-medium text-xs text-primary uppercase"
                       >
                         Driver ID
                         {getSortIcon('driverId')}
@@ -3797,7 +3797,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('firstName')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                        className="flex items-center gap-2 hover:text-primary font-medium text-xs text-primary uppercase"
                       >
                         First Name
                         {getSortIcon('firstName')}
@@ -3811,7 +3811,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('lastName')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                        className="flex items-center gap-2 hover:text-primary font-medium text-xs text-primary uppercase"
                       >
                         Last Name
                         {getSortIcon('lastName')}
@@ -3825,7 +3825,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('driversLicence')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                        className="flex items-center gap-2 hover:text-primary font-medium text-xs text-primary uppercase"
                       >
                         Drivers Licence
                         {getSortIcon('driversLicence')}
@@ -3839,7 +3839,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('passport')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                        className="flex items-center gap-2 hover:text-primary font-medium text-xs text-primary uppercase"
                       >
                         Passport
                         {getSortIcon('passport')}
@@ -3853,7 +3853,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('dateOfBirth')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                        className="flex items-center gap-2 hover:text-primary font-medium text-xs text-primary uppercase"
                       >
                         Date Of Birth
                         {getSortIcon('dateOfBirth')}
@@ -3865,7 +3865,7 @@ const DriverManagement = () => {
                   {/* Notes */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-xs text-gray-700 uppercase">Notes</span>
+                      <span className="font-medium text-xs text-primary uppercase">Notes</span>
                     </div>
                   
                   </th>
@@ -3877,7 +3877,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('status')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
+                        className="flex items-center gap-2 hover:text-primary font-medium text-xs text-primary uppercase"
                       >
                         Status
                         {getSortIcon('status')}
@@ -3889,7 +3889,7 @@ const DriverManagement = () => {
                   {/* Compliance */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-xs text-gray-700 uppercase">Compliance</span>
+                      <span className="font-medium text-xs text-primary uppercase">Compliance</span>
                     </div>
                     <select
                       value={complianceStatus}
@@ -3905,16 +3905,16 @@ const DriverManagement = () => {
                   {/* Actions */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-xs text-gray-700 uppercase">Actions</span>
+                      <span className="font-medium text-xs text-primary uppercase">Actions</span>
                     </div>
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-gray-200">
                 {filteredDrivers.map((driver) => (
                   <tr
                     key={driver._id || driver.driverId}
-                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                     onClick={(e) => {
                       // Prevent triggering if clicking on interactive elements (buttons, links, inputs, selects)
                       const target = e.target as HTMLElement;
@@ -3973,7 +3973,7 @@ const DriverManagement = () => {
                           <img
                             src={driver.profileImageUrl}
                             alt={`${driver.firstName || ''} ${driver.lastName || ''}`}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                            className="w-10 h-10 rounded-full object-cover border-2 border-theme"
                             onError={(e) => {
                               // If image fails to load, show placeholder
                               const target = e.target as HTMLImageElement;
@@ -3984,18 +3984,18 @@ const DriverManagement = () => {
                           />
                         ) : null}
                         <div
-                          className={`w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-200 ${driver.profileImageUrl ? 'hidden' : ''}`}
+                          className={`w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-theme ${driver.profileImageUrl ? 'hidden' : ''}`}
                         >
-                          <User className="w-6 h-6 text-gray-400" />
+                          <User className="w-6 h-6 text-secondary" />
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{driver.driverId}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{driver.firstName}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{driver.lastName}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{driver.driversLicence}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{driver.passport}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    <td className="px-4 py-3 text-sm text-primary">{driver.driverId}</td>
+                    <td className="px-4 py-3 text-sm text-primary">{driver.firstName}</td>
+                    <td className="px-4 py-3 text-sm text-primary">{driver.lastName}</td>
+                    <td className="px-4 py-3 text-sm text-primary">{driver.driversLicence}</td>
+                    <td className="px-4 py-3 text-sm text-primary">{driver.passport}</td>
+                    <td className="px-4 py-3 text-sm text-primary">
                       {driver.dateOfBirth ? (() => {
                         try {
                           // Handle ISO string format (e.g., "2026-02-02T00:00:00.000Z")
@@ -4015,9 +4015,9 @@ const DriverManagement = () => {
                         }
                       })() : '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{driver.notes || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-secondary">{driver.notes || '-'}</td>
                   
-                    <td className="px-4 py-3 text-sm text-gray-900">{driver.status}</td>
+                    <td className="px-4 py-3 text-sm text-primary">{driver.status}</td>
                     <td className="px-4 py-3">
                       <button
                         className={`px-3 py-1 rounded text-xs !text-white font-medium ${getComplianceButtonClass(driver.compliance)}`}
@@ -4069,7 +4069,7 @@ const DriverManagement = () => {
                               setShowNewDriverModal(true);
                             }
                           }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                           title="Edit Driver"
                         >
                           <Edit className="w-4 h-4" />
@@ -4083,7 +4083,7 @@ const DriverManagement = () => {
                               handleDelete(driver.driverId);
                             }
                           }}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                          className="p-2 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                           title="Delete Driver"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -4109,13 +4109,13 @@ const DriverManagement = () => {
           }}
         >
           <div
-            className="bg-white rounded-lg shadow-2xl w-full max-w-5xl max-h-[90vh] flex overflow-hidden"
+            className="bg-card rounded-lg shadow-2xl w-full max-w-5xl max-h-[90vh] flex overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Left Sidebar */}
-            <div className="w-48 bg-gray-50 border-r border-gray-200 flex flex-col">
+            <div className="w-48 bg-card border-r border-theme flex flex-col">
               {/* Image Upload Area */}
-              <div className="p-3 border-b border-gray-200">
+              <div className="p-3 border-b border-theme">
                 <div 
                   className="border-2 border-dashed border-gray-300 p-4 text-center mb-2 cursor-pointer hover:border-[#42aeec] transition-colors"
                   onClick={() => fileInputRef.current?.click()}
@@ -4128,8 +4128,8 @@ const DriverManagement = () => {
                     />
                   ) : (
                     <>
-                      <Upload className="w-6 h-6 text-gray-400 mx-auto mb-1" />
-                      <p className="text-xs text-gray-600">Select Image</p>
+                      <Upload className="w-6 h-6 text-secondary mx-auto mb-1" />
+                      <p className="text-xs text-secondary">Select Image</p>
                     </>
                   )}
                 </div>
@@ -4221,8 +4221,8 @@ const DriverManagement = () => {
             {/* Right Content Area */}
             <div className={`flex-1 flex flex-col overflow-hidden transition-all ${selectedCertificate || selectedTicket ? 'mr-96' : ''}`}>
               {/* Header */}
-              <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-white">
-                <h2 className="text-lg font-bold text-gray-900">{(editingId || editingDriver) ? 'Edit Driver' : 'New Driver'}</h2>
+              <div className="flex items-center justify-between p-3 border-b border-theme bg-card">
+                <h2 className="text-lg font-bold text-primary">{(editingId || editingDriver) ? 'Edit Driver' : 'New Driver'}</h2>
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={editingId ? handleUpdateDriver : handleSaveDriver}
@@ -4237,7 +4237,7 @@ const DriverManagement = () => {
                   <button
                     onClick={handleCloseModal}
                     disabled={isSubmitting}
-                    className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="text-secondary hover:text-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -4245,15 +4245,15 @@ const DriverManagement = () => {
               </div>
 
               {/* Form Content */}
-              <div className="flex-1 overflow-y-auto p-3 bg-white">
+              <div className="flex-1 overflow-y-auto p-3 bg-card">
                 {activeFormTab === 'basic' && (
                   <div className="space-y-3">
-                    <h3 className="text-sm font-bold text-gray-900 mb-2">Basic Information</h3>
+                    <h3 className="text-sm font-bold text-primary mb-2">Basic Information</h3>
 
                     {/* First Row */}
                     <div className="grid grid-cols-4 gap-2">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Driver ID</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">Driver ID</label>
                         <input
                           type="text"
                           placeholder="Driver ID"
@@ -4263,7 +4263,7 @@ const DriverManagement = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                        <label className="block text-xs font-medium text-primary mb-0.5">
                           First Name<span className="text-red-500">*</span>
                         </label>
                         <input
@@ -4285,7 +4285,7 @@ const DriverManagement = () => {
                         )}
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Middle</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">Middle</label>
                         <input
                           type="text"
                           placeholder="Middle"
@@ -4295,7 +4295,7 @@ const DriverManagement = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                        <label className="block text-xs font-medium text-primary mb-0.5">
                           Last Name<span className="text-red-500">*</span>
                         </label>
                         <input
@@ -4321,7 +4321,7 @@ const DriverManagement = () => {
                     {/* Second Row */}
                     <div className="grid grid-cols-4 gap-2">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                        <label className="block text-xs font-medium text-primary mb-0.5">
                           Email Address<span className="text-red-500">*</span>
                         </label>
                         <input
@@ -4343,11 +4343,11 @@ const DriverManagement = () => {
                         )}
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                        <label className="block text-xs font-medium text-primary mb-0.5">
                           Date Of Birth<span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
-                          <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+                          <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-secondary pointer-events-none" />
                           <input
                             type="date"
                             value={formData.dateOfBirth}
@@ -4369,7 +4369,7 @@ const DriverManagement = () => {
                         )}
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Mobile App</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">Mobile App</label>
                         <div className="flex items-center gap-2 mt-1">
                           <button
                             type="button"
@@ -4378,14 +4378,14 @@ const DriverManagement = () => {
                               }`}
                           >
                             <span
-                              className={`absolute top-0.5 left-0.5 w-3.5 h-3.5 bg-white rounded-full transition-transform ${formData.mobileApp ? 'translate-x-4' : 'translate-x-0'
+                              className={`absolute top-0.5 left-0.5 w-3.5 h-3.5 bg-card rounded-full transition-transform ${formData.mobileApp ? 'translate-x-4' : 'translate-x-0'
                                 }`}
                             />
                           </button>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">PIN</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">PIN</label>
                         {pinIsExisting ? (
                           <div className="relative">
                             <input
@@ -4396,7 +4396,7 @@ const DriverManagement = () => {
                                 setPinIsExisting(false);
                                 setFormData({ ...formData, pin: '' });
                               }}
-                              className="w-full px-2 py-1 pr-20 text-xs border border-gray-300 rounded bg-gray-50 cursor-text focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-2 py-1 pr-20 text-xs border border-gray-300 rounded bg-card cursor-text focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                             />
                             <button
                               type="button"
@@ -4423,7 +4423,7 @@ const DriverManagement = () => {
                             <button
                               type="button"
                               onClick={() => setShowPin(prev => !prev)}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-secondary hover:text-secondary"
                               tabIndex={-1}
                             >
                               {showPin ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -4436,7 +4436,7 @@ const DriverManagement = () => {
                     {/* Third Row */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                        <label className="block text-xs font-medium text-primary mb-0.5">
                           Primary Phone #<span className="text-red-500">*</span>
                         </label>
                         <div className={`flex items-center border rounded focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent ${
@@ -4451,21 +4451,21 @@ const DriverManagement = () => {
                                   setPrimaryCountrySearch('');
                                 }
                               }}
-                              className="flex items-center gap-1.5 px-2 py-1 text-xs bg-white border-none outline-none cursor-pointer h-full"
+                              className="flex items-center gap-1.5 px-2 py-1 text-xs bg-card border-none outline-none cursor-pointer h-full"
                               style={{ minWidth: '85px' }}
                             >
                               {countries.find(c => c.code === primaryPhoneCountry) && (
                                 <>
                                   <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === primaryPhoneCountry)?.flag}</span>
-                                  <span className="text-xs text-gray-600 font-medium">{countries.find(c => c.code === primaryPhoneCountry)?.dialCode}</span>
+                                  <span className="text-xs text-secondary font-medium">{countries.find(c => c.code === primaryPhoneCountry)?.dialCode}</span>
                                 </>
                               )}
-                              <ChevronDown className="w-3 h-3 text-gray-400 ml-auto" />
+                              <ChevronDown className="w-3 h-3 text-secondary ml-auto" />
                             </button>
                             {primaryCountryDropdownOpen && (
-                              <div className="absolute top-full left-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                              <div className="absolute top-full left-0 z-50 bg-card border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
                                 {/* Search Input */}
-                                <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                                <div className="p-2 border-b border-theme sticky top-0 bg-card">
                                   <input
                                     type="text"
                                     placeholder="Search country..."
@@ -4498,12 +4498,12 @@ const DriverManagement = () => {
                                           // User will enter only their phone number
                                         }}
                                         className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
-                                          primaryPhoneCountry === country.code ? 'bg-blue-50' : ''
+                                          primaryPhoneCountry === country.code ? 'bg-card' : ''
                                         }`}
                                       >
                                         <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
                                         <span className="flex-1 truncate">{country.name}</span>
-                                        <span className="text-gray-600 font-medium">{country.dialCode}</span>
+                                        <span className="text-secondary font-medium">{country.dialCode}</span>
                                       </button>
                                     ))}
                                   {countries.filter((country) => {
@@ -4514,7 +4514,7 @@ const DriverManagement = () => {
                                       country.dialCode.includes(searchLower)
                                     );
                                   }).length === 0 && (
-                                    <div className="px-3 py-4 text-xs text-gray-500 text-center">
+                                    <div className="px-3 py-4 text-xs text-secondary text-center">
                                       No countries found
                                     </div>
                                   )}
@@ -4536,7 +4536,7 @@ const DriverManagement = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Secondary Phone #</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">Secondary Phone #</label>
                         <div className="flex items-center border border-gray-300 rounded focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
                           <div className="relative" ref={secondaryCountryDropdownRef}>
                             <button
@@ -4547,21 +4547,21 @@ const DriverManagement = () => {
                                   setSecondaryCountrySearch('');
                                 }
                               }}
-                              className="flex items-center gap-1.5 px-2 py-1 text-xs bg-white border-none outline-none cursor-pointer h-full"
+                              className="flex items-center gap-1.5 px-2 py-1 text-xs bg-card border-none outline-none cursor-pointer h-full"
                               style={{ minWidth: '85px' }}
                             >
                               {countries.find(c => c.code === secondaryPhoneCountry) && (
                                 <>
                                   <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === secondaryPhoneCountry)?.flag}</span>
-                                  <span className="text-xs text-gray-600 font-medium">{countries.find(c => c.code === secondaryPhoneCountry)?.dialCode}</span>
+                                  <span className="text-xs text-secondary font-medium">{countries.find(c => c.code === secondaryPhoneCountry)?.dialCode}</span>
                                 </>
                               )}
-                              <ChevronDown className="w-3 h-3 text-gray-400 ml-auto" />
+                              <ChevronDown className="w-3 h-3 text-secondary ml-auto" />
                             </button>
                             {secondaryCountryDropdownOpen && (
-                              <div className="absolute top-full left-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                              <div className="absolute top-full left-0 z-50 bg-card border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
                                 {/* Search Input */}
-                                <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                                <div className="p-2 border-b border-theme sticky top-0 bg-card">
                                   <input
                                     type="text"
                                     placeholder="Search country..."
@@ -4594,12 +4594,12 @@ const DriverManagement = () => {
                                           // User will enter only their phone number
                                         }}
                                         className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
-                                          secondaryPhoneCountry === country.code ? 'bg-blue-50' : ''
+                                          secondaryPhoneCountry === country.code ? 'bg-card' : ''
                                         }`}
                                       >
                                         <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
                                         <span className="flex-1 truncate">{country.name}</span>
-                                        <span className="text-gray-600 font-medium">{country.dialCode}</span>
+                                        <span className="text-secondary font-medium">{country.dialCode}</span>
                                       </button>
                                     ))}
                                   {countries.filter((country) => {
@@ -4610,7 +4610,7 @@ const DriverManagement = () => {
                                       country.dialCode.includes(searchLower)
                                     );
                                   }).length === 0 && (
-                                    <div className="px-3 py-4 text-xs text-gray-500 text-center">
+                                    <div className="px-3 py-4 text-xs text-secondary text-center">
                                       No countries found
                                     </div>
                                   )}
@@ -4790,7 +4790,7 @@ const DriverManagement = () => {
                     {/* Fifth Row */}
                     <div className="grid grid-cols-4 gap-2">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Address</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">Address</label>
                         <input
                           type="text"
                           placeholder="Address"
@@ -4800,7 +4800,7 @@ const DriverManagement = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Unit</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">Unit</label>
                         <input
                           type="text"
                           placeholder="Unit"
@@ -4810,7 +4810,7 @@ const DriverManagement = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">City</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">City</label>
                         <input
                           type="text"
                           placeholder="City"
@@ -4820,7 +4820,7 @@ const DriverManagement = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Postal Code</label>
+                        <label className="block text-xs font-medium text-primary mb-0.5">Postal Code</label>
                         <input
                           type="text"
                           placeholder="Postal Code"
@@ -4833,7 +4833,7 @@ const DriverManagement = () => {
 
                     {/* Profile Image Row */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Profile Image</label>
                       <div className="flex items-center gap-4">
                         <div className="flex-shrink-0">
                           {profileImagePreview ? (
@@ -4847,8 +4847,8 @@ const DriverManagement = () => {
                               }}
                             />
                           ) : (
-                            <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
-                              <User className="w-8 h-8 text-gray-400" />
+                            <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-card">
+                              <User className="w-8 h-8 text-secondary" />
                             </div>
                           )}
                         </div>
@@ -4911,7 +4911,7 @@ const DriverManagement = () => {
                               Remove
                             </button>
                           )}
-                          <p className="text-xs text-gray-500 mt-2">JPG, PNG or GIF (Max 20MB)</p>
+                          <p className="text-xs text-secondary mt-2">JPG, PNG or GIF (Max 20MB)</p>
                         </div>
                       </div>
                     </div>
@@ -4919,7 +4919,7 @@ const DriverManagement = () => {
                     {/* Sixth Row */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                        <label className="block text-xs font-medium text-primary mb-0.5">
                           Country<span className="text-red-500">*</span>
                         </label>
                         <select
@@ -4958,7 +4958,7 @@ const DriverManagement = () => {
                         )}
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                        <label className="block text-xs font-medium text-primary mb-0.5">
                           Province/State<span className="text-red-500">*</span>
                         </label>
                         <input
@@ -4986,12 +4986,12 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'personal' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Personal Information</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Personal Information</h3>
 
                     {/* Personal Information Section */}
                     <div className="grid grid-cols-5 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Social Insurance Number</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Social Insurance Number</label>
                         <input
                           type="text"
                           placeholder="Social Insurance Nu"
@@ -5001,9 +5001,9 @@ const DriverManagement = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Hire Date</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Hire Date</label>
                         <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                           <input
                             type="date"
                             value={personalData.hireDate}
@@ -5014,9 +5014,9 @@ const DriverManagement = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Termination Date</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Termination Date</label>
                         <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                           <input
                             type="date"
                             value={personalData.terminationDate}
@@ -5027,7 +5027,7 @@ const DriverManagement = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-primary mb-1">
                           Status<span className="text-red-500">*</span>
                         </label>
                         <select
@@ -5052,7 +5052,7 @@ const DriverManagement = () => {
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Vacation %</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Vacation %</label>
                         <input
                           type="text"
                           placeholder="0"
@@ -5065,10 +5065,10 @@ const DriverManagement = () => {
 
                     {/* Pay Information Section */}
                     <div className="mt-6">
-                      <h4 className="text-md font-bold text-gray-900 mb-4">Pay Information</h4>
+                      <h4 className="text-md font-bold text-primary mb-4">Pay Information</h4>
                       <div className="grid grid-cols-3 gap-4 mb-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Corporation Name</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Corporation Name</label>
                           <input
                             type="text"
                             placeholder="Corporation Name"
@@ -5078,7 +5078,7 @@ const DriverManagement = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Driver Name</label>
                           <input
                             type="text"
                             placeholder="Driver Name"
@@ -5088,7 +5088,7 @@ const DriverManagement = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">GST No.</label>
+                          <label className="block text-sm font-medium text-primary mb-1">GST No.</label>
                           <input
                             type="text"
                             placeholder="GST No."
@@ -5234,7 +5234,7 @@ const DriverManagement = () => {
                       {/* Payment Address Fields */}
                       <div className="grid grid-cols-3 gap-4 mt-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Payment Address</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Payment Address</label>
                           <input
                             type="text"
                             placeholder="Payment Address"
@@ -5244,7 +5244,7 @@ const DriverManagement = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Payment City</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Payment City</label>
                           <input
                             type="text"
                             placeholder="Payment City"
@@ -5254,7 +5254,7 @@ const DriverManagement = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Payment Postal Code</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Payment Postal Code</label>
                           <input
                             type="text"
                             placeholder="Payment Postal Code"
@@ -5267,7 +5267,7 @@ const DriverManagement = () => {
 
                       <div className="grid grid-cols-2 gap-4 mt-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-primary mb-1">
                             Payment Country
                           </label>
                           <select
@@ -5295,7 +5295,7 @@ const DriverManagement = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-primary mb-1">
                             Payment Province/State
                           </label>
                           <input
@@ -5312,7 +5312,7 @@ const DriverManagement = () => {
 
                     {/* Pay Type Section */}
                     <div className="mt-4">
-                      <label className="block text-xs font-medium text-gray-900 mb-1.5">Pay Type</label>
+                      <label className="block text-xs font-medium text-primary mb-1.5">Pay Type</label>
 
                       {/* Driver Type Toggle */}
                       <div className="mb-1.5">
@@ -5322,7 +5322,7 @@ const DriverManagement = () => {
                             onClick={() => setPersonalData({ ...personalData, driverType: 'COMPANY DRIVER' })}
                             className={`px-4 py-1.5 text-xs font-medium transition-colors rounded-l ${personalData.driverType === 'COMPANY DRIVER'
                                 ? 'bg-gray-700 !text-white'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                : 'bg-gray-200 text-primary hover:bg-gray-300'
                               }`}
                           >
                             COMPANY DRIVER
@@ -5332,7 +5332,7 @@ const DriverManagement = () => {
                             onClick={() => setPersonalData({ ...personalData, driverType: 'OWNER OPERATOR' })}
                             className={`px-4 py-1.5 text-xs font-medium transition-colors rounded-r ${personalData.driverType === 'OWNER OPERATOR'
                                 ? 'bg-gray-700 !text-white'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                : 'bg-gray-200 text-primary hover:bg-gray-300'
                               }`}
                           >
                             OWNER OPERATOR
@@ -5343,7 +5343,7 @@ const DriverManagement = () => {
 
                       {/* Configure Payroll Text - shown when OWNER OPERATOR is selected */}
                       {personalData.driverType === 'OWNER OPERATOR' && (
-                        <p className="text-xs font-medium text-gray-900 mt-1.5 mb-3">
+                        <p className="text-xs font-medium text-primary mt-1.5 mb-3">
                           CONFIGURE PAYROLL IN TRUCK
                         </p>
                       )}
@@ -5364,7 +5364,7 @@ const DriverManagement = () => {
                               onClick={() => setPersonalData({ ...personalData, paymentMethod: method as any })}
                               className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${personalData.paymentMethod === method
                                   ? 'bg-gray-700 !text-white'
-                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                  : 'bg-gray-200 text-primary hover:bg-gray-300'
                                 }`}
                             >
                               {method}
@@ -5377,7 +5377,7 @@ const DriverManagement = () => {
                       {personalData.paymentMethod === 'PAID PER MILE' && (
                         <div className="grid grid-cols-4 gap-4 mt-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-primary mb-1">
                               ALONE<span className="text-red-500">*</span>
                             </label>
                             <input
@@ -5388,7 +5388,7 @@ const DriverManagement = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-primary mb-1">
                               EMPTY<span className="text-red-500">*</span>
                             </label>
                             <input
@@ -5399,7 +5399,7 @@ const DriverManagement = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">DROP</label>
+                            <label className="block text-sm font-medium text-primary mb-1">DROP</label>
                             <input
                               type="text"
                               value={personalData.bonusDrop}
@@ -5408,7 +5408,7 @@ const DriverManagement = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-primary mb-1">
                               TEAM<span className="text-red-500">*</span>
                             </label>
                             <input
@@ -5419,7 +5419,7 @@ const DriverManagement = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-primary mb-1">
                               EMPTY-TEAM<span className="text-red-500">*</span>
                             </label>
                             <input
@@ -5430,7 +5430,7 @@ const DriverManagement = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">PICK</label>
+                            <label className="block text-sm font-medium text-primary mb-1">PICK</label>
                             <input
                               type="text"
                               value={personalData.bonusPick}
@@ -5439,7 +5439,7 @@ const DriverManagement = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">BONUS/LAYOVER</label>
+                            <label className="block text-sm font-medium text-primary mb-1">BONUS/LAYOVER</label>
                             <input
                               type="text"
                               value={personalData.bonusLayover}
@@ -5453,16 +5453,16 @@ const DriverManagement = () => {
                       {/* Percent Rate (shown when PAID PERCENT is selected) */}
                       {personalData.paymentMethod === 'PAID PERCENT' && (
                         <div className="mt-4">
-                          <h4 className="text-md font-bold text-gray-900 mb-4">Percent Rate</h4>
+                          <h4 className="text-md font-bold text-primary mb-4">Percent Rate</h4>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-primary mb-1">
                               %<span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.percentRate}
                               onChange={(e) => setPersonalData({ ...personalData, percentRate: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                             />
                           </div>
                         </div>
@@ -5472,7 +5472,7 @@ const DriverManagement = () => {
                       {personalData.paymentMethod === 'PAID BY TRIP' && (
                         <div className="mt-4">
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                            <label className="block text-xs font-medium text-primary mb-0.5">
                               Per Trip Amount<span className="text-red-500">*</span>
                             </label>
                             <input
@@ -5490,7 +5490,7 @@ const DriverManagement = () => {
                       {personalData.paymentMethod === 'PAID PER HOUR' && (
                         <div className="mt-4">
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                            <label className="block text-xs font-medium text-primary mb-0.5">
                               PER HOUR<span className="text-red-500">*</span>
                             </label>
                             <input
@@ -5508,7 +5508,7 @@ const DriverManagement = () => {
                       {personalData.paymentMethod === 'PAID PER DAY' && (
                         <div className="mt-4">
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                            <label className="block text-xs font-medium text-primary mb-0.5">
                               PER DAY<span className="text-red-500">*</span>
                             </label>
                             <input
@@ -5525,14 +5525,14 @@ const DriverManagement = () => {
 
                     {/* Driver Type Section */}
                     <div className="mt-6">
-                      <h4 className="text-md font-bold text-gray-900 mb-4">Driver Type</h4>
+                      <h4 className="text-md font-bold text-primary mb-4">Driver Type</h4>
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => setPersonalData({ ...personalData, driverTypeSolo: true })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${personalData.driverTypeSolo
                               ? 'bg-gray-700 !text-white'
-                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                              : 'bg-gray-300 text-primary hover:bg-gray-400'
                             }`}
                         >
                           SOLO
@@ -5542,7 +5542,7 @@ const DriverManagement = () => {
                           onClick={() => setPersonalData({ ...personalData, driverTypeSolo: false })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${!personalData.driverTypeSolo
                               ? 'bg-gray-700 !text-white'
-                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                              : 'bg-gray-300 text-primary hover:bg-gray-400'
                             }`}
                         >
                           TEAM
@@ -5552,7 +5552,7 @@ const DriverManagement = () => {
 
                     {/* Exemption Checkboxes */}
                     <div className="mt-6">
-                      <h4 className="text-md font-bold text-gray-900 mb-4">Exemptions</h4>
+                      <h4 className="text-md font-bold text-primary mb-4">Exemptions</h4>
                       <div className="flex gap-6">
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
@@ -5561,7 +5561,7 @@ const DriverManagement = () => {
                             onChange={(e) => setPersonalData({ ...personalData, cppExempt: e.target.checked })}
                             className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
                           />
-                          <span className="text-sm font-medium text-gray-700">CPP Exempt</span>
+                          <span className="text-sm font-medium text-primary">CPP Exempt</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
@@ -5570,14 +5570,14 @@ const DriverManagement = () => {
                             onChange={(e) => setPersonalData({ ...personalData, payrollTaxExempt: e.target.checked })}
                             className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
                           />
-                          <span className="text-sm font-medium text-gray-700">Payroll Tax Exempt</span>
+                          <span className="text-sm font-medium text-primary">Payroll Tax Exempt</span>
                         </label>
                       </div>
                     </div>
 
                     {/* Cross-Border Eligibility */}
                     <div className="mt-6">
-                      <h4 className="text-md font-bold text-gray-900 mb-4">Cross-Border Eligibility</h4>
+                      <h4 className="text-md font-bold text-primary mb-4">Cross-Border Eligibility</h4>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
@@ -5585,13 +5585,13 @@ const DriverManagement = () => {
                           onChange={(e) => setPersonalData({ ...personalData, cross_border_eligible: e.target.checked })}
                           className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
                         />
-                        <span className="text-sm font-medium text-gray-700">Cross-Border Eligible</span>
+                        <span className="text-sm font-medium text-primary">Cross-Border Eligible</span>
                       </label>
                     </div>
 
                     {/* Custom HST % */}
                     <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Custom HST %</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Custom HST %</label>
                       <input
                         type="text"
                         placeholder="Leave Empty To Use Compar"
@@ -5604,7 +5604,7 @@ const DriverManagement = () => {
                     {/* Gender and Citizenship */}
                     <div className="mt-6 grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Gender</label>
                         <select
                           value={personalData.gender}
                           onChange={(e) => setPersonalData({ ...personalData, gender: e.target.value })}
@@ -5618,7 +5618,7 @@ const DriverManagement = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Citizenship</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Citizenship</label>
                         <select
                           value={personalData.citizenship}
                           onChange={(e) => setPersonalData({ ...personalData, citizenship: e.target.value })}
@@ -5639,14 +5639,14 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'travel' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Travel Information</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Travel Information</h3>
 
                     {/* Driver's License Row */}
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-4">Driver's License</h4>
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <h4 className="text-sm font-semibold text-primary mb-4">Driver's License</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-primary mb-1">
                             Drivers License #<span className="text-red-500">*</span>
                           </label>
                           <input
@@ -5668,11 +5668,11 @@ const DriverManagement = () => {
                           )}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-primary mb-1">
                             Date Of Expiry<span className="text-red-500">*</span>
                           </label>
                           <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                             <input
                               type="date"
                               value={travelData.driversLicenseExpiry}
@@ -5693,7 +5693,7 @@ const DriverManagement = () => {
                           )}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">License State/Province</label>
+                          <label className="block text-sm font-medium text-primary mb-1">License State/Province</label>
                           <input
                             type="text"
                             value={travelData.licenseStateProvince}
@@ -5706,11 +5706,11 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Passport Row */}
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-4">Passport</h4>
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <h4 className="text-sm font-semibold text-primary mb-4">Passport</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-primary mb-1">
                             Passport #<span className="text-red-500">*</span>
                           </label>
                           <input
@@ -5732,7 +5732,7 @@ const DriverManagement = () => {
                           )}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Passport Country</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Passport Country</label>
                           <select
                             value={travelData.passportCountry}
                             onChange={(e) => setTravelData({ ...travelData, passportCountry: e.target.value })}
@@ -5747,11 +5747,11 @@ const DriverManagement = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-primary mb-1">
                             Date Of Expiry<span className="text-red-500">*</span>
                           </label>
                           <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                             <input
                               type="date"
                               value={travelData.passportExpiry}
@@ -5775,11 +5775,11 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Fast Card Row */}
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-4">Fast Card</h4>
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <h4 className="text-sm font-semibold text-primary mb-4">Fast Card</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Fast Card #</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Fast Card #</label>
                           <input
                             type="text"
                             placeholder="Fast Card #"
@@ -5789,9 +5789,9 @@ const DriverManagement = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Date Of Expiry</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Date Of Expiry</label>
                           <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                             <input
                               type="date"
                               value={travelData.fastCardExpiry}
@@ -5809,7 +5809,7 @@ const DriverManagement = () => {
                               onChange={(e) => setTravelData({ ...travelData, fastCardValid: e.target.checked })}
                               className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
                             />
-                            <span className="text-sm font-medium text-gray-700">Fast Card Valid</span>
+                            <span className="text-sm font-medium text-primary">Fast Card Valid</span>
                           </label>
                         </div>
                       </div>
@@ -5817,14 +5817,14 @@ const DriverManagement = () => {
 
                     {/* Canadian Worker Status Section */}
                     <div className="mt-6">
-                      <h4 className="text-md font-bold text-gray-900 mb-4">Canadian Worker Status</h4>
+                      <h4 className="text-md font-bold text-primary mb-4">Canadian Worker Status</h4>
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'CANADIAN CITIZEN' })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${travelData.canadianWorkerStatus === 'CANADIAN CITIZEN'
                               ? 'bg-gray-700 !text-white'
-                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                              : 'bg-gray-300 text-primary hover:bg-gray-400'
                             }`}
                         >
                           CANADIAN CITIZEN
@@ -5834,7 +5834,7 @@ const DriverManagement = () => {
                           onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'PERMANENT RESIDENT' })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${travelData.canadianWorkerStatus === 'PERMANENT RESIDENT'
                               ? 'bg-gray-700 !text-white'
-                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                              : 'bg-gray-300 text-primary hover:bg-gray-400'
                             }`}
                         >
                           PERMANENT RESIDENT
@@ -5844,7 +5844,7 @@ const DriverManagement = () => {
                           onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'WORK PERMIT' })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${travelData.canadianWorkerStatus === 'WORK PERMIT'
                               ? 'bg-gray-700 !text-white'
-                              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                              : 'bg-gray-300 text-primary hover:bg-gray-400'
                             }`}
                         >
                           WORK PERMIT
@@ -5855,9 +5855,9 @@ const DriverManagement = () => {
                     {/* Permanent Residence Expiry */}
                     {travelData.canadianWorkerStatus === 'PERMANENT RESIDENT' && (
                       <div className="mt-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Permanent Residence Expiry</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Permanent Residence Expiry</label>
                         <div className="relative max-w-md">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                           <input
                             type="date"
                             value={travelData.permanentResidenceExpiry}
@@ -5872,9 +5872,9 @@ const DriverManagement = () => {
                     {/* Work Permit Expiry */}
                     {travelData.canadianWorkerStatus === 'WORK PERMIT' && (
                       <div className="mt-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Work Permit Expiry</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Work Permit Expiry</label>
                         <div className="relative max-w-md">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                           <input
                             type="date"
                             value={travelData.workPermitExpiry}
@@ -5888,7 +5888,7 @@ const DriverManagement = () => {
 
                     {/* WCB Number */}
                     <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">WCB (Workers' Compensation Board) Number</label>
+                      <label className="block text-sm font-medium text-primary mb-1">WCB (Workers' Compensation Board) Number</label>
                       <input
                         type="text"
                         placeholder="WCB (Workers' Compensation Board) Number"
@@ -5900,7 +5900,7 @@ const DriverManagement = () => {
 
                     {/* SIN Number - Mandatory */}
                     <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         SIN Number <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -5926,7 +5926,7 @@ const DriverManagement = () => {
                     {/* Work Permit Document Upload */}
                     {travelData.canadianWorkerStatus === 'WORK PERMIT' && (
                       <div className="mt-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-primary mb-1">
                           Work Permit Document <span className="text-red-500">*</span>
                         </label>
                         {travelData.existingWorkPermitUrl && !travelData.workPermitDocument && (
@@ -5940,7 +5940,7 @@ const DriverManagement = () => {
                                 href={travelData.existingWorkPermitUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                className="text-xs text-[#00D1FF] hover:text-blue-800 underline"
                               >
                                 View Document
                               </a>
@@ -5955,7 +5955,7 @@ const DriverManagement = () => {
                           required={!travelData.existingWorkPermitUrl}
                         />
                         {travelData.workPermitDocument && (
-                          <p className="text-xs text-gray-600 mt-1">Selected: {travelData.workPermitDocument.name}</p>
+                          <p className="text-xs text-secondary mt-1">Selected: {travelData.workPermitDocument.name}</p>
                         )}
                         {travelData.existingWorkPermitUrl && travelData.workPermitDocument && (
                           <p className="text-xs text-amber-600 mt-1">⚠️ New file will replace existing document</p>
@@ -5966,7 +5966,7 @@ const DriverManagement = () => {
                     {/* PR Card Document Upload */}
                     {travelData.canadianWorkerStatus === 'PERMANENT RESIDENT' && (
                       <div className="mt-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-primary mb-1">
                           PR Card Document <span className="text-red-500">*</span>
                         </label>
                         {travelData.existingPrCardUrl && !travelData.prCardDocument && (
@@ -5980,7 +5980,7 @@ const DriverManagement = () => {
                                 href={travelData.existingPrCardUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                className="text-xs text-[#00D1FF] hover:text-blue-800 underline"
                               >
                                 View Document
                               </a>
@@ -5995,7 +5995,7 @@ const DriverManagement = () => {
                           required={!travelData.existingPrCardUrl}
                         />
                         {travelData.prCardDocument && (
-                          <p className="text-xs text-gray-600 mt-1">Selected: {travelData.prCardDocument.name}</p>
+                          <p className="text-xs text-secondary mt-1">Selected: {travelData.prCardDocument.name}</p>
                         )}
                         {travelData.existingPrCardUrl && travelData.prCardDocument && (
                           <p className="text-xs text-amber-600 mt-1">⚠️ New file will replace existing document</p>
@@ -6008,21 +6008,21 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'documents' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Documents</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Documents</h3>
 
                     {/* Documents Table with Headers */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">EXPIRY DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DESCRIPTION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">IGNORE EXPIRATION</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white">
+                        <tbody className="bg-card">
                           {/* Input Row */}
-                          <tr className="bg-gray-50">
+                          <tr className="bg-card">
                             <td className="px-4 py-3">
                               <input
                                 type="date"
@@ -6041,23 +6041,23 @@ const DriverManagement = () => {
                                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                                 />
                                 {documentFile ? (
-                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                    <FileText className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-700 truncate max-w-[100px]">{documentFile.name}</span>
+                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card">
+                                    <FileText className="w-4 h-4 text-secondary" />
+                                    <span className="text-sm text-primary truncate max-w-[100px]">{documentFile.name}</span>
                                     <button
                                       onClick={() => {
                                         setDocumentFile(null);
                                         setNewDocument({ ...newDocument, file: null });
                                       }}
-                                      className="text-gray-400 hover:text-gray-600"
+                                      className="text-secondary hover:text-secondary"
                                     >
                                       <X className="w-4 h-4" />
                                     </button>
                                   </div>
                                 ) : (
-                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer">
-                                    <Upload className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-700">Select File</span>
+                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card hover:bg-[rgba(255,255,255,0.03)] cursor-pointer">
+                                    <Upload className="w-4 h-4 text-secondary" />
+                                    <span className="text-sm text-primary">Select File</span>
                                     <input
                                       type="file"
                                       className="hidden"
@@ -6082,7 +6082,7 @@ const DriverManagement = () => {
                                     onChange={(e) => setNewDocument({ ...newDocument, ignoreExpiration: e.target.checked })}
                                     className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
                                   />
-                                  <span className="text-sm text-gray-700">Ignore Expiration</span>
+                                  <span className="text-sm text-primary">Ignore Expiration</span>
                                 </label>
                                 <button
                                   onClick={() => {
@@ -6147,28 +6147,28 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Documents Data Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden mt-4">
+                    <div className="border border-theme rounded-lg overflow-hidden mt-4">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">EXPIRY DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DESCRIPTION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">FILE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">IGNORE EXPIRATION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-gray-200">
                           {documents.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
                           ) : (
                             documents.map((doc) => (
-                              <tr key={doc.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                              <tr key={doc.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {doc.expiryDate ? (() => {
                                     try {
                                       // Format date for display (YYYY-MM-DD to readable format)
@@ -6182,10 +6182,10 @@ const DriverManagement = () => {
                                     }
                                   })() : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {doc.description || '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     {doc.isExisting && doc.documentId && (doc.fileUrl || doc.fileName) ? (
                                       <button
@@ -6211,30 +6211,30 @@ const DriverManagement = () => {
                                             }
                                           }
                                         }}
-                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                                        className="flex items-center gap-1 text-[#00D1FF] hover:text-blue-800 hover:underline"
                                         title={doc.fileName || 'View document'}
                                       >
                                         <FileText className="w-4 h-4" />
                                         <span className="text-xs">{doc.fileName || 'View'}</span>
                                       </button>
                                     ) : uploadedFiles[doc.id] ? (
-                                      <span title={uploadedFiles[doc.id].name} className="flex items-center gap-1 text-gray-600">
+                                      <span title={uploadedFiles[doc.id].name} className="flex items-center gap-1 text-secondary">
                                         <FileText className="w-4 h-4 text-blue-500" />
                                         <span className="text-xs">{uploadedFiles[doc.id].name}</span>
                                       </span>
                                     ) : (
-                                      <span className="text-gray-400">-</span>
+                                      <span className="text-secondary">-</span>
                                     )}
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {doc.ignoreExpiration ? (
                                     <Check className="w-5 h-5 text-green-500" />
                                   ) : (
-                                    <span className="text-gray-400">-</span>
+                                    <span className="text-secondary">-</span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -6256,7 +6256,7 @@ const DriverManagement = () => {
                                           setDocumentFile(null);
                                         }
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                                       title="Edit document"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -6301,7 +6301,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                       title="Delete document"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -6320,22 +6320,22 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'certifications' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Safety Certifications</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Safety Certifications</h3>
 
                     {/* Certifications Table with Input Row */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">EXPIRY DATE</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">DESCRIPTION</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">IGNORE EXPIRATION</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">DOCUMENT</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white">
+                        <tbody className="bg-card">
                           {/* Input Row */}
-                          <tr className="bg-gray-50">
+                          <tr className="bg-card">
                             <td className="px-3 py-2">
                               <div className="relative">
                                 <input
@@ -6345,7 +6345,7 @@ const DriverManagement = () => {
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                                   placeholder="mm/dd/yyyy"
                                 />
-                                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                               </div>
                             </td>
                             <td className="px-3 py-2">
@@ -6366,31 +6366,31 @@ const DriverManagement = () => {
                                     onChange={(e) => setNewCertification({ ...newCertification, ignoreExpiration: e.target.checked })}
                                     className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
                                   />
-                                  <span className="text-sm text-gray-700">Ignore Expiration</span>
+                                  <span className="text-sm text-primary">Ignore Expiration</span>
                                 </label>
                               </div>
                             </td>
                             <td className="px-3 py-2">
                               <div className="flex items-center gap-2">
                                 {certificationFile ? (
-                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                    <FileText className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-700 truncate max-w-[120px]">{certificationFile.name}</span>
+                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card">
+                                    <FileText className="w-4 h-4 text-secondary" />
+                                    <span className="text-sm text-primary truncate max-w-[120px]">{certificationFile.name}</span>
                                     <button
                                       onClick={() => {
                                         setCertificationFile(null);
                                         setNewCertification({ ...newCertification, file: null });
                                       }}
-                                      className="text-gray-400 hover:text-red-600 transition-colors"
+                                      className="text-secondary hover:text-[#A855F7] transition-colors"
                                       title="Remove file"
                                     >
                                       <X className="w-4 h-4" />
                                     </button>
                                   </div>
                                 ) : (
-                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer transition-colors">
-                                    <Upload className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-700">Select File</span>
+                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors">
+                                    <Upload className="w-4 h-4 text-secondary" />
+                                    <span className="text-sm text-primary">Select File</span>
                                     <input
                                       type="file"
                                       className="hidden"
@@ -6452,21 +6452,21 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Certifications Data Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden mt-4">
+                    <div className="border border-theme rounded-lg overflow-hidden mt-4">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">EXPIRY DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DESCRIPTION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">IGNORE EXPIRATION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DOCUMENT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-gray-200">
                           {certifications.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
@@ -6474,30 +6474,30 @@ const DriverManagement = () => {
                             certifications.map((cert) => (
                               <tr
                                 key={cert.id}
-                                className={`hover:bg-gray-50 ${selectedCertificate?.id === cert.id ? 'bg-blue-50' : ''}`}
+                                className={`hover:bg-[rgba(255,255,255,0.03)] ${selectedCertificate?.id === cert.id ? 'bg-card' : ''}`}
                               >
-                                <td className="px-4 py-3 text-sm text-gray-900">{cert.expiryDate || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{cert.description || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">{cert.expiryDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{cert.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {cert.ignoreExpiration ? (
                                     <Check className="w-5 h-5 text-green-500" />
                                   ) : (
-                                    <span className="text-gray-400">-</span>
+                                    <span className="text-secondary">-</span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {(cert.file instanceof File || cert.fileUrl || cert.fileName) ? (
                                     <div className="flex items-center gap-2">
                                       <FileText className="w-4 h-4 text-blue-500" />
-                                      <span className="text-sm text-gray-700 truncate max-w-[150px]" title={cert.file instanceof File ? cert.file.name : (cert.fileName || 'File attached')}>
+                                      <span className="text-sm text-primary truncate max-w-[150px]" title={cert.file instanceof File ? cert.file.name : (cert.fileName || 'File attached')}>
                                         {cert.file instanceof File ? cert.file.name : (cert.fileName || 'File attached')}
                                       </span>
                                     </div>
                                   ) : (
-                                    <span className="text-gray-400">-</span>
+                                    <span className="text-secondary">-</span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -6517,7 +6517,7 @@ const DriverManagement = () => {
                                           setCertificationFile(null);
                                         }
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                                       title="Edit certification"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -6527,7 +6527,7 @@ const DriverManagement = () => {
                                         e.stopPropagation();
                                         setConfirmDeleteCertification({ open: true, cert });
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                       title="Delete certification"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -6543,13 +6543,13 @@ const DriverManagement = () => {
 
                     {/* Safety Certificate Details Side Panel */}
                     {selectedCertificate && (
-                      <div className="absolute right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 border-l border-gray-200 overflow-y-auto" style={{ top: 0, right: 0 }}>
+                      <div className="absolute right-0 top-0 h-full w-96 bg-card shadow-2xl z-50 border-l border-theme overflow-y-auto" style={{ top: 0, right: 0 }}>
                         <div className="p-6">
                           <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-gray-900">Safety Certificate Details</h3>
+                            <h3 className="text-xl font-bold text-primary">Safety Certificate Details</h3>
                             <button
                               onClick={() => setSelectedCertificate(null)}
-                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                              className="text-secondary hover:text-secondary transition-colors"
                             >
                               <X className="w-6 h-6" />
                             </button>
@@ -6557,48 +6557,48 @@ const DriverManagement = () => {
 
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Title</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedCertificate.title || '-'}
                               </div>
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedCertificate.expiryDate || '-'}
                               </div>
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedCertificate.description || '-'}
                               </div>
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Result</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Result</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedCertificate.result || '-'}
                               </div>
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Ignore Expiration</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                              <label className="block text-sm font-medium text-primary mb-1">Ignore Expiration</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg">
                                 {selectedCertificate.ignoreExpiration ? (
                                   <div className="flex items-center gap-2">
                                     <Check className="w-5 h-5 text-green-500" />
-                                    <span className="text-gray-900">Yes</span>
+                                    <span className="text-primary">Yes</span>
                                   </div>
                                 ) : (
-                                  <span className="text-gray-500">No</span>
+                                  <span className="text-secondary">No</span>
                                 )}
                               </div>
                             </div>
 
-                            <div className="pt-4 border-t border-gray-200">
+                            <div className="pt-4 border-t border-theme">
                               <button
                                 onClick={() => {
                                   setCertifications(certifications.filter(c => c.id !== selectedCertificate.id));
@@ -6619,24 +6619,24 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'tickets' && (
                   <div className="space-y-6 relative">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Tickets & Fines</h3>
-                    <p className="text-sm text-gray-500 mb-4">Record driver tickets, fines, and citations. Static only — not sent to backend.</p>
+                    <h3 className="text-lg font-bold text-primary mb-4">Tickets & Fines</h3>
+                    <p className="text-sm text-secondary mb-4">Record driver tickets, fines, and citations. Static only — not sent to backend.</p>
 
                     {/* Tickets Table with Input Row */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden overflow-x-auto">
+                    <div className="border border-theme rounded-lg overflow-hidden overflow-x-auto">
                       <table className="w-full min-w-[800px]">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">TITLE</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">AMOUNT</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">STATUS</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">DATE</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">TITLE</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">DESCRIPTION</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">AMOUNT</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">STATUS</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-primary uppercase">DOCUMENT</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white">
-                          <tr className="bg-gray-50">
+                        <tbody className="bg-card">
+                          <tr className="bg-card">
                             <td className="px-3 py-2">
                               <div className="relative">
                                 <input
@@ -6645,7 +6645,7 @@ const DriverManagement = () => {
                                   onChange={(e) => setNewTicket({ ...newTicket, date: e.target.value })}
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                                 />
-                                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                               </div>
                             </td>
                             <td className="px-3 py-2">
@@ -6700,24 +6700,24 @@ const DriverManagement = () => {
                             <td className="px-3 py-2">
                               <div className="flex items-center gap-2 min-w-0">
                                 {ticketFile ? (
-                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white flex-1 min-w-0">
-                                    <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                    <span className="text-sm text-gray-700 truncate flex-1 min-w-0">{ticketFile.name}</span>
+                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card flex-1 min-w-0">
+                                    <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
+                                    <span className="text-sm text-primary truncate flex-1 min-w-0">{ticketFile.name}</span>
                                     <button
                                       onClick={() => {
                                         setTicketFile(null);
                                         setNewTicket({ ...newTicket, file: null });
                                       }}
-                                      className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                      className="text-secondary hover:text-[#A855F7] transition-colors flex-shrink-0"
                                       title="Remove file"
                                     >
                                       <X className="w-4 h-4" />
                                     </button>
                                   </div>
                                 ) : (
-                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer transition-colors flex-1 min-w-0">
-                                    <Upload className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                    <span className="text-sm text-gray-700 truncate">Select File</span>
+                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors flex-1 min-w-0">
+                                    <Upload className="w-4 h-4 text-secondary flex-shrink-0" />
+                                    <span className="text-sm text-primary truncate">Select File</span>
                                     <input
                                       type="file"
                                       className="hidden"
@@ -6788,24 +6788,24 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Tickets Data Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden overflow-x-auto mt-4">
+                    <div className="border border-theme rounded-lg overflow-hidden overflow-x-auto mt-4">
                       <table className="w-full min-w-[800px]">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">TITLE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">AMOUNT</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">CURRENCY</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">STATUS</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">TITLE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DESCRIPTION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">AMOUNT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">CURRENCY</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">STATUS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DOCUMENT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-gray-200">
                           {tickets.length === 0 ? (
                             <tr>
-                              <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={7} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
@@ -6813,7 +6813,7 @@ const DriverManagement = () => {
                             tickets.map((ticket) => (
                               <tr
                                 key={ticket.id}
-                                className={`hover:bg-gray-50 cursor-pointer ${selectedTicket?.id === ticket.id ? 'bg-blue-50' : ''}`}
+                                className={`hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${selectedTicket?.id === ticket.id ? 'bg-card' : ''}`}
                                 onClick={() => setSelectedTicket(selectedTicket?.id === ticket.id ? null : {
                                   id: ticket.id,
                                   date: ticket.date,
@@ -6824,28 +6824,28 @@ const DriverManagement = () => {
                                   status: ticket.status
                                 })}
                               >
-                                <td className="px-4 py-3 text-sm text-gray-900">{ticket.date || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{ticket.title || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{ticket.description || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">{ticket.date || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{ticket.title || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{ticket.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {ticket.amount ? (
                                     <div className="flex items-center gap-2">
                                       <span>{ticket.currency === 'USD' ? '$' : 'C$'}{ticket.amount}</span>
-                                      <span className="text-xs text-gray-500">({ticket.currency || 'CAD'})</span>
+                                      <span className="text-xs text-secondary">({ticket.currency || 'CAD'})</span>
                                     </div>
                                   ) : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
                                     ticket.status === 'Paid' ? 'bg-green-100 text-green-700' :
                                     ticket.status === 'Unpaid' ? 'bg-amber-100 text-amber-700' :
                                     ticket.status === 'Contested' ? 'bg-blue-100 text-blue-700' :
-                                    'bg-gray-100 text-gray-700'
+                                    'bg-gray-100 text-primary'
                                   }`}>
                                     {ticket.status}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {(ticket.file instanceof File || ticket.fileUrl || ticket.fileName) ? (
                                     <div className="flex items-center gap-2">
                                       <FileText className="w-4 h-4 text-blue-500" />
@@ -6895,22 +6895,22 @@ const DriverManagement = () => {
                                               }
                                             }
                                           }}
-                                          className="text-sm text-blue-600 hover:underline truncate max-w-[150px] cursor-pointer"
+                                          className="text-sm text-[#00D1FF] hover:underline truncate max-w-[150px] cursor-pointer"
                                           title={ticket.fileName || (ticket.file instanceof File ? ticket.file.name : 'View Document')}
                                         >
                                           {ticket.fileName || (ticket.file instanceof File ? ticket.file.name : 'View Document')}
                                         </button>
                                       ) : (
-                                        <span className="text-sm text-gray-700 truncate max-w-[150px]" title={ticket.fileName || 'File attached'}>
+                                        <span className="text-sm text-primary truncate max-w-[150px]" title={ticket.fileName || 'File attached'}>
                                           {ticket.fileName || 'File attached'}
                                         </span>
                                       )}
                                     </div>
                                   ) : (
-                                    <span className="text-gray-400">-</span>
+                                    <span className="text-secondary">-</span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900" onClick={(e) => e.stopPropagation()}>
+                                <td className="px-4 py-3 text-sm text-primary" onClick={(e) => e.stopPropagation()}>
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -6932,7 +6932,7 @@ const DriverManagement = () => {
                                           setTicketFile(null);
                                         }
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                                       title="Edit ticket"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -6942,7 +6942,7 @@ const DriverManagement = () => {
                                         e.stopPropagation();
                                         setConfirmDeleteTicket({ open: true, ticket });
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                       title="Delete ticket"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -6958,49 +6958,49 @@ const DriverManagement = () => {
 
                     {/* Ticket Details Side Panel */}
                     {selectedTicket && (
-                      <div className="absolute right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 border-l border-gray-200 overflow-y-auto" style={{ top: 0, right: 0 }}>
+                      <div className="absolute right-0 top-0 h-full w-96 bg-card shadow-2xl z-50 border-l border-theme overflow-y-auto" style={{ top: 0, right: 0 }}>
                         <div className="p-6">
                           <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-gray-900">Ticket Details</h3>
+                            <h3 className="text-xl font-bold text-primary">Ticket Details</h3>
                             <button
                               onClick={() => setSelectedTicket(null)}
-                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                              className="text-secondary hover:text-secondary transition-colors"
                             >
                               <X className="w-6 h-6" />
                             </button>
                           </div>
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Date</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedTicket.date || '-'}
                               </div>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Title</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedTicket.title || '-'}
                               </div>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedTicket.description || '-'}
                               </div>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Amount</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedTicket.amount ? `$${selectedTicket.amount}` : '-'}
                               </div>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                              <label className="block text-sm font-medium text-primary mb-1">Status</label>
+                              <div className="px-3 py-2 bg-card border border-theme rounded-lg text-primary">
                                 {selectedTicket.status}
                               </div>
                             </div>
-                            <div className="pt-4 border-t border-gray-200">
+                            <div className="pt-4 border-t border-theme">
                               <button
                                 onClick={() => {
                                   setTickets(tickets.filter(t => t.id !== selectedTicket.id));
@@ -7019,24 +7019,24 @@ const DriverManagement = () => {
                     {/* Delete Ticket Confirmation Modal */}
                     {confirmDeleteTicket.open && confirmDeleteTicket.ticket && (
                       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-                        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+                        <div className="bg-card rounded-xl shadow-2xl w-full max-w-md">
                           <div className="p-6">
                             <div className="flex items-center gap-4 mb-4">
                               <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                                <Trash2 className="w-6 h-6 text-red-600" />
+                                <Trash2 className="w-6 h-6 text-[#A855F7]" />
                               </div>
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-900">Delete Ticket</h3>
-                                <p className="text-sm text-gray-500">This action cannot be undone</p>
+                                <h3 className="text-lg font-semibold text-primary">Delete Ticket</h3>
+                                <p className="text-sm text-secondary">This action cannot be undone</p>
                               </div>
                             </div>
-                            <p className="text-gray-700 mb-6">
+                            <p className="text-primary mb-6">
                               Are you sure you want to delete this ticket ({confirmDeleteTicket.ticket.title || 'Ticket'} — {confirmDeleteTicket.ticket.date || 'N/A'})?
                             </p>
                             <div className="flex items-center justify-end gap-3">
                               <button
                                 onClick={() => setConfirmDeleteTicket({ open: false, ticket: null })}
-                                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                               >
                                 Cancel
                               </button>
@@ -7061,13 +7061,13 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'violations' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Violations</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Violations</h3>
 
                     {/* Violations Input Form */}
-                    <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="space-y-4 p-4 bg-card rounded-lg">
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Violation Type <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-primary mb-1">Violation Type <span className="text-red-500">*</span></label>
                           <select
                             value={newViolation.violationType}
                             onChange={(e) => {
@@ -7093,7 +7093,7 @@ const DriverManagement = () => {
                           )}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Title</label>
                           <input
                             type="text"
                             placeholder="Short one-line summary"
@@ -7103,9 +7103,9 @@ const DriverManagement = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Date of Incident <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-primary mb-1">Date of Incident <span className="text-red-500">*</span></label>
                           <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                             <input
                               type="date"
                               value={newViolation.dateOfIncident}
@@ -7115,7 +7115,7 @@ const DriverManagement = () => {
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Reported By</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Reported By</label>
                           <input
                             type="text"
                             placeholder="Manager/Admin name"
@@ -7125,7 +7125,7 @@ const DriverManagement = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Severity</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Severity</label>
                           <select
                             value={newViolation.severity}
                             onChange={(e) => setNewViolation({ ...newViolation, severity: e.target.value })}
@@ -7138,7 +7138,7 @@ const DriverManagement = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Action Taken</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Action Taken</label>
                           <select
                             value={newViolation.actionTaken}
                             onChange={(e) => setNewViolation({ ...newViolation, actionTaken: e.target.value })}
@@ -7152,7 +7152,7 @@ const DriverManagement = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Status</label>
                           <select
                             value={newViolation.status}
                             onChange={(e) => setNewViolation({ ...newViolation, status: e.target.value })}
@@ -7165,7 +7165,7 @@ const DriverManagement = () => {
                           </select>
                         </div>
                         <div className="sm:col-span-2 lg:col-span-3">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Description</label>
                           <textarea
                             placeholder="Detailed explanation"
                             value={newViolation.description}
@@ -7178,23 +7178,23 @@ const DriverManagement = () => {
                       <div className="flex items-center gap-3">
                         <div className="flex items-end">
                           {violationFile ? (
-                            <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                              <FileText className="w-4 h-4 text-gray-600" />
-                              <span className="text-sm text-gray-700 truncate max-w-[100px]">{violationFile.name}</span>
+                            <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card">
+                              <FileText className="w-4 h-4 text-secondary" />
+                              <span className="text-sm text-primary truncate max-w-[100px]">{violationFile.name}</span>
                               <button
                                 onClick={() => {
                                   setViolationFile(null);
                                   setNewViolation({ ...newViolation, file: null });
                                 }}
-                                className="text-gray-400 hover:text-gray-600"
+                                className="text-secondary hover:text-secondary"
                               >
                                 <X className="w-4 h-4" />
                               </button>
                             </div>
                           ) : (
-                            <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer">
-                              <Upload className="w-4 h-4 text-gray-600" />
-                              <span className="text-sm text-gray-700">Select File</span>
+                            <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card hover:bg-[rgba(255,255,255,0.03)] cursor-pointer">
+                              <Upload className="w-4 h-4 text-secondary" />
+                              <span className="text-sm text-primary">Select File</span>
                               <input
                                 type="file"
                                 className="hidden"
@@ -7298,41 +7298,41 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Violations Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Date</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Type</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Title</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Severity</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">File</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Type</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Title</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Severity</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Status</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">File</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-gray-200">
                           {violations.length === 0 ? (
                             <tr>
-                              <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={7} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
                           ) : (
                             violations.map((violation) => (
-                              <tr key={violation.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                              <tr key={violation.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {violation.dateOfIncident ? new Date(violation.dateOfIncident).toLocaleDateString() : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
-                                  <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium">
+                                <td className="px-4 py-3 text-sm text-primary">
+                                  <span className="px-2 py-1 bg-card text-blue-700 rounded-md text-xs font-medium">
                                     {violation.violationType || '-'}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {violation.title || '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {violation.severity ? (
                                     <span className={`px-2 py-1 rounded-md text-xs font-medium ${
                                       violation.severity === 'High' ? 'bg-red-100 text-red-700' :
@@ -7343,10 +7343,10 @@ const DriverManagement = () => {
                                     </span>
                                   ) : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {violation.status ? (
                                     <span className={`px-2 py-1 rounded-md text-xs font-medium ${
-                                      violation.status === 'Closed' ? 'bg-gray-100 text-gray-700' :
+                                      violation.status === 'Closed' ? 'bg-gray-100 text-primary' :
                                       violation.status === 'Under Review' ? 'bg-blue-100 text-blue-700' :
                                       'bg-orange-100 text-orange-700'
                                     }`}>
@@ -7354,14 +7354,14 @@ const DriverManagement = () => {
                                     </span>
                                   ) : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {(violation.file instanceof File || violation.fileUrl || violation.fileName) ? (
                                     violation.fileUrl ? (
                                       <a
                                         href={violation.fileUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                                        className="flex items-center gap-1 text-[#00D1FF] hover:text-blue-800 hover:underline"
                                         title={violation.file instanceof File ? violation.file.name : (violation.fileName || 'View File')}
                                         onClick={(e) => e.stopPropagation()}
                                       >
@@ -7369,16 +7369,16 @@ const DriverManagement = () => {
                                         <span className="text-xs">{violation.fileName || 'View File'}</span>
                                       </a>
                                     ) : (
-                                      <span className="flex items-center gap-1 text-gray-600" title={violation.file instanceof File ? violation.file.name : (violation.fileName || 'File attached')}>
+                                      <span className="flex items-center gap-1 text-secondary" title={violation.file instanceof File ? violation.file.name : (violation.fileName || 'File attached')}>
                                         <FileText className="w-4 h-4 text-blue-500" />
                                         <span className="text-xs">{violation.file instanceof File ? violation.file.name : (violation.fileName || 'File attached')}</span>
                                       </span>
                                     )
                                   ) : (
-                                    <span className="text-gray-400">-</span>
+                                    <span className="text-secondary">-</span>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -7402,7 +7402,7 @@ const DriverManagement = () => {
                                           setViolationFile(null);
                                         }
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                                       title="Edit violation"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -7446,7 +7446,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                       title="Delete violation"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -7465,10 +7465,10 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'notes' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Notes</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Notes</h3>
 
                     {/* Notes Input Row */}
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3 p-4 bg-card rounded-lg">
                       <div className="flex-1">
                         <input
                           type="text"
@@ -7530,20 +7530,20 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Notes Display */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       {notes.length === 0 ? (
-                        <div className="px-4 py-8 text-center text-gray-500">
+                        <div className="px-4 py-8 text-center text-secondary">
                           No Data
                         </div>
                       ) : (
                         <div className="divide-y divide-gray-200">
                           {notes.map((note) => (
-                            <div key={note.id} className="px-4 py-3 hover:bg-gray-50">
+                            <div key={note.id} className="px-4 py-3 hover:bg-[rgba(255,255,255,0.03)]">
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <p className="text-sm text-gray-900">{note.note}</p>
+                                  <p className="text-sm text-primary">{note.note}</p>
                                   {note.category && (
-                                    <p className="text-xs text-gray-500 mt-1">Category: {note.category}</p>
+                                    <p className="text-xs text-secondary mt-1">Category: {note.category}</p>
                                   )}
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -7555,7 +7555,7 @@ const DriverManagement = () => {
                                       });
                                       setEditingNoteId(note.id);
                                     }}
-                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                    className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                                     title="Edit note"
                                   >
                                     <Edit className="w-4 h-4" />
@@ -7573,7 +7573,7 @@ const DriverManagement = () => {
                                         }
                                       }
                                     }}
-                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                    className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                     title="Delete note"
                                   >
                                     <Trash2 className="w-4 h-4" />
@@ -7591,14 +7591,14 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'deductions' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Payroll Deductions</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Payroll Deductions</h3>
 
                     {/* Deductions Input Row */}
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3 p-4 bg-card rounded-lg">
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Start Date</label>
                         <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                           <input
                             type="date"
                             value={newDeduction.startDate}
@@ -7608,7 +7608,7 @@ const DriverManagement = () => {
                         </div>
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                         <input
                           type="text"
                           placeholder="Description"
@@ -7618,7 +7618,7 @@ const DriverManagement = () => {
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Amount</label>
                         <input
                           type="text"
                           placeholder="0"
@@ -7628,7 +7628,7 @@ const DriverManagement = () => {
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Interval</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Interval</label>
                         <select
                           value={newDeduction.interval}
                           onChange={(e) => setNewDeduction({ ...newDeduction, interval: e.target.value })}
@@ -7643,7 +7643,7 @@ const DriverManagement = () => {
                         </select>
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Currency</label>
                         <select
                           value={newDeduction.currency}
                           onChange={(e) => setNewDeduction({ ...newDeduction, currency: e.target.value })}
@@ -7700,32 +7700,32 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Deductions Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Start Date</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Start Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Description</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Interval</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-gray-200">
                           {deductions.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
                           ) : (
                             deductions.map((deduction) => (
-                              <tr key={deduction.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.startDate || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.description || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.amount || '0'} {deduction.currency}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.interval || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                              <tr key={deduction.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                <td className="px-4 py-3 text-sm text-primary">{deduction.startDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{deduction.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{deduction.amount || '0'} {deduction.currency}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{deduction.interval || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -7739,7 +7739,7 @@ const DriverManagement = () => {
                                         });
                                         setEditingDeductionId(deduction.id);
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                                       title="Edit deduction"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -7778,7 +7778,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                       title="Delete deduction"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -7797,14 +7797,14 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'additions' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Payroll Additions</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Payroll Additions</h3>
 
                     {/* Additions Input Row */}
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3 p-4 bg-card rounded-lg">
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Start Date</label>
                         <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                           <input
                             type="date"
                             value={newAddition.startDate}
@@ -7814,7 +7814,7 @@ const DriverManagement = () => {
                         </div>
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                         <input
                           type="text"
                           placeholder="Description"
@@ -7824,7 +7824,7 @@ const DriverManagement = () => {
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Amount</label>
                         <input
                           type="text"
                           placeholder="0"
@@ -7834,7 +7834,7 @@ const DriverManagement = () => {
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Interval</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Interval</label>
                         <select
                           value={newAddition.interval}
                           onChange={(e) => setNewAddition({ ...newAddition, interval: e.target.value })}
@@ -7849,7 +7849,7 @@ const DriverManagement = () => {
                         </select>
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Currency</label>
                         <select
                           value={newAddition.currency}
                           onChange={(e) => setNewAddition({ ...newAddition, currency: e.target.value })}
@@ -7906,32 +7906,32 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Additions Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Start Date</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Start Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Description</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Interval</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-gray-200">
                           {additions.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
                           ) : (
                             additions.map((addition) => (
-                              <tr key={addition.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900">{addition.startDate || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{addition.description || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{addition.amount || '0'} {addition.currency}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{addition.interval || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                              <tr key={addition.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                <td className="px-4 py-3 text-sm text-primary">{addition.startDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{addition.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{addition.amount || '0'} {addition.currency}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{addition.interval || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -7945,7 +7945,7 @@ const DriverManagement = () => {
                                         });
                                         setEditingAdditionId(addition.id);
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                                       title="Edit addition"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -7984,7 +7984,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                       title="Delete addition"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -8003,20 +8003,20 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'onboarding' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Onboarding & Tests</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Onboarding & Tests</h3>
 
                     {/* Section 1: Onboarding Status */}
-                    <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-                      <h4 className="text-sm font-bold text-gray-900 mb-3">Onboarding Status</h4>
+                    <div className="bg-card rounded-lg p-4 space-y-4">
+                      <h4 className="text-sm font-bold text-primary mb-3">Onboarding Status</h4>
                       
                       {/* Test Approval Summary - Show at top */}
                       {driverTests.length > 0 && (
-                        <div className="bg-white rounded-lg p-3 border border-gray-200 mb-4">
-                          <label className="block text-xs font-medium text-gray-700 mb-2">Test Approval Status</label>
+                        <div className="bg-card rounded-lg p-3 border border-theme mb-4">
+                          <label className="block text-xs font-medium text-primary mb-2">Test Approval Status</label>
                           <div className="space-y-2">
                             {driverTests.map((test) => (
                               <div key={test.id} className="flex items-center justify-between">
-                                <span className="text-xs font-medium text-gray-700">{test.testType}</span>
+                                <span className="text-xs font-medium text-primary">{test.testType}</span>
                                 {test.hrApproved ? (
                                   <div className="flex items-center gap-2">
                                     <span className="px-2 py-1 rounded bg-green-100 text-green-800 text-xs font-medium flex items-center gap-1">
@@ -8024,10 +8024,10 @@ const DriverManagement = () => {
                                       Approved
                                     </span>
                                     {test.hrApprovedBy && (
-                                      <span className="text-xs text-gray-500">by {test.hrApprovedBy}</span>
+                                      <span className="text-xs text-secondary">by {test.hrApprovedBy}</span>
                                     )}
                                     {test.hrApprovedAt && (
-                                      <span className="text-xs text-gray-500">
+                                      <span className="text-xs text-secondary">
                                         {new Date(test.hrApprovedAt).toLocaleDateString()}
                                       </span>
                                     )}
@@ -8039,7 +8039,7 @@ const DriverManagement = () => {
                                       Rejected
                                     </span>
                                     {test.hrRejectionReason && (
-                                      <span className="text-xs text-red-600">({test.hrRejectionReason})</span>
+                                      <span className="text-xs text-[#A855F7]">({test.hrRejectionReason})</span>
                                     )}
                                   </div>
                                 ) : (
@@ -8054,24 +8054,24 @@ const DriverManagement = () => {
                       )}
 
                       {approvedByHR && approvedAt && (
-                        <div className="mt-3 text-xs text-gray-600">
+                        <div className="mt-3 text-xs text-secondary">
                           <span className="font-medium">Approved by HR:</span> {new Date(approvedAt).toLocaleDateString()}
                         </div>
                       )}
                     </div>
 
                     {/* Section 2: Flags */}
-                    <div className="bg-white rounded-lg p-4 space-y-3 border border-gray-200">
+                    <div className="bg-card rounded-lg p-4 space-y-3 border border-theme">
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-bold text-gray-900">Driver Test Requirements (Flags)</h4>
-                        <span className="text-xs text-gray-500">Default: Disabled</span>
+                        <h4 className="text-sm font-bold text-primary">Driver Test Requirements (Flags)</h4>
+                        <span className="text-xs text-secondary">Default: Disabled</span>
                       </div>
                       
                       {/* Warning message if base tests not completed */}
                       {!areBaseTestsCompleted() && (
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                        <div className="bg-card border border-yellow-200 rounded-lg p-3 mb-3">
                           <div className="flex items-start gap-2">
-                            <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                            <AlertTriangle className="w-4 h-4 text-[#00FFA3] mt-0.5 flex-shrink-0" />
                             <div className="flex-1">
                               <p className="text-xs font-medium text-yellow-800 mb-1">
                                 Complete Required Tests First
@@ -8088,7 +8088,7 @@ const DriverManagement = () => {
                         <div className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
                           !areBaseTestsCompleted() && !handlesHazardousLoads
                             ? 'bg-gray-100 border-gray-300 opacity-60'
-                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                            : 'bg-card border-theme hover:bg-gray-100'
                         }`}>
                           <input
                             type="checkbox"
@@ -8110,13 +8110,13 @@ const DriverManagement = () => {
                               htmlFor="handlesHazardousLoads" 
                               className={`text-xs font-medium block ${
                                 !areBaseTestsCompleted() && !handlesHazardousLoads
-                                  ? 'text-gray-500 cursor-not-allowed'
-                                  : 'text-gray-900 cursor-pointer'
+                                  ? 'text-secondary cursor-not-allowed'
+                                  : 'text-primary cursor-pointer'
                               }`}
                             >
                               Handles hazardous loads
                             </label>
-                            <p className="text-xs text-gray-600 mt-0.5">
+                            <p className="text-xs text-secondary mt-0.5">
                               When enabled, driver must complete TDG (Transportation of Dangerous Goods) test
                             </p>
                             {handlesHazardousLoads && (
@@ -8130,7 +8130,7 @@ const DriverManagement = () => {
                         <div className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
                           !areBaseTestsCompleted() && !winterTestRequired
                             ? 'bg-gray-100 border-gray-300 opacity-60'
-                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                            : 'bg-card border-theme hover:bg-gray-100'
                         }`}>
                           <input
                             type="checkbox"
@@ -8152,13 +8152,13 @@ const DriverManagement = () => {
                               htmlFor="winterTestRequired" 
                               className={`text-xs font-medium block ${
                                 !areBaseTestsCompleted() && !winterTestRequired
-                                  ? 'text-gray-500 cursor-not-allowed'
-                                  : 'text-gray-900 cursor-pointer'
+                                  ? 'text-secondary cursor-not-allowed'
+                                  : 'text-primary cursor-pointer'
                               }`}
                             >
                               Winter test required (optional override)
                             </label>
-                            <p className="text-xs text-gray-600 mt-0.5">
+                            <p className="text-xs text-secondary mt-0.5">
                               When enabled, driver must complete Winter Driving test
                             </p>
                             {winterTestRequired && (
@@ -8172,16 +8172,16 @@ const DriverManagement = () => {
                       
                       {/* Show update timestamp if flags were updated */}
                       {editingDriver && (editingDriver as any).flagsUpdatedAt && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <div className="mt-3 pt-3 border-t border-theme">
+                          <div className="flex items-center gap-2 text-xs text-secondary">
                             <span className="font-medium">Last updated:</span>
                             <span>{new Date((editingDriver as any).flagsUpdatedAt).toLocaleString()}</span>
                             {(editingDriver as any).flagsUpdatedBy && (
                               <>
-                                <span className="text-gray-400">•</span>
+                                <span className="text-secondary">•</span>
                                 <span>by {(editingDriver as any).flagsUpdatedBy?.name || 'HR'}</span>
                                 {(editingDriver as any).flagsUpdatedBy?.email && (
-                                  <span className="text-gray-400">({(editingDriver as any).flagsUpdatedBy.email})</span>
+                                  <span className="text-secondary">({(editingDriver as any).flagsUpdatedBy.email})</span>
                                 )}
                               </>
                             )}
@@ -8190,8 +8190,8 @@ const DriverManagement = () => {
                       )}
                       
                       {(!editingDriver || !(editingDriver as any).flagsUpdatedAt) && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <div className="text-xs text-gray-500 italic">
+                        <div className="mt-3 pt-3 border-t border-theme">
+                          <div className="text-xs text-secondary italic">
                             Flags have not been updated yet. Default state: Both disabled.
                           </div>
                         </div>
@@ -8199,9 +8199,9 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Section 4: Required Tests */}
-                    <div className="bg-blue-50 rounded-lg p-4 space-y-3 border border-blue-200">
-                      <h4 className="text-sm font-bold text-gray-900 mb-3">Required Tests</h4>
-                      <p className="text-xs text-gray-600 mb-3">Based on the flags above, the following tests are required for this driver:</p>
+                    <div className="bg-card rounded-lg p-4 space-y-3 border border-blue-200">
+                      <h4 className="text-sm font-bold text-primary mb-3">Required Tests</h4>
+                      <p className="text-xs text-secondary mb-3">Based on the flags above, the following tests are required for this driver:</p>
                       
                       {(() => {
                         console.log('🎯 Required Tests Section - Current flag states:', {
@@ -8217,26 +8217,26 @@ const DriverManagement = () => {
                       
                       <div className="space-y-2">
                         {/* Base tests - always required */}
-                        <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-blue-100">
+                        <div className="flex items-center gap-2 bg-card rounded-lg p-2 border border-blue-100">
                           <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                          <span className="text-xs font-medium text-gray-900">VEHICLE</span>
-                          <span className="text-xs text-gray-600">- Vehicle Inspection</span>
+                          <span className="text-xs font-medium text-primary">VEHICLE</span>
+                          <span className="text-xs text-secondary">- Vehicle Inspection</span>
                         </div>
                         
-                        <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-blue-100">
+                        <div className="flex items-center gap-2 bg-card rounded-lg p-2 border border-blue-100">
                           <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                          <span className="text-xs font-medium text-gray-900">HOS</span>
-                          <span className="text-xs text-gray-600">- Hours of Service</span>
+                          <span className="text-xs font-medium text-primary">HOS</span>
+                          <span className="text-xs text-secondary">- Hours of Service</span>
                         </div>
                         
                         {/* TDG test - only if handles hazardous loads */}
                         {(() => {
                           console.log('🔍 Rendering Required Tests - handlesHazardousLoads:', handlesHazardousLoads, 'type:', typeof handlesHazardousLoads);
                           return handlesHazardousLoads === true ? (
-                            <div className="flex items-center gap-2 bg-orange-50 rounded-lg p-2 border border-orange-200">
+                            <div className="flex items-center gap-2 bg-card rounded-lg p-2 border border-orange-200">
                               <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                              <span className="text-xs font-medium text-gray-900">TDG</span>
-                              <span className="text-xs text-gray-600">- Transportation of Dangerous Goods</span>
+                              <span className="text-xs font-medium text-primary">TDG</span>
+                              <span className="text-xs text-secondary">- Transportation of Dangerous Goods</span>
                               <span className="ml-auto px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded">Hazardous Loads</span>
                             </div>
                           ) : null;
@@ -8248,8 +8248,8 @@ const DriverManagement = () => {
                           return winterTestRequired === true ? (
                             <div className="flex items-center gap-2 bg-cyan-50 rounded-lg p-2 border border-cyan-200">
                               <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
-                              <span className="text-xs font-medium text-gray-900">WINTER</span>
-                              <span className="text-xs text-gray-600">- Winter Driving</span>
+                              <span className="text-xs font-medium text-primary">WINTER</span>
+                              <span className="text-xs text-secondary">- Winter Driving</span>
                               <span className="ml-auto px-2 py-0.5 bg-cyan-100 text-cyan-800 text-xs rounded">Winter Season</span>
                             </div>
                           ) : null;
@@ -8257,18 +8257,18 @@ const DriverManagement = () => {
                       </div>
                       
                       <div className="mt-3 pt-3 border-t border-blue-200">
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-secondary">
                           <span className="font-medium">Total Required Tests:</span> {2 + (handlesHazardousLoads ? 1 : 0) + (winterTestRequired ? 1 : 0)}
                         </p>
                       </div>
                     </div>
 
                     {/* Section 4: Test Results Table */}
-                    <div className="bg-white rounded-lg border border-gray-200">
-                      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                        <h4 className="text-sm font-bold text-gray-900">Test Results</h4>
+                    <div className="bg-card rounded-lg border border-theme">
+                      <div className="p-4 border-b border-theme flex items-center justify-between">
+                        <h4 className="text-sm font-bold text-primary">Test Results</h4>
                         {loadingTests && (
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <div className="flex items-center gap-2 text-xs text-secondary">
                             <RefreshCw className="w-3 h-3 animate-spin" />
                             Loading...
                           </div>
@@ -8276,23 +8276,23 @@ const DriverManagement = () => {
                       </div>
                       <div className="overflow-x-auto">
                         <table className="w-full">
-                          <thead className="bg-gray-50">
+                          <thead className="bg-card">
                             <tr>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Test Type</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Score</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Status</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">HR Approval</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Attempts</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Date</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-primary">Test Type</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-primary">Score</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-primary">Status</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-primary">HR Approval</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-primary">Attempts</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-primary">Date</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">
                             {driverTests.length > 0 ? (
                               driverTests.map((test) => (
-                                <tr key={test.id} className="hover:bg-gray-50">
-                                  <td className="px-4 py-2 text-xs text-gray-900 font-medium">{test.testType}</td>
-                                  <td className="px-4 py-2 text-xs text-gray-900">{test.score}%</td>
+                                <tr key={test.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                  <td className="px-4 py-2 text-xs text-primary font-medium">{test.testType}</td>
+                                  <td className="px-4 py-2 text-xs text-primary">{test.score}%</td>
                                   <td className="px-4 py-2">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                                       test.passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -8317,8 +8317,8 @@ const DriverManagement = () => {
                                       </span>
                                     )}
                                   </td>
-                                  <td className="px-4 py-2 text-xs text-gray-900">{test.attempts}</td>
-                                  <td className="px-4 py-2 text-xs text-gray-900">
+                                  <td className="px-4 py-2 text-xs text-primary">{test.attempts}</td>
+                                  <td className="px-4 py-2 text-xs text-primary">
                                     {test.completedAt ? new Date(test.completedAt).toLocaleDateString() : '-'}
                                   </td>
                                   <td className="px-4 py-2">
@@ -8346,10 +8346,10 @@ const DriverManagement = () => {
                                       <div className="text-xs">
                                         <div className="text-green-700 font-medium">Approved</div>
                                         {test.hrApprovedBy && (
-                                          <div className="text-gray-500">By: {test.hrApprovedBy}</div>
+                                          <div className="text-secondary">By: {test.hrApprovedBy}</div>
                                         )}
                                         {test.hrApprovedAt && (
-                                          <div className="text-gray-500">{new Date(test.hrApprovedAt).toLocaleDateString()}</div>
+                                          <div className="text-secondary">{new Date(test.hrApprovedAt).toLocaleDateString()}</div>
                                         )}
                                       </div>
                                     )}
@@ -8357,13 +8357,13 @@ const DriverManagement = () => {
                                       <div className="text-xs">
                                         <div className="text-red-700 font-medium">Rejected</div>
                                         {test.hrRejectionReason && (
-                                          <div className="text-red-600 mt-1">Reason: {test.hrRejectionReason}</div>
+                                          <div className="text-[#A855F7] mt-1">Reason: {test.hrRejectionReason}</div>
                                         )}
                                         {test.hrApprovedBy && (
-                                          <div className="text-gray-500 mt-1">By: {test.hrApprovedBy}</div>
+                                          <div className="text-secondary mt-1">By: {test.hrApprovedBy}</div>
                                         )}
                                         {test.hrApprovedAt && (
-                                          <div className="text-gray-500">{new Date(test.hrApprovedAt).toLocaleDateString()}</div>
+                                          <div className="text-secondary">{new Date(test.hrApprovedAt).toLocaleDateString()}</div>
                                         )}
                                       </div>
                                     )}
@@ -8372,7 +8372,7 @@ const DriverManagement = () => {
                               ))
                             ) : (
                               <tr>
-                                <td colSpan={7} className="px-4 py-8 text-center text-xs text-gray-500">
+                                <td colSpan={7} className="px-4 py-8 text-center text-xs text-secondary">
                                   {loadingTests ? 'Loading test results...' : 'No test results available'}
                                 </td>
                               </tr>
@@ -8388,27 +8388,27 @@ const DriverManagement = () => {
                 {activeFormTab === 'drugtest' && drugTestPasswordVerified && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-bold text-gray-900">Drug Test</h3>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <h3 className="text-lg font-bold text-primary">Drug Test</h3>
+                      <div className="flex items-center gap-2 text-sm text-secondary">
                         <Lock className="w-4 h-4 text-green-500" />
                         <span>Protected Section</span>
                       </div>
                     </div>
 
                     {/* Drug Test Table with Headers */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT NAME</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">RESULT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DOCUMENT NAME</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">FILE</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white">
+                        <tbody className="bg-card">
                           {/* Input Row */}
-                          <tr className="bg-gray-50">
+                          <tr className="bg-card">
                             <td className="px-4 py-3">
                               <input
                                 type="date"
@@ -8441,23 +8441,23 @@ const DriverManagement = () => {
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
                                 {drugTestFile ? (
-                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                    <FileText className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-700 truncate max-w-[100px]">{drugTestFile.name}</span>
+                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card">
+                                    <FileText className="w-4 h-4 text-secondary" />
+                                    <span className="text-sm text-primary truncate max-w-[100px]">{drugTestFile.name}</span>
                                     <button
                                       onClick={() => {
                                         setDrugTestFile(null);
                                         setNewDrugTest({ ...newDrugTest, file: null });
                                       }}
-                                      className="text-gray-400 hover:text-gray-600"
+                                      className="text-secondary hover:text-secondary"
                                     >
                                       <X className="w-4 h-4" />
                                     </button>
                                   </div>
                                 ) : (
-                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer">
-                                    <Upload className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-700">Select File</span>
+                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card hover:bg-[rgba(255,255,255,0.03)] cursor-pointer">
+                                    <Upload className="w-4 h-4 text-secondary" />
+                                    <span className="text-sm text-primary">Select File</span>
                                     <input
                                       type="file"
                                       className="hidden"
@@ -8529,28 +8529,28 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Drug Test Data Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden mt-4">
+                    <div className="border border-theme rounded-lg overflow-hidden mt-4">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT NAME</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">RESULT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DOCUMENT NAME</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">FILE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-gray-200">
                           {drugTests.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
                           ) : (
                             drugTests.map((dt) => (
-                              <tr key={dt.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                              <tr key={dt.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {dt.date ? (() => {
                                     try {
                                       const date = new Date(dt.date);
@@ -8563,7 +8563,7 @@ const DriverManagement = () => {
                                     }
                                   })() : '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <span className={`px-2 py-1 rounded text-xs font-medium ${
                                     dt.result === 'Negative' ? 'bg-green-100 text-green-800' :
                                     dt.result === 'Positive' ? 'bg-red-100 text-red-800' :
@@ -8572,10 +8572,10 @@ const DriverManagement = () => {
                                     {dt.result || '-'}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   {dt.labName || '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     {dt.isExisting && (dt.fileUrl || dt.fileName) ? (
                                       <button
@@ -8597,7 +8597,7 @@ const DriverManagement = () => {
                                             addNotification('error', 'Failed to open file');
                                           }
                                         }}
-                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                                        className="flex items-center gap-1 text-[#00D1FF] hover:text-blue-800 hover:underline"
                                         title={dt.fileName || 'View file'}
                                       >
                                         <FileText className="w-4 h-4" />
@@ -8616,18 +8616,18 @@ const DriverManagement = () => {
                                             window.open(url, '_blank');
                                           }
                                         }}
-                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                                        className="flex items-center gap-1 text-[#00D1FF] hover:text-blue-800 hover:underline"
                                         title={uploadedFiles[dt.id].name}
                                       >
                                         <FileText className="w-4 h-4" />
                                         <span className="text-xs">{uploadedFiles[dt.id].name}</span>
                                       </button>
                                     ) : (
-                                      <span className="text-gray-400">-</span>
+                                      <span className="text-secondary">-</span>
                                     )}
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -8645,7 +8645,7 @@ const DriverManagement = () => {
                                         }
                                         setEditingDrugTestId(dt.id);
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                                       title="Edit drug test"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -8686,7 +8686,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                       title="Delete drug test"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -8725,12 +8725,12 @@ const DriverManagement = () => {
                 const prevTab = tabIndex > 0 ? FORM_TABS[tabIndex - 1] : null;
                 const nextTab = tabIndex >= 0 && tabIndex < FORM_TABS.length - 1 ? FORM_TABS[tabIndex + 1] : null;
                 return (
-                  <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50 px-4 py-3 flex justify-between items-center">
+                  <div className="flex-shrink-0 border-t border-theme bg-card px-4 py-3 flex justify-between items-center">
                     {prevTab ? (
                       <button
                         type="button"
                         onClick={() => setActiveFormTab(prevTab.id as any)}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg shadow-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                       >
                         <span aria-hidden>←</span> {prevTab.label}
                       </button>
@@ -8739,7 +8739,7 @@ const DriverManagement = () => {
                       <button
                         type="button"
                         onClick={() => setActiveFormTab(nextTab.id as any)}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg shadow-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                       >
                         {nextTab.label} <span aria-hidden>→</span>
                       </button>
@@ -8755,32 +8755,32 @@ const DriverManagement = () => {
       {/* Flag Update Modal */}
       {showFlagModal && selectedFlag && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+          <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">
+                <h3 className="text-lg font-bold text-primary">
                   {selectedFlag.newValue ? 'Enable Flag' : 'Disable Flag'}
                 </h3>
                 <button
                   onClick={handleCancelFlagUpdate}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-secondary hover:text-secondary transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="mb-4">
-                <p className="text-sm text-gray-700 mb-2">
+                <p className="text-sm text-primary mb-2">
                   <span className="font-medium">Flag:</span> {selectedFlag.flagName === 'handlesHazardousLoads' ? 'Handles hazardous loads' : 'Winter test required'}
                 </p>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-secondary mb-4">
                   Current status: <span className="font-medium">{selectedFlag.currentValue ? 'Enabled' : 'Disabled'}</span>
                 </p>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-secondary mb-4">
                   New status: <span className="font-medium">{selectedFlag.newValue ? 'Enabled' : 'Disabled'}</span>
                 </p>
                 {selectedFlag.flagName === 'handlesHazardousLoads' && selectedFlag.newValue && (
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                  <div className="bg-card border border-orange-200 rounded-lg p-3 mb-4">
                     <p className="text-xs text-orange-800">
                       <span className="font-medium">Note:</span> Enabling this flag will require the driver to complete the TDG (Transportation of Dangerous Goods) test.
                     </p>
@@ -8798,7 +8798,7 @@ const DriverManagement = () => {
               <div className="flex gap-3">
                 <button
                   onClick={handleCancelFlagUpdate}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                  className="flex-1 px-4 py-2 bg-gray-200 text-primary rounded-lg hover:bg-gray-300 transition-colors font-medium"
                 >
                   Cancel
                 </button>
@@ -8817,12 +8817,12 @@ const DriverManagement = () => {
       {/* Drug Test Password Verification Modal */}
       {showDrugTestPasswordModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+          <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Lock className="w-5 h-5 text-gray-600" />
-                  <h3 className="text-lg font-bold text-gray-900">Password Required</h3>
+                  <Lock className="w-5 h-5 text-secondary" />
+                  <h3 className="text-lg font-bold text-primary">Password Required</h3>
                 </div>
                 <button
                   onClick={() => {
@@ -8830,17 +8830,17 @@ const DriverManagement = () => {
                     setDrugTestPassword('');
                     setDrugTestPasswordError('');
                   }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-secondary hover:text-secondary transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="mb-4">
-                <p className="text-sm text-gray-700 mb-4">
+                <p className="text-sm text-primary mb-4">
                   This section contains sensitive drug test information. Please enter your account password to access it.
                 </p>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-primary mb-2">
                   Your Account Password
                 </label>
                 <input
@@ -8862,7 +8862,7 @@ const DriverManagement = () => {
                   autoFocus
                 />
                 {drugTestPasswordError && (
-                  <p className="mt-2 text-sm text-red-600">{drugTestPasswordError}</p>
+                  <p className="mt-2 text-sm text-[#A855F7]">{drugTestPasswordError}</p>
                 )}
               </div>
 
@@ -8876,7 +8876,7 @@ const DriverManagement = () => {
                     }
                   }}
                   disabled={verifyingPassword}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-gray-200 text-primary rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
@@ -8903,28 +8903,28 @@ const DriverManagement = () => {
       {/* Test Approval/Rejection Modal */}
       {showApprovalModal && selectedTest && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+          <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">
+                <h3 className="text-lg font-bold text-primary">
                   {selectedTest.action === 'approve' ? 'Approve Test' : 'Reject Test'}
                 </h3>
                 <button
                   onClick={closeApprovalModal}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-secondary hover:text-secondary transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="mb-4">
-                <p className="text-sm text-gray-700 mb-2">
+                <p className="text-sm text-primary mb-2">
                   <span className="font-medium">Test Type:</span> {selectedTest.testType}
                 </p>
                 {selectedTest.action === 'reject' && (
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Rejection Reason <span className="text-gray-500">(optional)</span>
+                    <label className="block text-sm font-medium text-primary mb-2">
+                      Rejection Reason <span className="text-secondary">(optional)</span>
                     </label>
                     <textarea
                       value={rejectionReason}
@@ -8936,7 +8936,7 @@ const DriverManagement = () => {
                   </div>
                 )}
                 {selectedTest.action === 'approve' && (
-                  <p className="text-sm text-gray-600 mt-2">
+                  <p className="text-sm text-secondary mt-2">
                     Are you sure you want to approve this test result?
                   </p>
                 )}
@@ -8945,7 +8945,7 @@ const DriverManagement = () => {
               <div className="flex items-center gap-3 justify-end">
                 <button
                   onClick={closeApprovalModal}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-primary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
@@ -8968,24 +8968,24 @@ const DriverManagement = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirm.show && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+          <div className="bg-card rounded-xl shadow-xl max-w-md w-full">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <Trash2 className="w-6 h-6 text-red-600" />
+                  <Trash2 className="w-6 h-6 text-[#A855F7]" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Delete Driver</h3>
-                  <p className="text-sm text-gray-500">This action cannot be undone</p>
+                  <h3 className="text-lg font-semibold text-primary">Delete Driver</h3>
+                  <p className="text-sm text-secondary">This action cannot be undone</p>
                 </div>
               </div>
-              <p className="text-gray-700 mb-6">
+              <p className="text-primary mb-6">
                 Are you sure you want to delete this driver? This will permanently remove the driver and all associated data.
               </p>
               <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={() => setDeleteConfirm({ show: false, driverId: null })}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Cancel
                 </button>
@@ -9004,24 +9004,24 @@ const DriverManagement = () => {
       {/* Delete Certification Confirmation Modal */}
       {confirmDeleteCertification.open && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[10001] p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-md">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <Trash2 className="w-6 h-6 text-red-600" />
+                  <Trash2 className="w-6 h-6 text-[#A855F7]" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Delete Certification</h3>
-                  <p className="text-sm text-gray-500">This action cannot be undone</p>
+                  <h3 className="text-lg font-semibold text-primary">Delete Certification</h3>
+                  <p className="text-sm text-secondary">This action cannot be undone</p>
                 </div>
               </div>
-              <p className="text-gray-700 mb-6">
-                Are you sure you want to delete the certification <span className="font-medium text-gray-900">{confirmDeleteCertification.cert?.title || 'this item'}</span>? This will permanently remove the certification and all associated data.
+              <p className="text-primary mb-6">
+                Are you sure you want to delete the certification <span className="font-medium text-primary">{confirmDeleteCertification.cert?.title || 'this item'}</span>? This will permanently remove the certification and all associated data.
               </p>
               <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={() => setConfirmDeleteCertification({ open: false, cert: null })}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                 >
                   Cancel
                 </button>

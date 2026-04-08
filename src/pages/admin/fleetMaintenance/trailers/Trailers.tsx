@@ -433,7 +433,7 @@ const Trailers: React.FC = () => {
                 <h1 className="text-4xl font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
                   Trailers
                 </h1>
-                <p className="text-gray-600 mt-1 flex items-center gap-2">
+                <p className="text-secondary mt-1 flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
                   Manage trailer fleet and safety compliance records
                 </p>
@@ -460,9 +460,9 @@ const Trailers: React.FC = () => {
         </div>
 
         {/* Search */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
+        <div className="bg-card rounded-xl shadow-lg border border-theme p-6 mb-6">
           <div className="relative">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
             <input
               type="text"
               placeholder="Search by unit number, plate, make, model, or VIN..."
@@ -477,7 +477,7 @@ const Trailers: React.FC = () => {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-xl shadow-lg border border-theme overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
@@ -497,7 +497,7 @@ const Trailers: React.FC = () => {
               <tbody className="divide-y divide-gray-200">
                 {filteredTrailers.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={10} className="px-6 py-12 text-center text-secondary">
                       No trailers found
                     </td>
                   </tr>
@@ -505,25 +505,25 @@ const Trailers: React.FC = () => {
                   filteredTrailers.map((trailer) => {
                     const compliance = getComplianceStatus(trailer.safetyExpiryDate);
                     return (
-                      <tr key={trailer._id} className={`hover:bg-gray-50 transition-colors ${
-                        compliance.status === 'expired' ? 'bg-red-50' : 
-                        compliance.status === 'expiring-soon' ? 'bg-yellow-50' : ''
+                      <tr key={trailer._id} className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${
+                        compliance.status === 'expired' ? 'bg-card' : 
+                        compliance.status === 'expiring-soon' ? 'bg-card' : ''
                       }`}>
-                        <td className="px-6 py-4 font-medium text-gray-900">{trailer.internalId}</td>
-                        <td className="px-6 py-4 text-gray-900">{trailer.plateNumber}</td>
-                        <td className="px-6 py-4 text-gray-600 font-mono text-sm">{trailer.vinNumber}</td>
-                        <td className="px-6 py-4 text-gray-900">{trailer.make} {trailer.model}</td>
+                        <td className="px-6 py-4 font-medium text-primary">{trailer.internalId}</td>
+                        <td className="px-6 py-4 text-primary">{trailer.plateNumber}</td>
+                        <td className="px-6 py-4 text-secondary font-mono text-sm">{trailer.vinNumber}</td>
+                        <td className="px-6 py-4 text-primary">{trailer.make} {trailer.model}</td>
                         <td className="px-6 py-4">
                           <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                             {trailer.trailerType}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-gray-900">{trailer.capacity}</td>
-                        <td className="px-6 py-4 text-gray-900">{trailer.year}</td>
+                        <td className="px-6 py-4 text-primary">{trailer.capacity}</td>
+                        <td className="px-6 py-4 text-primary">{trailer.year}</td>
                         <td className="px-6 py-4 min-w-[180px]">
                           {trailer.safetyExpiryDate ? (
                             <div className="flex flex-col gap-2">
-                              <span className="text-sm font-semibold text-gray-900 whitespace-nowrap">
+                              <span className="text-sm font-semibold text-primary whitespace-nowrap">
                                 {formatDate(trailer.safetyExpiryDate)}
                               </span>
                               <span className={`px-4 py-1.5 rounded-full text-xs font-semibold inline-block whitespace-nowrap ${
@@ -537,7 +537,7 @@ const Trailers: React.FC = () => {
                               </span>
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-400">Not Set</span>
+                            <span className="text-sm text-secondary">Not Set</span>
                           )}
                         </td>
                         <td className="px-6 py-4">
@@ -545,7 +545,7 @@ const Trailers: React.FC = () => {
                             trailer.status === 'available' ? 'bg-green-100 text-green-800' :
                             trailer.status === 'in-use' ? 'bg-blue-100 text-blue-800' :
                             trailer.status === 'maintenance' ? 'bg-red-100 text-red-800' :
-                            'bg-gray-100 text-gray-800'
+                            'bg-gray-100 text-primary'
                           }`}>
                             {trailer.status}
                           </span>
@@ -554,7 +554,7 @@ const Trailers: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleEditTrailer(trailer)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
                               title="Edit"
                             >
                               <Edit className="w-4 h-4" />
@@ -571,7 +571,7 @@ const Trailers: React.FC = () => {
                             </button>
                             <button
                               onClick={() => handleDeleteTrailer(trailer)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -595,7 +595,7 @@ const Trailers: React.FC = () => {
               setShowEditModal(false);
               setSelectedTrailer(null);
             }} />
-            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-gray-200">
+            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-card shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-theme">
               <div className="h-full flex flex-col">
                 <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
                   <h2 className="text-2xl font-bold">{showAddModal ? 'Add New Trailer' : 'Edit Trailer'}</h2>
@@ -605,7 +605,7 @@ const Trailers: React.FC = () => {
                       setShowEditModal(false);
                       setSelectedTrailer(null);
                     }}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                    className="p-2 hover:bg-card/20 rounded-lg transition-colors"
                   >
                     <FaTimes className="w-5 h-5" />
                   </button>
@@ -613,7 +613,7 @@ const Trailers: React.FC = () => {
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Unit No. (Internal ID) *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Unit No. (Internal ID) *</label>
                     <input
                       type="text"
                       value={formData.internalId}
@@ -626,7 +626,7 @@ const Trailers: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Trailer Name *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Trailer Name *</label>
                     <input
                       type="text"
                       value={formData.trailer}
@@ -639,7 +639,7 @@ const Trailers: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Plate Number *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Plate Number *</label>
                     <input
                       type="text"
                       value={formData.plateNumber}
@@ -652,7 +652,7 @@ const Trailers: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">VIN Number *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">VIN Number *</label>
                     <input
                       type="text"
                       value={formData.vinNumber}
@@ -665,7 +665,7 @@ const Trailers: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Trailer Type *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Trailer Type *</label>
                     <select
                       value={formData.trailerType}
                       onChange={(e) => setFormData({ ...formData, trailerType: e.target.value as TrailerType })}
@@ -680,7 +680,7 @@ const Trailers: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Capacity</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Capacity</label>
                     <input
                       type="text"
                       value={formData.capacity}
@@ -693,7 +693,7 @@ const Trailers: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Make *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Make *</label>
                     <input
                       type="text"
                       value={formData.make}
@@ -706,7 +706,7 @@ const Trailers: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Model *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Model *</label>
                     <input
                       type="text"
                       value={formData.model}
@@ -719,7 +719,7 @@ const Trailers: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Year *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Year *</label>
                     <input
                       type="number"
                       value={formData.year || ''}
@@ -733,7 +733,7 @@ const Trailers: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Odometer (km)</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Odometer (km)</label>
                     <input
                       type="number"
                       value={formData.odometer}
@@ -746,7 +746,7 @@ const Trailers: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Status</label>
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
@@ -762,7 +762,7 @@ const Trailers: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Operation Status</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Operation Status</label>
                     <select
                       value={formData.operationStatus}
                       onChange={(e) => setFormData({ ...formData, operationStatus: e.target.value })}
@@ -779,14 +779,14 @@ const Trailers: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
+              <div className="flex-shrink-0 bg-card px-6 py-4 flex justify-end gap-3 border-t">
                 <button
                   onClick={() => {
                     setShowAddModal(false);
                     setShowEditModal(false);
                     setSelectedTrailer(null);
                   }}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Cancel
                 </button>
@@ -810,7 +810,7 @@ const Trailers: React.FC = () => {
               setShowSafetyModal(false);
               setSelectedTrailer(null);
             }} />
-            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-gray-200">
+            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-card shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-theme">
               <div className="h-full flex flex-col">
                 <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
                   <div>
@@ -824,7 +824,7 @@ const Trailers: React.FC = () => {
                       setShowSafetyModal(false);
                       setSelectedTrailer(null);
                     }}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                    className="p-2 hover:bg-card/20 rounded-lg transition-colors"
                   >
                     <FaTimes className="w-5 h-5" />
                   </button>
@@ -832,7 +832,7 @@ const Trailers: React.FC = () => {
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Safety Expiry Date *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Safety Expiry Date *</label>
                     <input
                       type="date"
                       value={safetyForm.safetyExpiryDate}
@@ -845,7 +845,7 @@ const Trailers: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Safety Decal Number</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Safety Decal Number</label>
                     <input
                       type="text"
                       value={safetyForm.safetyDecalNumber}
@@ -858,7 +858,7 @@ const Trailers: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Safety Paper Number</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Safety Paper Number</label>
                     <input
                       type="text"
                       value={safetyForm.safetyPaperNumber}
@@ -871,7 +871,7 @@ const Trailers: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Shop Name</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Shop Name</label>
                     <input
                       type="text"
                       value={safetyForm.lastInspectionShop}
@@ -884,7 +884,7 @@ const Trailers: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Number</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Invoice Number</label>
                     <input
                       type="text"
                       value={safetyForm.lastInspectionInvoice}
@@ -898,13 +898,13 @@ const Trailers: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
+              <div className="flex-shrink-0 bg-card px-6 py-4 flex justify-end gap-3 border-t">
                 <button
                   onClick={() => {
                     setShowSafetyModal(false);
                     setSelectedTrailer(null);
                   }}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Cancel
                 </button>
@@ -925,24 +925,24 @@ const Trailers: React.FC = () => {
         {showDeleteModal && selectedTrailer && (
           <>
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998]" onClick={() => setShowDeleteModal(false)} />
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-[9999] w-full max-w-md">
+            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card rounded-xl shadow-2xl z-[9999] w-full max-w-md">
               <div className="p-6">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                    <FaExclamationCircle className="text-red-600" size={24} />
+                    <FaExclamationCircle className="text-[#A855F7]" size={24} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">Delete Trailer</h3>
-                    <p className="text-sm text-gray-500">This action cannot be undone</p>
+                    <h3 className="text-lg font-bold text-primary">Delete Trailer</h3>
+                    <p className="text-sm text-secondary">This action cannot be undone</p>
                   </div>
                 </div>
-                <p className="text-gray-700 mb-6">
+                <p className="text-primary mb-6">
                   Are you sure you want to delete trailer <strong>{selectedTrailer.internalId}</strong> ({selectedTrailer.make} {selectedTrailer.model})?
                 </p>
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => setShowDeleteModal(false)}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     Cancel
                   </button>

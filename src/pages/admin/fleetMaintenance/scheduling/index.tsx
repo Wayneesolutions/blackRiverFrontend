@@ -104,8 +104,8 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
 
     const bgColors = {
         success: 'bg-green-50 border-green-200',
-        error: 'bg-red-50 border-red-200',
-        info: 'bg-blue-50 border-blue-200'
+        error: 'bg-card border-red-200',
+        info: 'bg-card border-blue-200'
     };
 
     useEffect(() => {
@@ -121,10 +121,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
             <div className="flex-shrink-0 mt-0.5">
                 {icons[notification.type]}
             </div>
-            <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+            <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
             <button
                 onClick={() => onClose(notification.id)}
-                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
             >
                 <FaTimes size={16} />
             </button>
@@ -826,19 +826,19 @@ const MaintenanceSchedule = () => {
 
         return (
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                    <div className="flex justify-between items-center p-6 border-b border-gray-200">
+                <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div className="flex justify-between items-center p-6 border-b border-theme">
                         <div className="flex items-center gap-3">
                             <div className={`p-2 rounded-lg ${alert.type === 'critical' ? 'bg-red-100' :
                                 alert.type === 'warning' ? 'bg-yellow-100' : 'bg-blue-100'
                                 }`}>
-                                <AlertTriangle className={`${alert.type === 'critical' ? 'text-red-600' :
-                                    alert.type === 'warning' ? 'text-yellow-600' : 'text-blue-600'
+                                <AlertTriangle className={`${alert.type === 'critical' ? 'text-[#A855F7]' :
+                                    alert.type === 'warning' ? 'text-[#00FFA3]' : 'text-[#00D1FF]'
                                     }`} size={24} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-semibold text-gray-900">Alert Details</h2>
-                                <p className="text-sm text-gray-600 capitalize">{alert.type} Priority</p>
+                                <h2 className="text-xl font-semibold text-primary">Alert Details</h2>
+                                <p className="text-sm text-secondary capitalize">{alert.type} Priority</p>
                             </div>
                         </div>
                         <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -847,8 +847,8 @@ const MaintenanceSchedule = () => {
                     </div>
 
                     <div className="p-6 space-y-6">
-                        <div className={`p-4 rounded-lg border-l-4 ${alert.type === 'critical' ? 'bg-red-50 border-red-500' :
-                            alert.type === 'warning' ? 'bg-yellow-50 border-yellow-500' : 'bg-blue-50 border-blue-500'
+                        <div className={`p-4 rounded-lg border-l-4 ${alert.type === 'critical' ? 'bg-card border-red-500' :
+                            alert.type === 'warning' ? 'bg-card border-yellow-500' : 'bg-card border-blue-500'
                             }`}>
                             <p className={`font-medium ${alert.type === 'critical' ? 'text-red-800' :
                                 alert.type === 'warning' ? 'text-yellow-800' : 'text-blue-800'
@@ -857,30 +857,30 @@ const MaintenanceSchedule = () => {
                             </p>
                         </div>
 
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <div className="bg-card rounded-lg p-4">
+                            <h3 className="font-semibold text-primary mb-3 flex items-center gap-2">
                                 <Truck size={18} />
                                 Vehicle Information
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-sm text-gray-600">Vehicle ID</p>
+                                    <p className="text-sm text-secondary">Vehicle ID</p>
                                     <p className="font-medium">{alert.details.vehicleInfo.id}</p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Type</p>
+                                    <p className="text-sm text-secondary">Type</p>
                                     <p className="font-medium">{alert.details.vehicleInfo.type}</p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Current Mileage</p>
+                                    <p className="text-sm text-secondary">Current Mileage</p>
                                     <p className="font-medium">{alert.details.vehicleInfo.currentMileage} km</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
-                        <button onClick={onClose} className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                    <div className="flex justify-end gap-3 p-6 border-t border-theme">
+                        <button onClick={onClose} className="px-4 py-2 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
                             Close
                         </button>
                         <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
@@ -897,14 +897,14 @@ const MaintenanceSchedule = () => {
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <Wrench className="animate-spin mx-auto mb-4" size={48} />
-                    <p className="text-gray-600">Loading maintenance data...</p>
+                    <p className="text-secondary">Loading maintenance data...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-card p-6">
             <div className="max-w-7xl mx-auto">
                 {emptyStateMessage && (
                     <div className="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg">
@@ -915,53 +915,53 @@ const MaintenanceSchedule = () => {
 
                 <div className="mb-8">
                     <div className="flex justify-between items-center mb-4">
-                        <h1 className="text-3xl font-bold text-gray-900">Fleet Maintenance Schedule</h1>
+                        <h1 className="text-3xl font-bold text-primary">Fleet Maintenance Schedule</h1>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                        <div className="bg-card rounded-lg p-4 shadow-sm">
                             <div className="flex items-center gap-3">
                                 <div className="bg-red-100 p-2 rounded-lg">
-                                    <AlertTriangle className="text-red-600" size={20} />
+                                    <AlertTriangle className="text-[#A855F7]" size={20} />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Overdue</p>
-                                    <p className="text-2xl font-bold text-red-600">{stats.overdue}</p>
+                                    <p className="text-sm text-secondary">Overdue</p>
+                                    <p className="text-2xl font-bold text-[#A855F7]">{stats.overdue}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                        <div className="bg-card rounded-lg p-4 shadow-sm">
                             <div className="flex items-center gap-3">
                                 <div className="bg-yellow-100 p-2 rounded-lg">
-                                    <Clock className="text-yellow-600" size={20} />
+                                    <Clock className="text-[#00FFA3]" size={20} />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Due This Week</p>
-                                    <p className="text-2xl font-bold text-yellow-600">{stats.dueThisWeek}</p>
+                                    <p className="text-sm text-secondary">Due This Week</p>
+                                    <p className="text-2xl font-bold text-[#00FFA3]">{stats.dueThisWeek}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                        <div className="bg-card rounded-lg p-4 shadow-sm">
                             <div className="flex items-center gap-3">
                                 <div className="bg-blue-100 p-2 rounded-lg">
-                                    <Wrench className="text-blue-600" size={20} />
+                                    <Wrench className="text-[#00D1FF]" size={20} />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">In Progress</p>
-                                    <p className="text-2xl font-bold text-blue-600">{stats.inProgress}</p>
+                                    <p className="text-sm text-secondary">In Progress</p>
+                                    <p className="text-2xl font-bold text-[#00D1FF]">{stats.inProgress}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                        <div className="bg-card rounded-lg p-4 shadow-sm">
                             <div className="flex items-center gap-3">
                                 <div className="bg-green-100 p-2 rounded-lg">
                                     <CheckCircle className="text-green-600" size={20} />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Scheduled</p>
+                                    <p className="text-sm text-secondary">Scheduled</p>
                                     <p className="text-2xl font-bold text-green-600">{stats.scheduled}</p>
                                 </div>
                             </div>
@@ -970,29 +970,29 @@ const MaintenanceSchedule = () => {
                 </div>
 
                 {alerts.length > 0 && (
-                    <div className="bg-white rounded-lg shadow-sm mb-6">
-                        <div className="p-6 border-b border-gray-200">
+                    <div className="bg-card rounded-lg shadow-sm mb-6">
+                        <div className="p-6 border-b border-theme">
                             <div className="flex items-center gap-2">
                                 <Bell className="text-red-500" size={20} />
-                                <h2 className="text-xl font-semibold text-gray-900">Maintenance Alerts</h2>
+                                <h2 className="text-xl font-semibold text-primary">Maintenance Alerts</h2>
                             </div>
                         </div>
                         <div className="p-6">
                             <div className="space-y-3">
                                 {alerts.slice(0, 3).map((alert: Alert) => (
-                                    <div key={alert.id} className={`p-4 rounded-lg border-l-4 ${alert.type === 'critical' ? 'bg-red-50 border-red-500' :
-                                        alert.type === 'warning' ? 'bg-yellow-50 border-yellow-500' : 'bg-blue-50 border-blue-500'}`}>
+                                    <div key={alert.id} className={`p-4 rounded-lg border-l-4 ${alert.type === 'critical' ? 'bg-card border-red-500' :
+                                        alert.type === 'warning' ? 'bg-card border-yellow-500' : 'bg-card border-blue-500'}`}>
                                         <div className="flex justify-between items-start">
                                             <div>
                                                 <p className={`font-medium ${alert.type === 'critical' ? 'text-red-800' :
                                                     alert.type === 'warning' ? 'text-yellow-800' : 'text-blue-800'}`}>
                                                     {alert.message}
                                                 </p>
-                                                <p className="text-sm text-gray-600 mt-1">Vehicle: {alert.vehicle}</p>
+                                                <p className="text-sm text-secondary mt-1">Vehicle: {alert.vehicle}</p>
                                             </div>
                                             <button
                                                 onClick={() => setShowAlertDetails(alert)}
-                                                className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                                                className="text-sm text-[#00D1FF] hover:text-blue-800 font-medium flex items-center gap-1"
                                             >
                                                 <FileText size={14} />
                                                 View Details
@@ -1009,22 +1009,22 @@ const MaintenanceSchedule = () => {
 
                 {/* Cost Report Summary */}
                 {costReport.length > 0 && (
-                    <div className="mt-6 bg-white rounded-lg shadow-sm">
-                        <div className="p-6 border-b border-gray-200">
-                            <h2 className="text-xl font-semibold text-gray-900">Maintenance Cost Report - {selectedYear}</h2>
+                    <div className="mt-6 bg-card rounded-lg shadow-sm">
+                        <div className="p-6 border-b border-theme">
+                            <h2 className="text-xl font-semibold text-primary">Maintenance Cost Report - {selectedYear}</h2>
                         </div>
                         <div className="p-6">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {costReport.map((item: CostReportItem) => (
-                                    <div key={`${item.vehicleId}-${item.month}`} className="bg-gray-50 rounded-lg p-4">
+                                    <div key={`${item.vehicleId}-${item.month}`} className="bg-card rounded-lg p-4">
                                         <div className="flex justify-between items-start mb-2">
                                             <div>
-                                                <p className="font-medium text-gray-900">{item.plateNumber}</p>
-                                                <p className="text-sm text-gray-600">Month: {item.month}/{item.year}</p>
+                                                <p className="font-medium text-primary">{item.plateNumber}</p>
+                                                <p className="text-sm text-secondary">Month: {item.month}/{item.year}</p>
                                             </div>
-                                            <span className="text-lg font-bold text-blue-600">${item.totalCost.toFixed(2)}</span>
+                                            <span className="text-lg font-bold text-[#00D1FF]">${item.totalCost.toFixed(2)}</span>
                                         </div>
-                                        <div className="mt-2 text-sm text-gray-600">
+                                        <div className="mt-2 text-sm text-secondary">
                                             <p>Work Orders: {item.workOrders}</p>
                                             {item.avgCost && <p>Avg Cost: ${item.avgCost.toFixed(2)}</p>}
                                         </div>
@@ -1039,10 +1039,10 @@ const MaintenanceSchedule = () => {
             {/* Schedule Service Form Sidebar */}
             {showScheduleForm && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex justify-end">
-                    <div className="bg-white w-full max-w-md h-full overflow-y-auto shadow-xl">
+                    <div className="bg-card w-full max-w-md h-full overflow-y-auto shadow-xl">
                         <div className="p-6">
                             <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-xl font-semibold text-gray-900">Schedule New Service</h2>
+                                <h2 className="text-xl font-semibold text-primary">Schedule New Service</h2>
                                 <button onClick={() => setShowScheduleForm(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                                     <X size={20} />
                                 </button>
@@ -1050,7 +1050,7 @@ const MaintenanceSchedule = () => {
 
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle *</label>
+                                    <label className="block text-sm font-medium text-primary mb-2">Vehicle *</label>
                                     <select
                                         value={scheduleForm.vehicle}
                                         onChange={(e) => {
@@ -1091,12 +1091,12 @@ const MaintenanceSchedule = () => {
                                         ))}
                                     </select>
                                     {currentOdometer !== null && (
-                                        <p className="text-xs text-gray-500 mt-1">Current Odometer: {currentOdometer.toLocaleString()} km</p>
+                                        <p className="text-xs text-secondary mt-1">Current Odometer: {currentOdometer.toLocaleString()} km</p>
                                     )}
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Service Type *</label>
+                                    <label className="block text-sm font-medium text-primary mb-2">Service Type *</label>
                                     <select
                                         value={scheduleForm.serviceType}
                                         onChange={(e) => {
@@ -1132,12 +1132,12 @@ const MaintenanceSchedule = () => {
 
                                 {/* Service Type Configuration */}
                                 {scheduleForm.serviceType && (
-                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+                                    <div className="bg-card border border-blue-200 rounded-lg p-4 space-y-4">
                                         <h3 className="text-sm font-semibold text-blue-900 mb-2">Service Interval Configuration</h3>
                                         
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                <label className="block text-xs font-medium text-primary mb-1">
                                                     <input
                                                         type="checkbox"
                                                         checked={scheduleForm.useMileageInterval}
@@ -1167,7 +1167,7 @@ const MaintenanceSchedule = () => {
                                             </div>
                                             
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                <label className="block text-xs font-medium text-primary mb-1">
                                                     <input
                                                         type="checkbox"
                                                         checked={scheduleForm.useTimeInterval}
@@ -1216,7 +1216,7 @@ const MaintenanceSchedule = () => {
                                 )}
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                                    <label className="block text-sm font-medium text-primary mb-2">Priority</label>
                                     <select
                                         value={scheduleForm.priority}
                                         onChange={(e) => handleFormChange('priority', e.target.value)}
@@ -1230,7 +1230,7 @@ const MaintenanceSchedule = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Due Date *</label>
+                                    <label className="block text-sm font-medium text-primary mb-2">Due Date *</label>
                                     <input
                                         type="date"
                                         value={scheduleForm.dueDate}
@@ -1240,7 +1240,7 @@ const MaintenanceSchedule = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Due Mileage (km)</label>
+                                    <label className="block text-sm font-medium text-primary mb-2">Due Mileage (km)</label>
                                     <input
                                         type="number"
                                         value={scheduleForm.dueMileage}
@@ -1250,7 +1250,7 @@ const MaintenanceSchedule = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Assigned Mechanic</label>
+                                    <label className="block text-sm font-medium text-primary mb-2">Assigned Mechanic</label>
                                     <select
                                         value={scheduleForm.assignedMechanic}
                                         onChange={(e) => handleFormChange('assignedMechanic', e.target.value)}
@@ -1267,7 +1267,7 @@ const MaintenanceSchedule = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Cost ($)</label>
+                                    <label className="block text-sm font-medium text-primary mb-2">Estimated Cost ($)</label>
                                     <input
                                         type="number"
                                         step="0.01"
@@ -1279,7 +1279,7 @@ const MaintenanceSchedule = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Time</label>
+                                    <label className="block text-sm font-medium text-primary mb-2">Estimated Time</label>
                                     <input
                                         type="text"
                                         value={scheduleForm.estimatedTime}
@@ -1291,11 +1291,11 @@ const MaintenanceSchedule = () => {
 
                                 {/* New Fields Section */}
                                 <div className="border-t pt-6 mt-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Service Details</h3>
+                                    <h3 className="text-lg font-semibold text-primary mb-4">Service Details</h3>
                                     
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Service Date</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Service Date</label>
                                             <input
                                                 type="date"
                                                 value={scheduleForm.serviceDate}
@@ -1305,7 +1305,7 @@ const MaintenanceSchedule = () => {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Unit Number</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Unit Number</label>
                                             <input
                                                 type="text"
                                                 value={scheduleForm.unitNumber}
@@ -1316,7 +1316,7 @@ const MaintenanceSchedule = () => {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Make/Model</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Make/Model</label>
                                             <input
                                                 type="text"
                                                 value={scheduleForm.makeModel}
@@ -1327,7 +1327,7 @@ const MaintenanceSchedule = () => {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">VIN/License Plate</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">VIN/License Plate</label>
                                             <input
                                                 type="text"
                                                 value={scheduleForm.vinLicensePlate}
@@ -1338,7 +1338,7 @@ const MaintenanceSchedule = () => {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Odometer</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Odometer</label>
                                             <input
                                                 type="number"
                                                 value={scheduleForm.odometer}
@@ -1349,7 +1349,7 @@ const MaintenanceSchedule = () => {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Service Provider</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Service Provider</label>
                                             <input
                                                 type="text"
                                                 value={scheduleForm.serviceProvider}
@@ -1360,7 +1360,7 @@ const MaintenanceSchedule = () => {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Number</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Invoice Number</label>
                                             <input
                                                 type="text"
                                                 value={scheduleForm.invoiceNumber}
@@ -1371,7 +1371,7 @@ const MaintenanceSchedule = () => {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">PARTS</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">PARTS</label>
                                             <textarea
                                                 value={scheduleForm.parts}
                                                 onChange={(e) => handleFormChange('parts', e.target.value)}
@@ -1382,7 +1382,7 @@ const MaintenanceSchedule = () => {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">DESCRIPTION</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">DESCRIPTION</label>
                                             <textarea
                                                 value={scheduleForm.description}
                                                 onChange={(e) => handleFormChange('description', e.target.value)}
@@ -1392,7 +1392,7 @@ const MaintenanceSchedule = () => {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                                            <label className="block text-sm font-medium text-primary mb-2">Notes</label>
                                             <textarea
                                                 value={scheduleForm.notes}
                                                 onChange={(e) => handleFormChange('notes', e.target.value)}
@@ -1408,7 +1408,7 @@ const MaintenanceSchedule = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowScheduleForm(false)}
-                                        className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                                        className="flex-1 px-4 py-3 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
                                     >
                                         Cancel
                                     </button>
@@ -1426,12 +1426,12 @@ const MaintenanceSchedule = () => {
             )}
 
             {/* ✅ VEHICLE SERVICES SECTION WITH FILTERS */}
-            <div className="bg-white rounded-lg shadow-sm mb-6">
-                <div className="p-6 border-b border-gray-200">
+            <div className="bg-card rounded-lg shadow-sm mb-6">
+                <div className="p-6 border-b border-theme">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Wrench className="text-blue-500" size={20} />
-                            <h2 className="text-xl font-semibold text-gray-900">Vehicle Services</h2>
+                            <h2 className="text-xl font-semibold text-primary">Vehicle Services</h2>
                             <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                                 {vehicleServices.length} services
                             </span>
@@ -1457,10 +1457,10 @@ const MaintenanceSchedule = () => {
                 </div>
 
                 {/* Filters */}
-                <div className="p-6 border-b border-gray-200">
+                <div className="p-6 border-b border-theme">
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Status Filter</label>
+                            <label className="block text-sm font-medium text-primary mb-1">Status Filter</label>
                             <select
                                 value={serviceFilters.status || ''}
                                 onChange={(e) => setServiceFilters({ ...serviceFilters, status: e.target.value as any || undefined })}
@@ -1474,7 +1474,7 @@ const MaintenanceSchedule = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Priority Filter</label>
+                            <label className="block text-sm font-medium text-primary mb-1">Priority Filter</label>
                             <select
                                 value={serviceFilters.priority || ''}
                                 onChange={(e) => setServiceFilters({ ...serviceFilters, priority: e.target.value as any || undefined })}
@@ -1489,7 +1489,7 @@ const MaintenanceSchedule = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Service Type</label>
+                            <label className="block text-sm font-medium text-primary mb-1">Service Type</label>
                             <select
                                 value={serviceFilters.serviceType || ''}
                                 onChange={(e) => setServiceFilters({ ...serviceFilters, serviceType: e.target.value as any || undefined })}
@@ -1505,7 +1505,7 @@ const MaintenanceSchedule = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Filter</label>
+                            <label className="block text-sm font-medium text-primary mb-1">Vehicle Filter</label>
                             <select
                                 value={serviceFilters.vehicleId || ''}
                                 onChange={(e) => setServiceFilters({ ...serviceFilters, vehicleId: e.target.value || undefined })}
@@ -1521,7 +1521,7 @@ const MaintenanceSchedule = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Mechanic Filter</label>
+                            <label className="block text-sm font-medium text-primary mb-1">Mechanic Filter</label>
                             <select
                                 value={serviceFilters.mechanic || ''}
                                 onChange={(e) => setServiceFilters({ ...serviceFilters, mechanic: e.target.value || undefined })}
@@ -1552,13 +1552,13 @@ const MaintenanceSchedule = () => {
                     {servicesLoading ? (
                         <div className="flex items-center justify-center py-8">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                            <span className="ml-2 text-gray-600">Loading vehicle services...</span>
+                            <span className="ml-2 text-secondary">Loading vehicle services...</span>
                         </div>
                     ) : vehicleServices.length === 0 ? (
                         <div className="text-center py-8">
-                            <Wrench className="mx-auto h-12 w-12 text-gray-400" />
-                            <h3 className="mt-2 text-sm font-medium text-gray-900">No vehicle services found</h3>
-                            <p className="mt-1 text-sm text-gray-500">
+                            <Wrench className="mx-auto h-12 w-12 text-secondary" />
+                            <h3 className="mt-2 text-sm font-medium text-primary">No vehicle services found</h3>
+                            <p className="mt-1 text-sm text-secondary">
                                 {Object.keys(serviceFilters).length > 0
                                     ? "Try adjusting your filters or create a new service."
                                     : "Get started by creating a new vehicle service."}
@@ -1575,24 +1575,24 @@ const MaintenanceSchedule = () => {
                         </div>
                     ) : (
                         <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-card">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit/Vehicle</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Type</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Date</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Odometer (km)</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Mileage</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Mechanic</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Provider</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estimated Cost</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parts</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Unit/Vehicle</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Service Type</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Service Date</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Due Date</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Odometer (km)</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Due Mileage</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Priority</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Status</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Assigned Mechanic</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Service Provider</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Estimated Cost</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Parts</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-gray-200">
                                 {vehicleServices.map((service: VehicleServiceResponse) => {
                                     const formatDate = (dateString: string | Date | null | undefined) => {
                                         if (!dateString) return 'N/A';
@@ -1601,30 +1601,30 @@ const MaintenanceSchedule = () => {
                                     };
                                     
                                     return (
-                                    <tr key={service._id} className="hover:bg-gray-50">
+                                    <tr key={service._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                         <td className="px-4 py-4 whitespace-nowrap">
                                             <div>
-                                                <div className="text-sm font-medium text-gray-900">
+                                                <div className="text-sm font-medium text-primary">
                                                     {(service as any).unitNumber || service.vehicleId?.internalId || 'N/A'}
                                                 </div>
-                                                <div className="text-xs text-gray-500">
+                                                <div className="text-xs text-secondary">
                                                     {service.vehicleId?.plateNumber || ''}
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                                             {service.serviceType.replace('-', ' ').toUpperCase()}
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
                                             {formatDate((service as any).serviceDate)}
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
                                             {formatDate(service.dueDate)}
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
                                             {(service as any).odometer ? (service as any).odometer.toLocaleString() : 'N/A'}
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
                                             {service.dueMileage ? service.dueMileage.toLocaleString() : 'N/A'}
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap">
@@ -1655,7 +1655,7 @@ const MaintenanceSchedule = () => {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
                                             {(() => {
                                                 const mechanic = service.assignedMechanic as any;
                                                 if (!mechanic) return 'N/A';
@@ -1672,15 +1672,15 @@ const MaintenanceSchedule = () => {
                                                 return 'N/A';
                                             })()}
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
                                             <div className="truncate max-w-24" title={(service as any).serviceProvider || 'N/A'}>
                                                 {(service as any).serviceProvider || 'N/A'}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
                                             {(service as any).estimatedCost ? `$${((service as any).estimatedCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-gray-600 max-w-xs">
+                                        <td className="px-4 py-4 text-sm text-secondary max-w-xs">
                                             <div className="truncate" title={(service as any).parts || 'N/A'}>
                                                 {(service as any).parts || 'N/A'}
                                             </div>
@@ -1689,14 +1689,14 @@ const MaintenanceSchedule = () => {
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => handleEditService(service)}
-                                                    className="text-blue-600 hover:text-blue-900"
+                                                    className="text-[#00D1FF] hover:text-blue-900"
                                                     title="Edit Service"
                                                 >
                                                     <Edit size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => setDeleteConfirm({ show: true, serviceId: service._id })}
-                                                    className="text-red-600 hover:text-red-900"
+                                                    className="text-[#A855F7] hover:text-red-900"
                                                     title="Delete Service"
                                                 >
                                                     <Trash2 size={16} />

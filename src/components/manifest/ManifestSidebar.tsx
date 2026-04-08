@@ -49,12 +49,12 @@ const ManifestSidebar: React.FC<ManifestSidebarProps> = ({
       `}</style>
 
       <aside
-        className={`h-screen flex flex-col bg-white shadow-sm transition-all duration-300 ${
+        className={`h-screen flex flex-col bg-card shadow-sm transition-all duration-300 ${
           isCollapsed ? "w-20" : "w-56"
         }`}
       >
         {/* Logo */}
-        <div className="flex-shrink-0 flex justify-center items-center py-4 border-b border-gray-200">
+        <div className="flex-shrink-0 flex justify-center items-center py-4 border-b border-theme">
           <div
             className="cursor-pointer flex items-center justify-center"
             onClick={() => navigate(getDashboardRoute())}
@@ -90,7 +90,7 @@ const ManifestSidebar: React.FC<ManifestSidebarProps> = ({
                     `flex items-center gap-3 px-4 py-2.5 transition-colors cursor-pointer select-none ${
                       isActive
                         ? "bg-[#42aeec]/10 text-[#42aeec] border-r-2 border-[#42aeec]"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-[#42aeec]"
+                        : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[#42aeec]"
                     }`
                   }
                 >

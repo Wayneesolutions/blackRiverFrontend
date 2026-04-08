@@ -52,9 +52,9 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200'
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200',
+    warning: 'bg-card border-yellow-200'
   };
 
   useEffect(() => {
@@ -69,10 +69,10 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -290,7 +290,7 @@ const ReportsAnalytics = () => {
       case 'generated': return 'bg-green-100 text-green-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'failed': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-primary';
     }
   };
 
@@ -327,7 +327,7 @@ const ReportsAnalytics = () => {
             <h1 className="text-3xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
               Reports & Analytics
             </h1>
-            <p className="text-gray-600">View and generate health & safety reports and analytics</p>
+            <p className="text-secondary">View and generate health & safety reports and analytics</p>
           </div>
           <button
             onClick={() => setShowGenerateModal(true)}
@@ -343,56 +343,56 @@ const ReportsAnalytics = () => {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <FaExclamationTriangle className="text-red-500 text-2xl" />
               <span className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.totalIncidents}
               </span>
             </div>
-            <p className="text-gray-600 text-sm">Total Incidents</p>
-            <p className="text-xs text-gray-400 mt-1">{stats.openIncidents} Open</p>
+            <p className="text-secondary text-sm">Total Incidents</p>
+            <p className="text-xs text-secondary mt-1">{stats.openIncidents} Open</p>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <FaClipboardList className="text-blue-500 text-2xl" />
               <span className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.totalInspections}
               </span>
             </div>
-            <p className="text-gray-600 text-sm">Total Inspections</p>
-            <p className="text-xs text-gray-400 mt-1">{stats.passedInspections} Passed</p>
+            <p className="text-secondary text-sm">Total Inspections</p>
+            <p className="text-xs text-secondary mt-1">{stats.passedInspections} Passed</p>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <FaCheckCircle className="text-green-500 text-2xl" />
               <span className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.totalTraining}
               </span>
             </div>
-            <p className="text-gray-600 text-sm">Training Programs</p>
-            <p className="text-xs text-gray-400 mt-1">{stats.completedTraining} Completed</p>
+            <p className="text-secondary text-sm">Training Programs</p>
+            <p className="text-xs text-secondary mt-1">{stats.completedTraining} Completed</p>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <FaFilePdf className="text-purple-500 text-2xl" />
               <span className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.activePolicies}
               </span>
             </div>
-            <p className="text-gray-600 text-sm">Active Policies</p>
-            <p className="text-xs text-gray-400 mt-1">{stats.expiringCertificates} Expiring Soon</p>
+            <p className="text-secondary text-sm">Active Policies</p>
+            <p className="text-xs text-secondary mt-1">{stats.expiringCertificates} Expiring Soon</p>
           </div>
         </div>
 
         {/* Period Filter */}
-        <div className="bg-white rounded-xl p-4 shadow-lg mb-6">
+        <div className="bg-card rounded-xl p-4 shadow-lg mb-6">
           <div className="flex items-center gap-4">
-            <FaFilter className="text-gray-400" />
-            <span className="font-medium text-gray-700">Period:</span>
+            <FaFilter className="text-secondary" />
+            <span className="font-medium text-primary">Period:</span>
             <select
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
@@ -409,14 +409,14 @@ const ReportsAnalytics = () => {
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <div className="bg-white rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <h3 className="text-lg font-semibold mb-4" style={{ color: CUSTOM_COLORS.dark }}>
               Incident Trends
             </h3>
             <div className="h-64 flex items-center justify-center">
               {incidentTrends && incidentTrends.length > 0 ? (
                 <div className="w-full space-y-2">
-                  <div className="text-sm text-gray-600 mb-4">
+                  <div className="text-sm text-secondary mb-4">
                     Total incidents in period: {incidentTrends.reduce((sum: number, t: any) => sum + (t.count || 0), 0)}
                   </div>
                   <div className="space-y-1 max-h-48 overflow-y-auto">
@@ -425,7 +425,7 @@ const ReportsAnalytics = () => {
                       const percentage = maxCount > 0 ? Math.min(((trend.count || 0) / maxCount) * 100, 100) : 0;
                       return (
                         <div key={idx} className="flex items-center gap-2">
-                          <span className="text-xs text-gray-500 w-20 truncate">{trend.date || 'N/A'}</span>
+                          <span className="text-xs text-secondary w-20 truncate">{trend.date || 'N/A'}</span>
                           <div className="flex-1 bg-gray-200 rounded-full h-6 relative">
                             <div
                               className="h-6 rounded-full flex items-center justify-center text-white text-xs"
@@ -440,7 +440,7 @@ const ReportsAnalytics = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-gray-400">
+                <div className="text-center text-secondary">
                   <FaChartLine className="text-4xl mb-2 mx-auto" />
                   <p>No incident data available</p>
                   <p className="text-xs mt-1">Try selecting a different period</p>
@@ -449,7 +449,7 @@ const ReportsAnalytics = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg">
+          <div className="bg-card rounded-xl p-6 shadow-lg">
             <h3 className="text-lg font-semibold mb-4" style={{ color: CUSTOM_COLORS.dark }}>
               Inspection Status
             </h3>
@@ -461,25 +461,25 @@ const ReportsAnalytics = () => {
                       <div className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.primary }}>
                         {inspectionStatus.scheduled || 0}
                       </div>
-                      <div className="text-xs text-gray-600">Scheduled ({inspectionPercentages.scheduled}%)</div>
+                      <div className="text-xs text-secondary">Scheduled ({inspectionPercentages.scheduled}%)</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-yellow-600">
+                      <div className="text-2xl font-bold text-[#00FFA3]">
                         {inspectionStatus['in-progress'] || 0}
                       </div>
-                      <div className="text-xs text-gray-600">In Progress ({inspectionPercentages.inProgress}%)</div>
+                      <div className="text-xs text-secondary">In Progress ({inspectionPercentages.inProgress}%)</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-green-600">
                         {inspectionStatus.completed || 0}
                       </div>
-                      <div className="text-xs text-gray-600">Completed ({inspectionPercentages.completed}%)</div>
+                      <div className="text-xs text-secondary">Completed ({inspectionPercentages.completed}%)</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-red-600">
+                      <div className="text-2xl font-bold text-[#A855F7]">
                         {inspectionStatus.overdue || 0}
                       </div>
-                      <div className="text-xs text-gray-600">Overdue ({inspectionPercentages.overdue}%)</div>
+                      <div className="text-xs text-secondary">Overdue ({inspectionPercentages.overdue}%)</div>
                     </div>
                   </div>
                   <div className="flex gap-1 h-4 rounded-full overflow-hidden">
@@ -505,7 +505,7 @@ const ReportsAnalytics = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-gray-400">
+                <div className="text-center text-secondary">
                   <FaChartPie className="text-4xl mb-2 mx-auto" />
                   <p>No inspection data available</p>
                 </div>
@@ -515,8 +515,8 @@ const ReportsAnalytics = () => {
         </div>
 
         {/* Reports Table */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="p-4 border-b border-gray-200">
+        <div className="bg-card rounded-xl shadow-lg overflow-hidden">
+          <div className="p-4 border-b border-theme">
             <h3 className="text-lg font-semibold" style={{ color: CUSTOM_COLORS.dark }}>
               Generated Reports
             </h3>
@@ -537,19 +537,19 @@ const ReportsAnalytics = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-8 text-center text-secondary">
                       Loading...
                     </td>
                   </tr>
                 ) : reports.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-8 text-center text-secondary">
                       No reports found
                     </td>
                   </tr>
                 ) : (
                   reports.map((report) => (
-                    <tr key={report._id} className="border-b border-gray-200 hover:bg-gray-50">
+                    <tr key={report._id} className="border-b border-theme hover:bg-[rgba(255,255,255,0.03)]">
                       <td className="px-6 py-4 font-medium">{report.reportNumber}</td>
                       <td className="px-6 py-4">{report.title}</td>
                       <td className="px-6 py-4">
@@ -560,7 +560,7 @@ const ReportsAnalytics = () => {
                       <td className="px-6 py-4">{report.period}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <FaCalendarAlt className="text-gray-400" />
+                          <FaCalendarAlt className="text-secondary" />
                           {new Date(report.generatedDate).toLocaleDateString()}
                         </div>
                       </td>
@@ -574,7 +574,7 @@ const ReportsAnalytics = () => {
                       
                           <button
                             onClick={() => handleDeleteReport(report._id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                            className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition"
                             title="Delete"
                           >
                             <FaTrash />
@@ -592,13 +592,13 @@ const ReportsAnalytics = () => {
         {/* Generate Report Modal */}
         {showGenerateModal && (
           <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
-              <div className="p-6 border-b border-gray-200">
+            <div className="bg-card rounded-xl shadow-2xl max-w-md w-full">
+              <div className="p-6 border-b border-theme">
                 <div className="flex justify-between items-center">
                   <h2 className="text-2xl font-bold">Generate Report</h2>
                   <button
                     onClick={() => setShowGenerateModal(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-secondary hover:text-secondary"
                   >
                     <FaTimes size={24} />
                   </button>
@@ -606,7 +606,7 @@ const ReportsAnalytics = () => {
               </div>
               <form onSubmit={handleGenerateReport} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Title</label>
                   <input
                     type="text"
                     value={generateFormData.title}
@@ -616,7 +616,7 @@ const ReportsAnalytics = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Report Type *</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Report Type *</label>
                   <select
                     value={generateFormData.type}
                     onChange={(e) => setGenerateFormData({ ...generateFormData, type: e.target.value })}
@@ -632,7 +632,7 @@ const ReportsAnalytics = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Period Type *</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Period Type *</label>
                   <select
                     value={generateFormData.periodType}
                     onChange={(e) => setGenerateFormData({ ...generateFormData, periodType: e.target.value })}
@@ -651,7 +651,7 @@ const ReportsAnalytics = () => {
                   <button
                     type="button"
                     onClick={() => setShowGenerateModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                   >
                     Cancel
                   </button>
@@ -674,19 +674,19 @@ const ReportsAnalytics = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md transform transition-all scale-100 opacity-100">
+          <div className="bg-card rounded-2xl shadow-2xl p-6 w-full max-w-md transform transition-all scale-100 opacity-100">
             <div className="flex flex-col items-center text-center">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <FaTrash className="text-red-600 text-xl" />
+                <FaTrash className="text-[#A855F7] text-xl" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Confirmation</h3>
-              <p className="text-gray-500 text-sm mb-6">
+              <h3 className="text-xl font-bold text-primary mb-2">Delete Confirmation</h3>
+              <p className="text-secondary text-sm mb-6">
                 Are you sure you want to delete this report? This action cannot be undone.
               </p>
               <div className="flex gap-3 w-full">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors"
+                  className="flex-1 px-4 py-2 bg-gray-100 text-primary font-bold rounded-xl hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>

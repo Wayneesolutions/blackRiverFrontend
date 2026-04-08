@@ -43,16 +43,16 @@ interface ToastNotification {
 const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200'
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200',
+    warning: 'bg-card border-yellow-200'
   };
 
   const icons = {
     success: <FaCheckCircle className="text-green-600" size={20} />,
-    error: <FaExclamationCircle className="text-red-600" size={20} />,
-    info: <FaExclamationCircle className="text-blue-600" size={20} />,
-    warning: <FaExclamationCircle className="text-yellow-600" size={20} />
+    error: <FaExclamationCircle className="text-[#A855F7]" size={20} />,
+    info: <FaExclamationCircle className="text-[#00D1FF]" size={20} />,
+    warning: <FaExclamationCircle className="text-[#00FFA3]" size={20} />
   };
 
   return (
@@ -60,10 +60,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -131,7 +131,7 @@ const Index = () => {
       case "inactive":
         return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-primary";
     }
   };
 
@@ -229,7 +229,7 @@ const Index = () => {
   }, [vendors, search]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-card">
       {/* Toast Notifications Container - High z-index to be above modal */}
       <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
         {notifications.map(notification => (
@@ -243,12 +243,12 @@ const Index = () => {
       {/* Main Content */}
       <div className="flex-1">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="bg-card border-b border-theme px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-semibold text-gray-900">Vendors</h1>
+              <h1 className="text-2xl font-semibold text-primary">Vendors</h1>
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
                 <input
                   type="text"
                   placeholder="Search Vendors"
@@ -259,7 +259,7 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <button className="p-2 text-gray-400 hover:text-gray-600">
+              <button className="p-2 text-secondary hover:text-secondary">
                 <Filter className="w-5 h-5" />
               </button>
               <button
@@ -277,30 +277,30 @@ const Index = () => {
 
         {/* Table */}
         <div className="p-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
             {loading ? (
-              <div className="p-6 text-center text-gray-500">Loading...</div>
+              <div className="p-6 text-center text-secondary">Loading...</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-card border-b border-theme">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Name
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Internal ID
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Type
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Created At
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -308,26 +308,26 @@ const Index = () => {
                   <tbody className="divide-y divide-gray-200">
                     {filteredVendors.length > 0 ? (
                       filteredVendors.map((vendor) => (
-                        <tr key={vendor._id} className="hover:bg-gray-50">
+                        <tr key={vendor._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                <Building2 className="w-4 h-4 text-blue-600" />
+                                <Building2 className="w-4 h-4 text-[#00D1FF]" />
                               </div>
                               <div className="ml-3">
-                                <div className="text-sm font-medium text-gray-900">
+                                <div className="text-sm font-medium text-primary">
                                   {vendor.name}
                                 </div>
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-secondary">
                                   {vendor.email}
                                 </div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-sm font-mono text-gray-500">
+                          <td className="px-6 py-4 text-sm font-mono text-secondary">
                             {vendor.internalId}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-500 capitalize">
+                          <td className="px-6 py-4 text-sm text-secondary capitalize">
                             {vendor.type}
                           </td>
                           <td className="px-6 py-4">
@@ -340,21 +340,21 @@ const Index = () => {
                               {vendor.status}
                             </button>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">
+                          <td className="px-6 py-4 text-sm text-secondary">
                             {new Date(vendor.createdAt).toLocaleDateString()}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">
+                          <td className="px-6 py-4 text-sm text-secondary">
                             <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
                               <button
                                 onClick={() => handleEdit(vendor)}
-                                className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                                className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-card px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
                               >
                                 <Edit className="h-3.5 w-3.5" />
                                 Edit
                               </button>
                               <button
                                 onClick={() => openDeleteModal(vendor)}
-                                className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                                className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-card px-3 py-1.5 text-xs font-medium text-[#A855F7] hover:bg-red-100 transition-colors"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                                 Delete
@@ -367,7 +367,7 @@ const Index = () => {
                       <tr>
                         <td
                           colSpan={6}
-                          className="px-6 py-4 text-center text-gray-500"
+                          className="px-6 py-4 text-center text-secondary"
                         >
                           No vendors found.
                         </td>
@@ -394,12 +394,12 @@ const Index = () => {
       {/* Edit Modal */}
       {isEditModalOpen && editVendor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-lg rounded-xl border border-gray-200 bg-white p-6 shadow-xl">
+          <div className="w-full max-w-lg rounded-xl border border-theme bg-card p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between border-b pb-3">
-              <h2 className="text-lg font-semibold text-gray-900">Edit Vendor</h2>
+              <h2 className="text-lg font-semibold text-primary">Edit Vendor</h2>
               <button
                 onClick={() => setIsEditModalOpen(false)}
-                className="text-gray-400 transition-colors hover:text-gray-600"
+                className="text-secondary transition-colors hover:text-secondary"
                 disabled={editLoading}
               >
                 ✕
@@ -455,7 +455,7 @@ const Index = () => {
               <button
                 onClick={() => setIsEditModalOpen(false)}
                 disabled={editLoading}
-                className="rounded-md border border-gray-200 px-5 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-md border border-theme px-5 py-2 text-sm text-primary transition hover:bg-[rgba(255,255,255,0.03)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel
               </button>
@@ -474,26 +474,26 @@ const Index = () => {
       {/* Delete confirmation */}
       {deleteModalOpen && deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl">
+          <div className="w-full max-w-md rounded-xl border border-theme bg-card p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between border-b pb-3">
-              <h2 className="text-lg font-semibold text-red-600">Delete Vendor</h2>
+              <h2 className="text-lg font-semibold text-[#A855F7]">Delete Vendor</h2>
               <button
                 onClick={closeDeleteModal}
                 disabled={deleteLoading}
-                className="text-gray-400 transition-colors hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-60"
+                className="text-secondary transition-colors hover:text-secondary disabled:cursor-not-allowed disabled:opacity-60"
               >
                 ✕
               </button>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-secondary">
               Are you sure you want to delete{" "}
-              <span className="font-semibold text-gray-900">{deleteTarget.name}</span>? This action cannot be undone.
+              <span className="font-semibold text-primary">{deleteTarget.name}</span>? This action cannot be undone.
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={closeDeleteModal}
                 disabled={deleteLoading}
-                className="rounded-md border border-gray-200 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-md border border-theme px-4 py-2 text-sm text-primary transition hover:bg-[rgba(255,255,255,0.03)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel
               </button>

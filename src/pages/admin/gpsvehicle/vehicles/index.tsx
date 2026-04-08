@@ -410,7 +410,7 @@ const VehicleList = () => {
             case 'moving': return 'text-emerald-700 bg-emerald-50 border-emerald-200';
             case 'idle': return 'text-amber-700 bg-amber-50 border-amber-200';
             case 'stopped': return 'text-slate-700 bg-slate-50 border-slate-200';
-            case 'maintenance': return 'text-red-700 bg-red-50 border-red-200';
+            case 'maintenance': return 'text-red-700 bg-card border-red-200';
             default: return 'text-slate-700 bg-slate-50 border-slate-200';
         }
     };
@@ -426,7 +426,7 @@ const VehicleList = () => {
     };
 
     const getSpeedColor = (speed: number, status: string) => {
-        if (status === 'moving' && speed > 0) return 'text-blue-600';
+        if (status === 'moving' && speed > 0) return 'text-[#00D1FF]';
         return 'text-slate-600';
     };
 
@@ -621,14 +621,14 @@ const VehicleList = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen p-4 bg-gray-50 px-6 flex items-center justify-center">
-                <div className="text-gray-500">Loading vehicles...</div>
+            <div className="min-h-screen p-4 bg-card px-6 flex items-center justify-center">
+                <div className="text-secondary">Loading vehicles...</div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen p-4 bg-[#EDF8FF] px-6">
+        <div className="min-h-screen p-4 bg-main px-6">
             <div className="w-full mx-auto p-2">
                 {/* Header */}
                 <div className="mb-8">
@@ -687,7 +687,7 @@ const VehicleList = () => {
                     </div>
 
                     {/* Stopped */}
-                    <div className="rounded-xl p-4 bg-purple-50 border border-purple-200">
+                    <div className="rounded-xl p-4 bg-card border border-purple-200">
                         <div className="text-2xl font-bold text-purple-600 mb-1">
                             {stats.stopped}
                         </div>
@@ -703,11 +703,11 @@ const VehicleList = () => {
                     </div>
 
                     {/* Maintenance */}
-                    <div className="rounded-xl p-4 bg-red-50 border border-red-200">
-                        <div className="text-2xl font-bold text-red-600 mb-1">
+                    <div className="rounded-xl p-4 bg-card border border-red-200">
+                        <div className="text-2xl font-bold text-[#A855F7] mb-1">
                             {stats.maintenance}
                         </div>
-                        <div className="text-sm font-medium text-red-600">
+                        <div className="text-sm font-medium text-[#A855F7]">
                             Maintenance
                         </div>
                         <div className="w-full bg-red-100 rounded-full h-1 mt-2">
@@ -719,11 +719,11 @@ const VehicleList = () => {
                     </div>
 
                     {/* Miles Logged */}
-                    <div className="rounded-xl p-4 bg-orange-50 border border-orange-200">
-                        <div className="text-2xl font-bold text-orange-600 mb-1">
+                    <div className="rounded-xl p-4 bg-card border border-orange-200">
+                        <div className="text-2xl font-bold text-[#F59E0B] mb-1">
                             {stats.milesToday.toLocaleString()}
                         </div>
-                        <div className="text-sm font-medium text-orange-600">
+                        <div className="text-sm font-medium text-[#F59E0B]">
                             Miles Logged Today
                         </div>
                         <p className="text-xs text-orange-500 mt-1">
@@ -734,7 +734,7 @@ const VehicleList = () => {
 
 
                 {/* Filters and Search */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-6 overflow-hidden">
+                <div className="bg-card rounded-xl shadow-sm border border-slate-200 mb-6 overflow-hidden">
                     <div className="p-6 border-b border-slate-100">
                         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                             <div className="flex-1">
@@ -754,7 +754,7 @@ const VehicleList = () => {
                                 <div className="relative">
                                     <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                                     <select
-                                        className="pl-10 pr-8 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white min-w-40 transition-colors duration-150"
+                                        className="pl-10 pr-8 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-card min-w-40 transition-colors duration-150"
                                         value={filterStatus}
                                         onChange={(e) => setFilterStatus(e.target.value)}
                                     >
@@ -838,7 +838,7 @@ const VehicleList = () => {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-slate-100">
+                            <tbody className="bg-card divide-y divide-slate-100">
                                 {currentVehicles.length === 0 ? (
                                     <tr>
                                         <td colSpan={7} className="px-6 py-12 text-center">
@@ -867,8 +867,8 @@ const VehicleList = () => {
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center">
-                                                        <div className="p-2 bg-blue-50 rounded-lg mr-3 border border-blue-100">
-                                                            <Car className="w-5 h-5 text-blue-600" />
+                                                        <div className="p-2 bg-card rounded-lg mr-3 border border-blue-100">
+                                                            <Car className="w-5 h-5 text-[#00D1FF]" />
                                                         </div>
                                                         <div className="text-sm font-semibold text-slate-900">
                                                             {vehicle.internalId}
@@ -936,7 +936,7 @@ const VehicleList = () => {
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                                                     <button
                                                         onClick={() => handleViewDetails(vehicle)}
-                                                        className="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors duration-150 text-sm font-medium"
+                                                        className="inline-flex items-center space-x-1 text-[#00D1FF] hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors duration-150 text-sm font-medium"
                                                     >
                                                         <Eye className="w-4 h-4" />
                                                         <span>Details</span>
@@ -957,14 +957,14 @@ const VehicleList = () => {
                                 <button
                                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                     disabled={currentPage === 1}
-                                    className="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                    className="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-card hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                                 >
                                     Previous
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                                     disabled={currentPage === totalPages}
-                                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-card hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                                 >
                                     Next
                                 </button>
@@ -982,7 +982,7 @@ const VehicleList = () => {
                                         <button
                                             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                             disabled={currentPage === 1}
-                                            className="relative inline-flex items-center px-3 py-2 rounded-l-lg border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                            className="relative inline-flex items-center px-3 py-2 rounded-l-lg border border-slate-300 bg-card text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                                         >
                                             <ChevronLeft className="h-4 w-4" />
                                         </button>
@@ -994,8 +994,8 @@ const VehicleList = () => {
                                                     key={page}
                                                     onClick={() => setCurrentPage(page)}
                                                     className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-150 ${currentPage === page
-                                                        ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                                        : 'bg-white border-slate-300 text-slate-500 hover:bg-slate-50'
+                                                        ? 'z-10 bg-card border-blue-500 text-[#00D1FF]'
+                                                        : 'bg-card border-slate-300 text-slate-500 hover:bg-slate-50'
                                                         }`}
                                                 >
                                                     {page}
@@ -1006,7 +1006,7 @@ const VehicleList = () => {
                                         <button
                                             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                                             disabled={currentPage === totalPages}
-                                            className="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                            className="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-slate-300 bg-card text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                                         >
                                             <ChevronRight className="h-4 w-4" />
                                         </button>
@@ -1023,7 +1023,7 @@ const VehicleList = () => {
                     return (
                         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] overflow-hidden">
                             <div className="absolute transition-opacity" onClick={() => setShowDetails(false)} />
-                            <div className="absolute inset-y-0 right-0 max-w-2xl w-full bg-white shadow-xl">
+                            <div className="absolute inset-y-0 right-0 max-w-2xl w-full bg-card shadow-xl">
                                 <div className="flex h-full flex-col">
                                     {/* Header */}
                                     <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
@@ -1055,9 +1055,9 @@ const VehicleList = () => {
                                         <div className="p-6 space-y-6">
 
                                             {/* Basic Information */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                            <div className="bg-card border border-slate-200 rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <Car className="w-5 h-5 mr-2 text-blue-600" />
+                                                    <Car className="w-5 h-5 mr-2 text-[#00D1FF]" />
                                                     Vehicle Information
                                                 </h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1089,7 +1089,7 @@ const VehicleList = () => {
                                             </div>
 
                                             {/* Driver Information */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                            <div className="bg-card border border-slate-200 rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
                                                     <User className="w-5 h-5 mr-2 text-green-600" />
                                                     Driver Information
@@ -1111,7 +1111,7 @@ const VehicleList = () => {
                                             </div>
 
                                             {/* Current Status */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                            <div className="bg-card border border-slate-200 rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
                                                     <Activity className="w-5 h-5 mr-2 text-purple-600" />
                                                     Current Status
@@ -1147,7 +1147,7 @@ const VehicleList = () => {
                                                             {selectedVehicle.engineOn ? (
                                                                 <span className="text-green-600">ON</span>
                                                             ) : (
-                                                                <span className="text-red-600">OFF</span>
+                                                                <span className="text-[#A855F7]">OFF</span>
                                                             )}
                                                         </p>
                                                     </div>
@@ -1155,9 +1155,9 @@ const VehicleList = () => {
                                             </div>
 
                                             {/* Location Information */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                            <div className="bg-card border border-slate-200 rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <MapPin className="w-5 h-5 mr-2 text-red-600" />
+                                                    <MapPin className="w-5 h-5 mr-2 text-[#A855F7]" />
                                                     Current Location
                                                 </h3>
                                                 <div className="space-y-2">
@@ -1183,9 +1183,9 @@ const VehicleList = () => {
                                             </div>
 
                                             {/* Assignment Information */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                            <div className="bg-card border border-slate-200 rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                    <Route className="w-5 h-5 mr-2 text-blue-600" />
+                                                    <Route className="w-5 h-5 mr-2 text-[#00D1FF]" />
                                                     Current Load
                                                 </h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1213,9 +1213,9 @@ const VehicleList = () => {
 
                                             {/* Trailer Information */}
                                             {selectedVehicle.hasTrailer && selectedVehicle.trailerDetails && (
-                                                <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                                <div className="bg-card border border-slate-200 rounded-lg p-6">
                                                     <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                        <Truck className="w-5 h-5 mr-2 text-orange-600" />
+                                                        <Truck className="w-5 h-5 mr-2 text-[#F59E0B]" />
                                                         Trailer Information
                                                     </h3>
                                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1236,29 +1236,29 @@ const VehicleList = () => {
                                             )}
 
                                             {/* Driver Behaviour */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                            <div className="bg-card border border-slate-200 rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
                                                     <TrendingUp className="w-5 h-5 mr-2 text-indigo-600" />
                                                     Driver Behaviour Metrics
                                                 </h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                    <div className="text-center p-4 bg-red-50 rounded-lg">
-                                                        <div className="text-2xl font-bold text-red-600">{selectedVehicle.driverBehaviour.harshBraking}</div>
+                                                    <div className="text-center p-4 bg-card rounded-lg">
+                                                        <div className="text-2xl font-bold text-[#A855F7]">{selectedVehicle.driverBehaviour.harshBraking}</div>
                                                         <div className="text-sm text-slate-600">Harsh Braking Events</div>
                                                     </div>
                                                     <div className="text-center p-4 bg-amber-50 rounded-lg">
                                                         <div className="text-2xl font-bold text-amber-600">{selectedVehicle.driverBehaviour.speedingEvents}</div>
                                                         <div className="text-sm text-slate-600">Speeding Events</div>
                                                     </div>
-                                                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                                                        <div className="text-2xl font-bold text-blue-600">{selectedVehicle.driverBehaviour.idlingDuration}</div>
+                                                    <div className="text-center p-4 bg-card rounded-lg">
+                                                        <div className="text-2xl font-bold text-[#00D1FF]">{selectedVehicle.driverBehaviour.idlingDuration}</div>
                                                         <div className="text-sm text-slate-600">Idling Duration (min)</div>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* Engine Health */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                            <div className="bg-card border border-slate-200 rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
                                                     <Wrench className="w-5 h-5 mr-2 text-emerald-600" />
                                                     Engine Health
@@ -1281,7 +1281,7 @@ const VehicleList = () => {
                                                         {selectedVehicle.engineHealth.faultCodes.length > 0 ? (
                                                             <div className="space-y-2">
                                                                 {selectedVehicle.engineHealth.faultCodes.map((fault, index) => (
-                                                                    <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                                    <div key={index} className="p-3 bg-card border border-red-200 rounded-lg">
                                                                         <div className="flex items-start space-x-2">
                                                                             <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
                                                                             <div>
@@ -1302,7 +1302,7 @@ const VehicleList = () => {
                                             </div>
 
                                             {/* Recent Trips */}
-                                            <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                            <div className="bg-card border border-slate-200 rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
                                                     <Route className="w-5 h-5 mr-2 text-cyan-600" />
                                                     Recent Trips
@@ -1335,7 +1335,7 @@ const VehicleList = () => {
 
                                             {/* Vehicle Images */}
                                             {selectedVehicle.vehicleImage.length > 0 && (
-                                                <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                                <div className="bg-card border border-slate-200 rounded-lg p-6">
                                                     <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
                                                         <ImageIcon className="w-5 h-5 mr-2 text-pink-600" />
                                                         Vehicle Images
@@ -1355,7 +1355,7 @@ const VehicleList = () => {
 
                                             {/* Documents */}
                                             {selectedVehicle.documents.length > 0 && (
-                                                <div className="bg-white border border-slate-200 rounded-lg p-6">
+                                                <div className="bg-card border border-slate-200 rounded-lg p-6">
                                                     <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
                                                         <FileText className="w-5 h-5 mr-2 text-violet-600" />
                                                         Documents
@@ -1399,18 +1399,18 @@ const VehicleList = () => {
 
                         {/* Sidebar Panel */}
                         <div
-                            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+                            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
                         >
                             <div className="p-6">
                                 {/* Header */}
-                                <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                                    <h2 className="text-2xl font-bold text-gray-900">Vehicle Details</h2>
+                                <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                                    <h2 className="text-2xl font-bold text-primary">Vehicle Details</h2>
                                     <button
                                         onClick={() => {
                                             setShowDetailsSidebar(false);
                                             setTimeout(() => setSelectedVehicle(null), 300);
                                         }}
-                                        className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                                        className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
                                     >
                                         <X size={24} />
                                     </button>
@@ -1468,36 +1468,36 @@ const VehicleList = () => {
                                     </div>
 
                                     {/* Vehicle Information */}
-                                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                        <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                            <Car size={20} className="text-blue-600" />
+                                    <div className="bg-card p-6 rounded-lg border border-theme">
+                                        <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                            <Car size={20} className="text-[#00D1FF]" />
                                             Vehicle Information
                                         </h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Internal ID</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.internalId}</p>
+                                                <p className="text-sm text-secondary mb-1">Internal ID</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.internalId}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Plate Number</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.plateNumber}</p>
+                                                <p className="text-sm text-secondary mb-1">Plate Number</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.plateNumber}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">VIN Number</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.vinNumber || "—"}</p>
+                                                <p className="text-sm text-secondary mb-1">VIN Number</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.vinNumber || "—"}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Make / Model</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.make} {selectedVehicle.model}</p>
+                                                <p className="text-sm text-secondary mb-1">Make / Model</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.make} {selectedVehicle.model}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Year</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.year || "—"}</p>
+                                                <p className="text-sm text-secondary mb-1">Year</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.year || "—"}</p>
                                             </div>
                                             {selectedVehicle.driver && (
                                                 <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Assigned Driver</p>
-                                                    <p className="font-medium text-gray-900">{selectedVehicle.driver.name || "—"}</p>
+                                                    <p className="text-sm text-secondary mb-1">Assigned Driver</p>
+                                                    <p className="font-medium text-primary">{selectedVehicle.driver.name || "—"}</p>
                                                 </div>
                                             )}
                                         </div>
@@ -1506,14 +1506,14 @@ const VehicleList = () => {
                                     {/* Location Information */}
                                     {selectedVehicle.currentLocation && (
                                         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
-                                            <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                                <MapPin size={20} className="text-blue-600" />
+                                            <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                                <MapPin size={20} className="text-[#00D1FF]" />
                                                 Current Location
                                             </h4>
                                             <div>
-                                                <p className="text-sm text-gray-600 mb-1">Address</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.currentLocation.address}</p>
-                                                <p className="text-xs text-gray-500 mt-1">
+                                                <p className="text-sm text-secondary mb-1">Address</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.currentLocation.address}</p>
+                                                <p className="text-xs text-secondary mt-1">
                                                     {selectedVehicle.currentLocation.latitude}, {selectedVehicle.currentLocation.longitude}
                                                 </p>
                                             </div>
@@ -1525,35 +1525,35 @@ const VehicleList = () => {
                                         const assignment = getAssignmentForVehicle(selectedVehicle, vehicleAssignments);
                                         if (assignment.loadId !== "Unassigned") {
                                             return (
-                                                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                                        <Route size={20} className="text-blue-600" />
+                                                <div className="bg-card p-6 rounded-lg border border-theme">
+                                                    <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                                        <Route size={20} className="text-[#00D1FF]" />
                                                         Current Assignment
                                                     </h4>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Load ID</p>
-                                                            <p className="font-medium text-gray-900">{assignment.loadId}</p>
+                                                            <p className="text-sm text-secondary mb-1">Load ID</p>
+                                                            <p className="font-medium text-primary">{assignment.loadId}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Customer</p>
-                                                            <p className="font-medium text-gray-900">{assignment.customer}</p>
+                                                            <p className="text-sm text-secondary mb-1">Customer</p>
+                                                            <p className="font-medium text-primary">{assignment.customer}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Origin</p>
-                                                            <p className="font-medium text-gray-900">{assignment.origin}</p>
+                                                            <p className="text-sm text-secondary mb-1">Origin</p>
+                                                            <p className="font-medium text-primary">{assignment.origin}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Destination</p>
-                                                            <p className="font-medium text-gray-900">{assignment.destination}</p>
+                                                            <p className="text-sm text-secondary mb-1">Destination</p>
+                                                            <p className="font-medium text-primary">{assignment.destination}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Miles Today</p>
-                                                            <p className="font-medium text-gray-900">{formatMiles(assignment.milesToday)}</p>
+                                                            <p className="text-sm text-secondary mb-1">Miles Today</p>
+                                                            <p className="font-medium text-primary">{formatMiles(assignment.milesToday)}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">ETA</p>
-                                                            <p className="font-medium text-gray-900">{assignment.eta}</p>
+                                                            <p className="text-sm text-secondary mb-1">ETA</p>
+                                                            <p className="font-medium text-primary">{assignment.eta}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1563,41 +1563,41 @@ const VehicleList = () => {
                                     })()}
 
                                     {/* Performance Metrics */}
-                                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                        <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                                            <Activity size={20} className="text-blue-600" />
+                                    <div className="bg-card p-6 rounded-lg border border-theme">
+                                        <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                                            <Activity size={20} className="text-[#00D1FF]" />
                                             Performance Metrics
                                         </h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Current Speed</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.speed} km/h</p>
+                                                <p className="text-sm text-secondary mb-1">Current Speed</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.speed} km/h</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Fuel Level</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.fuelLevel}%</p>
+                                                <p className="text-sm text-secondary mb-1">Fuel Level</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.fuelLevel}%</p>
                                             </div>
                                             {selectedVehicle.odometer && (
                                                 <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Odometer</p>
-                                                    <p className="font-medium text-gray-900">{selectedVehicle.odometer.toLocaleString()} mi</p>
+                                                    <p className="text-sm text-secondary mb-1">Odometer</p>
+                                                    <p className="font-medium text-primary">{selectedVehicle.odometer.toLocaleString()} mi</p>
                                                 </div>
                                             )}
                                             <div>
-                                                <p className="text-sm text-gray-500 mb-1">Engine Status</p>
-                                                <p className="font-medium text-gray-900">{selectedVehicle.engineOn ? "On" : "Off"}</p>
+                                                <p className="text-sm text-secondary mb-1">Engine Status</p>
+                                                <p className="font-medium text-primary">{selectedVehicle.engineOn ? "On" : "Off"}</p>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                                         <button
                                             onClick={() => {
                                                 setShowDetailsSidebar(false);
                                                 setTimeout(() => setSelectedVehicle(null), 300);
                                             }}
-                                            className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                                            className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
                                         >
                                             Close
                                         </button>

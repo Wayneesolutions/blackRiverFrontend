@@ -37,8 +37,8 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    warning: 'bg-yellow-50 border-yellow-200'
+    error: 'bg-card border-red-200',
+    warning: 'bg-card border-yellow-200'
   };
 
   useEffect(() => {
@@ -53,10 +53,10 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -360,15 +360,15 @@ const CustomersPage = () => {
     if (sortConfig.key !== key) {
       return (
         <div className="flex flex-col">
-          <ChevronUp className="w-3 h-3 text-gray-400" />
-          <ChevronDown className="w-3 h-3 text-gray-400 -mt-1" />
+          <ChevronUp className="w-3 h-3 text-secondary" />
+          <ChevronDown className="w-3 h-3 text-secondary -mt-1" />
         </div>
       );
     }
     return sortConfig.direction === 'asc' ? (
-      <ChevronUp className="w-3 h-3 text-gray-700" />
+      <ChevronUp className="w-3 h-3 text-primary" />
     ) : (
-      <ChevronDown className="w-3 h-3 text-gray-700" />
+      <ChevronDown className="w-3 h-3 text-primary" />
     );
   };
 
@@ -624,7 +624,7 @@ const CustomersPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF] p-6">
+    <div className="min-h-screen bg-main p-6">
       {/* Toast Notifications */}
       {notifications.map(notification => (
         <ToastNotificationComponent
@@ -637,25 +637,25 @@ const CustomersPage = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmation.show && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900">Delete Customer</h3>
+          <div className="bg-card rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-theme">
+              <h3 className="text-xl font-bold text-primary">Delete Customer</h3>
             </div>
             <div className="p-6">
-              <p className="text-gray-700 mb-2">
+              <p className="text-primary mb-2">
                 Are you sure you want to delete this customer?
               </p>
-              <p className="text-gray-900 font-semibold">
+              <p className="text-primary font-semibold">
                 {deleteConfirmation.customerName}
               </p>
-              <p className="text-sm text-red-600 mt-4">
+              <p className="text-sm text-[#A855F7] mt-4">
                 This action cannot be undone.
               </p>
             </div>
-            <div className="p-6 border-t border-gray-200 flex items-center justify-end gap-3">
+            <div className="p-6 border-t border-theme flex items-center justify-end gap-3">
               <button
                 onClick={() => setDeleteConfirmation({ show: false, customerId: null, customerName: '' })}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
               >
                 Cancel
               </button>
@@ -674,9 +674,9 @@ const CustomersPage = () => {
         {/* Header Section */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">Customers</h1>
+            <h1 className="text-3xl font-bold text-primary">Customers</h1>
             <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold text-gray-700">({filteredCustomers.length})</span>
+              <span className="text-2xl font-bold text-primary">({filteredCustomers.length})</span>
               <button
                 onClick={handleExportCustomers}
                 title="Export to Excel"
@@ -702,7 +702,7 @@ const CustomersPage = () => {
           {/* First Row - General Search and Customer ID Search */}
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2 flex-1 min-w-[300px]">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Search:</label>
+              <label className="text-sm font-medium text-primary whitespace-nowrap">Search:</label>
               <input
                 type="text"
                 placeholder="Customer, Phone #, Email, Address"
@@ -714,7 +714,7 @@ const CustomersPage = () => {
             </div>
 
             <div className="flex items-center gap-2 flex-1 min-w-[250px]">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Search:</label>
+              <label className="text-sm font-medium text-primary whitespace-nowrap">Search:</label>
               <input
                 type="text"
                 placeholder="Customer ID"
@@ -729,7 +729,7 @@ const CustomersPage = () => {
           {/* Second Row - Filters */}
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Status:</label>
+              <label className="text-sm font-medium text-primary">Status:</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -742,7 +742,7 @@ const CustomersPage = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Type:</label>
+              <label className="text-sm font-medium text-primary">Type:</label>
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
@@ -755,7 +755,7 @@ const CustomersPage = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Sort By:</label>
+              <label className="text-sm font-medium text-primary">Sort By:</label>
               <select
                 value={sortBy}
                 onChange={(e) => {
@@ -778,13 +778,13 @@ const CustomersPage = () => {
         </div>
 
         {/* Customers Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-card border-b border-theme">
                 <tr>
                   <th 
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('name')}
                   >
                     <div className="flex items-center gap-2">
@@ -793,7 +793,7 @@ const CustomersPage = () => {
                     </div>
                   </th>
                   <th 
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('type')}
                   >
                     <div className="flex items-center gap-2">
@@ -802,7 +802,7 @@ const CustomersPage = () => {
                     </div>
                   </th>
                   <th 
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('address')}
                   >
                     <div className="flex items-center gap-2">
@@ -811,7 +811,7 @@ const CustomersPage = () => {
                     </div>
                   </th>
                   <th 
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('city')}
                   >
                     <div className="flex items-center gap-2">
@@ -820,7 +820,7 @@ const CustomersPage = () => {
                     </div>
                   </th>
                   <th 
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('lastLoadDate')}
                   >
                     <div className="flex items-center gap-2">
@@ -828,19 +828,19 @@ const CustomersPage = () => {
                       {getSortIcon('lastLoadDate')}
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Action</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Action</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={6} className="px-4 py-8 text-center text-secondary">
                       Loading...
                     </td>
                   </tr>
                 ) : filteredCustomers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={6} className="px-4 py-8 text-center text-secondary">
                       No customers found
                     </td>
                   </tr>
@@ -848,18 +848,18 @@ const CustomersPage = () => {
                   filteredCustomers.map((customer, index) => (
                     <tr 
                       key={customer._id || index} 
-                      className="hover:bg-gray-50 transition-colors"
+                      className="hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                       onClick={() => {
                         if (customer._id) {
                           loadCustomerForEdit(customer._id);
                         }
                       }}
                     >
-                      <td className="px-4 py-3 text-sm text-gray-900">{customer.name}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{customer.type}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{customer.address}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{customer.city}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{customer.lastLoadDate || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-primary">{customer.name}</td>
+                      <td className="px-4 py-3 text-sm text-primary">{customer.type}</td>
+                      <td className="px-4 py-3 text-sm text-primary">{customer.address}</td>
+                      <td className="px-4 py-3 text-sm text-primary">{customer.city}</td>
+                      <td className="px-4 py-3 text-sm text-primary">{customer.lastLoadDate || '-'}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <button
@@ -868,7 +868,7 @@ const CustomersPage = () => {
                                 loadCustomerForEdit(customer._id);
                               }
                             }}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
                             title="Edit Customer"
                           >
                             <Edit className="w-4 h-4" />
@@ -883,7 +883,7 @@ const CustomersPage = () => {
                                 });
                               }
                             }}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete Customer"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -910,14 +910,14 @@ const CustomersPage = () => {
           }}
         >
           <div 
-            className="bg-white rounded-lg shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden"
+            className="bg-card rounded-lg shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Scrollable Container - Everything scrolls together */}
             <div className="flex-1 overflow-y-auto">
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white">
-                <h2 className="text-2xl font-bold text-gray-900">
+              <div className="flex items-center justify-between p-6 border-b border-theme bg-card">
+                <h2 className="text-2xl font-bold text-primary">
                   {editingId 
                     ? (customerType === 'CUSTOMER' ? 'Edit Customer' : 'Edit Shipper Receiver')
                     : (customerType === 'CUSTOMER' ? 'New Customer' : 'New Shipper Receiver')
@@ -928,7 +928,7 @@ const CustomersPage = () => {
                     setShowNewCustomerModal(false);
                     resetForm();
                   }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-secondary hover:text-secondary transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -940,16 +940,16 @@ const CustomersPage = () => {
               </div>
 
               {/* Form Content */}
-              <div className="p-6 bg-white">
+              <div className="p-6 bg-card">
               <div className="grid grid-cols-2 gap-8">
                 {/* Left Column - Basic Information */}
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-700 mb-4">Basic Information</h3>
+                    <h3 className="text-lg font-semibold text-primary mb-4">Basic Information</h3>
                     
                     {/* Customer Type Toggle */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Customer Type</label>
+                      <label className="block text-sm font-medium text-primary mb-2">Customer Type</label>
                       <div className="flex gap-2">
                         <button
                           type="button"
@@ -957,7 +957,7 @@ const CustomersPage = () => {
                           className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
                             customerType === 'CUSTOMER'
                               ? 'bg-[#42aeec] !text-white shadow-sm'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              : 'bg-gray-100 text-secondary hover:bg-gray-200'
                           }`}
                         >
                           CUSTOMER
@@ -968,7 +968,7 @@ const CustomersPage = () => {
                           className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
                             customerType === 'SHIPPER AND RECEIVER'
                               ? 'bg-[#42aeec] !text-white shadow-sm'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              : 'bg-gray-100 text-secondary hover:bg-gray-200'
                           }`}
                         >
                           SHIPPER AND RECEIVER
@@ -985,7 +985,7 @@ const CustomersPage = () => {
                     {/* Billing Configuration - Shown when Show Batch Billing is clicked */}
                     {showBatchBilling && (
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Billing Configuration</label>
+                        <label className="block text-sm font-medium text-primary mb-2">Billing Configuration</label>
                         <div className="flex gap-2">
                           <button
                             type="button"
@@ -993,7 +993,7 @@ const CustomersPage = () => {
                             className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
                               billingType === 'DEFAULT / LOAD'
                                 ? 'bg-[#42aeec] !text-white shadow-sm'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                : 'bg-gray-100 text-secondary hover:bg-gray-200'
                             }`}
                           >
                             DEFAULT / LOAD
@@ -1004,7 +1004,7 @@ const CustomersPage = () => {
                             className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
                               billingType === 'BATCH WEEKLY'
                                 ? 'bg-[#42aeec] !text-white shadow-sm'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                : 'bg-gray-100 text-secondary hover:bg-gray-200'
                             }`}
                           >
                             BATCH WEEKLY
@@ -1015,7 +1015,7 @@ const CustomersPage = () => {
                             className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
                               billingType === 'BATCH MONTHLY'
                                 ? 'bg-[#42aeec] !text-white shadow-sm'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                : 'bg-gray-100 text-secondary hover:bg-gray-200'
                             }`}
                           >
                             BATCH MONTHLY
@@ -1026,7 +1026,7 @@ const CustomersPage = () => {
 
                     {/* Customer */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         Customer<span className="text-red-500">*</span>
                       </label>
                       <input
@@ -1040,7 +1040,7 @@ const CustomersPage = () => {
 
                     {/* Customer ID */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         Customer ID<span className="text-red-500">*</span>
                       </label>
                       <input
@@ -1054,7 +1054,7 @@ const CustomersPage = () => {
 
                     {/* Email Address */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         Email Address<span className="text-red-500">*</span>
                       </label>
                       <input
@@ -1068,7 +1068,7 @@ const CustomersPage = () => {
 
                     {/* Secondary Email */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Email</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Secondary Email</label>
                       <input
                         type="email"
                         placeholder="Secondary Email"
@@ -1080,7 +1080,7 @@ const CustomersPage = () => {
 
                     {/* Tracking Email */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tracking Email</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Tracking Email</label>
                       <input
                         type="email"
                         placeholder="Email For Tracking Up"
@@ -1092,7 +1092,7 @@ const CustomersPage = () => {
 
                     {/* Tax ID */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tax ID</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Tax ID</label>
                       <input
                         type="text"
                         placeholder="Tax ID Or Business Nu"
@@ -1104,7 +1104,7 @@ const CustomersPage = () => {
 
                     {/* Assigned Salesperson */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Salesperson</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Assigned Salesperson</label>
                       <select
                         value={formData.assignedSalesperson}
                         onChange={(e) => setFormData({ ...formData, assignedSalesperson: e.target.value })}
@@ -1118,7 +1118,7 @@ const CustomersPage = () => {
 
                     {/* Primary Phone # */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         Primary Phone #<span className="text-red-500">*</span>
                       </label>
                       <div className="flex items-center border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
@@ -1131,21 +1131,21 @@ const CustomersPage = () => {
                                 setPrimaryCountrySearch('');
                               }
                             }}
-                            className="flex items-center gap-1.5 px-2 py-2 text-sm bg-white border-none outline-none cursor-pointer h-full"
+                            className="flex items-center gap-1.5 px-2 py-2 text-sm bg-card border-none outline-none cursor-pointer h-full"
                             style={{ minWidth: '85px' }}
                           >
                             {countries.find(c => c.code === primaryPhoneCountry) && (
                               <>
                                 <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === primaryPhoneCountry)?.flag}</span>
-                                <span className="text-xs text-gray-600 font-medium">{countries.find(c => c.code === primaryPhoneCountry)?.dialCode}</span>
+                                <span className="text-xs text-secondary font-medium">{countries.find(c => c.code === primaryPhoneCountry)?.dialCode}</span>
                               </>
                             )}
-                            <ChevronDown className="w-3 h-3 text-gray-400 ml-auto" />
+                            <ChevronDown className="w-3 h-3 text-secondary ml-auto" />
                           </button>
                           {primaryCountryDropdownOpen && (
-                            <div className="absolute top-full left-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                            <div className="absolute top-full left-0 z-50 bg-card border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
                               {/* Search Input */}
-                              <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                              <div className="p-2 border-b border-theme sticky top-0 bg-card">
                                 <input
                                   type="text"
                                   placeholder="Search country..."
@@ -1178,12 +1178,12 @@ const CustomersPage = () => {
                                         // The dial code will be prepended when saving
                                       }}
                                       className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
-                                        primaryPhoneCountry === country.code ? 'bg-blue-50' : ''
+                                        primaryPhoneCountry === country.code ? 'bg-card' : ''
                                       }`}
                                     >
                                       <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
                                       <span className="flex-1 truncate">{country.name}</span>
-                                      <span className="text-gray-600 font-medium">{country.dialCode}</span>
+                                      <span className="text-secondary font-medium">{country.dialCode}</span>
                                     </button>
                                   ))}
                                 {countries.filter((country) => {
@@ -1194,7 +1194,7 @@ const CustomersPage = () => {
                                     country.dialCode.includes(searchLower)
                                   );
                                 }).length === 0 && (
-                                  <div className="px-3 py-4 text-xs text-gray-500 text-center">
+                                  <div className="px-3 py-4 text-xs text-secondary text-center">
                                     No countries found
                                   </div>
                                 )}
@@ -1218,7 +1218,7 @@ const CustomersPage = () => {
 
                     {/* Secondary Phone # */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Phone #</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Secondary Phone #</label>
                       <div className="flex items-center border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
                         <div className="relative" ref={secondaryCountryDropdownRef}>
                           <button
@@ -1229,21 +1229,21 @@ const CustomersPage = () => {
                                 setSecondaryCountrySearch('');
                               }
                             }}
-                            className="flex items-center gap-1.5 px-2 py-2 text-sm bg-white border-none outline-none cursor-pointer h-full"
+                            className="flex items-center gap-1.5 px-2 py-2 text-sm bg-card border-none outline-none cursor-pointer h-full"
                             style={{ minWidth: '85px' }}
                           >
                             {countries.find(c => c.code === secondaryPhoneCountry) && (
                               <>
                                 <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === secondaryPhoneCountry)?.flag}</span>
-                                <span className="text-xs text-gray-600 font-medium">{countries.find(c => c.code === secondaryPhoneCountry)?.dialCode}</span>
+                                <span className="text-xs text-secondary font-medium">{countries.find(c => c.code === secondaryPhoneCountry)?.dialCode}</span>
                               </>
                             )}
-                            <ChevronDown className="w-3 h-3 text-gray-400 ml-auto" />
+                            <ChevronDown className="w-3 h-3 text-secondary ml-auto" />
                           </button>
                           {secondaryCountryDropdownOpen && (
-                            <div className="absolute top-full left-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                            <div className="absolute top-full left-0 z-50 bg-card border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
                               {/* Search Input */}
-                              <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                              <div className="p-2 border-b border-theme sticky top-0 bg-card">
                                 <input
                                   type="text"
                                   placeholder="Search country..."
@@ -1276,12 +1276,12 @@ const CustomersPage = () => {
                                         // The dial code will be prepended when saving
                                       }}
                                       className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
-                                        secondaryPhoneCountry === country.code ? 'bg-blue-50' : ''
+                                        secondaryPhoneCountry === country.code ? 'bg-card' : ''
                                       }`}
                                     >
                                       <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
                                       <span className="flex-1 truncate">{country.name}</span>
-                                      <span className="text-gray-600 font-medium">{country.dialCode}</span>
+                                      <span className="text-secondary font-medium">{country.dialCode}</span>
                                     </button>
                                   ))}
                                 {countries.filter((country) => {
@@ -1292,7 +1292,7 @@ const CustomersPage = () => {
                                     country.dialCode.includes(searchLower)
                                   );
                                 }).length === 0 && (
-                                  <div className="px-3 py-4 text-xs text-gray-500 text-center">
+                                  <div className="px-3 py-4 text-xs text-secondary text-center">
                                     No countries found
                                   </div>
                                 )}
@@ -1316,7 +1316,7 @@ const CustomersPage = () => {
 
                     {/* Contact */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Contact</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Contact</label>
                       <input
                         type="text"
                         placeholder="Contact"
@@ -1332,7 +1332,7 @@ const CustomersPage = () => {
                 <div className="space-y-6">
                   {/* Address Section */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-700 mb-4">Address</h3>
+                    <h3 className="text-lg font-semibold text-primary mb-4">Address</h3>
                     
                     <div className="mb-4">
                       <AddressSearch
@@ -1365,7 +1365,7 @@ const CustomersPage = () => {
                     </div>
 
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         Address<span className="text-red-500">*</span>
                       </label>
                       <input
@@ -1378,7 +1378,7 @@ const CustomersPage = () => {
                     </div>
 
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         City<span className="text-red-500">*</span>
                       </label>
                       <input
@@ -1391,7 +1391,7 @@ const CustomersPage = () => {
                     </div>
 
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Unit</label>
                       <input
                         type="text"
                         placeholder="Unit"
@@ -1402,7 +1402,7 @@ const CustomersPage = () => {
                     </div>
 
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         Country<span className="text-red-500">*</span>
                       </label>
                       <select
@@ -1431,7 +1431,7 @@ const CustomersPage = () => {
                     </div>
 
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         Province/State<span className="text-red-500">*</span>
                       </label>
                       <input
@@ -1445,7 +1445,7 @@ const CustomersPage = () => {
                     </div>
 
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                      <label className="block text-sm font-medium text-primary mb-1">ZIP Code</label>
                       <input
                         type="text"
                         placeholder="ZIP Code"
@@ -1459,10 +1459,10 @@ const CustomersPage = () => {
                   {/* Finance Section - Only for CUSTOMER type */}
                   {customerType === 'CUSTOMER' && (
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-700 mb-4">Finance</h3>
+                      <h3 className="text-lg font-semibold text-primary mb-4">Finance</h3>
                       
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Credit Limit</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Credit Limit</label>
                         <input
                           type="text"
                           placeholder="Credit Limit"
@@ -1473,7 +1473,7 @@ const CustomersPage = () => {
                       </div>
 
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Net</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Invoice Net</label>
                         <input
                           type="text"
                           value={formData.invoiceNet}
@@ -1483,7 +1483,7 @@ const CustomersPage = () => {
                       </div>
 
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Default Quick Pay Discount (%)</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Default Quick Pay Discount (%)</label>
                         <input
                           type="text"
                           placeholder="Default Quick Pay Discount (%)"
@@ -1497,7 +1497,7 @@ const CustomersPage = () => {
 
                   {/* Additional Settings Section */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                    <h3 className="text-lg font-semibold text-primary mb-4">
                       {customerType === 'CUSTOMER' ? 'Additional Settings' : 'Additional Settings'}
                     </h3>
                     
@@ -1510,7 +1510,7 @@ const CustomersPage = () => {
                             onChange={(e) => setFormData({ ...formData, useFactoringCompany: e.target.checked })}
                             className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
                           />
-                          <span className="text-sm text-gray-700">Use Factoring Company</span>
+                          <span className="text-sm text-primary">Use Factoring Company</span>
                         </label>
                       </div>
                     )}
@@ -1523,16 +1523,16 @@ const CustomersPage = () => {
                           onChange={(e) => setFormData({ ...formData, csaFastApproved: e.target.checked })}
                           className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
                         />
-                        <span className="text-sm text-gray-700">CSA/FAST Approved</span>
+                        <span className="text-sm text-primary">CSA/FAST Approved</span>
                       </label>
                     </div>
 
                     {customerType === 'SHIPPER AND RECEIVER' && (
                       <>
                         <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-primary mb-1">
                             Preset Notes
-                            <HelpCircle className="w-4 h-4 inline-block ml-1 text-gray-400" />
+                            <HelpCircle className="w-4 h-4 inline-block ml-1 text-secondary" />
                           </label>
                           <textarea
                             value={formData.presetNotes}
@@ -1544,9 +1544,9 @@ const CustomersPage = () => {
                         </div>
 
                         <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-primary mb-1">
                             Default Drop Type
-                            <HelpCircle className="w-4 h-4 inline-block ml-1 text-gray-400" />
+                            <HelpCircle className="w-4 h-4 inline-block ml-1 text-secondary" />
                           </label>
                           <select
                             value={formData.defaultDropType}
@@ -1570,9 +1570,9 @@ const CustomersPage = () => {
                           onChange={(e) => setFormData({ ...formData, softBlock: e.target.checked })}
                           className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
                         />
-                        <span className="text-sm text-gray-700">
+                        <span className="text-sm text-primary">
                           Soft Block
-                          <HelpCircle className="w-4 h-4 inline-block ml-1 text-gray-400" />
+                          <HelpCircle className="w-4 h-4 inline-block ml-1 text-secondary" />
                         </span>
                       </label>
                     </div>
@@ -1585,9 +1585,9 @@ const CustomersPage = () => {
                           onChange={(e) => setFormData({ ...formData, hardBlock: e.target.checked })}
                           className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
                         />
-                        <span className="text-sm text-gray-700">
+                        <span className="text-sm text-primary">
                           Hard Block
-                          <HelpCircle className="w-4 h-4 inline-block ml-1 text-gray-400" />
+                          <HelpCircle className="w-4 h-4 inline-block ml-1 text-secondary" />
                         </span>
                       </label>
                     </div>

@@ -67,16 +67,16 @@ const VehicleEldMonitor = () => {
     );
 
     return (
-        <div className="min-h-screen bg-[#EDF8FF] font-sans pb-12">
+        <div className="min-h-screen bg-main font-sans pb-12">
             {/* Header */}
             <div className="top-0 z-30">
                 <div className="px-8 py-5 flex justify-between items-center">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                        <h1 className="text-2xl font-bold text-primary flex items-center gap-3">
                             <Truck size={28} className="text-blue-500" />
                             Vehicle ELD Monitor
                         </h1>
-                        <p className="text-sm text-gray-500 mt-1 ml-10">Real-time operational truck data and status monitoring.</p>
+                        <p className="text-sm text-secondary mt-1 ml-10">Real-time operational truck data and status monitoring.</p>
                     </div>
 
                 </div>
@@ -85,21 +85,21 @@ const VehicleEldMonitor = () => {
                 <div className="px-8 flex gap-6">
                     <button
                         onClick={() => setActiveTab('overview')}
-                        className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'overview' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                        className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'overview' ? 'border-blue-500 text-[#00D1FF]' : 'border-transparent text-secondary hover:text-primary'
                             }`}
                     >
                         Operational Overview
                     </button>
                     <button
                         onClick={() => setActiveTab('gps')}
-                        className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'gps' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                        className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'gps' ? 'border-blue-500 text-[#00D1FF]' : 'border-transparent text-secondary hover:text-primary'
                             }`}
                     >
                         Live GPS Map
                     </button>
                     <button
                         onClick={() => setActiveTab('maintenance')}
-                        className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'maintenance' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                        className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'maintenance' ? 'border-blue-500 text-[#00D1FF]' : 'border-transparent text-secondary hover:text-primary'
                             }`}
                     >
                         Engine & Maintenance
@@ -119,27 +119,27 @@ const VehicleEldMonitor = () => {
                     <div className="space-y-6">
                         {/* Stats Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                            <div className="bg-card p-5 rounded-xl shadow-sm border border-theme">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Total Vehicles</p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mt-1">{VEHICLES.length}</h3>
+                                        <p className="text-xs text-secondary uppercase tracking-wide font-medium">Total Vehicles</p>
+                                        <h3 className="text-2xl font-bold text-primary mt-1">{VEHICLES.length}</h3>
                                     </div>
-                                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                    <div className="p-2 bg-card text-[#00D1FF] rounded-lg">
                                         <Truck size={20} />
                                     </div>
                                 </div>
                                 <div className="mt-4 flex gap-2">
                                     <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">3 Active</span>
-                                    <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">1 Offline</span>
+                                    <span className="text-xs font-medium text-secondary bg-gray-100 px-2 py-0.5 rounded">1 Offline</span>
                                 </div>
                             </div>
 
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                            <div className="bg-card p-5 rounded-xl shadow-sm border border-theme">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Avg Idle Time</p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mt-1">1h 42m</h3>
+                                        <p className="text-xs text-secondary uppercase tracking-wide font-medium">Avg Idle Time</p>
+                                        <h3 className="text-2xl font-bold text-primary mt-1">1h 42m</h3>
                                     </div>
                                     <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
                                         <Clock size={20} />
@@ -150,26 +150,26 @@ const VehicleEldMonitor = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                            <div className="bg-card p-5 rounded-xl shadow-sm border border-theme">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Total Distance</p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mt-1">24,500 mi</h3>
+                                        <p className="text-xs text-secondary uppercase tracking-wide font-medium">Total Distance</p>
+                                        <h3 className="text-2xl font-bold text-primary mt-1">24,500 mi</h3>
                                     </div>
                                     <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
                                         <Navigation size={20} />
                                     </div>
                                 </div>
                                 <div className="mt-4">
-                                    <span className="text-xs text-gray-500">This week (Fleet)</span>
+                                    <span className="text-xs text-secondary">This week (Fleet)</span>
                                 </div>
                             </div>
 
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                            <div className="bg-card p-5 rounded-xl shadow-sm border border-theme">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Fuel Efficiency</p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mt-1">6.8 MPG</h3>
+                                        <p className="text-xs text-secondary uppercase tracking-wide font-medium">Fuel Efficiency</p>
+                                        <h3 className="text-2xl font-bold text-primary mt-1">6.8 MPG</h3>
                                     </div>
                                     <div className="p-2 bg-green-50 text-green-600 rounded-lg">
                                         <Zap size={20} />
@@ -182,13 +182,13 @@ const VehicleEldMonitor = () => {
                         </div>
 
                         {/* Vehicle List */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center gap-4">
-                                <h3 className="font-bold text-gray-800">Vehicle Status List</h3>
+                        <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
+                            <div className="px-6 py-4 border-b border-theme flex justify-between items-center gap-4">
+                                <h3 className="font-bold text-primary">Vehicle Status List</h3>
 
                                 <div className="flex items-center gap-3">
                                     <div className="relative">
-                                        <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                        <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
                                         <input
                                             type="text"
                                             placeholder="Search vehicle..."
@@ -197,14 +197,14 @@ const VehicleEldMonitor = () => {
                                             className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
-                                    <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+                                    <button className="p-2 text-secondary hover:bg-gray-100 rounded-lg">
                                         <RefreshCw size={18} />
                                     </button>
                                 </div>
                             </div>
 
                             <table className="w-full text-sm text-left">
-                                <thead className="bg-gray-50 text-gray-500 font-medium">
+                                <thead className="bg-card text-secondary font-medium">
                                     <tr>
                                         <th className="px-6 py-3">Vehicle ID</th>
                                         <th className="px-6 py-3">Assigned Driver</th>
@@ -218,32 +218,32 @@ const VehicleEldMonitor = () => {
                                 <tbody className="divide-y divide-gray-100">
                                     {filteredVehicles.map((v) => (
                                         <tr key={v.id} className="hover:bg-blue-50/20 transition-colors group">
-                                            <td className="px-6 py-4 font-bold text-gray-900 flex items-center gap-2">
-                                                <Truck size={16} className="text-gray-400 group-hover:text-blue-500" />
+                                            <td className="px-6 py-4 font-bold text-primary flex items-center gap-2">
+                                                <Truck size={16} className="text-secondary group-hover:text-blue-500" />
                                                 {v.id}
                                             </td>
-                                            <td className="px-6 py-4 text-gray-600 group-hover:text-blue-600 transition-colors">
-                                                {v.driver === 'Unassigned' ? <span className="text-gray-400 italic">Unassigned</span> : v.driver}
+                                            <td className="px-6 py-4 text-secondary group-hover:text-[#00D1FF] transition-colors">
+                                                {v.driver === 'Unassigned' ? <span className="text-secondary italic">Unassigned</span> : v.driver}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wide
                              ${v.status === 'active' || v.status === 'moving' ? 'bg-green-100 text-green-700' :
-                                                        v.status === 'idle' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                        v.status === 'idle' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-secondary'}`}>
                                                     {v.status === 'moving' && <Activity size={12} className="animate-pulse" />}
                                                     {v.status}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-gray-500">{v.lastPing}</td>
-                                            <td className="px-6 py-4 flex items-center gap-1.5 text-gray-700">
-                                                <MapPin size={14} className="text-gray-400" />
+                                            <td className="px-6 py-4 text-secondary">{v.lastPing}</td>
+                                            <td className="px-6 py-4 flex items-center gap-1.5 text-primary">
+                                                <MapPin size={14} className="text-secondary" />
                                                 {v.location}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`${v.idleTime !== '-' && parseInt(v.idleTime) > 3 ? 'text-red-600 font-bold' : 'text-gray-600'}`}>
+                                                <span className={`${v.idleTime !== '-' && parseInt(v.idleTime) > 3 ? 'text-[#A855F7] font-bold' : 'text-secondary'}`}>
                                                     {v.idleTime}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 font-mono text-gray-600">{v.engineHours.toLocaleString()} h</td>
+                                            <td className="px-6 py-4 font-mono text-secondary">{v.engineHours.toLocaleString()} h</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -255,17 +255,17 @@ const VehicleEldMonitor = () => {
                 {/* --- LIVE GPS TAB --- */}
                 {activeTab === 'gps' && (
                     <div className="space-y-6">
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 h-[600px] relative overflow-hidden flex flex-col items-center justify-center bg-slate-100">
+                        <div className="bg-card rounded-xl shadow-sm border border-theme h-[600px] relative overflow-hidden flex flex-col items-center justify-center bg-slate-100">
                             {/* Mock Map View */}
                             <div className="absolute inset-0 opacity-20 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover bg-center" />
 
                             <div className="z-10 text-center">
-                                <div className="bg-white/80 p-4 rounded-xl backdrop-blur-sm shadow-sm mb-4">
-                                    <h3 className="text-lg font-bold text-gray-800 flex items-center justify-center gap-2">
+                                <div className="bg-card/80 p-4 rounded-xl backdrop-blur-sm shadow-sm mb-4">
+                                    <h3 className="text-lg font-bold text-primary flex items-center justify-center gap-2">
                                         <Wifi size={20} className="text-green-500 animate-pulse" />
                                         Live ELD Location Feed
                                     </h3>
-                                    <p className="text-sm text-gray-500">Updating vehicle positions in real-time...</p>
+                                    <p className="text-sm text-secondary">Updating vehicle positions in real-time...</p>
                                 </div>
                             </div>
 
@@ -278,18 +278,18 @@ const VehicleEldMonitor = () => {
                                 >
                                     <div className="relative">
                                         <div className="absolute -inset-4 bg-blue-500/20 rounded-full animate-ping opacity-75"></div>
-                                        <div className="w-8 h-8 bg-white border-2 border-blue-600 rounded-full flex items-center justify-center text-blue-600 shadow-md z-20 hover:scale-110 transition-transform">
+                                        <div className="w-8 h-8 bg-card border-2 border-blue-600 rounded-full flex items-center justify-center text-[#00D1FF] shadow-md z-20 hover:scale-110 transition-transform">
                                             <Truck size={14} />
                                         </div>
 
                                         {/* Tooltip */}
-                                        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-white px-3 py-2 rounded-lg shadow-xl border border-gray-100 w-48 opacity-0 group-hover:opacity-100 transition-opacity z-30 pointer-events-none">
-                                            <h4 className="font-bold text-gray-900 text-xs flex justify-between">
+                                        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-card px-3 py-2 rounded-lg shadow-xl border border-theme w-48 opacity-0 group-hover:opacity-100 transition-opacity z-30 pointer-events-none">
+                                            <h4 className="font-bold text-primary text-xs flex justify-between">
                                                 {v.id}
                                                 <span className="text-green-500">{v.status}</span>
                                             </h4>
-                                            <p className="text-xs text-gray-500 mt-1">{v.driver}</p>
-                                            <p className="text-xs text-gray-400 mt-0.5">{v.location}</p>
+                                            <p className="text-xs text-secondary mt-1">{v.driver}</p>
+                                            <p className="text-xs text-secondary mt-0.5">{v.location}</p>
                                             <p className="text-[10px] text-gray-300 mt-1 text-right">Updated: {v.lastPing}</p>
                                         </div>
                                     </div>
@@ -304,24 +304,24 @@ const VehicleEldMonitor = () => {
                     <div className="space-y-6">
                         {/* Alerts */}
                         {MAINTENANCE_ALERTS.length > 0 && (
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                                <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <div className="bg-card p-6 rounded-xl shadow-sm border border-theme">
+                                <h3 className="font-bold text-primary mb-4 flex items-center gap-2">
                                     <AlertTriangle size={20} className="text-amber-500" />
                                     Active Maintenance Indicators
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {MAINTENANCE_ALERTS.map(alert => (
                                         <div key={alert.id} className={`p-4 rounded-lg border-l-4 shadow-sm
-                     ${alert.severity === 'high' ? 'bg-red-50 border-red-500' :
-                                                alert.severity === 'medium' ? 'bg-amber-50 border-amber-500' : 'bg-blue-50 border-blue-500'}`}>
+                     ${alert.severity === 'high' ? 'bg-card border-red-500' :
+                                                alert.severity === 'medium' ? 'bg-amber-50 border-amber-500' : 'bg-card border-blue-500'}`}>
                                             <div className="flex justify-between items-start">
                                                 <h4 className={`font-bold text-sm ${alert.severity === 'high' ? 'text-red-700' :
                                                     alert.severity === 'medium' ? 'text-amber-700' : 'text-blue-700'
                                                     }`}>{alert.type}</h4>
-                                                <span className="text-xs text-gray-400">{alert.time}</span>
+                                                <span className="text-xs text-secondary">{alert.time}</span>
                                             </div>
-                                            <p className="text-sm font-medium text-gray-900 mt-1">{alert.vehicle}</p>
-                                            <p className="text-xs text-gray-600 mt-1">{alert.description}</p>
+                                            <p className="text-sm font-medium text-primary mt-1">{alert.vehicle}</p>
+                                            <p className="text-xs text-secondary mt-1">{alert.description}</p>
 
                                         </div>
                                     ))}
@@ -331,9 +331,9 @@ const VehicleEldMonitor = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Engine Hours Chart */}
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                                <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
-                                    <Wrench size={18} className="text-gray-400" />
+                            <div className="bg-card p-6 rounded-xl shadow-sm border border-theme">
+                                <h3 className="font-bold text-primary mb-6 flex items-center gap-2">
+                                    <Wrench size={18} className="text-secondary" />
                                     Engine Hours vs Thresholds
                                 </h3>
                                 <div className="h-64">
@@ -347,15 +347,15 @@ const VehicleEldMonitor = () => {
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
-                                <div className="mt-4 text-xs text-center text-gray-500">
+                                <div className="mt-4 text-xs text-center text-secondary">
                                     Vehicles approaching 15,000 engine hours require major service.
                                 </div>
                             </div>
 
                             {/* Vehicle Status Distribution */}
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                                <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
-                                    <Activity size={18} className="text-gray-400" />
+                            <div className="bg-card p-6 rounded-xl shadow-sm border border-theme">
+                                <h3 className="font-bold text-primary mb-6 flex items-center gap-2">
+                                    <Activity size={18} className="text-secondary" />
                                     Real-time Vehicle Status
                                 </h3>
                                 <div className="h-64 flex justify-center">
@@ -382,8 +382,8 @@ const VehicleEldMonitor = () => {
                                     {STATUS_DATA.map((item) => (
                                         <div key={item.name} className="flex items-center gap-2">
                                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                                            <span className="text-sm text-gray-600">{item.name}</span>
-                                            <span className="text-sm font-bold text-gray-900">{item.value}</span>
+                                            <span className="text-sm text-secondary">{item.name}</span>
+                                            <span className="text-sm font-bold text-primary">{item.value}</span>
                                         </div>
                                     ))}
                                 </div>

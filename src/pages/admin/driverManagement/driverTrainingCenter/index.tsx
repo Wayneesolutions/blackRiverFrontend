@@ -14,21 +14,21 @@ const DriverTrainingCenter = () => {
   ];
 
   return (
-    <div className="p-6 bg-[#EDF8FF] min-h-screen">
+    <div className="p-6 bg-main min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-primary mb-2">
             Driver Training Center
           </h1>
-          <p className="text-gray-600">
+          <p className="text-secondary">
             Manage driver certificates, training materials, and test questions
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="flex border-b border-gray-200">
+        <div className="bg-card rounded-lg shadow-sm mb-6">
+          <div className="flex border-b border-theme">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
@@ -36,7 +36,7 @@ const DriverTrainingCenter = () => {
                 className={`px-6 py-3 font-medium text-sm transition-colors ${
                   activeTab === tab.key
                     ? "text-[#0ea3d8] border-b-2 border-[#0ea3d8]"
-                    : "text-gray-600 hover:text-gray-900"
+                    : "text-secondary hover:text-primary"
                 }`}
               >
                 {tab.label}

@@ -177,9 +177,9 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200'
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200',
+    warning: 'bg-card border-yellow-200'
   };
 
   useEffect(() => {
@@ -194,10 +194,10 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -307,18 +307,18 @@ const EnhancedComplianceRecords: React.FC = () => {
       'at-risk': 'bg-yellow-100 text-yellow-800',
       'pending': 'bg-blue-100 text-blue-800'
     };
-    return levelMap[level] || 'bg-gray-100 text-gray-800';
+    return levelMap[level] || 'bg-gray-100 text-primary';
   };
 
   const getTypeIcon = (type: string) => {
     const iconMap: Record<string, React.ReactElement> = {
       'Policy': <FaBookOpen className="text-purple-600" />,
       'Training': <FaUserCheck className="text-green-600" />,
-      'Incident': <FaExclamationTriangle className="text-red-600" />,
-      'Hazard': <FaExclamationCircle className="text-orange-600" />,
-      'Inspection': <FaClipboardCheck className="text-blue-600" />
+      'Incident': <FaExclamationTriangle className="text-[#A855F7]" />,
+      'Hazard': <FaExclamationCircle className="text-[#F59E0B]" />,
+      'Inspection': <FaClipboardCheck className="text-[#00D1FF]" />
     };
-    return iconMap[type] || <FaFileAlt className="text-gray-600" />;
+    return iconMap[type] || <FaFileAlt className="text-secondary" />;
   };
 
   const filteredRecords = records.filter(record => {
@@ -362,7 +362,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               <h1 className="text-4xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
                 Compliance Records Management
               </h1>
-              <p className="text-lg text-gray-600 mt-2">
+              <p className="text-lg text-secondary mt-2">
                 Comprehensive view of all compliance records aggregated from Health & Safety modules.
               </p>
             </div>
@@ -378,7 +378,7 @@ const EnhancedComplianceRecords: React.FC = () => {
         </div>
 
         {/* Module Navigation */}
-        <div className="bg-white rounded-xl shadow-lg mb-6 p-4">
+        <div className="bg-card rounded-xl shadow-lg mb-6 p-4">
           <div className="flex flex-wrap gap-3">
             {[
               { id: 'all', label: 'All Records', icon: <FaFileContract />, count: stats.totalRecords },
@@ -393,13 +393,13 @@ const EnhancedComplianceRecords: React.FC = () => {
                 onClick={() => setActiveView(view.id as any)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition ${activeView === view.id
                   ? '!text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 text-primary hover:bg-gray-200'
                   }`}
                 style={activeView === view.id ? { background: CUSTOM_COLORS.gradient } : {}}
               >
                 {view.icon}
                 <span>{view.label}</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeView === view.id ? 'bg-white text-purple-600' : 'bg-purple-100 text-purple-600'
+                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeView === view.id ? 'bg-card text-purple-600' : 'bg-purple-100 text-purple-600'
                   }`}>
                   {view.count}
                 </span>
@@ -431,7 +431,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               <div className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.compliantRecords}
               </div>
-              <div className="text-sm font-medium text-gray-600 mb-3">Compliant Records</div>
+              <div className="text-sm font-medium text-secondary mb-3">Compliant Records</div>
               <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <FaArrowRight style={{ color: COLORS.status.success }} />
               </div>
@@ -454,7 +454,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               <div className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.expiringRecords}
               </div>
-              <div className="text-sm font-medium text-gray-600 mb-3">Expiring Soon</div>
+              <div className="text-sm font-medium text-secondary mb-3">Expiring Soon</div>
               <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <FaArrowRight style={{ color: COLORS.status.warning }} />
               </div>
@@ -477,7 +477,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               <div className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.atRiskRecords}
               </div>
-              <div className="text-sm font-medium text-gray-600 mb-3">At Risk Records</div>
+              <div className="text-sm font-medium text-secondary mb-3">At Risk Records</div>
               <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <FaArrowRight style={{ color: '#f97316' }} />
               </div>
@@ -500,7 +500,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               <div className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
                 {stats.expiredRecords}
               </div>
-              <div className="text-sm font-medium text-gray-600 mb-3">Expired / Non-Compliant</div>
+              <div className="text-sm font-medium text-secondary mb-3">Expired / Non-Compliant</div>
               <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <FaArrowRight style={{ color: COLORS.status.danger }} />
               </div>
@@ -511,10 +511,10 @@ const EnhancedComplianceRecords: React.FC = () => {
 
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-xl p-4 shadow-lg mb-6">
+        <div className="bg-card rounded-xl p-4 shadow-lg mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
               <input
                 type="text"
                 placeholder="Search by Record ID or Title..."
@@ -524,7 +524,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               />
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <FaFilter className="text-gray-400" />
+              <FaFilter className="text-secondary" />
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -552,7 +552,7 @@ const EnhancedComplianceRecords: React.FC = () => {
         </div>
 
         {/* Records Table */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-card rounded-xl shadow-lg overflow-hidden">
           <div className="p-6 border-b">
             <div className="flex items-center justify-between">
               <div>
@@ -564,7 +564,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                           activeView === 'hazards' ? '⚠️ Hazard Reports' :
                             '🔍 Inspection Records'}
                 </h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-secondary mt-1">
                   {activeView === 'policies' && 'Track 20+ mandatory policies, acknowledgments, version control, renewal cycles'}
                   {activeView === 'training' && 'WHMIS, TDG, Cargo Securement, First Aid certificates with auto-renewal reminders'}
                   {activeView === 'incidents' && 'Driver injuries, vehicle accidents, workplace incidents with investigation tools (5-Why, Fishbone)'}
@@ -573,7 +573,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                   {activeView === 'all' && 'Comprehensive view of all compliance modules from Compliance Dashboard'}
                 </p>
               </div>
-              <div className="text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
+              <div className="text-xs text-secondary bg-gray-100 px-3 py-2 rounded-lg">
                 <FaFileContract className="inline mr-1" />
                 Total: {filteredRecords.length} records
               </div>
@@ -595,13 +595,13 @@ const EnhancedComplianceRecords: React.FC = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-8 text-center text-secondary">
                       Loading compliance records...
                     </td>
                   </tr>
                 ) : filteredRecords.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-8 text-center text-secondary">
                       No records found matching criteria.
                     </td>
                   </tr>
@@ -617,7 +617,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                           setSelectedRecord(record);
                           setShowSidebar(true);
                         }}
-                        className="border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
+                        className="border-b border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
                       >
                         <td className="px-6 py-4 font-medium">{record.recordId}</td>
                         <td className="px-6 py-4">
@@ -651,38 +651,38 @@ const EnhancedComplianceRecords: React.FC = () => {
                           {'policyType' in record && (
                             <div>
                               <div className="font-semibold text-purple-700">Renewal: {record.renewalCycle} mo</div>
-                              <div className="text-xs text-gray-600">{record.acknowledgments.length} signatures</div>
+                              <div className="text-xs text-secondary">{record.acknowledgments.length} signatures</div>
                             </div>
                           )}
                           {'trainingType' in record && (
                             <div>
                               <div className="font-semibold text-green-700">{record.trainingType}</div>
-                              <div className="text-xs text-gray-600">Expires: {record.expiryDate ? new Date(record.expiryDate).toLocaleDateString() : 'N/A'}</div>
+                              <div className="text-xs text-secondary">Expires: {record.expiryDate ? new Date(record.expiryDate).toLocaleDateString() : 'N/A'}</div>
                             </div>
                           )}
                           {'incidentType' in record && (
                             <div>
                               <div className="font-semibold text-red-700 capitalize">{record.incidentType.replace('-', ' ')}</div>
-                              <div className="text-xs text-gray-600">Severity: {record.severity}</div>
+                              <div className="text-xs text-secondary">Severity: {record.severity}</div>
                             </div>
                           )}
                           {'hazardType' in record && (
                             <div>
                               <div className="font-semibold text-orange-700">Risk: {record.riskRating.total}</div>
-                              <div className="text-xs text-gray-600">L{record.riskRating.likelihood} × S{record.riskRating.severity}</div>
+                              <div className="text-xs text-secondary">L{record.riskRating.likelihood} × S{record.riskRating.severity}</div>
                             </div>
                           )}
                           {'inspectionType' in record && (
                             <div>
                               <div className="font-semibold text-blue-700">{record.inspectionType}</div>
-                              <div className="text-xs text-gray-600">{record.findingsCount} findings</div>
+                              <div className="text-xs text-secondary">{record.findingsCount} findings</div>
                             </div>
                           )}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-center">
                             <button
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                              className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition"
                               title="View Details"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -710,48 +710,48 @@ const EnhancedComplianceRecords: React.FC = () => {
               className="absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity"
               onClick={() => setShowSidebar(false)}
             />
-            <div className="relative w-full max-w-xl bg-white h-full shadow-2xl overflow-y-auto transform transition-transform duration-300 ease-in-out">
-              <div className="p-6 border-b sticky top-0 bg-white z-10 flex justify-between items-center">
+            <div className="relative w-full max-w-xl bg-card h-full shadow-2xl overflow-y-auto transform transition-transform duration-300 ease-in-out">
+              <div className="p-6 border-b sticky top-0 bg-card z-10 flex justify-between items-center">
                 <div>
                   <h2 className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
                     {selectedRecord.recordId}
                   </h2>
-                  <p className="text-gray-600">{selectedRecord.title}</p>
+                  <p className="text-secondary">{selectedRecord.title}</p>
                 </div>
                 <button
                   onClick={() => setShowSidebar(false)}
                   className="p-2 hover:bg-gray-100 rounded-full transition"
                 >
-                  <FaTimes size={24} className="text-gray-500" />
+                  <FaTimes size={24} className="text-secondary" />
                 </button>
               </div>
 
               <div className="p-6 space-y-6">
                 {/* Status Banner */}
                 <div className={`p-4 rounded-xl flex items-center justify-between ${selectedRecord.complianceLevel === 'compliant' ? 'bg-green-50 border border-green-200' :
-                  selectedRecord.complianceLevel === 'at-risk' ? 'bg-orange-50 border border-orange-200' :
-                    'bg-red-50 border border-red-200'
+                  selectedRecord.complianceLevel === 'at-risk' ? 'bg-card border border-orange-200' :
+                    'bg-card border border-red-200'
                   }`}>
                   <div className="flex items-center gap-3">
                     {selectedRecord.complianceLevel === 'compliant' ? <FaCheckCircle className="text-green-600" size={24} /> :
-                      selectedRecord.complianceLevel === 'at-risk' ? <FaExclamationTriangle className="text-orange-600" size={24} /> :
-                        <FaExclamationCircle className="text-red-600" size={24} />}
+                      selectedRecord.complianceLevel === 'at-risk' ? <FaExclamationTriangle className="text-[#F59E0B]" size={24} /> :
+                        <FaExclamationCircle className="text-[#A855F7]" size={24} />}
                     <div>
-                      <div className="font-bold text-gray-900 capitalize">{selectedRecord.complianceLevel.replace('-', ' ')}</div>
-                      <div className="text-sm text-gray-600 capitalize">Status: {selectedRecord.status.replace('-', ' ')}</div>
+                      <div className="font-bold text-primary capitalize">{selectedRecord.complianceLevel.replace('-', ' ')}</div>
+                      <div className="text-sm text-secondary capitalize">Status: {selectedRecord.status.replace('-', ' ')}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Common Fields */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <span className="text-xs text-gray-500 uppercase font-semibold">Category</span>
-                    <div className="font-medium text-gray-900 mt-1">{selectedRecord.category}</div>
+                  <div className="p-3 bg-card rounded-lg">
+                    <span className="text-xs text-secondary uppercase font-semibold">Category</span>
+                    <div className="font-medium text-primary mt-1">{selectedRecord.category}</div>
                   </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <span className="text-xs text-gray-500 uppercase font-semibold">Type</span>
-                    <div className="font-medium text-gray-900 mt-1">
+                  <div className="p-3 bg-card rounded-lg">
+                    <span className="text-xs text-secondary uppercase font-semibold">Type</span>
+                    <div className="font-medium text-primary mt-1">
                       {'policyType' in selectedRecord ? selectedRecord.policyType :
                         'trainingType' in selectedRecord ? selectedRecord.trainingType :
                           'incidentType' in selectedRecord ? selectedRecord.incidentType.replace('-', ' ') :
@@ -764,20 +764,20 @@ const EnhancedComplianceRecords: React.FC = () => {
                 {/* Type Specific Details */}
                 {'policyType' in selectedRecord && (
                   <div className="space-y-4">
-                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-gray-700">
+                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-primary">
                       <FaBookOpen className="text-purple-600" /> Policy Details
                     </h3>
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div><span className="text-gray-500">Department:</span> <div className="font-medium">{selectedRecord.department}</div></div>
-                      <div><span className="text-gray-500">Responsible:</span> <div className="font-medium">{selectedRecord.responsiblePerson}</div></div>
-                      <div><span className="text-gray-500">Issue Date:</span> <div className="font-medium">{selectedRecord.issueDate}</div></div>
-                      <div><span className="text-gray-500">Next Review:</span> <div className="font-medium">{selectedRecord.nextReviewDate}</div></div>
-                      <div><span className="text-gray-500">Renewal Cycle:</span> <div className="font-medium">{selectedRecord.renewalCycle} Months</div></div>
-                      <div><span className="text-gray-500">Version:</span> <div className="font-medium">{selectedRecord.currentVersion}</div></div>
+                      <div><span className="text-secondary">Department:</span> <div className="font-medium">{selectedRecord.department}</div></div>
+                      <div><span className="text-secondary">Responsible:</span> <div className="font-medium">{selectedRecord.responsiblePerson}</div></div>
+                      <div><span className="text-secondary">Issue Date:</span> <div className="font-medium">{selectedRecord.issueDate}</div></div>
+                      <div><span className="text-secondary">Next Review:</span> <div className="font-medium">{selectedRecord.nextReviewDate}</div></div>
+                      <div><span className="text-secondary">Renewal Cycle:</span> <div className="font-medium">{selectedRecord.renewalCycle} Months</div></div>
+                      <div><span className="text-secondary">Version:</span> <div className="font-medium">{selectedRecord.currentVersion}</div></div>
                     </div>
                     {selectedRecord.documentUrl && (
                       <div className="mt-4 pt-4 border-t">
-                        <a href={selectedRecord.documentUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-blue-600 hover:underline">
+                        <a href={selectedRecord.documentUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[#00D1FF] hover:underline">
                           <FaDownload /> Download Policy Document
                         </a>
                       </div>
@@ -787,19 +787,19 @@ const EnhancedComplianceRecords: React.FC = () => {
 
                 {'trainingType' in selectedRecord && (
                   <div className="space-y-4">
-                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-gray-700">
+                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-primary">
                       <FaUserCheck className="text-green-600" /> Training Details
                     </h3>
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div><span className="text-gray-500">Employee:</span> <div className="font-medium">{selectedRecord.employeeName}</div></div>
-                      <div><span className="text-gray-500">Instructor:</span> <div className="font-medium">{selectedRecord.instructor}</div></div>
-                      <div><span className="text-gray-500">Issue Date:</span> <div className="font-medium">{selectedRecord.issueDate}</div></div>
-                      <div><span className="text-gray-500">Expiry Date:</span> <div className="font-medium text-orange-600">{selectedRecord.expiryDate || 'N/A'}</div></div>
-                      <div><span className="text-gray-500">Certificate No:</span> <div className="font-medium">{selectedRecord.certificateNumber}</div></div>
+                      <div><span className="text-secondary">Employee:</span> <div className="font-medium">{selectedRecord.employeeName}</div></div>
+                      <div><span className="text-secondary">Instructor:</span> <div className="font-medium">{selectedRecord.instructor}</div></div>
+                      <div><span className="text-secondary">Issue Date:</span> <div className="font-medium">{selectedRecord.issueDate}</div></div>
+                      <div><span className="text-secondary">Expiry Date:</span> <div className="font-medium text-[#F59E0B]">{selectedRecord.expiryDate || 'N/A'}</div></div>
+                      <div><span className="text-secondary">Certificate No:</span> <div className="font-medium">{selectedRecord.certificateNumber}</div></div>
                     </div>
                     {selectedRecord.certificateUrl && (
                       <div className="mt-4 pt-4 border-t">
-                        <a href={selectedRecord.certificateUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-blue-600 hover:underline">
+                        <a href={selectedRecord.certificateUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[#00D1FF] hover:underline">
                           <FaCheckCircle /> View Certificate
                         </a>
                       </div>
@@ -809,17 +809,17 @@ const EnhancedComplianceRecords: React.FC = () => {
 
                 {'incidentType' in selectedRecord && (
                   <div className="space-y-4">
-                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-gray-700">
-                      <FaExclamationTriangle className="text-red-600" /> Incident Report
+                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-primary">
+                      <FaExclamationTriangle className="text-[#A855F7]" /> Incident Report
                     </h3>
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div><span className="text-gray-500">Date:</span> <div className="font-medium">{selectedRecord.incidentDate}</div></div>
-                      <div><span className="text-gray-500">Reported By:</span> <div className="font-medium">{selectedRecord.reportedBy}</div></div>
-                      <div><span className="text-gray-500">Location:</span> <div className="font-medium">{selectedRecord.location}</div></div>
-                      <div><span className="text-gray-500">Severity:</span> <div className="font-medium capitalize text-red-600">{selectedRecord.severity}</div></div>
+                      <div><span className="text-secondary">Date:</span> <div className="font-medium">{selectedRecord.incidentDate}</div></div>
+                      <div><span className="text-secondary">Reported By:</span> <div className="font-medium">{selectedRecord.reportedBy}</div></div>
+                      <div><span className="text-secondary">Location:</span> <div className="font-medium">{selectedRecord.location}</div></div>
+                      <div><span className="text-secondary">Severity:</span> <div className="font-medium capitalize text-[#A855F7]">{selectedRecord.severity}</div></div>
                     </div>
-                    <div className="bg-gray-50 p-3 rounded-lg text-sm">
-                      <span className="text-gray-500 block mb-1">Description:</span>
+                    <div className="bg-card p-3 rounded-lg text-sm">
+                      <span className="text-secondary block mb-1">Description:</span>
                       <p>{selectedRecord.description}</p>
                     </div>
                     {selectedRecord.photosVideos && selectedRecord.photosVideos.length > 0 && (
@@ -843,15 +843,15 @@ const EnhancedComplianceRecords: React.FC = () => {
 
                 {'hazardType' in selectedRecord && (
                   <div className="space-y-4">
-                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-gray-700">
-                      <FaExclamationCircle className="text-orange-600" /> Hazard Details
+                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-primary">
+                      <FaExclamationCircle className="text-[#F59E0B]" /> Hazard Details
                     </h3>
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div><span className="text-gray-500">Reported Date:</span> <div className="font-medium">{selectedRecord.reportedDate}</div></div>
-                      <div><span className="text-gray-500">Reported By:</span> <div className="font-medium">{selectedRecord.reportedBy}</div></div>
-                      <div><span className="text-gray-500">Location:</span> <div className="font-medium">{selectedRecord.location}</div></div>
+                      <div><span className="text-secondary">Reported Date:</span> <div className="font-medium">{selectedRecord.reportedDate}</div></div>
+                      <div><span className="text-secondary">Reported By:</span> <div className="font-medium">{selectedRecord.reportedBy}</div></div>
+                      <div><span className="text-secondary">Location:</span> <div className="font-medium">{selectedRecord.location}</div></div>
                     </div>
-                    <div className="bg-orange-50 p-3 rounded-lg flex items-center gap-4">
+                    <div className="bg-card p-3 rounded-lg flex items-center gap-4">
                       <div>
                         <div className="text-xs text-orange-800 uppercase font-bold">Risk Rating</div>
                         <div className="text-2xl font-bold text-orange-700">{selectedRecord.riskRating.total}</div>
@@ -860,8 +860,8 @@ const EnhancedComplianceRecords: React.FC = () => {
                         Likelihood ({selectedRecord.riskRating.likelihood}) × Severity ({selectedRecord.riskRating.severity})
                       </div>
                     </div>
-                    <div className="bg-gray-50 p-3 rounded-lg text-sm">
-                      <span className="text-gray-500 block mb-1">Description:</span>
+                    <div className="bg-card p-3 rounded-lg text-sm">
+                      <span className="text-secondary block mb-1">Description:</span>
                       <p>{selectedRecord.description}</p>
                     </div>
                   </div>
@@ -869,26 +869,26 @@ const EnhancedComplianceRecords: React.FC = () => {
 
                 {'inspectionType' in selectedRecord && (
                   <div className="space-y-4">
-                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-gray-700">
-                      <FaClipboardCheck className="text-blue-600" /> Inspection Results
+                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-primary">
+                      <FaClipboardCheck className="text-[#00D1FF]" /> Inspection Results
                     </h3>
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div><span className="text-gray-500">Date:</span> <div className="font-medium">{selectedRecord.inspectionDate}</div></div>
-                      <div><span className="text-gray-500">Inspector:</span> <div className="font-medium">{selectedRecord.inspector}</div></div>
-                      <div><span className="text-gray-500">Location:</span> <div className="font-medium">{selectedRecord.location}</div></div>
+                      <div><span className="text-secondary">Date:</span> <div className="font-medium">{selectedRecord.inspectionDate}</div></div>
+                      <div><span className="text-secondary">Inspector:</span> <div className="font-medium">{selectedRecord.inspector}</div></div>
+                      <div><span className="text-secondary">Location:</span> <div className="font-medium">{selectedRecord.location}</div></div>
                       <div>
-                        <span className="text-gray-500">Next Due:</span>
+                        <span className="text-secondary">Next Due:</span>
                         <div className="font-medium">{selectedRecord.nextInspectionDate}</div>
                       </div>
                     </div>
                     <div className="flex gap-4 border-t pt-4">
                       <div className="text-center">
-                        <div className="text-xl font-bold text-red-600">{selectedRecord.findingsCount}</div>
-                        <div className="text-xs text-gray-500">Findings</div>
+                        <div className="text-xl font-bold text-[#A855F7]">{selectedRecord.findingsCount}</div>
+                        <div className="text-xs text-secondary">Findings</div>
                       </div>
                       <div className="text-center">
                         <div className="text-xl font-bold text-green-600">{selectedRecord.checklist ? selectedRecord.checklist.length : 0}</div>
-                        <div className="text-xs text-gray-500">Checks</div>
+                        <div className="text-xs text-secondary">Checks</div>
                       </div>
                     </div>
                   </div>
@@ -896,10 +896,10 @@ const EnhancedComplianceRecords: React.FC = () => {
 
               </div>
 
-              <div className="p-6 border-t bg-gray-50">
+              <div className="p-6 border-t bg-card">
                 <button
                   onClick={() => setShowSidebar(false)}
-                  className="w-full py-3 bg-white border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-100 transition"
+                  className="w-full py-3 bg-card border border-gray-300 rounded-lg text-primary font-semibold hover:bg-gray-100 transition"
                 >
                   Close Details
                 </button>
@@ -910,7 +910,7 @@ const EnhancedComplianceRecords: React.FC = () => {
 
         {/* Enhanced Info Panel for Active View */}
         {activeView === 'policies' && (
-          <div className="mt-6 bg-purple-50 border-2 border-purple-200 rounded-xl p-6">
+          <div className="mt-6 bg-card border-2 border-purple-200 rounded-xl p-6">
             <h3 className="text-lg font-bold text-purple-900 mb-3 flex items-center gap-2">
               <FaBookOpen /> Policy Management Features
             </h3>

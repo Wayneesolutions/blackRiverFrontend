@@ -342,16 +342,16 @@ const ViewAllAccounts = () => {
 
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-card">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="bg-card border-b border-theme px-6 py-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-semibold text-gray-900 flex items-center">
+                        <h1 className="text-2xl font-semibold text-primary flex items-center">
                             <Users className="w-8 h-8 text-purple-600 mr-3" />
                             Admin Accounts
                         </h1>
-                        <p className="text-gray-600 mt-1">Manage all customer accounts and subscriptions</p>
+                        <p className="text-secondary mt-1">Manage all customer accounts and subscriptions</p>
                     </div>
                     <div className="flex items-center space-x-3">
                         <button 
@@ -370,11 +370,11 @@ const ViewAllAccounts = () => {
 
             <div className="p-6">
                 {/* Filters and Search */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                <div className="bg-card rounded-xl shadow-sm border border-theme p-6 mb-6">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-4">
                         {/* Search */}
                         <div className="relative flex-1 max-w-md">
-                            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
                             <input
                                 type="text"
                                 placeholder="Search admins by name, email, ID, or company..."
@@ -386,7 +386,7 @@ const ViewAllAccounts = () => {
 
                         {/* Status Filter */}
                         <div className="flex items-center space-x-2">
-                            <label className="text-sm font-medium text-gray-700">Status:</label>
+                            <label className="text-sm font-medium text-primary">Status:</label>
                             <Select
                                 value={selectedFilter}
                                 onChange={(value) => setSelectedFilter(value)}
@@ -402,19 +402,19 @@ const ViewAllAccounts = () => {
 
                 {/* Results Summary */}
                 <div className="mb-6">
-                    <p className="text-gray-600">
+                    <p className="text-secondary">
                         Showing <span className="font-medium">{filteredAdmins.length}</span> of <span className="font-medium">{totalAdmins}</span> admins
                     </p>
                 </div>
 
                 {/* Accounts Table */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div className="bg-card rounded-xl shadow-sm border border-theme">
                     <div className="overflow-x-auto">
                         <table className="min-w-full w-full">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-card border-b border-theme">
                                 <tr>
                                     <th
-                                        className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 min-w-[200px]"
+                                        className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-gray-100 min-w-[200px]"
                                         onClick={() => handleSort('company')}
                                     >
                                         <div className="flex items-center space-x-1">
@@ -422,12 +422,12 @@ const ViewAllAccounts = () => {
                                             <Filter className="w-3 h-3" />
                                         </div>
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[250px]">
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-[250px]">
                                         Contact Info
                                     </th>
 
                                     <th
-                                        className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 min-w-[120px]"
+                                        className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-gray-100 min-w-[120px]"
                                         onClick={() => handleSort('revenue')}
                                     >
                                         <div className="flex items-center space-x-1">
@@ -437,7 +437,7 @@ const ViewAllAccounts = () => {
                                     </th>
                                   
                                     <th
-                                        className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 min-w-[150px]"
+                                        className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-gray-100 min-w-[150px]"
                                         onClick={() => handleSort('joinDate')}
                                     >
                                         <div className="flex items-center space-x-1">
@@ -445,25 +445,25 @@ const ViewAllAccounts = () => {
                                             <Filter className="w-3 h-3" />
                                         </div>
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-[120px]">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-gray-200">
                                 {loading ? (
                                     <tr>
                                         <td colSpan={5} className="px-6 py-12 text-center">
                                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                                            <p className="mt-2 text-gray-500">Loading admins...</p>
+                                            <p className="mt-2 text-secondary">Loading admins...</p>
                                         </td>
                                     </tr>
                                 ) : filteredAdmins.length === 0 ? (
                                     <tr>
                                         <td colSpan={5} className="px-6 py-12 text-center">
-                                            <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                            <h3 className="text-lg font-medium text-gray-900 mb-2">No admins found</h3>
-                                            <p className="text-gray-500">
+                                            <Users className="w-12 h-12 text-secondary mx-auto mb-4" />
+                                            <h3 className="text-lg font-medium text-primary mb-2">No admins found</h3>
+                                            <p className="text-secondary">
                                                 {searchTerm || selectedFilter !== 'all'
                                                     ? "No admins match your current filters."
                                                     : "No admins have been created yet."}
@@ -472,34 +472,34 @@ const ViewAllAccounts = () => {
                                     </tr>
                                 ) : (
                                     filteredAdmins.map((admin) => (
-                                        <tr key={admin._id} className="hover:bg-gray-50">
+                                        <tr key={admin._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                             <td className="px-6 py-4 whitespace-nowrap min-w-[200px]">
                                                 <div className="flex items-center">
                                                     <div className="bg-purple-100 p-2 rounded-lg mr-3">
                                                         <Building2 className="w-5 h-5 text-purple-600" />
                                                     </div>
                                                     <div>
-                                                        <div className="text-sm font-medium text-gray-900">
+                                                        <div className="text-sm font-medium text-primary">
                                                             {admin.company?.companyName || admin.name || 'N/A'}
                                                         </div>
-                                                        <div className="text-sm text-gray-500">{admin.internalId || admin._id.slice(-6)}</div>
+                                                        <div className="text-sm text-secondary">{admin.internalId || admin._id.slice(-6)}</div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap min-w-[250px]">
                                                 <div className="space-y-1">
-                                                    <div className="flex items-center text-sm text-gray-600">
-                                                        <Mail className="w-4 h-4 mr-2 text-gray-400" />
+                                                    <div className="flex items-center text-sm text-secondary">
+                                                        <Mail className="w-4 h-4 mr-2 text-secondary" />
                                                         {admin.email || 'N/A'}
                                                     </div>
                                                     {admin.phone && (
-                                                        <div className="flex items-center text-sm text-gray-600">
-                                                            <Phone className="w-4 h-4 mr-2 text-gray-400" />
+                                                        <div className="flex items-center text-sm text-secondary">
+                                                            <Phone className="w-4 h-4 mr-2 text-secondary" />
                                                             {admin.phone}
                                                         </div>
                                                     )}
                                                     {admin.company?.companyCode && (
-                                                        <div className="text-xs text-gray-500 mt-1">
+                                                        <div className="text-xs text-secondary mt-1">
                                                             Code: {admin.company.companyCode}
                                                         </div>
                                                     )}
@@ -507,13 +507,13 @@ const ViewAllAccounts = () => {
                                             </td>
 
                                             <td className="px-6 py-4 whitespace-nowrap min-w-[120px]">
-                                                <div className="text-sm text-gray-900 mb-2">
+                                                <div className="text-sm text-primary mb-2">
                                                     {admin.location?.address ? (
                                                         <div className="truncate max-w-[150px]" title={admin.location.address}>
                                                             {admin.location.address}
                                                         </div>
                                                     ) : (
-                                                        <div className="text-gray-400">No address</div>
+                                                        <div className="text-secondary">No address</div>
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-2">
@@ -539,10 +539,10 @@ const ViewAllAccounts = () => {
                                          
                                             <td className="px-6 py-4 whitespace-nowrap min-w-[150px]">
                                                 <div className="space-y-1">
-                                                    <div className="text-sm text-gray-900">
+                                                    <div className="text-sm text-primary">
                                                         {admin.joinDate ? new Date(admin.joinDate).toLocaleDateString() : 'N/A'}
                                                     </div>
-                                                    <div className="text-xs text-gray-500">
+                                                    <div className="text-xs text-secondary">
                                                         Created: {admin.createdAt ? new Date(admin.createdAt).toLocaleDateString() : 'N/A'}
                                                     </div>
                                                 </div>
@@ -551,14 +551,14 @@ const ViewAllAccounts = () => {
                                                 <div className="flex items-center space-x-2">
                                                     <button 
                                                         onClick={() => handleView(admin)}
-                                                        className="text-gray-400 hover:text-purple-600 p-1 rounded transition-colors"
+                                                        className="text-secondary hover:text-purple-600 p-1 rounded transition-colors"
                                                         title="View Details"
                                                     >
                                                         <Eye className="w-4 h-4" />
                                                     </button>
                                                     <button 
                                                         onClick={() => handleEdit(admin)}
-                                                        className="text-gray-400 hover:text-blue-600 p-1 rounded transition-colors"
+                                                        className="text-secondary hover:text-[#00D1FF] p-1 rounded transition-colors"
                                                         title="Edit Admin"
                                                     >
                                                         <Edit className="w-4 h-4" />
@@ -576,7 +576,7 @@ const ViewAllAccounts = () => {
                                                             }
                                                             handleDelete(admin);
                                                         }}
-                                                        className="text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded transition-all duration-200 cursor-pointer active:scale-95"
+                                                        className="text-secondary hover:text-[#A855F7] hover:bg-red-50 p-2 rounded transition-all duration-200 cursor-pointer active:scale-95"
                                                         title="Delete Admin"
                                                         aria-label="Delete Admin"
                                                     >
@@ -595,14 +595,14 @@ const ViewAllAccounts = () => {
                 {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="mt-6 flex items-center justify-between">
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-secondary">
                             Showing page {currentPage} of {totalPages} ({totalAdmins} total admins)
                         </div>
                         <div className="flex space-x-2">
                             <button 
                                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                 disabled={currentPage === 1}
-                                className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Previous
                             </button>
@@ -616,7 +616,7 @@ const ViewAllAccounts = () => {
                                         className={`px-3 py-2 rounded-lg text-sm ${
                                             currentPage === pageNum
                                                 ? 'bg-purple-600 text-white'
-                                                : 'border border-gray-300 hover:bg-gray-50'
+                                                : 'border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
                                         }`}
                                     >
                                         {pageNum}
@@ -626,7 +626,7 @@ const ViewAllAccounts = () => {
                             <button 
                                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                                 disabled={currentPage === totalPages}
-                                className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Next
                             </button>
@@ -649,7 +649,7 @@ const ViewAllAccounts = () => {
                 >
                     <div className="space-y-4 py-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+                            <label className="block text-sm font-medium text-primary mb-2">Name *</label>
                             <Input
                                 name="name"
                                 value={formData.name}
@@ -659,7 +659,7 @@ const ViewAllAccounts = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                            <label className="block text-sm font-medium text-primary mb-2">Email *</label>
                             <Input
                                 type="email"
                                 name="email"
@@ -670,7 +670,7 @@ const ViewAllAccounts = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+                            <label className="block text-sm font-medium text-primary mb-2">Password *</label>
                             <Input.Password
                                 name="password"
                                 value={formData.password}
@@ -681,7 +681,7 @@ const ViewAllAccounts = () => {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                                <label className="block text-sm font-medium text-primary mb-2">Phone</label>
                                 <Input
                                     name="phone"
                                     value={formData.phone}
@@ -690,7 +690,7 @@ const ViewAllAccounts = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Internal ID</label>
+                                <label className="block text-sm font-medium text-primary mb-2">Internal ID</label>
                                 <Input
                                     name="internalId"
                                     value={formData.internalId}
@@ -701,7 +701,7 @@ const ViewAllAccounts = () => {
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                                <label className="block text-sm font-medium text-primary mb-2">Country</label>
                                 <Input
                                     name="country"
                                     value={formData.country}
@@ -710,7 +710,7 @@ const ViewAllAccounts = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                                <label className="block text-sm font-medium text-primary mb-2">State</label>
                                 <Input
                                     name="state"
                                     value={formData.state}
@@ -719,7 +719,7 @@ const ViewAllAccounts = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                                <label className="block text-sm font-medium text-primary mb-2">City</label>
                                 <Input
                                     name="city"
                                     value={formData.city}
@@ -729,7 +729,7 @@ const ViewAllAccounts = () => {
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                            <label className="block text-sm font-medium text-primary mb-2">Address</label>
                             <Input.TextArea
                                 name="address"
                                 value={formData.address}
@@ -739,7 +739,7 @@ const ViewAllAccounts = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <label className="block text-sm font-medium text-primary mb-2">Status</label>
                             <Select
                                 value={formData.status}
                                 onChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
@@ -778,7 +778,7 @@ const ViewAllAccounts = () => {
                 >
                     <div className="space-y-4 py-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+                            <label className="block text-sm font-medium text-primary mb-2">Name *</label>
                             <Input
                                 name="name"
                                 value={formData.name}
@@ -788,7 +788,7 @@ const ViewAllAccounts = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                            <label className="block text-sm font-medium text-primary mb-2">Email *</label>
                             <Input
                                 type="email"
                                 name="email"
@@ -799,7 +799,7 @@ const ViewAllAccounts = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">New Password (leave empty to keep current)</label>
+                            <label className="block text-sm font-medium text-primary mb-2">New Password (leave empty to keep current)</label>
                             <Input.Password
                                 name="password"
                                 value={formData.password}
@@ -809,7 +809,7 @@ const ViewAllAccounts = () => {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                                <label className="block text-sm font-medium text-primary mb-2">Phone</label>
                                 <Input
                                     name="phone"
                                     value={formData.phone}
@@ -818,7 +818,7 @@ const ViewAllAccounts = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Internal ID</label>
+                                <label className="block text-sm font-medium text-primary mb-2">Internal ID</label>
                                 <Input
                                     name="internalId"
                                     value={formData.internalId}
@@ -829,7 +829,7 @@ const ViewAllAccounts = () => {
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                                <label className="block text-sm font-medium text-primary mb-2">Country</label>
                                 <Input
                                     name="country"
                                     value={formData.country}
@@ -838,7 +838,7 @@ const ViewAllAccounts = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                                <label className="block text-sm font-medium text-primary mb-2">State</label>
                                 <Input
                                     name="state"
                                     value={formData.state}
@@ -847,7 +847,7 @@ const ViewAllAccounts = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                                <label className="block text-sm font-medium text-primary mb-2">City</label>
                                 <Input
                                     name="city"
                                     value={formData.city}
@@ -857,7 +857,7 @@ const ViewAllAccounts = () => {
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                            <label className="block text-sm font-medium text-primary mb-2">Address</label>
                             <Input.TextArea
                                 name="address"
                                 value={formData.address}
@@ -867,7 +867,7 @@ const ViewAllAccounts = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <label className="block text-sm font-medium text-primary mb-2">Status</label>
                             <Select
                                 value={formData.status}
                                 onChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
@@ -912,23 +912,23 @@ const ViewAllAccounts = () => {
                     <div className="space-y-4 py-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                                <p className="text-gray-900">{selectedAdmin.name || 'N/A'}</p>
+                                <label className="block text-sm font-medium text-primary mb-1">Name</label>
+                                <p className="text-primary">{selectedAdmin.name || 'N/A'}</p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                <p className="text-gray-900">{selectedAdmin.email || 'N/A'}</p>
+                                <label className="block text-sm font-medium text-primary mb-1">Email</label>
+                                <p className="text-primary">{selectedAdmin.email || 'N/A'}</p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                                <p className="text-gray-900">{selectedAdmin.phone || 'N/A'}</p>
+                                <label className="block text-sm font-medium text-primary mb-1">Phone</label>
+                                <p className="text-primary">{selectedAdmin.phone || 'N/A'}</p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Internal ID</label>
-                                <p className="text-gray-900">{selectedAdmin.internalId || 'N/A'}</p>
+                                <label className="block text-sm font-medium text-primary mb-1">Internal ID</label>
+                                <p className="text-primary">{selectedAdmin.internalId || 'N/A'}</p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Status</label>
                                 <span className={`inline-block px-2 py-1 rounded-full text-xs ${
                                     selectedAdmin.status === 'active' 
                                         ? 'bg-green-100 text-green-700' 
@@ -938,40 +938,40 @@ const ViewAllAccounts = () => {
                                 </span>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
-                                <p className="text-gray-900">
+                                <label className="block text-sm font-medium text-primary mb-1">Join Date</label>
+                                <p className="text-primary">
                                     {selectedAdmin.joinDate ? new Date(selectedAdmin.joinDate).toLocaleDateString() : 'N/A'}
                                 </p>
                             </div>
                         </div>
                         {selectedAdmin.company && (
                             <div className="border-t pt-4 mt-4">
-                                <h4 className="font-medium text-gray-900 mb-3">Company Information</h4>
+                                <h4 className="font-medium text-primary mb-3">Company Information</h4>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
-                                        <p className="text-gray-900">{selectedAdmin.company.companyName || 'N/A'}</p>
+                                        <label className="block text-sm font-medium text-primary mb-1">Company Name</label>
+                                        <p className="text-primary">{selectedAdmin.company.companyName || 'N/A'}</p>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Company Code</label>
-                                        <p className="text-gray-900">{selectedAdmin.company.companyCode || 'N/A'}</p>
+                                        <label className="block text-sm font-medium text-primary mb-1">Company Code</label>
+                                        <p className="text-primary">{selectedAdmin.company.companyCode || 'N/A'}</p>
                                     </div>
                                     {selectedAdmin.company.address && (
                                         <div className="col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                                            <p className="text-gray-900">{selectedAdmin.company.address}</p>
+                                            <label className="block text-sm font-medium text-primary mb-1">Address</label>
+                                            <p className="text-primary">{selectedAdmin.company.address}</p>
                                         </div>
                                     )}
                                     {selectedAdmin.company.contactEmail && (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
-                                            <p className="text-gray-900">{selectedAdmin.company.contactEmail}</p>
+                                            <label className="block text-sm font-medium text-primary mb-1">Contact Email</label>
+                                            <p className="text-primary">{selectedAdmin.company.contactEmail}</p>
                                         </div>
                                     )}
                                     {selectedAdmin.company.contactPhone && (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
-                                            <p className="text-gray-900">{selectedAdmin.company.contactPhone}</p>
+                                            <label className="block text-sm font-medium text-primary mb-1">Contact Phone</label>
+                                            <p className="text-primary">{selectedAdmin.company.contactPhone}</p>
                                         </div>
                                     )}
                                 </div>
@@ -979,14 +979,14 @@ const ViewAllAccounts = () => {
                         )}
                         {selectedAdmin.location?.address && (
                             <div className="border-t pt-4 mt-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                                <p className="text-gray-900">{selectedAdmin.location.address}</p>
+                                <label className="block text-sm font-medium text-primary mb-1">Address</label>
+                                <p className="text-primary">{selectedAdmin.location.address}</p>
                             </div>
                         )}
                         {(selectedAdmin.country || selectedAdmin.state || selectedAdmin.city) && (
                             <div className="border-t pt-4 mt-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                                <p className="text-gray-900">
+                                <label className="block text-sm font-medium text-primary mb-1">Location</label>
+                                <p className="text-primary">
                                     {[selectedAdmin.city, selectedAdmin.state, selectedAdmin.country].filter(Boolean).join(', ') || 'N/A'}
                                 </p>
                             </div>
@@ -1023,15 +1023,15 @@ const ViewAllAccounts = () => {
                     <div className="flex items-start space-x-4">
                         <div className="flex-shrink-0">
                             <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                                <Trash2 className="w-6 h-6 text-red-600" />
+                                <Trash2 className="w-6 h-6 text-[#A855F7]" />
                             </div>
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                            <h3 className="text-lg font-semibold text-primary mb-2">
                                 Are you sure you want to delete this admin?
                             </h3>
                             {selectedAdmin && (
-                                <div className="space-y-1 text-sm text-gray-600">
+                                <div className="space-y-1 text-sm text-secondary">
                                     <p><strong>Name:</strong> {selectedAdmin.name}</p>
                                     <p><strong>Email:</strong> {selectedAdmin.email}</p>
                                     {selectedAdmin.company?.companyName && (
@@ -1039,7 +1039,7 @@ const ViewAllAccounts = () => {
                                     )}
                                 </div>
                             )}
-                            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="mt-4 p-3 bg-card border border-red-200 rounded-lg">
                                 <p className="text-sm text-red-800 font-medium">
                                     ⚠️ This action cannot be undone. All data associated with this admin will be permanently deleted.
                                 </p>

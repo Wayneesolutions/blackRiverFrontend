@@ -703,10 +703,10 @@ const ProfessionalTripTracker: React.FC = () => {
   }, [selectedOrderGroup, waypoints]);
 
   return (
-    <div className="flex h-screen bg-[#EDF8FF]">
+    <div className="flex h-screen bg-main">
       {/* Left Sidebar */}
       <div
-        className={`bg-white shadow-xl transition-all duration-300 ease-in-out ${sidebarCollapsed ? "w-0" : "w-72"
+        className={`bg-card shadow-xl transition-all duration-300 ease-in-out ${sidebarCollapsed ? "w-0" : "w-72"
           } overflow-hidden flex flex-col`}
       >
         {/* Header */}
@@ -718,7 +718,7 @@ const ProfessionalTripTracker: React.FC = () => {
             </h2>
             <button
               onClick={() => setSidebarCollapsed(true)}
-              className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+              className="p-1 hover:bg-card/20 rounded-lg transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -726,11 +726,11 @@ const ProfessionalTripTracker: React.FC = () => {
 
           {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-secondary" />
             <input
               type="text"
               placeholder="Search by driver, truck, order number..."
-              className="w-full pl-10 pr-4 py-1.5 text-sm rounded-lg bg-white/90 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="w-full pl-10 pr-4 py-1.5 text-sm rounded-lg bg-card/90 text-primary placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -738,16 +738,16 @@ const ProfessionalTripTracker: React.FC = () => {
         </div>
 
         {/* Order Group List */}
-        <div className="flex-1 overflow-y-auto p-3 bg-[#EDF8FF]">
+        <div className="flex-1 overflow-y-auto p-3 bg-main">
           {loading ? (
             <div className="text-center py-8">
-              <RefreshCw className="w-6 h-6 text-blue-600 animate-spin mx-auto mb-2" />
-              <p className="text-gray-500">Loading active orders...</p>
+              <RefreshCw className="w-6 h-6 text-[#00D1FF] animate-spin mx-auto mb-2" />
+              <p className="text-secondary">Loading active orders...</p>
             </div>
           ) : filteredOrderGroups.length === 0 ? (
             <div className="text-center py-8">
               <Route className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500">No active orders found</p>
+              <p className="text-secondary">No active orders found</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -755,8 +755,8 @@ const ProfessionalTripTracker: React.FC = () => {
                 <div
                   key={group.driverId}
                   className={`p-3 rounded-xl cursor-pointer transition-all duration-200 border-2 ${selectedOrderGroup?.driverId === group.driverId
-                    ? "bg-[#EDF8FF] border-[#42aeec] shadow-md"
-                    : "bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm"
+                    ? "bg-main border-[#42aeec] shadow-md"
+                    : "bg-card border-theme hover:border-blue-300 hover:shadow-sm"
                     }`}
                   onClick={(e) => {
                     e.preventDefault();
@@ -766,7 +766,7 @@ const ProfessionalTripTracker: React.FC = () => {
                 >
                   {/* Driver Name & Order Count */}
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-bold text-base text-gray-800">
+                    <h3 className="font-bold text-base text-primary">
                       {group.driver.name}
                     </h3>
                     <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
@@ -777,7 +777,7 @@ const ProfessionalTripTracker: React.FC = () => {
                   {/* Order Group Details */}
                   <div className="space-y-1 text-xs">
                     {group.truck && (
-                      <div className="flex items-center gap-2 text-gray-600">
+                      <div className="flex items-center gap-2 text-secondary">
                         <Truck className="w-3 h-3" />
                         <span>
                           {group.truck.plateNumber || group.truck.unitNumber || 'N/A'}
@@ -792,21 +792,21 @@ const ProfessionalTripTracker: React.FC = () => {
                       </div>
                     )}
                     {group.routeWaypoints.length > 0 && (
-                      <div className="flex items-center gap-2 text-gray-500">
+                      <div className="flex items-center gap-2 text-secondary">
                         <Route className="w-3 h-3" />
                         <span>{group.routeWaypoints.length} stops</span>
                       </div>
                     )}
                     {group.orders.length > 0 && (
-                      <div className="pt-2 border-t border-gray-200">
-                        <p className="text-gray-500 mb-1">Orders:</p>
+                      <div className="pt-2 border-t border-theme">
+                        <p className="text-secondary mb-1">Orders:</p>
                         {group.orders.slice(0, 2).map(order => (
-                          <p key={order._id} className="text-gray-600 text-xs">
+                          <p key={order._id} className="text-secondary text-xs">
                             • {order.orderNumber}
                           </p>
                         ))}
                         {group.orders.length > 2 && (
-                          <p className="text-gray-500 text-xs">+{group.orders.length - 2} more</p>
+                          <p className="text-secondary text-xs">+{group.orders.length - 2} more</p>
                         )}
                       </div>
                     )}
@@ -867,11 +867,11 @@ const ProfessionalTripTracker: React.FC = () => {
                   <h3 className="font-bold text-sm mb-2 text-purple-600">
                     🏢 {selectedOrderGroup.yardLocation.yardName || 'Yard'}
                   </h3>
-                  <p className="text-gray-500 text-xs">
+                  <p className="text-secondary text-xs">
                     Starting Point
                   </p>
                   {selectedOrderGroup.yardLocation.address && (
-                    <p className="text-gray-500 text-xs mt-2">
+                    <p className="text-secondary text-xs mt-2">
                       {selectedOrderGroup.yardLocation.address}
                     </p>
                   )}
@@ -895,15 +895,15 @@ const ProfessionalTripTracker: React.FC = () => {
                   </h3>
                   <div className="space-y-1 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Speed:</span>
+                      <span className="text-secondary">Speed:</span>
                       <span className="font-medium">{selectedOrderGroup?.speed || 0} km/h</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Status:</span>
+                      <span className="text-secondary">Status:</span>
                       <span className="font-medium">{selectedOrderGroup?.engineOn ? 'Engine On' : 'Engine Off'}</span>
                     </div>
                     {selectedOrderGroup?.currentLocation?.address && (
-                      <p className="text-gray-500 text-xs mt-2">
+                      <p className="text-secondary text-xs mt-2">
                         {selectedOrderGroup.currentLocation.address}
                       </p>
                     )}
@@ -939,29 +939,29 @@ const ProfessionalTripTracker: React.FC = () => {
                       <div className="space-y-1 text-xs">
                         {waypoint.customerOrderNo && (
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Customer Order:</span>
+                            <span className="text-secondary">Customer Order:</span>
                             <span className="font-medium">{waypoint.customerOrderNo}</span>
                           </div>
                         )}
                         {waypoint.stopNumber !== undefined && waypoint.stopNumber > 0 && (
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Stop #:</span>
+                            <span className="text-secondary">Stop #:</span>
                             <span className="font-medium">{waypoint.stopNumber}</span>
                           </div>
                         )}
                         {waypoint.shipper && (
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Shipper:</span>
+                            <span className="text-secondary">Shipper:</span>
                             <span className="font-medium">{waypoint.shipper}</span>
                           </div>
                         )}
                         {waypoint.receiver && (
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Receiver:</span>
+                            <span className="text-secondary">Receiver:</span>
                             <span className="font-medium">{waypoint.receiver}</span>
                           </div>
                         )}
-                        <p className="text-gray-500 text-xs mt-2">
+                        <p className="text-secondary text-xs mt-2">
                           {waypoint.address}
                         </p>
                       </div>
@@ -974,7 +974,7 @@ const ProfessionalTripTracker: React.FC = () => {
 
         {/* Order Group Info Panel */}
         {selectedOrderGroup && (
-          <div className="absolute top-6 right-6 bg-white rounded-xl shadow-2xl w-80 overflow-hidden border border-gray-200 max-h-[70vh] overflow-y-auto z-[1000]">
+          <div className="absolute top-6 right-6 bg-card rounded-xl shadow-2xl w-80 overflow-hidden border border-theme max-h-[70vh] overflow-y-auto z-[1000]">
             {/* Header */}
             <div className="p-3 text-white bg-[linear-gradient(90deg,#42aeec_0%,#1db5f5_40%,#0ea3d8_100%)]">
               <div className="flex items-center justify-between mb-1">
@@ -986,7 +986,7 @@ const ProfessionalTripTracker: React.FC = () => {
                     setMapCenter([56.0, -96.0]);
                     setMapZoom(4);
                   }}
-                  className="p-1.5 hover:bg-white/20 rounded-lg transition-colors flex-shrink-0"
+                  className="p-1.5 hover:bg-card/20 rounded-lg transition-colors flex-shrink-0"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1000,22 +1000,22 @@ const ProfessionalTripTracker: React.FC = () => {
             <div className="p-3 space-y-3">
               {/* Metrics */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="p-2 bg-[#EDF8FF] rounded-lg">
-                  <div className="flex items-center gap-1 text-blue-600 mb-0.5">
+                <div className="p-2 bg-main rounded-lg">
+                  <div className="flex items-center gap-1 text-[#00D1FF] mb-0.5">
                     <Route className="w-3 h-3" />
                     <span className="text-xs font-medium">Stops</span>
                   </div>
-                  <p className="text-base font-bold text-gray-800">
+                  <p className="text-base font-bold text-primary">
                     {selectedOrderGroup.routeWaypoints.length}
                   </p>
                 </div>
                 {selectedOrderGroup.currentLocation && (
-                  <div className="p-2 bg-[#EDF8FF] rounded-lg">
+                  <div className="p-2 bg-main rounded-lg">
                     <div className="flex items-center gap-1 text-green-600 mb-0.5">
                       <MapPin className="w-3 h-3" />
                       <span className="text-xs font-medium">Live</span>
                     </div>
-                    <p className="text-base font-bold text-gray-800">
+                    <p className="text-base font-bold text-primary">
                       {selectedOrderGroup.speed} km/h
                     </p>
                   </div>
@@ -1025,17 +1025,17 @@ const ProfessionalTripTracker: React.FC = () => {
               {/* Details */}
               <div className="space-y-2">
                 {selectedOrderGroup.truck && (
-                  <div className="flex justify-between py-1.5 border-b border-gray-200">
-                    <span className="text-gray-600 text-sm">Truck</span>
-                    <span className="font-semibold text-gray-800 text-sm truncate ml-2">
+                  <div className="flex justify-between py-1.5 border-b border-theme">
+                    <span className="text-secondary text-sm">Truck</span>
+                    <span className="font-semibold text-primary text-sm truncate ml-2">
                       {selectedOrderGroup.truck.plateNumber || selectedOrderGroup.truck.unitNumber || 'N/A'}
                     </span>
                   </div>
                 )}
                 {selectedOrderGroup.coDriver && (
-                  <div className="flex justify-between py-1.5 border-b border-gray-200">
-                    <span className="text-gray-600 text-sm">Co-Driver</span>
-                    <span className="font-semibold text-gray-800 text-sm truncate ml-2">
+                  <div className="flex justify-between py-1.5 border-b border-theme">
+                    <span className="text-secondary text-sm">Co-Driver</span>
+                    <span className="font-semibold text-primary text-sm truncate ml-2">
                       {selectedOrderGroup.coDriver.name}
                     </span>
                   </div>
@@ -1045,8 +1045,8 @@ const ProfessionalTripTracker: React.FC = () => {
                     <div className="flex items-start gap-1.5">
                       <MapPin className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs text-gray-500 mb-0.5">Current Location</p>
-                        <p className="text-xs text-gray-800 truncate">
+                        <p className="text-xs text-secondary mb-0.5">Current Location</p>
+                        <p className="text-xs text-primary truncate">
                           {selectedOrderGroup.currentLocation.address || 'Location tracking active'}
                         </p>
                       </div>
@@ -1056,17 +1056,17 @@ const ProfessionalTripTracker: React.FC = () => {
                 
                 {/* Orders List */}
                 {selectedOrderGroup.orders.length > 0 && (
-                  <div className="pt-2 border-t border-gray-200">
-                    <p className="text-xs text-gray-500 mb-2 font-medium">Orders:</p>
+                  <div className="pt-2 border-t border-theme">
+                    <p className="text-xs text-secondary mb-2 font-medium">Orders:</p>
                     <div className="space-y-1 max-h-40 overflow-y-auto">
                       {selectedOrderGroup.orders.map(order => (
-                        <div key={order._id} className="p-2 bg-gray-50 rounded text-xs">
-                          <p className="font-semibold text-gray-800">{order.orderNumber}</p>
+                        <div key={order._id} className="p-2 bg-card rounded text-xs">
+                          <p className="font-semibold text-primary">{order.orderNumber}</p>
                           {order.customerOrderNo && (
-                            <p className="text-gray-600">Cust: {order.customerOrderNo}</p>
+                            <p className="text-secondary">Cust: {order.customerOrderNo}</p>
                           )}
                           {order.tripNo && (
-                            <p className="text-gray-500 text-xs">Trip: {order.tripNo}</p>
+                            <p className="text-secondary text-xs">Trip: {order.tripNo}</p>
                           )}
                         </div>
                       ))}

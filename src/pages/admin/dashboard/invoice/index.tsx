@@ -203,8 +203,8 @@ const InvoiceList = () => {
   };
 
   return (
-    <div className="p-6 bg-[#EDF8FF] min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Invoices</h1>
+    <div className="p-6 bg-main min-h-screen">
+      <h1 className="text-3xl font-bold mb-6 text-primary">Invoices</h1>
       {/* Filters - Enhanced Version */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
 
@@ -222,7 +222,7 @@ const InvoiceList = () => {
             value={clientFilter}
             onChange={(e) => setClientFilter(e.target.value)}
             className="pl-10 pr-4 py-2.5 w-full text-sm rounded-lg
-       bg-white text-[#4A4A4A] placeholder-gray-400
+       bg-card text-[#4A4A4A] placeholder-gray-400
        border border-[#D0E6F9]
        focus:ring-2 focus:ring-[#5CB4F4] focus:border-[#5CB4F4]
        outline-none transition-all shadow-sm"
@@ -239,7 +239,7 @@ const InvoiceList = () => {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="pl-10 pr-4 py-2.5 w-full text-sm border-2 border-transparent rounded-lg 
                  focus:ring-2 focus:ring-white focus:border-white outline-none transition-all 
-                 appearance-none bg-white cursor-pointer shadow-sm"
+                 appearance-none bg-card cursor-pointer shadow-sm"
           >
             <option value="all">All Status</option>
             <option value="paid">Paid</option>
@@ -251,7 +251,7 @@ const InvoiceList = () => {
 
 
       {/* Invoice Table */}
-      <div className="bg-white shadow-lg">
+      <div className="bg-card shadow-lg">
         {/* Top Scrollbar - Only visible horizontal scrollbar */}
         <style>{`
           .top-scrollbar-container::-webkit-scrollbar {
@@ -311,7 +311,7 @@ const InvoiceList = () => {
           <tbody className="divide-y divide-gray-100">
             {loading ? (
               <tr>
-                <td className="p-8 text-center text-gray-500" colSpan={9}>
+                <td className="p-8 text-center text-secondary" colSpan={9}>
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     <span className="ml-3">Loading invoices...</span>
@@ -324,14 +324,14 @@ const InvoiceList = () => {
                   key={inv._id}
                   className="hover:bg-blue-50/50 transition-colors"
                 >
-                  <td className="p-4 font-medium text-gray-900">
+                  <td className="p-4 font-medium text-primary">
                     {inv.clientName}
                   </td>
-                  <td className="p-4 text-gray-700">
+                  <td className="p-4 text-primary">
                     {inv.clientCompany?.companyName || inv.company?.companyName || "—"}
                   </td>
-                  <td className="p-4 text-gray-600">{inv.clientEmail || "—"}</td>
-                  <td className="p-4 font-semibold text-gray-900">
+                  <td className="p-4 text-secondary">{inv.clientEmail || "—"}</td>
+                  <td className="p-4 font-semibold text-primary">
                     {inv.currency} {inv.amount}
                   </td>
                   <td className="p-4">
@@ -354,17 +354,17 @@ const InvoiceList = () => {
                       )}
                     </span>
                   </td>
-                  <td className="p-4 text-gray-600">
+                  <td className="p-4 text-secondary">
                     {inv.invoiceDate
                       ? new Date(inv.invoiceDate).toLocaleDateString()
                       : "—"}
                   </td>
-                  <td className="p-4 text-gray-600">
+                  <td className="p-4 text-secondary">
                     {inv.dueDate
                       ? new Date(inv.dueDate).toLocaleDateString()
                       : "—"}
                   </td>
-                  <td className="p-4 text-gray-600">
+                  <td className="p-4 text-secondary">
                     {inv.paymentDate
                       ? new Date(inv.paymentDate).toLocaleDateString()
                       : "—"}
@@ -372,7 +372,7 @@ const InvoiceList = () => {
                   <td className="p-4 text-center">
                     <button
                       onClick={() => handleViewInvoice(inv._id)}
-                      className="inline-flex items-center justify-center p-2 rounded-lg transition-all hover:scale-110 bg-blue-50 text-blue-600 hover:bg-blue-100"
+                      className="inline-flex items-center justify-center p-2 rounded-lg transition-all hover:scale-110 bg-card text-[#00D1FF] hover:bg-blue-100"
                       title="View Invoice"
                     >
                       <Eye size={18} />
@@ -382,7 +382,7 @@ const InvoiceList = () => {
               ))
             ) : (
               <tr>
-                <td className="p-8 text-center text-gray-500" colSpan={9}>
+                <td className="p-8 text-center text-secondary" colSpan={9}>
                   No invoices found
                 </td>
               </tr>
@@ -403,16 +403,16 @@ const InvoiceList = () => {
 
           {/* Sidebar Panel */}
           <div
-            className={`fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 ${showSidebar ? 'translate-x-0' : 'translate-x-full'
+            className={`fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 ${showSidebar ? 'translate-x-0' : 'translate-x-full'
               }`}
           >
             <div className="p-6">
               {/* Header */}
-              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">Invoice Details</h2>
+              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                <h2 className="text-2xl font-bold text-primary">Invoice Details</h2>
                 <button
                   onClick={handleCloseSidebar}
-                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
                 >
                   <X size={24} />
                 </button>
@@ -421,7 +421,7 @@ const InvoiceList = () => {
               {viewLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-3 text-gray-600">Loading invoice details...</span>
+                  <span className="ml-3 text-secondary">Loading invoice details...</span>
                 </div>
               ) : selectedInvoice ? (
                 <div className="space-y-6">
@@ -461,35 +461,35 @@ const InvoiceList = () => {
                   </div>
 
                   {/* Client Information */}
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg">Client Information</h4>
+                  <div className="bg-card p-6 rounded-lg border border-theme">
+                    <h4 className="font-semibold text-primary mb-4 text-lg">Client Information</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Client Name</p>
-                        <p className="font-medium text-gray-900">{selectedInvoice.clientName}</p>
+                        <p className="text-sm text-secondary mb-1">Client Name</p>
+                        <p className="font-medium text-primary">{selectedInvoice.clientName}</p>
                       </div>
                       {selectedInvoice.clientEmail && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Email</p>
-                          <p className="font-medium text-gray-900">{selectedInvoice.clientEmail}</p>
+                          <p className="text-sm text-secondary mb-1">Email</p>
+                          <p className="font-medium text-primary">{selectedInvoice.clientEmail}</p>
                         </div>
                       )}
                       {selectedInvoice.clientPhone && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Phone</p>
-                          <p className="font-medium text-gray-900">{selectedInvoice.clientPhone}</p>
+                          <p className="text-sm text-secondary mb-1">Phone</p>
+                          <p className="font-medium text-primary">{selectedInvoice.clientPhone}</p>
                         </div>
                       )}
                       {selectedInvoice.company && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Company</p>
-                          <p className="font-medium text-gray-900">{selectedInvoice.company.companyName}</p>
+                          <p className="text-sm text-secondary mb-1">Company</p>
+                          <p className="font-medium text-primary">{selectedInvoice.company.companyName}</p>
                         </div>
                       )}
                       {selectedInvoice.clientAddress && (
                         <div className="md:col-span-2">
-                          <p className="text-sm text-gray-500 mb-1">Address</p>
-                          <p className="font-medium text-gray-900">{selectedInvoice.clientAddress}</p>
+                          <p className="text-sm text-secondary mb-1">Address</p>
+                          <p className="font-medium text-primary">{selectedInvoice.clientAddress}</p>
                         </div>
                       )}
                     </div>
@@ -497,23 +497,23 @@ const InvoiceList = () => {
 
                   {/* Financial Details */}
                   <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg">Financial Details</h4>
+                    <h4 className="font-semibold text-primary mb-4 text-lg">Financial Details</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-600 mb-1">Invoice Number</p>
-                        <p className="font-medium text-gray-900">
+                        <p className="text-sm text-secondary mb-1">Invoice Number</p>
+                        <p className="font-medium text-primary">
                           #{selectedInvoice._id.slice(-8).toUpperCase()}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600 mb-1">Amount</p>
+                        <p className="text-sm text-secondary mb-1">Amount</p>
                         <p className="font-bold text-2xl text-blue-700">
                           {selectedInvoice.currency} {selectedInvoice.amount}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600 mb-1">Invoice Date</p>
-                        <p className="font-medium text-gray-900">
+                        <p className="text-sm text-secondary mb-1">Invoice Date</p>
+                        <p className="font-medium text-primary">
                           {selectedInvoice.invoiceDate
                             ? new Date(selectedInvoice.invoiceDate).toLocaleDateString('en-US', {
                               year: 'numeric',
@@ -524,8 +524,8 @@ const InvoiceList = () => {
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600 mb-1">Due Date</p>
-                        <p className="font-medium text-gray-900">
+                        <p className="text-sm text-secondary mb-1">Due Date</p>
+                        <p className="font-medium text-primary">
                           {selectedInvoice.dueDate
                             ? new Date(selectedInvoice.dueDate).toLocaleDateString('en-US', {
                               year: 'numeric',
@@ -537,8 +537,8 @@ const InvoiceList = () => {
                       </div>
                       {selectedInvoice.paymentDate && (
                         <div className="md:col-span-2">
-                          <p className="text-sm text-gray-600 mb-1">Payment Date</p>
-                          <p className="font-medium text-gray-900">
+                          <p className="text-sm text-secondary mb-1">Payment Date</p>
+                          <p className="font-medium text-primary">
                             {new Date(selectedInvoice.paymentDate).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'long',
@@ -552,29 +552,29 @@ const InvoiceList = () => {
 
                   {/* Trip Information */}
                   {selectedInvoice.tripId && (
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                      <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                        <Truck size={20} className="text-blue-600" />
+                    <div className="bg-card p-6 rounded-lg border border-theme">
+                      <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                        <Truck size={20} className="text-[#00D1FF]" />
                         Trip Information
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Trip Number</p>
-                          <p className="font-medium text-gray-900">{selectedInvoice.tripId.tripNumber}</p>
+                          <p className="text-sm text-secondary mb-1">Trip Number</p>
+                          <p className="font-medium text-primary">{selectedInvoice.tripId.tripNumber}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Status</p>
-                          <p className="font-medium text-gray-900 capitalize">{selectedInvoice.tripId.status}</p>
+                          <p className="text-sm text-secondary mb-1">Status</p>
+                          <p className="font-medium text-primary capitalize">{selectedInvoice.tripId.status}</p>
                         </div>
                         {selectedInvoice.tripId.truck && (
                           <>
                             <div>
-                              <p className="text-sm text-gray-500 mb-1">Truck Unit No</p>
-                              <p className="font-medium text-gray-900">{selectedInvoice.tripId.truck.unitNo}</p>
+                              <p className="text-sm text-secondary mb-1">Truck Unit No</p>
+                              <p className="font-medium text-primary">{selectedInvoice.tripId.truck.unitNo}</p>
                             </div>
                             <div>
-                              <p className="text-sm text-gray-500 mb-1">Truck Model</p>
-                              <p className="font-medium text-gray-900">{selectedInvoice.tripId.truck.makeModel}</p>
+                              <p className="text-sm text-secondary mb-1">Truck Model</p>
+                              <p className="font-medium text-primary">{selectedInvoice.tripId.truck.makeModel}</p>
                             </div>
                           </>
                         )}
@@ -584,38 +584,38 @@ const InvoiceList = () => {
 
                   {/* Orders Information */}
                   {selectedInvoice.tripId?.orders && selectedInvoice.tripId.orders.length > 0 && (
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                      <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                        <Package size={20} className="text-blue-600" />
+                    <div className="bg-card p-6 rounded-lg border border-theme">
+                      <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                        <Package size={20} className="text-[#00D1FF]" />
                         Order Details
                       </h4>
                       {selectedInvoice.tripId.orders.map((order: any, index: number) => (
-                        <div key={index} className="mb-4 last:mb-0 p-4 bg-white rounded-lg border border-gray-200">
+                        <div key={index} className="mb-4 last:mb-0 p-4 bg-card rounded-lg border border-theme">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                             <div>
-                              <p className="text-gray-500 mb-1">Order Number</p>
-                              <p className="font-medium text-gray-900">{order.orderNumber}</p>
+                              <p className="text-secondary mb-1">Order Number</p>
+                              <p className="font-medium text-primary">{order.orderNumber}</p>
                             </div>
                             <div>
-                              <p className="text-gray-500 mb-1">Commodity</p>
-                              <p className="font-medium text-gray-900">{order.commodity}</p>
+                              <p className="text-secondary mb-1">Commodity</p>
+                              <p className="font-medium text-primary">{order.commodity}</p>
                             </div>
                             {order.pickupLocation && (
                               <div className="md:col-span-2">
-                                <p className="text-gray-500 mb-1 flex items-center gap-1">
-                                  <MapPin size={14} className="text-blue-600" />
+                                <p className="text-secondary mb-1 flex items-center gap-1">
+                                  <MapPin size={14} className="text-[#00D1FF]" />
                                   Pickup Location
                                 </p>
-                                <p className="font-medium text-gray-900 text-sm">{order.pickupLocation.place}</p>
+                                <p className="font-medium text-primary text-sm">{order.pickupLocation.place}</p>
                               </div>
                             )}
                             {order.deliveryLocation && (
                               <div className="md:col-span-2">
-                                <p className="text-gray-500 mb-1 flex items-center gap-1">
+                                <p className="text-secondary mb-1 flex items-center gap-1">
                                   <MapPin size={14} className="text-green-600" />
                                   Delivery Location
                                 </p>
-                                <p className="font-medium text-gray-900 text-sm">{order.deliveryLocation.place}</p>
+                                <p className="font-medium text-primary text-sm">{order.deliveryLocation.place}</p>
                               </div>
                             )}
                           </div>
@@ -627,13 +627,13 @@ const InvoiceList = () => {
                   {/* Notes */}
                   {selectedInvoice.notes && (
                     <div className="bg-amber-50 p-6 rounded-lg border border-amber-200">
-                      <h4 className="font-semibold text-gray-900 mb-2 text-lg">Notes</h4>
-                      <p className="text-gray-700 whitespace-pre-wrap">{selectedInvoice.notes}</p>
+                      <h4 className="font-semibold text-primary mb-2 text-lg">Notes</h4>
+                      <p className="text-primary whitespace-pre-wrap">{selectedInvoice.notes}</p>
                     </div>
                   )}
 
                   {/* Close Button */}
-                  <div className="flex justify-end pt-4 border-t-2 border-gray-200">
+                  <div className="flex justify-end pt-4 border-t-2 border-theme">
                     <button
                       onClick={handleCloseSidebar}
                       className="px-6 py-2.5 bg-gradient-to-r from-[#4A90E2] to-[#357ABD] !text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg hover:shadow-xl"
@@ -644,7 +644,7 @@ const InvoiceList = () => {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-gray-500">Failed to load invoice details</p>
+                  <p className="text-secondary">Failed to load invoice details</p>
                   <button
                     onClick={handleCloseSidebar}
                     className="mt-4 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg hover:shadow-xl"

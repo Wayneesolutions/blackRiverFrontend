@@ -262,7 +262,7 @@ const UnitMasterList: React.FC = () => {
                 <h1 className="text-4xl font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
                   Unit Master List
                 </h1>
-                <p className="text-gray-600 mt-1 flex items-center gap-2">
+                <p className="text-secondary mt-1 flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
                   Create and manage truck & trailer assets
                 </p>
@@ -282,14 +282,14 @@ const UnitMasterList: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-6">
-          <div className="flex border-b border-gray-200">
+        <div className="bg-card rounded-xl shadow-lg border border-theme mb-6">
+          <div className="flex border-b border-theme">
             <button
               onClick={() => setActiveTab('active')}
               className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
                 activeTab === 'active'
                   ? 'text-white border-b-2'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
               }`}
               style={activeTab === 'active' ? { background: 'linear-gradient(to right, #016ab2, #063f6f)', borderColor: '#016ab2' } : {}}
             >
@@ -300,7 +300,7 @@ const UnitMasterList: React.FC = () => {
               className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
                 activeTab === 'inactive'
                   ? 'text-white border-b-2'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
               }`}
               style={activeTab === 'inactive' ? { background: 'linear-gradient(to right, #016ab2, #063f6f)', borderColor: '#016ab2' } : {}}
             >
@@ -309,9 +309,9 @@ const UnitMasterList: React.FC = () => {
           </div>
 
           {/* Search */}
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-theme">
             <div className="relative">
-              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
               <input
                 type="text"
                 placeholder="Search by unit number, make/model, license plate, or VIN..."
@@ -349,37 +349,37 @@ const UnitMasterList: React.FC = () => {
               <tbody className="divide-y divide-gray-200">
                 {filteredUnits.length === 0 ? (
                   <tr>
-                    <td colSpan={activeTab === 'inactive' ? 9 : 7} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={activeTab === 'inactive' ? 9 : 7} className="px-6 py-12 text-center text-secondary">
                       No {activeTab} units found
                     </td>
                   </tr>
                 ) : (
                   filteredUnits.map((unit) => (
-                    <tr key={unit._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-gray-900">{unit.unitNo}</td>
+                    <tr key={unit._id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                      <td className="px-6 py-4 font-medium text-primary">{unit.unitNo}</td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
                           unit.unitType === 'Truck' ? 'bg-blue-100 text-blue-800' :
                           unit.unitType === 'Reefer Trailer' ? 'bg-green-100 text-green-800' :
                           unit.unitType === 'Tri-Axle Trailer' ? 'bg-orange-100 text-orange-800' :
                           unit.unitType === 'Dry Van' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
+                          'bg-gray-100 text-primary'
                         }`}>
                           {unit.unitType}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-gray-900">{unit.makeModel}</td>
-                      <td className="px-6 py-4 text-gray-600 font-mono text-sm">{unit.vinNo}</td>
-                      <td className="px-6 py-4 text-gray-900 font-medium">{unit.licensePlate}</td>
-                      <td className="px-6 py-4 text-gray-900">
+                      <td className="px-6 py-4 text-primary">{unit.makeModel}</td>
+                      <td className="px-6 py-4 text-secondary font-mono text-sm">{unit.vinNo}</td>
+                      <td className="px-6 py-4 text-primary font-medium">{unit.licensePlate}</td>
+                      <td className="px-6 py-4 text-primary">
                         {unit.currentOdometer !== undefined ? unit.currentOdometer.toLocaleString() : unit.initialOdometer.toLocaleString()} km
                       </td>
                       {activeTab === 'inactive' && (
                         <>
-                          <td className="px-6 py-4 text-gray-600">
+                          <td className="px-6 py-4 text-secondary">
                             {unit.lastDate ? new Date(unit.lastDate).toLocaleDateString() : 'N/A'}
                           </td>
-                          <td className="px-6 py-4 text-gray-600">{unit.reason || 'N/A'}</td>
+                          <td className="px-6 py-4 text-secondary">{unit.reason || 'N/A'}</td>
                         </>
                       )}
                       <td className="px-6 py-4">
@@ -397,14 +397,14 @@ const UnitMasterList: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleEditUnit(unit)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
                             title="Edit"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteUnit(unit)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -427,7 +427,7 @@ const UnitMasterList: React.FC = () => {
               setShowEditModal(false);
               setSelectedUnit(null);
             }} />
-            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-gray-200">
+            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-card shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-theme">
               <div className="h-full flex flex-col">
                 <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
                   <h2 className="text-2xl font-bold">{showAddModal ? 'Add New Unit' : 'Edit Unit'}</h2>
@@ -437,7 +437,7 @@ const UnitMasterList: React.FC = () => {
                       setShowEditModal(false);
                       setSelectedUnit(null);
                     }}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                    className="p-2 hover:bg-card/20 rounded-lg transition-colors"
                   >
                     <FaTimes className="w-5 h-5" />
                   </button>
@@ -445,7 +445,7 @@ const UnitMasterList: React.FC = () => {
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Unit No. *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Unit No. *</label>
                     <input
                       type="text"
                       value={formData.unitNo}
@@ -458,7 +458,7 @@ const UnitMasterList: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Unit Type *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Unit Type *</label>
                     <select
                       value={formData.unitType}
                       onChange={(e) => setFormData({ ...formData, unitType: e.target.value as UnitType })}
@@ -475,7 +475,7 @@ const UnitMasterList: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Make/Model *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Make/Model *</label>
                     <input
                       type="text"
                       value={formData.makeModel}
@@ -488,7 +488,7 @@ const UnitMasterList: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">VIN No. *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">VIN No. *</label>
                     <input
                       type="text"
                       value={formData.vinNo}
@@ -501,7 +501,7 @@ const UnitMasterList: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">License Plate *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">License Plate *</label>
                     <input
                       type="text"
                       value={formData.licensePlate}
@@ -514,7 +514,7 @@ const UnitMasterList: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Initial Odometer/Hour *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Initial Odometer/Hour *</label>
                     <input
                       type="number"
                       value={formData.initialOdometer}
@@ -529,7 +529,7 @@ const UnitMasterList: React.FC = () => {
                   {activeTab === 'inactive' && (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Date *</label>
+                        <label className="block text-sm font-medium text-primary mb-2">Last Date *</label>
                         <input
                           type="date"
                           value={formData.lastDate}
@@ -541,7 +541,7 @@ const UnitMasterList: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Reason/Comment *</label>
+                        <label className="block text-sm font-medium text-primary mb-2">Reason/Comment *</label>
                         <input
                           type="text"
                           value={formData.reason}
@@ -556,14 +556,14 @@ const UnitMasterList: React.FC = () => {
                     </>
                   )}
                 </div>
-                  <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t mt-6">
+                  <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t mt-6">
                     <button
                       onClick={() => {
                         setShowAddModal(false);
                         setShowEditModal(false);
                         setSelectedUnit(null);
                       }}
-                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     >
                       Cancel
                     </button>
@@ -585,24 +585,24 @@ const UnitMasterList: React.FC = () => {
         {showDeleteModal && selectedUnit && (
           <>
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998]" onClick={() => setShowDeleteModal(false)} />
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-[9999] w-full max-w-md">
+            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card rounded-xl shadow-2xl z-[9999] w-full max-w-md">
               <div className="p-6">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                    <FaExclamationCircle className="text-red-600" size={24} />
+                    <FaExclamationCircle className="text-[#A855F7]" size={24} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">Delete Unit</h3>
-                    <p className="text-sm text-gray-500">This action cannot be undone</p>
+                    <h3 className="text-lg font-bold text-primary">Delete Unit</h3>
+                    <p className="text-sm text-secondary">This action cannot be undone</p>
                   </div>
                 </div>
-                <p className="text-gray-700 mb-6">
+                <p className="text-primary mb-6">
                   Are you sure you want to delete unit <strong>{selectedUnit.unitNo}</strong> ({selectedUnit.makeModel})?
                 </p>
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => setShowDeleteModal(false)}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     Cancel
                   </button>

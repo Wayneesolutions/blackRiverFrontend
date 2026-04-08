@@ -585,15 +585,15 @@ export default function ReceiptsFinancialNotes() {
   };
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF]">
+    <div className="min-h-screen bg-main">
       {/* Header */}
       <div className='p-5'>
-        <div className="bg-white border-b border-gray-200">
+        <div className="bg-card border-b border-theme">
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>📋 Receipts & Financial Notes</h1>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-secondary mt-1">
                   Store and manage digital receipts, and log internal finance comments
                 </p>
               </div>
@@ -601,7 +601,7 @@ export default function ReceiptsFinancialNotes() {
                 {activeTab === 'receipts-archive' && (
                   <button
                     onClick={handleCreateReceipt}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-2"
                   >
                     <Upload className="w-4 h-4" />
                     Upload Receipt
@@ -623,7 +623,7 @@ export default function ReceiptsFinancialNotes() {
 
           {/* Tabs */}
           <div className="px-6">
-            <div className="flex gap-1 border-b border-gray-200">
+            <div className="flex gap-1 border-b border-theme">
               {tabs.map(tab => {
                 const Icon = tab.icon;
                 return (
@@ -632,7 +632,7 @@ export default function ReceiptsFinancialNotes() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === tab.id
                       ? 'border-[#42aeec] text-[#016ab2]'
-                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                      : 'border-transparent text-secondary hover:text-primary hover:border-gray-300'
                       }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -656,7 +656,7 @@ export default function ReceiptsFinancialNotes() {
                     'bg-[#FFF3E0] border-orange-100'
                 }`}>
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-white`}>
+                  <div className={`p-3 rounded-lg bg-card`}>
                     <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[#42aeec]' :
                       card.color === 'green' ? 'text-[#0ea3d8]' :
                         card.color === 'purple' ? 'text-[#1db5f5]' :
@@ -673,13 +673,13 @@ export default function ReceiptsFinancialNotes() {
         </div>
 
         {/* Main Content */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-card rounded-lg shadow">
           {/* Toolbar */}
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-theme">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-3 flex-1">
                 <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-4 h-4" />
                   <input
                     type="text"
                     placeholder={activeTab === 'receipts-archive' ? 'Search by date, amount, payee/vendor, expense type...' : 'Search notes by title, content, user...'}
@@ -699,12 +699,12 @@ export default function ReceiptsFinancialNotes() {
                     ))}
                   </select>
                 )}
-                <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Filter className="w-4 h-4 text-gray-600" />
+                <button className="p-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                  <Filter className="w-4 h-4 text-secondary" />
                 </button>
               </div>
               <div className="flex items-center gap-2">
-                <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+                <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-2">
                   <Download className="w-4 h-4" />
                   Export
                 </button>
@@ -716,27 +716,27 @@ export default function ReceiptsFinancialNotes() {
           {activeTab === 'receipts-archive' && (
             <div className="overflow-x-auto">
               {loading ? (
-                <div className="p-8 text-center text-gray-500">Loading receipts...</div>
+                <div className="p-8 text-center text-secondary">Loading receipts...</div>
               ) : filteredReceipts.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">No receipts found</div>
+                <div className="p-8 text-center text-secondary">No receipts found</div>
               ) : (
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-card border-b border-theme">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preview</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payee/Vendor</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expense Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">File</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Preview</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Amount</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Payee/Vendor</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Expense Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">File</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-gray-200">
                     {filteredReceipts.map(receipt => (
                       <tr 
                         key={receipt._id} 
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedRowItem(receipt);
                           setSelectedRowType('receipt');
@@ -748,21 +748,21 @@ export default function ReceiptsFinancialNotes() {
                             {receipt.thumbnail || '🧾'}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                           <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <Calendar className="w-4 h-4 text-secondary" />
                             {receipt.date}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">
                           <div className="flex items-center gap-2">
                             <DollarSign className="w-4 h-4 text-green-600" />
                             ${receipt.amount.toFixed(2)}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
+                        <td className="px-6 py-4 text-sm text-primary">
                           <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-gray-400" />
+                            <User className="w-4 h-4 text-secondary" />
                             {receipt.payeeVendor}
                           </div>
                         </td>
@@ -775,12 +775,12 @@ export default function ReceiptsFinancialNotes() {
                             {receipt.expenseType}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
+                        <td className="px-6 py-4 text-sm text-secondary">
                           <div className="flex items-center gap-2">
-                            <Paperclip className="w-4 h-4 text-gray-400" />
+                            <Paperclip className="w-4 h-4 text-secondary" />
                             <span className="truncate max-w-xs">{receipt.fileName || 'receipt'}</span>
                             {receipt.fileType && (
-                              <span className="px-1.5 py-0.5 bg-gray-200 text-gray-700 rounded text-xs font-medium">
+                              <span className="px-1.5 py-0.5 bg-gray-200 text-primary rounded text-xs font-medium">
                                 {receipt.fileType}
                               </span>
                             )}
@@ -790,7 +790,7 @@ export default function ReceiptsFinancialNotes() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleViewReceipt(receipt)}
-                              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                              className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
                               title="View Receipt"
                             >
                               <Eye className="w-4 h-4" />
@@ -804,14 +804,14 @@ export default function ReceiptsFinancialNotes() {
                             </button>
                             <button
                               onClick={() => handleEditReceipt(receipt)}
-                              className="p-1 text-gray-600 hover:bg-gray-50 rounded"
+                              className="p-1 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded"
                               title="Edit"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteReceipt(receipt._id)}
-                              className="p-1 text-red-600 hover:bg-red-50 rounded"
+                              className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
                               title="Delete"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -830,48 +830,48 @@ export default function ReceiptsFinancialNotes() {
           {activeTab === 'financial-notes' && (
             <div className="overflow-x-auto">
               {loading ? (
-                <div className="p-8 text-center text-gray-500">Loading notes...</div>
+                <div className="p-8 text-center text-secondary">Loading notes...</div>
               ) : filteredNotes.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">No notes found</div>
+                <div className="p-8 text-center text-secondary">No notes found</div>
               ) : (
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-card border-b border-theme">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Note Title</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Note Content</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Linked Transaction</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Date & Time</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">User</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Note Title</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Note Content</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Linked Transaction</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-gray-200">
                     {filteredNotes.map(note => (
                       <tr 
                         key={note._id} 
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedRowItem(note);
                           setSelectedRowType('note');
                           setShowRowDetailModal(true);
                         }}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                           <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <Calendar className="w-4 h-4 text-secondary" />
                             {note.date}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                           <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-blue-600" />
+                            <User className="w-4 h-4 text-[#00D1FF]" />
                             {note.user}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                        <td className="px-6 py-4 text-sm font-semibold text-primary">
                           {note.noteTitle}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600 max-w-md">
+                        <td className="px-6 py-4 text-sm text-secondary max-w-md">
                           <div className="truncate">{note.noteContent}</div>
                         </td>
                         <td className="px-6 py-4 text-sm">
@@ -883,28 +883,28 @@ export default function ReceiptsFinancialNotes() {
                               </span>
                             </div>
                           ) : (
-                            <span className="text-gray-400 text-xs">No link</span>
+                            <span className="text-secondary text-xs">No link</span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleViewNote(note)}
-                              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                              className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
                               title="View Note"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleEditNote(note)}
-                              className="p-1 text-gray-600 hover:bg-gray-50 rounded"
+                              className="p-1 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded"
                               title="Edit"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteNote(note._id)}
-                              className="p-1 text-red-600 hover:bg-red-50 rounded"
+                              className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
                               title="Delete"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -921,9 +921,9 @@ export default function ReceiptsFinancialNotes() {
         </div>
 
         {/* Info Box */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="mt-6 bg-card border border-blue-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <ImageIcon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <ImageIcon className="w-5 h-5 text-[#00D1FF] flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <h4 className="text-sm font-semibold text-blue-900 mb-1">
                 {activeTab === 'receipts-archive' ? 'Receipt Management' : 'Financial Notes'}
@@ -942,16 +942,16 @@ export default function ReceiptsFinancialNotes() {
       {/* Receipt Modal */}
       {showReceiptModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-card rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">{editingReceipt ? 'Edit Receipt' : 'Upload Receipt'}</h2>
-              <button onClick={() => setShowReceiptModal(false)} className="text-gray-500 hover:text-gray-700">
+              <button onClick={() => setShowReceiptModal(false)} className="text-secondary hover:text-primary">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleSubmitReceipt} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                <label className="block text-sm font-medium text-primary mb-1">Date *</label>
                 <input
                   type="date"
                   value={receiptFormData.date}
@@ -961,7 +961,7 @@ export default function ReceiptsFinancialNotes() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
+                <label className="block text-sm font-medium text-primary mb-1">Amount *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -972,7 +972,7 @@ export default function ReceiptsFinancialNotes() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Payee/Vendor *</label>
+                <label className="block text-sm font-medium text-primary mb-1">Payee/Vendor *</label>
                 <input
                   type="text"
                   value={receiptFormData.payeeVendor}
@@ -982,7 +982,7 @@ export default function ReceiptsFinancialNotes() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Expense Type *</label>
+                <label className="block text-sm font-medium text-primary mb-1">Expense Type *</label>
                 <select
                   value={receiptFormData.expenseType}
                   onChange={(e) => setReceiptFormData({ ...receiptFormData, expenseType: e.target.value as any })}
@@ -995,7 +995,7 @@ export default function ReceiptsFinancialNotes() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-primary mb-1">Description</label>
                 <textarea
                   value={receiptFormData.description}
                   onChange={(e) => setReceiptFormData({ ...receiptFormData, description: e.target.value })}
@@ -1004,7 +1004,7 @@ export default function ReceiptsFinancialNotes() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-primary mb-1">
                   Receipt File {!editingReceipt && '*'}
                 </label>
                 <input
@@ -1029,7 +1029,7 @@ export default function ReceiptsFinancialNotes() {
                 <button
                   type="button"
                   onClick={() => setShowReceiptModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                 >
                   Cancel
                 </button>
@@ -1042,16 +1042,16 @@ export default function ReceiptsFinancialNotes() {
       {/* Note Modal */}
       {showNoteModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-card rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">{editingNote ? 'Edit Note' : 'New Note'}</h2>
-              <button onClick={() => setShowNoteModal(false)} className="text-gray-500 hover:text-gray-700">
+              <button onClick={() => setShowNoteModal(false)} className="text-secondary hover:text-primary">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleSubmitNote} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Note Title *</label>
+                <label className="block text-sm font-medium text-primary mb-1">Note Title *</label>
                 <input
                   type="text"
                   value={noteFormData.noteTitle}
@@ -1061,7 +1061,7 @@ export default function ReceiptsFinancialNotes() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Note Content *</label>
+                <label className="block text-sm font-medium text-primary mb-1">Note Content *</label>
                 <textarea
                   value={noteFormData.noteContent}
                   onChange={(e) => setNoteFormData({ ...noteFormData, noteContent: e.target.value })}
@@ -1071,7 +1071,7 @@ export default function ReceiptsFinancialNotes() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Linked Transaction</label>
+                <label className="block text-sm font-medium text-primary mb-1">Linked Transaction</label>
                 <input
                   type="text"
                   value={noteFormData.linkedTransaction}
@@ -1081,7 +1081,7 @@ export default function ReceiptsFinancialNotes() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Transaction ID</label>
+                <label className="block text-sm font-medium text-primary mb-1">Transaction ID</label>
                 <input
                   type="text"
                   value={noteFormData.linkedTransactionId}
@@ -1101,7 +1101,7 @@ export default function ReceiptsFinancialNotes() {
                 <button
                   type="button"
                   onClick={() => setShowNoteModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                 >
                   Cancel
                 </button>
@@ -1114,7 +1114,7 @@ export default function ReceiptsFinancialNotes() {
       {/* View Modal */}
       {showViewModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-card rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">
                 {viewingReceipt ? 'Receipt Details' : 'Note Details'}
@@ -1126,7 +1126,7 @@ export default function ReceiptsFinancialNotes() {
                   setViewingNote(null);
                   setReceiptViewUrl(null);
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-secondary hover:text-primary"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1134,27 +1134,27 @@ export default function ReceiptsFinancialNotes() {
             {viewingReceipt && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Date</label>
                   <p>{viewingReceipt.date}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Amount</label>
                   <p>${viewingReceipt.amount.toFixed(2)}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Payee/Vendor</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Payee/Vendor</label>
                   <p>{viewingReceipt.payeeVendor}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Expense Type</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Expense Type</label>
                   <p>{viewingReceipt.expenseType}</p>
                 </div>
                 {viewingReceipt && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Receipt</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Receipt</label>
                     {loadingReceiptUrl ? (
-                      <div className="w-full h-96 border border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
-                        <p className="text-gray-500">Loading receipt...</p>
+                      <div className="w-full h-96 border border-gray-300 rounded-lg flex items-center justify-center bg-card">
+                        <p className="text-secondary">Loading receipt...</p>
                       </div>
                     ) : receiptViewUrl ? (
                       <div className="w-full border border-gray-300 rounded-lg overflow-hidden">
@@ -1183,8 +1183,8 @@ export default function ReceiptsFinancialNotes() {
                         )}
                       </div>
                     ) : (
-                      <div className="w-full h-96 border border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
-                        <p className="text-gray-500">Receipt file not available</p>
+                      <div className="w-full h-96 border border-gray-300 rounded-lg flex items-center justify-center bg-card">
+                        <p className="text-secondary">Receipt file not available</p>
                       </div>
                     )}
                   </div>
@@ -1194,24 +1194,24 @@ export default function ReceiptsFinancialNotes() {
             {viewingNote && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Date & Time</label>
                   <p>{viewingNote.date}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">User</label>
+                  <label className="block text-sm font-medium text-primary mb-1">User</label>
                   <p>{viewingNote.user}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Note Title</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Note Title</label>
                   <p>{viewingNote.noteTitle}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Note Content</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Note Content</label>
                   <p className="whitespace-pre-wrap">{viewingNote.noteContent}</p>
                 </div>
                 {viewingNote.linkedTransaction && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Linked Transaction</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Linked Transaction</label>
                     <p>{viewingNote.linkedTransaction}</p>
                   </div>
                 )}
@@ -1224,18 +1224,18 @@ export default function ReceiptsFinancialNotes() {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <div className="flex items-center gap-3 mb-4 text-red-600">
+          <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4 text-[#A855F7]">
               <Trash2 className="w-6 h-6" />
               <h3 className="text-lg font-bold">Confirm Deletion</h3>
             </div>
-            <p className="text-gray-600 mb-6">
+            <p className="text-secondary mb-6">
               Are you sure you want to delete this item? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-primary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>
@@ -1253,9 +1253,9 @@ export default function ReceiptsFinancialNotes() {
       {/* Row Detail Modal */}
       {showRowDetailModal && selectedRowItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">
+          <div className="bg-card rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-primary">
                 {selectedRowType === 'receipt' && 'Receipt Details'}
                 {selectedRowType === 'note' && 'Financial Note Details'}
               </h2>
@@ -1265,7 +1265,7 @@ export default function ReceiptsFinancialNotes() {
                   setSelectedRowItem(null);
                   setSelectedRowType(null);
                 }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-secondary hover:text-secondary transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -1276,10 +1276,10 @@ export default function ReceiptsFinancialNotes() {
               {selectedRowType === 'receipt' && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <div className="bg-card p-4 rounded-lg border border-blue-200">
                       <label className="text-sm font-medium text-blue-900 mb-1 block">Date</label>
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-blue-600" />
+                        <Calendar className="w-5 h-5 text-[#00D1FF]" />
                         <p className="text-lg font-semibold text-blue-700">{(selectedRowItem as ReceiptData).date}</p>
                       </div>
                     </div>
@@ -1292,15 +1292,15 @@ export default function ReceiptsFinancialNotes() {
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">Payee/Vendor</label>
+                  <div className="bg-card p-4 rounded-lg border border-theme">
+                    <label className="text-sm font-medium text-primary mb-1 block">Payee/Vendor</label>
                     <div className="flex items-center gap-2">
-                      <User className="w-5 h-5 text-gray-600" />
-                      <p className="text-lg font-semibold text-gray-900">{(selectedRowItem as ReceiptData).payeeVendor}</p>
+                      <User className="w-5 h-5 text-secondary" />
+                      <p className="text-lg font-semibold text-primary">{(selectedRowItem as ReceiptData).payeeVendor}</p>
                     </div>
                   </div>
 
-                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <div className="bg-card p-4 rounded-lg border border-purple-200">
                     <label className="text-sm font-medium text-purple-900 mb-2 block">Expense Type</label>
                     <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
                       (selectedRowItem as ReceiptData).expenseType === 'Fuel' ? 'bg-blue-100 text-blue-800 border-blue-300' :
@@ -1331,7 +1331,7 @@ export default function ReceiptsFinancialNotes() {
                   {(selectedRowItem as ReceiptData).uploadedBy && (
                     <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
                       <label className="text-sm font-medium text-amber-900 mb-1 block">Uploaded By</label>
-                      <p className="text-gray-900">{(selectedRowItem as ReceiptData).uploadedBy?.name || (selectedRowItem as ReceiptData).uploadedBy?.email}</p>
+                      <p className="text-primary">{(selectedRowItem as ReceiptData).uploadedBy?.name || (selectedRowItem as ReceiptData).uploadedBy?.email}</p>
                     </div>
                   )}
                 </div>
@@ -1341,14 +1341,14 @@ export default function ReceiptsFinancialNotes() {
               {selectedRowType === 'note' && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <div className="bg-card p-4 rounded-lg border border-blue-200">
                       <label className="text-sm font-medium text-blue-900 mb-1 block">Date & Time</label>
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-blue-600" />
+                        <Calendar className="w-5 h-5 text-[#00D1FF]" />
                         <p className="text-sm font-semibold text-blue-700">{(selectedRowItem as FinancialNoteData).date}</p>
                       </div>
                     </div>
-                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <div className="bg-card p-4 rounded-lg border border-purple-200">
                       <label className="text-sm font-medium text-purple-900 mb-1 block">Created By</label>
                       <div className="flex items-center gap-2">
                         <User className="w-5 h-5 text-purple-600" />
@@ -1362,9 +1362,9 @@ export default function ReceiptsFinancialNotes() {
                     <p className="text-xl font-semibold text-green-700">{(selectedRowItem as FinancialNoteData).noteTitle}</p>
                   </div>
 
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">Note Content</label>
-                    <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">{(selectedRowItem as FinancialNoteData).noteContent}</p>
+                  <div className="bg-card p-4 rounded-lg border border-theme">
+                    <label className="text-sm font-medium text-primary mb-2 block">Note Content</label>
+                    <p className="text-primary whitespace-pre-wrap leading-relaxed">{(selectedRowItem as FinancialNoteData).noteContent}</p>
                   </div>
 
                   {(selectedRowItem as FinancialNoteData).linkedTransaction && (
@@ -1382,7 +1382,7 @@ export default function ReceiptsFinancialNotes() {
               )}
             </div>
 
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
+            <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4">
               <button
                 onClick={() => {
                   setShowRowDetailModal(false);

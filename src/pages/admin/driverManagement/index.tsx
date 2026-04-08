@@ -279,7 +279,7 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-4 bg-[#EDF8FF] px-6 flex items-center justify-center">
+      <div className="min-h-screen p-4 bg-main px-6 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-500"></div>
       </div>
     );
@@ -287,7 +287,7 @@ const Index = () => {
 
   return (
     <>
-    <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+    <div className="min-h-screen" >
      <div className="w-full mx-auto p-2 relative">
         {/* Gradient band */}
         <div
@@ -328,15 +328,15 @@ const Index = () => {
                   <div className="flex items-start justify-between mb-2">
                     {/* Left side content */}
                     <div className="flex-1">
-                      <h3 className="text-sm font-bold text-gray-900 mb-1">
+                      <h3 className="text-sm font-bold text-primary mb-1">
                         {feature.title}
                       </h3>
 
                       <div className="flex items-baseline gap-2 mb-0.5">
-                        <span className="text-xl font-bold text-gray-900">{feature.value}</span>
+                        <span className="text-xl font-bold text-primary">{feature.value}</span>
                       </div>
 
-                      <p className="text-xs text-gray-400">{feature.subtitle}</p>
+                      <p className="text-xs text-secondary">{feature.subtitle}</p>
                     </div>
 
                     {/* Right side icon */}
@@ -350,8 +350,8 @@ const Index = () => {
           </div>
 
           {/* Quick Actions Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6 mb-4">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions & Overview</h2>
+          <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6 mb-4">
+            <h2 className="text-lg font-bold text-primary mb-4">Quick Actions & Overview</h2>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
               {quickActions.map((action) => {
@@ -360,18 +360,18 @@ const Index = () => {
                   <div
                     key={action.id}
                     onClick={() => navigate(action.path)}
-                    className="group p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
+                    className="group p-4 rounded-xl border border-theme hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <div className={`${action.bgColor} group-hover:bg-white p-2 rounded-lg transition-colors`}>
+                      <div className={`${action.bgColor} group-hover:bg-card p-2 rounded-lg transition-colors`}>
                         <Icon className={`h-5 w-5 ${action.iconColor}`} />
                       </div>
-                      <span className="text-lg font-bold text-gray-900 group-hover:text-blue-700">
+                      <span className="text-lg font-bold text-primary group-hover:text-blue-700">
                         {action.value}
                       </span>
                     </div>
-                    <p className="text-sm font-medium text-gray-700 group-hover:text-blue-800">{action.title}</p>
-                    <p className="text-xs text-gray-500 mt-1 group-hover:text-blue-600">{action.subtitle}</p>
+                    <p className="text-sm font-medium text-primary group-hover:text-blue-800">{action.title}</p>
+                    <p className="text-xs text-secondary mt-1 group-hover:text-[#00D1FF]">{action.subtitle}</p>
                   </div>
                 );
               })}
@@ -381,10 +381,10 @@ const Index = () => {
           {/* Additional Information Sections */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Upcoming Birthdays */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6">
+            <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Gift className="h-5 w-5 text-pink-600" />
-                <h2 className="text-lg font-bold text-gray-900">Upcoming Birthdays</h2>
+                <h2 className="text-lg font-bold text-primary">Upcoming Birthdays</h2>
               </div>
               <div className="space-y-3">
                 {dashboardStats?.upcomingBirthdays && dashboardStats.upcomingBirthdays.length > 0 ? (
@@ -405,8 +405,8 @@ const Index = () => {
                     return (
                       <div key={index} className="flex items-center justify-between p-3 bg-pink-50 rounded-lg border border-pink-100">
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">{birthday.name || 'Unknown'}</p>
-                          <p className="text-xs text-gray-600">
+                          <p className="text-sm font-semibold text-primary">{birthday.name || 'Unknown'}</p>
+                          <p className="text-xs text-secondary">
                             {birthdayDate && !isNaN(birthdayDate.getTime()) 
                               ? birthdayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                               : birthday.birthday 
@@ -423,7 +423,7 @@ const Index = () => {
                     );
                   })
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-secondary">
                     <p className="text-sm">No upcoming birthdays in the next 30 days</p>
                   </div>
                 )}
@@ -432,10 +432,10 @@ const Index = () => {
 
             {/* Upcoming Work Anniversaries */}
             {(dashboardStats?.upcomingWorkAnniversaries && dashboardStats.upcomingWorkAnniversaries.length > 0) ? (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6">
+              <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Award className="h-5 w-5 text-amber-600" />
-                  <h2 className="text-lg font-bold text-gray-900">Work Anniversaries</h2>
+                  <h2 className="text-lg font-bold text-primary">Work Anniversaries</h2>
                 </div>
                 <div className="space-y-3">
                   {dashboardStats.upcomingWorkAnniversaries.slice(0, 5).map((anniversary, index) => {
@@ -449,8 +449,8 @@ const Index = () => {
                     return (
                       <div key={index} className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-100">
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">{anniversary.name || 'Unknown'}</p>
-                          <p className="text-xs text-gray-600">
+                          <p className="text-sm font-semibold text-primary">{anniversary.name || 'Unknown'}</p>
+                          <p className="text-xs text-secondary">
                             {anniversary.yearsOfService || 0} {(anniversary.yearsOfService || 0) === 1 ? 'year' : 'years'} • {anniversaryDate && !isNaN(anniversaryDate.getTime())
                               ? anniversaryDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                               : 'Date not available'}
@@ -467,12 +467,12 @@ const Index = () => {
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6">
+              <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Award className="h-5 w-5 text-amber-600" />
-                  <h2 className="text-lg font-bold text-gray-900">Upcoming Work Anniversaries</h2>
+                  <h2 className="text-lg font-bold text-primary">Upcoming Work Anniversaries</h2>
                 </div>
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-secondary">
                   <p className="text-sm">No upcoming work anniversaries</p>
                 </div>
               </div>
@@ -481,19 +481,19 @@ const Index = () => {
 
           {/* Document Expiry Tracking */}
           {(dashboardStats?.documentExpiryTracking && dashboardStats.documentExpiryTracking.length > 0) ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6 mt-4">
+            <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6 mt-4">
               <div className="flex items-center gap-2 mb-4">
-                <Calendar className="h-5 w-5 text-orange-600" />
-                <h2 className="text-lg font-bold text-gray-900">Document Expiry Tracking</h2>
+                <Calendar className="h-5 w-5 text-[#F59E0B]" />
+                <h2 className="text-lg font-bold text-primary">Document Expiry Tracking</h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-card">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Employee</th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Document Type</th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Expiry Date</th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">Employee</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">Document Type</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">Expiry Date</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -506,10 +506,10 @@ const Index = () => {
                         : null;
                       
                       return (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm text-gray-900">{doc.employeeOrDriverName || 'Unknown'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{doc.documentType || 'N/A'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
+                        <tr key={index} className="hover:bg-[rgba(255,255,255,0.03)]">
+                          <td className="px-4 py-3 text-sm text-primary">{doc.employeeOrDriverName || 'Unknown'}</td>
+                          <td className="px-4 py-3 text-sm text-secondary">{doc.documentType || 'N/A'}</td>
+                          <td className="px-4 py-3 text-sm text-secondary">
                             {expiryDate && !isNaN(expiryDate.getTime())
                               ? expiryDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                               : 'Date not available'}
@@ -539,12 +539,12 @@ const Index = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6 mt-4">
+            <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6 mt-4">
               <div className="flex items-center gap-2 mb-4">
-                <Calendar className="h-5 w-5 text-orange-600" />
-                <h2 className="text-lg font-bold text-gray-900">Document Expiry Tracking</h2>
+                <Calendar className="h-5 w-5 text-[#F59E0B]" />
+                <h2 className="text-lg font-bold text-primary">Document Expiry Tracking</h2>
               </div>
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-secondary">
                 <p className="text-sm">No document expiry records available</p>
               </div>
             </div>

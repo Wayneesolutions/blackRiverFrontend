@@ -654,22 +654,22 @@ const MonthlyReport: React.FC = () => {
 
     if (total === 0) {
       return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">{title}</h3>
+        <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
+          <h3 className="text-lg font-bold text-primary mb-4">{title}</h3>
           <div className="flex items-center justify-center h-64">
-            <p className="text-gray-500">No data available</p>
+            <p className="text-secondary">No data available</p>
           </div>
         </div>
       );
     }
 
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">{title}</h3>
+      <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
+        <h3 className="text-lg font-bold text-primary mb-4">{title}</h3>
         <div className="flex items-center justify-center">
           <div className="relative w-64 h-64">
             {/* Simple pie chart representation */}
-            <div className="absolute inset-0 rounded-full border-8 border-gray-200"></div>
+            <div className="absolute inset-0 rounded-full border-8 border-theme"></div>
             {data.datasets[0]?.data.map((value, index) => {
               const percentage = (value / total) * 100;
               const rotation = data.datasets[0]?.data.slice(0, index).reduce((sum, v) => sum + (v / total) * 360, 0) || 0;
@@ -686,8 +686,8 @@ const MonthlyReport: React.FC = () => {
             })}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-800">{total}</div>
-                <div className="text-sm text-gray-600">Total</div>
+                <div className="text-2xl font-bold text-primary">{total}</div>
+                <div className="text-sm text-secondary">Total</div>
               </div>
             </div>
           </div>
@@ -700,9 +700,9 @@ const MonthlyReport: React.FC = () => {
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: data.datasets[0].backgroundColor[index] }}
                 ></div>
-                <span className="text-sm text-gray-700">{label}</span>
+                <span className="text-sm text-primary">{label}</span>
               </div>
-              <span className="text-sm font-semibold text-gray-800">
+              <span className="text-sm font-semibold text-primary">
                 {data.datasets[0].data[index]} ({((data.datasets[0].data[index] / total) * 100).toFixed(1)}%)
               </span>
             </div>
@@ -718,18 +718,18 @@ const MonthlyReport: React.FC = () => {
 
     if (total === 0) {
       return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">{title}</h3>
+        <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
+          <h3 className="text-lg font-bold text-primary mb-4">{title}</h3>
           <div className="flex items-center justify-center h-64">
-            <p className="text-gray-500">No data available</p>
+            <p className="text-secondary">No data available</p>
           </div>
         </div>
       );
     }
 
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">{title}</h3>
+      <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
+        <h3 className="text-lg font-bold text-primary mb-4">{title}</h3>
         <div className="space-y-4">
           {data.labels.map((label, index) => {
             const value = data.datasets[0]?.data[index] || 0;
@@ -738,8 +738,8 @@ const MonthlyReport: React.FC = () => {
             return (
               <div key={index} className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-700">{label}</span>
-                  <span className="text-sm font-semibold text-gray-800">{value}</span>
+                  <span className="text-sm font-medium text-primary">{label}</span>
+                  <span className="text-sm font-semibold text-primary">{value}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
@@ -781,13 +781,13 @@ const MonthlyReport: React.FC = () => {
     });
 
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+      <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+          <h3 className="text-lg font-bold text-primary">{title}</h3>
           <div className="flex items-center gap-3 text-xs">
             <div className="flex items-center gap-1">
               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: data.datasets[0]?.backgroundColor[0] }}></span>
-              <span className="text-gray-600">{data.datasets[0]?.label}</span>
+              <span className="text-secondary">{data.datasets[0]?.label}</span>
             </div>
           </div>
         </div>
@@ -1011,16 +1011,16 @@ const MonthlyReport: React.FC = () => {
     return (
       <div
         onClick={onClick}
-        className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+        className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
       >
         <div className="flex items-start justify-between mb-2">
           {/* Left side content */}
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-gray-900 mb-1">{title}</h3>
+            <h3 className="text-sm font-bold text-primary mb-1">{title}</h3>
             <div className="flex items-baseline gap-2 mb-0.5">
-              <span className="text-xl font-bold text-gray-900">{value}</span>
+              <span className="text-xl font-bold text-primary">{value}</span>
             </div>
-            {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
+            {subtitle && <p className="text-xs text-secondary">{subtitle}</p>}
           </div>
 
           {/* Right side icon */}
@@ -1038,41 +1038,41 @@ const MonthlyReport: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-6 animate-fade-in">
+          <div className="bg-card rounded-lg shadow-2xl max-w-2xl w-full p-6 animate-fade-in">
             <div className="flex items-start gap-4 mb-6">
               <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                <FaExclamationTriangle className="text-red-600" size={24} />
+                <FaExclamationTriangle className="text-[#A855F7]" size={24} />
               </div>
               <div className="flex-1">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Confirm Permanent Deletion</h3>
-                <p className="text-gray-700 mb-4">
-                  You are about to <strong className="text-red-600">permanently delete</strong> the following data:
+                <h3 className="text-2xl font-bold text-primary mb-2">Confirm Permanent Deletion</h3>
+                <p className="text-primary mb-4">
+                  You are about to <strong className="text-[#A855F7]">permanently delete</strong> the following data:
                 </p>
                 {oldData && (
-                  <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-4">
+                  <div className="bg-card border-2 border-red-200 rounded-lg p-4 mb-4">
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-center justify-between">
-                        <span className="font-medium text-gray-700">CVSA Inspections:</span>
+                        <span className="font-medium text-primary">CVSA Inspections:</span>
                         <span className="font-bold text-red-700">{oldData.inspections.total} records</span>
                       </li>
                       <li className="flex items-center justify-between">
-                        <span className="font-medium text-gray-700">Traffic Tickets:</span>
+                        <span className="font-medium text-primary">Traffic Tickets:</span>
                         <span className="font-bold text-red-700">{oldData.tickets.total} records</span>
                       </li>
                       <li className="flex items-center justify-between border-t border-red-300 pt-2 mt-2">
-                        <span className="font-bold text-gray-900">Total Records:</span>
+                        <span className="font-bold text-primary">Total Records:</span>
                         <span className="font-bold text-red-900 text-lg">{oldData.inspections.total + oldData.tickets.total}</span>
                       </li>
                       <li className="flex items-center justify-between">
-                        <span className="font-medium text-gray-700">Cutoff Date:</span>
-                        <span className="font-semibold text-gray-900">{new Date(oldData.cutoffDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                        <span className="font-medium text-primary">Cutoff Date:</span>
+                        <span className="font-semibold text-primary">{new Date(oldData.cutoffDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                       </li>
                     </ul>
                   </div>
                 )}
-                <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+                <div className="bg-card border-2 border-yellow-300 rounded-lg p-4">
                   <p className="text-sm text-yellow-900 font-semibold flex items-start gap-2">
-                    <FaExclamationCircle className="text-yellow-600 mt-0.5 flex-shrink-0" size={16} />
+                    <FaExclamationCircle className="text-[#00FFA3] mt-0.5 flex-shrink-0" size={16} />
                     <span>This action cannot be undone. All selected records will be permanently removed from the database.</span>
                   </p>
                 </div>
@@ -1082,7 +1082,7 @@ const MonthlyReport: React.FC = () => {
               <button
                 onClick={cancelDelete}
                 disabled={isDeleting}
-                className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50"
+                className="px-6 py-2.5 bg-gray-200 text-primary rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -1114,12 +1114,12 @@ const MonthlyReport: React.FC = () => {
           <div className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-2xl ${
             deleteMessage.type === 'success' 
               ? 'bg-green-50 border-2 border-green-500' 
-              : 'bg-red-50 border-2 border-red-500'
+              : 'bg-card border-2 border-red-500'
           }`}>
             {deleteMessage.type === 'success' ? (
               <FaCheckCircle className="text-green-600 flex-shrink-0" size={24} />
             ) : (
-              <FaTimesCircle className="text-red-600 flex-shrink-0" size={24} />
+              <FaTimesCircle className="text-[#A855F7] flex-shrink-0" size={24} />
             )}
             <div className="flex-1">
               <p className={`font-semibold ${
@@ -1130,7 +1130,7 @@ const MonthlyReport: React.FC = () => {
             </div>
             <button
               onClick={() => setDeleteMessage(null)}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-secondary hover:text-primary"
             >
               <FaTimesCircle size={18} />
             </button>
@@ -1144,12 +1144,12 @@ const MonthlyReport: React.FC = () => {
           <div className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-2xl ${
             uploadMessage.type === 'success' 
               ? 'bg-green-50 border-2 border-green-500' 
-              : 'bg-red-50 border-2 border-red-500'
+              : 'bg-card border-2 border-red-500'
           }`}>
             {uploadMessage.type === 'success' ? (
               <FaCheckCircle className="text-green-600 flex-shrink-0" size={24} />
             ) : (
-              <FaTimesCircle className="text-red-600 flex-shrink-0" size={24} />
+              <FaTimesCircle className="text-[#A855F7] flex-shrink-0" size={24} />
             )}
             <div className="flex-1">
               <p className={`font-semibold ${
@@ -1160,7 +1160,7 @@ const MonthlyReport: React.FC = () => {
             </div>
             <button
               onClick={() => setUploadMessage(null)}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-secondary hover:text-primary"
             >
               <FaTimesCircle size={18} />
             </button>
@@ -1171,16 +1171,16 @@ const MonthlyReport: React.FC = () => {
       {/* Extracted Data Review Modal */}
       {showExtractedDataModal && extractedData && (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0)' }}>
-          <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border-2 border-gray-300">
+          <div className="bg-card rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border-2 border-gray-300">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+            <div className="px-6 py-4 border-b border-theme flex items-center justify-between bg-card">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Review Extracted Data</h2>
-                <p className="text-sm text-gray-600 mt-1">Please review the extracted data before saving</p>
+                <h2 className="text-xl font-bold text-primary">Review Extracted Data</h2>
+                <p className="text-sm text-secondary mt-1">Please review the extracted data before saving</p>
               </div>
               <button
                 onClick={handleCancelSave}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-secondary hover:text-secondary transition-colors"
                 disabled={isSaving}
               >
                 <FaTimesCircle size={24} />
@@ -1189,9 +1189,9 @@ const MonthlyReport: React.FC = () => {
 
             {/* Duplicate Warnings */}
             {duplicateWarnings && duplicateWarnings.length > 0 && (
-              <div className="px-6 py-3 bg-yellow-50 border-b border-yellow-200">
+              <div className="px-6 py-3 bg-card border-b border-yellow-200">
                 <div className="flex items-start gap-3">
-                  <FaExclamationTriangle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
+                  <FaExclamationTriangle className="text-[#00FFA3] flex-shrink-0 mt-0.5" size={20} />
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-yellow-900 mb-1">
                       Duplicate Warnings ({duplicateWarnings.length})
@@ -1201,7 +1201,7 @@ const MonthlyReport: React.FC = () => {
                         <li key={index}>• {warning}</li>
                       ))}
                       {duplicateWarnings.length > 5 && (
-                        <li className="text-yellow-600 italic">... and {duplicateWarnings.length - 5} more</li>
+                        <li className="text-[#00FFA3] italic">... and {duplicateWarnings.length - 5} more</li>
                       )}
                     </ul>
                     <p className="text-xs text-yellow-700 mt-2 font-medium">
@@ -1307,64 +1307,64 @@ const MonthlyReport: React.FC = () => {
                 
                 return (
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
                       <FaChartBar /> Summary Statistics
                     </h3>
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="bg-card rounded-lg p-4 border border-theme">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                        <div className="bg-white rounded p-3 border border-gray-200">
-                          <p className="text-sm text-gray-600 mb-1">Total Inspections</p>
-                          <p className="text-2xl font-bold text-gray-900">{extractedData.summary.totalInspections || 0}</p>
+                        <div className="bg-card rounded p-3 border border-theme">
+                          <p className="text-sm text-secondary mb-1">Total Inspections</p>
+                          <p className="text-2xl font-bold text-primary">{extractedData.summary.totalInspections || 0}</p>
                         </div>
-                        <div className="bg-white rounded p-3 border border-gray-200">
-                          <p className="text-sm text-gray-600 mb-1">Pass</p>
+                        <div className="bg-card rounded p-3 border border-theme">
+                          <p className="text-sm text-secondary mb-1">Pass</p>
                           <p className="text-2xl font-bold text-green-600">{extractedData.summary.totalPass || 0}</p>
                         </div>
-                        <div className="bg-white rounded p-3 border border-gray-200">
-                          <p className="text-sm text-gray-600 mb-1">Fail</p>
-                          <p className="text-2xl font-bold text-red-600">{extractedData.summary.totalFail || 0}</p>
+                        <div className="bg-card rounded p-3 border border-theme">
+                          <p className="text-sm text-secondary mb-1">Fail</p>
+                          <p className="text-2xl font-bold text-[#A855F7]">{extractedData.summary.totalFail || 0}</p>
                         </div>
-                        <div className="bg-white rounded p-3 border border-gray-200">
-                          <p className="text-sm text-gray-600 mb-1">Out of Service</p>
-                          <p className="text-2xl font-bold text-orange-600">{extractedData.summary.totalOutOfService || 0}</p>
+                        <div className="bg-card rounded p-3 border border-theme">
+                          <p className="text-sm text-secondary mb-1">Out of Service</p>
+                          <p className="text-2xl font-bold text-[#F59E0B]">{extractedData.summary.totalOutOfService || 0}</p>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                         {extractedData.summary.totalWarning !== undefined && extractedData.summary.totalWarning > 0 && (
-                          <div className="bg-white rounded p-3 border border-gray-200">
-                            <p className="text-sm text-gray-600 mb-1">Warning</p>
-                            <p className="text-xl font-bold text-yellow-600">{extractedData.summary.totalWarning || 0}</p>
+                          <div className="bg-card rounded p-3 border border-theme">
+                            <p className="text-sm text-secondary mb-1">Warning</p>
+                            <p className="text-xl font-bold text-[#00FFA3]">{extractedData.summary.totalWarning || 0}</p>
                           </div>
                         )}
-                        <div className="bg-white rounded p-3 border border-gray-200">
-                          <p className="text-sm text-gray-600 mb-1 flex items-center gap-2">
+                        <div className="bg-card rounded p-3 border border-theme">
+                          <p className="text-sm text-secondary mb-1 flex items-center gap-2">
                             <FaFlag /> Canada Inspections
                           </p>
-                          <p className="text-xl font-bold text-blue-600">{canadaCount}</p>
+                          <p className="text-xl font-bold text-[#00D1FF]">{canadaCount}</p>
                           {canadaCount === 0 && usaCount === 0 && (!extractedData.inspections || extractedData.inspections.length === 0) && (
-                            <p className="text-xs text-orange-600 mt-1 italic">⚠️ Individual inspections not extracted - cannot calculate country breakdown</p>
+                            <p className="text-xs text-[#F59E0B] mt-1 italic">⚠️ Individual inspections not extracted - cannot calculate country breakdown</p>
                           )}
                           {canadaCount === 0 && usaCount === 0 && extractedData.inspections && extractedData.inspections.length > 0 && (
-                            <p className="text-xs text-gray-500 mt-1 italic">Country not specified in document</p>
+                            <p className="text-xs text-secondary mt-1 italic">Country not specified in document</p>
                           )}
                         </div>
-                        <div className="bg-white rounded p-3 border border-gray-200">
-                          <p className="text-sm text-gray-600 mb-1 flex items-center gap-2">
+                        <div className="bg-card rounded p-3 border border-theme">
+                          <p className="text-sm text-secondary mb-1 flex items-center gap-2">
                             <FaFlagUsa /> USA Inspections
                           </p>
-                          <p className="text-xl font-bold text-blue-600">{usaCount}</p>
+                          <p className="text-xl font-bold text-[#00D1FF]">{usaCount}</p>
                           {canadaCount === 0 && usaCount === 0 && (!extractedData.inspections || extractedData.inspections.length === 0) && (
-                            <p className="text-xs text-orange-600 mt-1 italic">⚠️ Individual inspections not extracted - cannot calculate country breakdown</p>
+                            <p className="text-xs text-[#F59E0B] mt-1 italic">⚠️ Individual inspections not extracted - cannot calculate country breakdown</p>
                           )}
                           {canadaCount === 0 && usaCount === 0 && extractedData.inspections && extractedData.inspections.length > 0 && (
-                            <p className="text-xs text-gray-500 mt-1 italic">Country not specified in document</p>
+                            <p className="text-xs text-secondary mt-1 italic">Country not specified in document</p>
                           )}
                         </div>
                       </div>
                       {extractedData.summary.period && (
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                          <p className="text-sm text-gray-600 mb-1">Period</p>
-                          <p className="text-lg font-semibold text-gray-900">{extractedData.summary.period}</p>
+                        <div className="mt-4 pt-4 border-t border-theme">
+                          <p className="text-sm text-secondary mb-1">Period</p>
+                          <p className="text-lg font-semibold text-primary">{extractedData.summary.period}</p>
                         </div>
                       )}
                     </div>
@@ -1375,20 +1375,20 @@ const MonthlyReport: React.FC = () => {
               {/* Inspections List */}
               {extractedData.inspections && Array.isArray(extractedData.inspections) && extractedData.inspections.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
                     <FaTruck /> Individual Inspections ({extractedData.inspections.length})
                   </h3>
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 max-h-96 overflow-y-auto">
+                  <div className="bg-card rounded-lg p-4 border border-theme max-h-96 overflow-y-auto">
                     <div className="space-y-3">
                       {extractedData.inspections.map((inspection: any, index: number) => (
-                        <div key={index} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                        <div key={index} className="bg-card rounded-lg p-4 border border-theme shadow-sm">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-3">
-                              <span className="font-semibold text-gray-900">
+                              <span className="font-semibold text-primary">
                                 {inspection.inspectionId || `Inspection ${index + 1}`}
                               </span>
                               {inspection.reportNumber && (
-                                <span className="text-sm text-gray-500">Report #: {inspection.reportNumber}</span>
+                                <span className="text-sm text-secondary">Report #: {inspection.reportNumber}</span>
                               )}
                             </div>
                             <span className={`px-3 py-1 rounded text-xs font-semibold ${
@@ -1403,64 +1403,64 @@ const MonthlyReport: React.FC = () => {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                             <div>
                               {inspection.date && (
-                                <p className="text-gray-600">
+                                <p className="text-secondary">
                                   <span className="font-medium">Date:</span> {new Date(inspection.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                                 </p>
                               )}
                               {inspection.location && (
-                                <p className="text-gray-600 mt-1">
+                                <p className="text-secondary mt-1">
                                   <span className="font-medium">Location:</span> {inspection.location}
                                 </p>
                               )}
                               {inspection.country && (
-                                <p className="text-gray-600 mt-1">
+                                <p className="text-secondary mt-1">
                                   <span className="font-medium">Country:</span> {inspection.country.toUpperCase()}
                                 </p>
                               )}
                             </div>
                             <div>
                               {inspection.inspectionType && (
-                                <p className="text-gray-600">
+                                <p className="text-secondary">
                                   <span className="font-medium">Type:</span> {inspection.inspectionType.replace('-', ' ').toUpperCase()}
                                 </p>
                               )}
                               {inspection.inspectorName && (
-                                <p className="text-gray-600 mt-1">
+                                <p className="text-secondary mt-1">
                                   <span className="font-medium">Inspector:</span> {inspection.inspectorName}
                                 </p>
                               )}
                               {inspection.driverName && (
-                                <p className="text-gray-600 mt-1">
+                                <p className="text-secondary mt-1">
                                   <span className="font-medium">Driver:</span> {inspection.driverName}
                                 </p>
                               )}
                               {inspection.vehicleUnitNo && (
-                                <p className="text-gray-600 mt-1">
+                                <p className="text-secondary mt-1">
                                   <span className="font-medium">Vehicle:</span> {inspection.vehicleUnitNo}
                                 </p>
                               )}
                             </div>
                           </div>
                           {inspection.violations && Array.isArray(inspection.violations) && inspection.violations.length > 0 && (
-                            <div className="mt-3 pt-3 border-t border-gray-200">
-                              <p className="text-sm font-medium text-gray-700 mb-2">Violations ({inspection.violations.length}):</p>
+                            <div className="mt-3 pt-3 border-t border-theme">
+                              <p className="text-sm font-medium text-primary mb-2">Violations ({inspection.violations.length}):</p>
                               <div className="space-y-1">
                                 {inspection.violations.slice(0, 3).map((violation: any, vIndex: number) => (
-                                  <p key={vIndex} className="text-xs text-gray-600">
+                                  <p key={vIndex} className="text-xs text-secondary">
                                     • {violation.code || 'N/A'}: {violation.description || 'No description'} 
-                                    {violation.severity && <span className="ml-2 text-orange-600">({violation.severity})</span>}
+                                    {violation.severity && <span className="ml-2 text-[#F59E0B]">({violation.severity})</span>}
                                   </p>
                                 ))}
                                 {inspection.violations.length > 3 && (
-                                  <p className="text-xs text-gray-500 italic">... and {inspection.violations.length - 3} more violations</p>
+                                  <p className="text-xs text-secondary italic">... and {inspection.violations.length - 3} more violations</p>
                                 )}
                               </div>
                             </div>
                           )}
                           {inspection.notes && (
-                            <div className="mt-3 pt-3 border-t border-gray-200">
-                              <p className="text-sm font-medium text-gray-700 mb-1">Notes:</p>
-                              <p className="text-xs text-gray-600">{inspection.notes}</p>
+                            <div className="mt-3 pt-3 border-t border-theme">
+                              <p className="text-sm font-medium text-primary mb-1">Notes:</p>
+                              <p className="text-xs text-secondary">{inspection.notes}</p>
                             </div>
                           )}
                         </div>
@@ -1471,19 +1471,19 @@ const MonthlyReport: React.FC = () => {
               )}
 
               {(!extractedData.summary && (!extractedData.inspections || extractedData.inspections.length === 0)) && (
-                <div className="text-center py-8 text-gray-500">
-                  <FaInfoCircle size={48} className="mx-auto mb-4 text-gray-400" />
+                <div className="text-center py-8 text-secondary">
+                  <FaInfoCircle size={48} className="mx-auto mb-4 text-secondary" />
                   <p>No data extracted from the document.</p>
                 </div>
               )}
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3 bg-gray-50">
+            <div className="px-6 py-4 border-t border-theme flex items-center justify-end gap-3 bg-card">
               <button
                 onClick={handleCancelSave}
                 disabled={isSaving}
-                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 bg-gray-200 text-primary rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
@@ -1509,7 +1509,7 @@ const MonthlyReport: React.FC = () => {
         </div>
       )}
 
-    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
+    <div className="min-h-screen pb-10" >
       <div className="relative w-full mx-auto p-2">
 
 
@@ -1549,7 +1549,7 @@ const MonthlyReport: React.FC = () => {
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors shadow-sm ${
                     oldData && (oldData.inspections.total > 0 || oldData.tickets.total > 0)
                       ? 'bg-red-600 text-white hover:bg-red-700'
-                      : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                      : 'bg-gray-300 text-secondary cursor-not-allowed'
                   }`}
                   title={
                     oldData && (oldData.inspections.total > 0 || oldData.tickets.total > 0)
@@ -1567,13 +1567,13 @@ const MonthlyReport: React.FC = () => {
           </div>
 
           {/* Country Tabs */}
-          <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-            <div className="flex gap-2 border-b border-gray-100 pb-4">
+          <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme p-4">
+            <div className="flex gap-2 border-b border-theme pb-4">
               <button
                 onClick={() => setSelectedCountry('all')}
                 className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${selectedCountry === 'all'
                   ? 'bg-[#E0F2FE] text-[#0284C7]'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                   }`}
               >
                 All
@@ -1582,20 +1582,20 @@ const MonthlyReport: React.FC = () => {
                 onClick={() => setSelectedCountry('canada')}
                 className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${selectedCountry === 'canada'
                   ? 'bg-[#E0F2FE] text-[#0284C7]'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                   }`}
               >
-                <FaFlag className="text-red-600" size={14} />
+                <FaFlag className="text-[#A855F7]" size={14} />
                 Canada
               </button>
               <button
                 onClick={() => setSelectedCountry('usa')}
                 className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${selectedCountry === 'usa'
                   ? 'bg-[#E0F2FE] text-[#0284C7]'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                   }`}
               >
-                <FaFlagUsa className="text-blue-600" size={14} />
+                <FaFlagUsa className="text-[#00D1FF]" size={14} />
                 USA
               </button>
             </div>
@@ -1607,11 +1607,11 @@ const MonthlyReport: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-blue-100 rounded-lg">
-                    <FaTachometerAlt className="text-blue-600" size={24} />
+                    <FaTachometerAlt className="text-[#00D1FF]" size={24} />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">Carrier Performance Dashboard</h2>
-                    <p className="text-sm text-gray-600">Automatically tracked from carrier profile documents</p>
+                    <h2 className="text-xl font-bold text-primary">Carrier Performance Dashboard</h2>
+                    <p className="text-sm text-secondary">Automatically tracked from carrier profile documents</p>
                   </div>
                 </div>
                 {carrierPerformance.trends && (
@@ -1620,7 +1620,7 @@ const MonthlyReport: React.FC = () => {
                       ? 'bg-green-100 text-green-700' 
                       : carrierPerformance.trends.isDeclining
                       ? 'bg-red-100 text-red-700'
-                      : 'bg-gray-100 text-gray-700'
+                      : 'bg-gray-100 text-primary'
                   }`}>
                     {carrierPerformance.trends.isImproving && '↗ Improving'}
                     {carrierPerformance.trends.isDeclining && '↘ Declining'}
@@ -1632,31 +1632,31 @@ const MonthlyReport: React.FC = () => {
               {/* Latest Performance Summary */}
               {carrierPerformance.summary?.latestRecord && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  <div className="bg-white rounded-lg p-4 border border-gray-200">
-                    <p className="text-xs text-gray-500 mb-1">Latest Month</p>
-                    <p className="text-lg font-bold text-gray-900">
+                  <div className="bg-card rounded-lg p-4 border border-theme">
+                    <p className="text-xs text-secondary mb-1">Latest Month</p>
+                    <p className="text-lg font-bold text-primary">
                       {new Date(carrierPerformance.summary.latestRecord.year, carrierPerformance.summary.latestRecord.month - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
                     </p>
                   </div>
-                  <div className="bg-white rounded-lg p-4 border border-gray-200">
-                    <p className="text-xs text-gray-500 mb-1">Pass Rate</p>
-                    <p className={`text-2xl font-bold ${carrierPerformance.summary.latestRecord.passRate >= 80 ? 'text-green-600' : carrierPerformance.summary.latestRecord.passRate >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                  <div className="bg-card rounded-lg p-4 border border-theme">
+                    <p className="text-xs text-secondary mb-1">Pass Rate</p>
+                    <p className={`text-2xl font-bold ${carrierPerformance.summary.latestRecord.passRate >= 80 ? 'text-green-600' : carrierPerformance.summary.latestRecord.passRate >= 60 ? 'text-[#00FFA3]' : 'text-[#A855F7]'}`}>
                       {carrierPerformance.summary.latestRecord.passRate}%
                     </p>
                   </div>
-                  <div className="bg-white rounded-lg p-4 border border-gray-200">
-                    <p className="text-xs text-gray-500 mb-1">OOS Rate</p>
-                    <p className={`text-2xl font-bold ${carrierPerformance.summary.latestRecord.ossRate <= 10 ? 'text-green-600' : carrierPerformance.summary.latestRecord.ossRate <= 20 ? 'text-yellow-600' : 'text-red-600'}`}>
+                  <div className="bg-card rounded-lg p-4 border border-theme">
+                    <p className="text-xs text-secondary mb-1">OOS Rate</p>
+                    <p className={`text-2xl font-bold ${carrierPerformance.summary.latestRecord.ossRate <= 10 ? 'text-green-600' : carrierPerformance.summary.latestRecord.ossRate <= 20 ? 'text-[#00FFA3]' : 'text-[#A855F7]'}`}>
                       {carrierPerformance.summary.latestRecord.ossRate}%
                     </p>
                   </div>
-                  <div className="bg-white rounded-lg p-4 border border-gray-200">
-                    <p className="text-xs text-gray-500 mb-1">Safety Rating</p>
+                  <div className="bg-card rounded-lg p-4 border border-theme">
+                    <p className="text-xs text-secondary mb-1">Safety Rating</p>
                     <p className={`text-lg font-bold ${
                       carrierPerformance.summary.latestRecord.safetyRating === 'Satisfactory' ? 'text-green-600' :
-                      carrierPerformance.summary.latestRecord.safetyRating === 'Conditional' ? 'text-yellow-600' :
-                      carrierPerformance.summary.latestRecord.safetyRating === 'Unsatisfactory' ? 'text-red-600' :
-                      'text-gray-600'
+                      carrierPerformance.summary.latestRecord.safetyRating === 'Conditional' ? 'text-[#00FFA3]' :
+                      carrierPerformance.summary.latestRecord.safetyRating === 'Unsatisfactory' ? 'text-[#A855F7]' :
+                      'text-secondary'
                     }`}>
                       {carrierPerformance.summary.latestRecord.safetyRating || 'N/A'}
                     </p>
@@ -1666,30 +1666,30 @@ const MonthlyReport: React.FC = () => {
 
               {/* Performance Trends */}
               {carrierPerformance.trends && (
-                <div className="bg-white rounded-lg p-4 border border-gray-200 mb-4">
-                  <h3 className="text-sm font-bold text-gray-700 mb-3">Performance Trend (Last 3 Months vs Previous 3 Months)</h3>
+                <div className="bg-card rounded-lg p-4 border border-theme mb-4">
+                  <h3 className="text-sm font-bold text-primary mb-3">Performance Trend (Last 3 Months vs Previous 3 Months)</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <p className="text-xs text-gray-500">Recent Avg Pass Rate</p>
-                      <p className="text-lg font-bold text-gray-900">{carrierPerformance.trends.recentAvgPassRate}%</p>
+                      <p className="text-xs text-secondary">Recent Avg Pass Rate</p>
+                      <p className="text-lg font-bold text-primary">{carrierPerformance.trends.recentAvgPassRate}%</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Previous Avg Pass Rate</p>
-                      <p className="text-lg font-bold text-gray-900">{carrierPerformance.trends.previousAvgPassRate}%</p>
+                      <p className="text-xs text-secondary">Previous Avg Pass Rate</p>
+                      <p className="text-lg font-bold text-primary">{carrierPerformance.trends.previousAvgPassRate}%</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Change</p>
+                      <p className="text-xs text-secondary">Change</p>
                       <p className={`text-lg font-bold ${
                         carrierPerformance.trends.passRateTrend > 0 ? 'text-green-600' :
-                        carrierPerformance.trends.passRateTrend < 0 ? 'text-red-600' :
-                        'text-gray-600'
+                        carrierPerformance.trends.passRateTrend < 0 ? 'text-[#A855F7]' :
+                        'text-secondary'
                       }`}>
                         {carrierPerformance.trends.passRateTrend > 0 ? '+' : ''}{carrierPerformance.trends.passRateTrend}%
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Overall Avg Pass Rate</p>
-                      <p className="text-lg font-bold text-gray-900">{carrierPerformance.summary?.avgPassRate || 0}%</p>
+                      <p className="text-xs text-secondary">Overall Avg Pass Rate</p>
+                      <p className="text-lg font-bold text-primary">{carrierPerformance.summary?.avgPassRate || 0}%</p>
                     </div>
                   </div>
                 </div>
@@ -1697,12 +1697,12 @@ const MonthlyReport: React.FC = () => {
 
               {/* Monthly Performance Chart */}
               {carrierPerformance.monthlyData && carrierPerformance.monthlyData.length > 0 && (
-                <div className="bg-white rounded-lg p-4 border border-gray-200">
-                  <h3 className="text-sm font-bold text-gray-700 mb-4">12-Month Performance History</h3>
+                <div className="bg-card rounded-lg p-4 border border-theme">
+                  <h3 className="text-sm font-bold text-primary mb-4">12-Month Performance History</h3>
                   <div className="space-y-2">
                     {carrierPerformance.monthlyData.slice(-6).map((month: any, index: number) => (
                       <div key={index} className="flex items-center gap-4">
-                        <div className="w-24 text-xs text-gray-600 flex-shrink-0">
+                        <div className="w-24 text-xs text-secondary flex-shrink-0">
                           {month.monthName} {month.year}
                         </div>
                         <div className="flex-1">
@@ -1717,12 +1717,12 @@ const MonthlyReport: React.FC = () => {
                                 style={{ width: `${Math.min(month.passRate, 100)}%` }}
                               />
                             </div>
-                            <span className="text-xs font-semibold text-gray-700 w-12 text-right">
+                            <span className="text-xs font-semibold text-primary w-12 text-right">
                               {month.passRate}%
                             </span>
                           </div>
                         </div>
-                        <div className="text-xs text-gray-500 w-20 text-right">
+                        <div className="text-xs text-secondary w-20 text-right">
                           {month.totalInspections} inspections
                         </div>
                       </div>
@@ -1732,14 +1732,14 @@ const MonthlyReport: React.FC = () => {
               )}
 
               {performanceLoading && (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-secondary">
                   <FaInfoCircle className="mx-auto mb-2" size={24} />
                   <p>Loading carrier performance data...</p>
                 </div>
               )}
 
               {!performanceLoading && (!carrierPerformance || !carrierPerformance.summary?.latestRecord) && (
-                <div className="text-center py-8 text-gray-500 bg-white rounded-lg border border-gray-200">
+                <div className="text-center py-8 text-secondary bg-card rounded-lg border border-theme">
                   <FaInfoCircle className="mx-auto mb-2" size={24} />
                   <p className="font-semibold mb-1">No Performance Data Yet</p>
                   <p className="text-sm">Upload a carrier profile document to automatically track performance metrics.</p>
@@ -1750,41 +1750,41 @@ const MonthlyReport: React.FC = () => {
 
           {/* Audit Compliance Score Card */}
           {complianceScore && (
-            <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className={`p-3 rounded-lg ${complianceScore.eligibleForAudit ? 'bg-green-100' : 'bg-yellow-100'}`}>
-                    <FaShieldAlt className={complianceScore.eligibleForAudit ? 'text-green-600' : 'text-yellow-600'} size={24} />
+                    <FaShieldAlt className={complianceScore.eligibleForAudit ? 'text-green-600' : 'text-[#00FFA3]'} size={24} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">Audit Compliance Score</h3>
-                    <p className="text-sm text-gray-600">Based on inspections and violations from the past 2 years</p>
+                    <h3 className="text-lg font-bold text-primary">Audit Compliance Score</h3>
+                    <p className="text-sm text-secondary">Based on inspections and violations from the past 2 years</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className={`text-4xl font-bold ${complianceScore.score >= 80 ? 'text-green-600' : 'text-yellow-600'}`}>
+                  <div className={`text-4xl font-bold ${complianceScore.score >= 80 ? 'text-green-600' : 'text-[#00FFA3]'}`}>
                     {complianceScore.score}%
                   </div>
-                  <div className={`text-sm font-semibold ${complianceScore.eligibleForAudit ? 'text-green-600' : 'text-yellow-600'}`}>
+                  <div className={`text-sm font-semibold ${complianceScore.eligibleForAudit ? 'text-green-600' : 'text-[#00FFA3]'}`}>
                     {complianceScore.eligibleForAudit ? '✓ Eligible for Detailed Audits' : '⚠ Not Eligible'}
                   </div>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="mt-4 pt-4 border-t border-theme grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-600">Inspection Score:</span>
+                  <span className="text-secondary">Inspection Score:</span>
                   <span className="font-semibold ml-2">{complianceScore.breakdown.inspectionScore.toFixed(1)}%</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Violation Penalty:</span>
+                  <span className="text-secondary">Violation Penalty:</span>
                   <span className="font-semibold ml-2">-{complianceScore.breakdown.violationPenalty.toFixed(1)}%</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Total Inspections:</span>
+                  <span className="text-secondary">Total Inspections:</span>
                   <span className="font-semibold ml-2">{complianceScore.breakdown.totalInspections}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Total Violations:</span>
+                  <span className="text-secondary">Total Violations:</span>
                   <span className="font-semibold ml-2">{complianceScore.breakdown.totalTickets + complianceScore.breakdown.speedingCount}</span>
                 </div>
               </div>
@@ -1799,8 +1799,8 @@ const MonthlyReport: React.FC = () => {
                 title="Total Inspections"
                 value={currentMonthData.totalInspections}
                 icon={<FaChartBar />}
-                bgColor="bg-blue-50"
-                iconColor="text-blue-600"
+                bgColor="bg-card"
+                iconColor="text-[#00D1FF]"
                 subtitle={`${selectedMonth} ${currentMonthData.year}`}
               />
               <StatCard
@@ -1817,7 +1817,7 @@ const MonthlyReport: React.FC = () => {
                 title="Vehicles"
                 value={currentMonthData.vehiclesInspected}
                 icon={<FaTruck />}
-                bgColor="bg-purple-50"
+                bgColor="bg-card"
                 iconColor="text-purple-600"
                 subtitle="Unique vehicles"
               />
@@ -1825,8 +1825,8 @@ const MonthlyReport: React.FC = () => {
                 title="Drivers"
                 value={currentMonthData.driversInspected}
                 icon={<FaUser />}
-                bgColor="bg-orange-50"
-                iconColor="text-orange-600"
+                bgColor="bg-card"
+                iconColor="text-[#F59E0B]"
                 subtitle="Unique drivers"
               />
             </div>
@@ -1838,8 +1838,8 @@ const MonthlyReport: React.FC = () => {
       <div className="w-full mx-auto px-4 -mt-4">
         {/* 2-Year Performance View - Static */}
         {twoYearData && (
-          <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">2-Year Performance Summary</h2>
+          <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme p-6">
+            <h2 className="text-2xl font-bold text-primary mb-4">2-Year Performance Summary</h2>
             <div className="space-y-6">
               {/* Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -1847,8 +1847,8 @@ const MonthlyReport: React.FC = () => {
                   title="Total Inspections"
                   value={twoYearData.summary.totalInspections}
                   icon={<FaChartBar />}
-                  bgColor="bg-blue-50"
-                  iconColor="text-blue-600"
+                  bgColor="bg-card"
+                  iconColor="text-[#00D1FF]"
                   subtitle={twoYearData.summary.period}
                 />
                 <StatCard
@@ -1863,8 +1863,8 @@ const MonthlyReport: React.FC = () => {
                   title="Total Failures"
                   value={twoYearData.summary.totalFail}
                   icon={<FaTimesCircle />}
-                  bgColor="bg-red-50"
-                  iconColor="text-red-600"
+                  bgColor="bg-card"
+                  iconColor="text-[#A855F7]"
                   subtitle={`${twoYearData.summary.totalWarning} warnings`}
                 />
                 <StatCard
@@ -1880,62 +1880,62 @@ const MonthlyReport: React.FC = () => {
               {/* Year Comparison */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 {/* Year 1 */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-4">Year {twoYearData.year1.year}</h3>
+                <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
+                  <h3 className="text-xl font-bold text-primary mb-4">Year {twoYearData.year1.year}</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Total Inspections:</span>
+                      <span className="text-secondary">Total Inspections:</span>
                       <span className="font-semibold">{twoYearData.year1.totalInspections}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Pass Rate:</span>
+                      <span className="text-secondary">Pass Rate:</span>
                       <span className="font-semibold text-green-600">{twoYearData.year1.passRate}%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Passed:</span>
+                      <span className="text-secondary">Passed:</span>
                       <span className="font-semibold">{twoYearData.year1.passCount}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Failed:</span>
-                      <span className="font-semibold text-red-600">{twoYearData.year1.failCount}</span>
+                      <span className="text-secondary">Failed:</span>
+                      <span className="font-semibold text-[#A855F7]">{twoYearData.year1.failCount}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Warnings:</span>
-                      <span className="font-semibold text-yellow-600">{twoYearData.year1.warningCount}</span>
+                      <span className="text-secondary">Warnings:</span>
+                      <span className="font-semibold text-[#00FFA3]">{twoYearData.year1.warningCount}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Out of Service:</span>
+                      <span className="text-secondary">Out of Service:</span>
                       <span className="font-semibold text-red-800">{twoYearData.year1.outOfServiceCount}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Year 2 */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-4">Year {twoYearData.year2.year}</h3>
+                <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
+                  <h3 className="text-xl font-bold text-primary mb-4">Year {twoYearData.year2.year}</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Total Inspections:</span>
+                      <span className="text-secondary">Total Inspections:</span>
                       <span className="font-semibold">{twoYearData.year2.totalInspections}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Pass Rate:</span>
+                      <span className="text-secondary">Pass Rate:</span>
                       <span className="font-semibold text-green-600">{twoYearData.year2.passRate}%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Passed:</span>
+                      <span className="text-secondary">Passed:</span>
                       <span className="font-semibold">{twoYearData.year2.passCount}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Failed:</span>
-                      <span className="font-semibold text-red-600">{twoYearData.year2.failCount}</span>
+                      <span className="text-secondary">Failed:</span>
+                      <span className="font-semibold text-[#A855F7]">{twoYearData.year2.failCount}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Warnings:</span>
-                      <span className="font-semibold text-yellow-600">{twoYearData.year2.warningCount}</span>
+                      <span className="text-secondary">Warnings:</span>
+                      <span className="font-semibold text-[#00FFA3]">{twoYearData.year2.warningCount}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Out of Service:</span>
+                      <span className="text-secondary">Out of Service:</span>
                       <span className="font-semibold text-red-800">{twoYearData.year2.outOfServiceCount}</span>
                     </div>
                   </div>
@@ -1944,9 +1944,9 @@ const MonthlyReport: React.FC = () => {
 
               {/* Driver Violations Section - Real Data from Geotab */}
               {violationStats && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold text-gray-800">Driver Violations (Past 2 Years - Real Data)</h3>
+                    <h3 className="text-xl font-bold text-primary">Driver Violations (Past 2 Years - Real Data)</h3>
                     <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
                       {violationStats.bySource?.geotab ? 'Geotab Integrated' : 'Live Data'}
                     </span>
@@ -1956,17 +1956,17 @@ const MonthlyReport: React.FC = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg">
                       <div className="text-2xl font-bold text-red-800">{violationStats.total || 0}</div>
-                      <div className="text-sm text-red-600 mt-1">Total Violations</div>
+                      <div className="text-sm text-[#A855F7] mt-1">Total Violations</div>
                     </div>
                     <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg">
                       <div className="text-2xl font-bold text-orange-800">{violationStats.byType?.speeding || 0}</div>
-                      <div className="text-sm text-orange-600 mt-1">Speeding</div>
+                      <div className="text-sm text-[#F59E0B] mt-1">Speeding</div>
                     </div>
                     <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-lg">
                       <div className="text-2xl font-bold text-yellow-800">
                         {(violationStats.byType?.['harsh-braking'] || 0) + (violationStats.byType?.['harsh-acceleration'] || 0)}
                       </div>
-                      <div className="text-sm text-yellow-600 mt-1">Harsh Driving</div>
+                      <div className="text-sm text-[#00FFA3] mt-1">Harsh Driving</div>
                     </div>
                     <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
                       <div className="text-2xl font-bold text-purple-800">{violationStats.byType?.other || 0}</div>
@@ -1978,14 +1978,14 @@ const MonthlyReport: React.FC = () => {
                     {/* Violation Types Breakdown */}
                     <div>
                       <div className="flex items-center gap-3 mb-4">
-                        <FaExclamationCircle className="text-red-600" size={20} />
-                        <h4 className="text-lg font-semibold text-gray-700">Violation Types</h4>
+                        <FaExclamationCircle className="text-[#A855F7]" size={20} />
+                        <h4 className="text-lg font-semibold text-primary">Violation Types</h4>
                       </div>
                       <div className="space-y-2">
                         {Object.entries(violationStats.byType || {}).map(([type, count]) => (
-                          <div key={type} className="flex justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                            <span className="font-medium text-gray-700 capitalize">{type.replace(/-/g, ' ')}</span>
-                            <span className="font-bold text-gray-900">{count as number}</span>
+                          <div key={type} className="flex justify-between p-3 bg-card rounded-lg hover:bg-gray-100 transition">
+                            <span className="font-medium text-primary capitalize">{type.replace(/-/g, ' ')}</span>
+                            <span className="font-bold text-primary">{count as number}</span>
                           </div>
                         ))}
                       </div>
@@ -1994,24 +1994,24 @@ const MonthlyReport: React.FC = () => {
                     {/* Severity Breakdown */}
                     <div>
                       <div className="flex items-center gap-3 mb-4">
-                        <FaShieldAlt className="text-orange-600" size={20} />
-                        <h4 className="text-lg font-semibold text-gray-700">Severity Levels</h4>
+                        <FaShieldAlt className="text-[#F59E0B]" size={20} />
+                        <h4 className="text-lg font-semibold text-primary">Severity Levels</h4>
                       </div>
                       <div className="space-y-2">
-                        <div className="flex justify-between p-3 bg-red-50 rounded-lg">
-                          <span className="font-medium text-gray-800">Critical</span>
+                        <div className="flex justify-between p-3 bg-card rounded-lg">
+                          <span className="font-medium text-primary">Critical</span>
                           <span className="font-bold text-red-800">{violationStats.bySeverity?.critical || 0}</span>
                         </div>
-                        <div className="flex justify-between p-3 bg-orange-50 rounded-lg">
-                          <span className="font-medium text-gray-800">Major</span>
+                        <div className="flex justify-between p-3 bg-card rounded-lg">
+                          <span className="font-medium text-primary">Major</span>
                           <span className="font-bold text-orange-800">{violationStats.bySeverity?.major || 0}</span>
                         </div>
-                        <div className="flex justify-between p-3 bg-yellow-50 rounded-lg">
-                          <span className="font-medium text-gray-800">Moderate</span>
+                        <div className="flex justify-between p-3 bg-card rounded-lg">
+                          <span className="font-medium text-primary">Moderate</span>
                           <span className="font-bold text-yellow-800">{violationStats.bySeverity?.moderate || 0}</span>
                         </div>
-                        <div className="flex justify-between p-3 bg-blue-50 rounded-lg">
-                          <span className="font-medium text-gray-800">Minor</span>
+                        <div className="flex justify-between p-3 bg-card rounded-lg">
+                          <span className="font-medium text-primary">Minor</span>
                           <span className="font-bold text-blue-800">{violationStats.bySeverity?.minor || 0}</span>
                         </div>
                       </div>
@@ -2021,26 +2021,26 @@ const MonthlyReport: React.FC = () => {
                   {/* Top Violators */}
                   {violationStats.topViolators && violationStats.topViolators.length > 0 && (
                     <div className="mt-6">
-                      <h4 className="text-lg font-semibold text-gray-700 mb-4">Top 5 Drivers with Most Violations</h4>
+                      <h4 className="text-lg font-semibold text-primary mb-4">Top 5 Drivers with Most Violations</h4>
                       <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50">
+                          <thead className="bg-card">
                             <tr>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Driver</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Violations</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Points</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Driver</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Violations</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Points</th>
                             </tr>
                           </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
+                          <tbody className="bg-card divide-y divide-gray-200">
                             {violationStats.topViolators.slice(0, 5).map((violator: any, index: number) => (
-                              <tr key={index} className="hover:bg-gray-50">
+                              <tr key={index} className="hover:bg-[rgba(255,255,255,0.03)]">
                                 <td className="px-4 py-3 text-sm">
                                   <div>
-                                    <div className="font-medium text-gray-900">{violator.driver?.name}</div>
-                                    <div className="text-gray-500 text-xs">{violator.driver?.internalId}</div>
+                                    <div className="font-medium text-primary">{violator.driver?.name}</div>
+                                    <div className="text-secondary text-xs">{violator.driver?.internalId}</div>
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-sm font-semibold text-gray-900">{violator.count}</td>
+                                <td className="px-4 py-3 text-sm font-semibold text-primary">{violator.count}</td>
                                 <td className="px-4 py-3 text-sm">
                                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                                     violator.totalPoints > 20 ? 'bg-red-100 text-red-800' :
@@ -2058,7 +2058,7 @@ const MonthlyReport: React.FC = () => {
                     </div>
                   )}
 
-                  <p className="text-xs text-gray-500 mt-4">
+                  <p className="text-xs text-secondary mt-4">
                     * Data automatically synced from Geotab telematics system and manual entries
                   </p>
                 </div>
@@ -2066,37 +2066,37 @@ const MonthlyReport: React.FC = () => {
 
               {/* Show estimated violations as fallback if no real data */}
               {!violationStats && twoYearData && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-gray-800">Driver Violations (Past 2 Years)</h3>
+                    <h3 className="text-xl font-bold text-primary">Driver Violations (Past 2 Years)</h3>
                     <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-semibold rounded-full">
                       Estimated Data
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <FaInfoCircle className="inline mr-2 text-blue-600" />
+                  <p className="text-sm text-secondary mb-6 bg-card p-4 rounded-lg border border-blue-200">
+                    <FaInfoCircle className="inline mr-2 text-[#00D1FF]" />
                     No real violation data available. Please sync with Geotab or add violations manually to see actual data.
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Estimated Speeding */}
                     <div>
                       <div className="flex items-center gap-3 mb-4">
-                        <FaTachometerAlt className="text-red-600" size={20} />
-                        <h4 className="text-lg font-semibold text-gray-700">Estimated Speeding</h4>
+                        <FaTachometerAlt className="text-[#A855F7]" size={20} />
+                        <h4 className="text-lg font-semibold text-primary">Estimated Speeding</h4>
                       </div>
-                      <div className="flex justify-between p-3 bg-red-50 rounded-lg">
-                        <span className="font-medium text-gray-800">Est. Speeding Events</span>
+                      <div className="flex justify-between p-3 bg-card rounded-lg">
+                        <span className="font-medium text-primary">Est. Speeding Events</span>
                         <span className="font-bold text-red-800">{Math.floor(twoYearData.summary.totalInspections * 0.05)}</span>
                       </div>
                     </div>
                     {/* Estimated Tickets */}
                     <div>
                       <div className="flex items-center gap-3 mb-4">
-                        <FaExclamationCircle className="text-orange-600" size={20} />
-                        <h4 className="text-lg font-semibold text-gray-700">Estimated Tickets</h4>
+                        <FaExclamationCircle className="text-[#F59E0B]" size={20} />
+                        <h4 className="text-lg font-semibold text-primary">Estimated Tickets</h4>
                       </div>
-                      <div className="flex justify-between p-3 bg-orange-50 rounded-lg">
-                        <span className="font-medium text-gray-800">Est. Traffic Tickets</span>
+                      <div className="flex justify-between p-3 bg-card rounded-lg">
+                        <span className="font-medium text-primary">Est. Traffic Tickets</span>
                         <span className="font-bold text-orange-800">{Math.floor(twoYearData.summary.totalInspections * 0.1)}</span>
                       </div>
                     </div>
@@ -2110,10 +2110,10 @@ const MonthlyReport: React.FC = () => {
           {/* Monthly View */}
           <div>
               {/* Filters */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+              <div className="bg-card rounded-lg shadow-sm border border-theme p-6 mb-6">
                 <div className="flex flex-col md:flex-row gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Year</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Select Year</label>
                     <select
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(parseInt(e.target.value))}
@@ -2130,7 +2130,7 @@ const MonthlyReport: React.FC = () => {
                     </select>
                   </div>
                   <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Month</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Select Month</label>
                     <select
                       value={selectedMonth}
                       onChange={(e) => setSelectedMonth(e.target.value)}
@@ -2146,13 +2146,13 @@ const MonthlyReport: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Chart Type</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Chart Type</label>
                     <div className="flex bg-gray-100 rounded-lg p-1">
                       <button
                         onClick={() => setChartType('pie')}
                         className={`flex items-center gap-2 px-3 py-1 rounded-md font-medium transition-all ${chartType === 'pie'
-                          ? 'bg-white text-[#9793E4] shadow-sm'
-                          : 'text-gray-600 hover:text-gray-800'
+                          ? 'bg-card text-[#9793E4] shadow-sm'
+                          : 'text-secondary hover:text-primary'
                           }`}
                       >
                         <FaChartPie size={14} />
@@ -2161,8 +2161,8 @@ const MonthlyReport: React.FC = () => {
                       <button
                         onClick={() => setChartType('bar')}
                         className={`flex items-center gap-2 px-3 py-1 rounded-md font-medium transition-all ${chartType === 'bar'
-                          ? 'bg-white text-[#9793E4] shadow-sm'
-                          : 'text-gray-600 hover:text-gray-800'
+                          ? 'bg-card text-[#9793E4] shadow-sm'
+                          : 'text-secondary hover:text-primary'
                           }`}
                       >
                         <FaChartBar size={14} />
@@ -2177,12 +2177,12 @@ const MonthlyReport: React.FC = () => {
               {loading && (
                 <div className="text-center py-16">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9793E4] mx-auto mb-4"></div>
-                  <p className="text-xl font-semibold text-gray-500">Loading monthly report...</p>
+                  <p className="text-xl font-semibold text-secondary">Loading monthly report...</p>
                 </div>
               )}
 
               {!loading && monthlyData.length === 0 && (
-                <div className="bg-white rounded-xl shadow-lg p-12 text-center text-gray-500 border border-dashed border-gray-200">
+                <div className="bg-card rounded-xl shadow-lg p-12 text-center text-secondary border border-dashed border-theme">
                   <p className="text-xl font-semibold">No inspection data available for the selected filters.</p>
                   <p className="text-sm mt-2">Try choosing a different year or expanding the country filter.</p>
                 </div>
@@ -2218,39 +2218,39 @@ const MonthlyReport: React.FC = () => {
 
               {/* Detailed Breakdown */}
               {!loading && currentMonthData && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-6">Detailed Breakdown - {selectedMonth} {currentMonthData.year}</h3>
+                <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
+                  <h3 className="text-xl font-bold text-primary mb-6">Detailed Breakdown - {selectedMonth} {currentMonthData.year}</h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Status Breakdown */}
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-700 mb-4">Status Breakdown</h4>
+                      <h4 className="text-lg font-semibold text-primary mb-4">Status Breakdown</h4>
                       <div className="space-y-3">
                         <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                           <div className="flex items-center gap-3">
                             <FaCheckCircle className="text-green-600" size={20} />
-                            <span className="font-medium text-gray-800">Passed</span>
+                            <span className="font-medium text-primary">Passed</span>
                           </div>
                           <span className="font-bold text-green-800">{currentMonthData.passCount}</span>
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                        <div className="flex items-center justify-between p-3 bg-card rounded-lg">
                           <div className="flex items-center gap-3">
-                            <FaTimesCircle className="text-red-600" size={20} />
-                            <span className="font-medium text-gray-800">Failed</span>
+                            <FaTimesCircle className="text-[#A855F7]" size={20} />
+                            <span className="font-medium text-primary">Failed</span>
                           </div>
                           <span className="font-bold text-red-800">{currentMonthData.failCount}</span>
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                        <div className="flex items-center justify-between p-3 bg-card rounded-lg">
                           <div className="flex items-center gap-3">
-                            <FaExclamationTriangle className="text-yellow-600" size={20} />
-                            <span className="font-medium text-gray-800">Warning</span>
+                            <FaExclamationTriangle className="text-[#00FFA3]" size={20} />
+                            <span className="font-medium text-primary">Warning</span>
                           </div>
                           <span className="font-bold text-yellow-800">{currentMonthData.warningCount}</span>
                         </div>
                         <div className="flex items-center justify-between p-3 bg-red-100 rounded-lg">
                           <div className="flex items-center gap-3">
                             <FaBan className="text-red-800" size={20} />
-                            <span className="font-medium text-gray-800">Out of Service</span>
+                            <span className="font-medium text-primary">Out of Service</span>
                           </div>
                           <span className="font-bold text-red-900">{currentMonthData.outOfServiceCount}</span>
                         </div>
@@ -2259,19 +2259,19 @@ const MonthlyReport: React.FC = () => {
 
                     {/* Country Breakdown */}
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-700 mb-4">Country Breakdown</h4>
+                      <h4 className="text-lg font-semibold text-primary mb-4">Country Breakdown</h4>
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                        <div className="flex items-center justify-between p-3 bg-card rounded-lg">
                           <div className="flex items-center gap-3">
-                            <FaFlag className="text-red-600" size={20} />
-                            <span className="font-medium text-gray-800">Canada</span>
+                            <FaFlag className="text-[#A855F7]" size={20} />
+                            <span className="font-medium text-primary">Canada</span>
                           </div>
                           <span className="font-bold text-blue-800">{currentMonthData.canadaInspections}</span>
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                        <div className="flex items-center justify-between p-3 bg-card rounded-lg">
                           <div className="flex items-center gap-3">
-                            <FaFlagUsa className="text-blue-600" size={20} />
-                            <span className="font-medium text-gray-800">USA</span>
+                            <FaFlagUsa className="text-[#00D1FF]" size={20} />
+                            <span className="font-medium text-primary">USA</span>
                           </div>
                           <span className="font-bold text-red-800">{currentMonthData.usaInspections}</span>
                         </div>
@@ -2285,24 +2285,24 @@ const MonthlyReport: React.FC = () => {
 
           {/* Old Data Section - Static Display */}
           {oldData && (oldData.inspections.total > 0 || oldData.tickets.total > 0) && (
-            <div className="mt-6 bg-white rounded-lg shadow-sm border-2 border-red-200 p-6">
+            <div className="mt-6 bg-card rounded-lg shadow-sm border-2 border-red-200 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2 mb-2">
-                    <FaExclamationCircle className="text-red-600" />
+                  <h2 className="text-2xl font-bold text-primary flex items-center gap-2 mb-2">
+                    <FaExclamationCircle className="text-[#A855F7]" />
                     Old Data to be Deleted (Older than 2 Years)
                   </h2>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-secondary">
                     <div className="flex items-center gap-2">
-                      <FaCalendarAlt className="text-blue-600" />
+                      <FaCalendarAlt className="text-[#00D1FF]" />
                       <span><strong>Cutoff Date:</strong> {new Date(oldData.cutoffDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <FaDatabase className="text-orange-600" />
+                      <FaDatabase className="text-[#F59E0B]" />
                       <span><strong>Total Records:</strong> {oldData.inspections.total + oldData.tickets.total}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <FaInfoCircle className="text-blue-600" />
+                      <FaInfoCircle className="text-[#00D1FF]" />
                       <span>All data before the cutoff date will be permanently deleted</span>
                     </div>
                   </div>
@@ -2311,40 +2311,40 @@ const MonthlyReport: React.FC = () => {
 
               {/* Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="bg-card border border-red-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                          <FaExclamationCircle className="text-red-600" size={18} />
+                        <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                          <FaExclamationCircle className="text-[#A855F7]" size={18} />
                           CVSA Inspections
                         </h3>
-                        <span className="text-3xl font-bold text-red-600">{oldData.inspections.total}</span>
+                        <span className="text-3xl font-bold text-[#A855F7]">{oldData.inspections.total}</span>
                       </div>
                       <div className="mb-3">
-                        <div className="text-xs text-gray-600 mb-2">Status Breakdown:</div>
+                        <div className="text-xs text-secondary mb-2">Status Breakdown:</div>
                         <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div className="flex items-center justify-between p-2 bg-white rounded">
-                            <span className="text-gray-600">Pass:</span>
+                          <div className="flex items-center justify-between p-2 bg-card rounded">
+                            <span className="text-secondary">Pass:</span>
                             <span className="font-semibold text-green-700">
                               {oldData.inspections.byStatus.pass} 
                               ({oldData.inspections.total > 0 ? Math.round((oldData.inspections.byStatus.pass / oldData.inspections.total) * 100) : 0}%)
                             </span>
                           </div>
-                          <div className="flex items-center justify-between p-2 bg-white rounded">
-                            <span className="text-gray-600">Fail:</span>
+                          <div className="flex items-center justify-between p-2 bg-card rounded">
+                            <span className="text-secondary">Fail:</span>
                             <span className="font-semibold text-red-700">
                               {oldData.inspections.byStatus.fail}
                               ({oldData.inspections.total > 0 ? Math.round((oldData.inspections.byStatus.fail / oldData.inspections.total) * 100) : 0}%)
                             </span>
                           </div>
-                          <div className="flex items-center justify-between p-2 bg-white rounded">
-                            <span className="text-gray-600">Warning:</span>
+                          <div className="flex items-center justify-between p-2 bg-card rounded">
+                            <span className="text-secondary">Warning:</span>
                             <span className="font-semibold text-yellow-700">
                               {oldData.inspections.byStatus.warning}
                               ({oldData.inspections.total > 0 ? Math.round((oldData.inspections.byStatus.warning / oldData.inspections.total) * 100) : 0}%)
                             </span>
                           </div>
-                          <div className="flex items-center justify-between p-2 bg-white rounded">
-                            <span className="text-gray-600">Out of Service:</span>
+                          <div className="flex items-center justify-between p-2 bg-card rounded">
+                            <span className="text-secondary">Out of Service:</span>
                             <span className="font-semibold text-red-800">
                               {oldData.inspections.byStatus.outOfService}
                               ({oldData.inspections.total > 0 ? Math.round((oldData.inspections.byStatus.outOfService / oldData.inspections.total) * 100) : 0}%)
@@ -2354,58 +2354,58 @@ const MonthlyReport: React.FC = () => {
                       </div>
                       {oldData.inspections.oldestDate && (
                         <div className="mt-3 pt-3 border-t border-red-200">
-                          <p className="text-xs text-gray-600">
+                          <p className="text-xs text-secondary">
                             <strong>Oldest Record:</strong> {new Date(oldData.inspections.oldestDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                           </p>
-                          <p className="text-xs text-gray-600 mt-1">
+                          <p className="text-xs text-secondary mt-1">
                             <strong>Date Range:</strong> {new Date(oldData.inspections.oldestDate).toLocaleDateString()} - {new Date(oldData.cutoffDate).toLocaleDateString()}
                           </p>
                         </div>
                       )}
                     </div>
 
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <div className="bg-card border border-orange-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                          <FaExclamationCircle className="text-orange-600" size={18} />
+                        <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                          <FaExclamationCircle className="text-[#F59E0B]" size={18} />
                           Traffic Tickets
                         </h3>
-                        <span className="text-3xl font-bold text-orange-600">{oldData.tickets.total}</span>
+                        <span className="text-3xl font-bold text-[#F59E0B]">{oldData.tickets.total}</span>
                       </div>
                       <div className="mb-3">
-                        <div className="text-xs text-gray-600 mb-2">Status Breakdown:</div>
+                        <div className="text-xs text-secondary mb-2">Status Breakdown:</div>
                         <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div className="flex items-center justify-between p-2 bg-white rounded">
-                            <span className="text-gray-600">Paid:</span>
+                          <div className="flex items-center justify-between p-2 bg-card rounded">
+                            <span className="text-secondary">Paid:</span>
                             <span className="font-semibold text-green-700">
                               {oldData.tickets.byStatus.paid}
                               ({oldData.tickets.total > 0 ? Math.round((oldData.tickets.byStatus.paid / oldData.tickets.total) * 100) : 0}%)
                             </span>
                           </div>
-                          <div className="flex items-center justify-between p-2 bg-white rounded">
-                            <span className="text-gray-600">Unpaid:</span>
+                          <div className="flex items-center justify-between p-2 bg-card rounded">
+                            <span className="text-secondary">Unpaid:</span>
                             <span className="font-semibold text-red-700">
                               {oldData.tickets.byStatus.unpaid}
                               ({oldData.tickets.total > 0 ? Math.round((oldData.tickets.byStatus.unpaid / oldData.tickets.total) * 100) : 0}%)
                             </span>
                           </div>
-                          <div className="flex items-center justify-between p-2 bg-white rounded">
-                            <span className="text-gray-600">Fight:</span>
+                          <div className="flex items-center justify-between p-2 bg-card rounded">
+                            <span className="text-secondary">Fight:</span>
                             <span className="font-semibold text-yellow-700">
                               {oldData.tickets.byStatus.fight}
                               ({oldData.tickets.total > 0 ? Math.round((oldData.tickets.byStatus.fight / oldData.tickets.total) * 100) : 0}%)
                             </span>
                           </div>
-                          <div className="flex items-center justify-between p-2 bg-white rounded">
-                            <span className="text-gray-600">Dismissed:</span>
+                          <div className="flex items-center justify-between p-2 bg-card rounded">
+                            <span className="text-secondary">Dismissed:</span>
                             <span className="font-semibold text-blue-700">
                               {oldData.tickets.byStatus.dismissed}
                               ({oldData.tickets.total > 0 ? Math.round((oldData.tickets.byStatus.dismissed / oldData.tickets.total) * 100) : 0}%)
                             </span>
                           </div>
                           {oldData.tickets.byStatus.reduced > 0 && (
-                            <div className="flex items-center justify-between p-2 bg-white rounded">
-                              <span className="text-gray-600">Reduced:</span>
+                            <div className="flex items-center justify-between p-2 bg-card rounded">
+                              <span className="text-secondary">Reduced:</span>
                               <span className="font-semibold text-purple-700">
                                 {oldData.tickets.byStatus.reduced}
                                 ({oldData.tickets.total > 0 ? Math.round((oldData.tickets.byStatus.reduced / oldData.tickets.total) * 100) : 0}%)
@@ -2416,10 +2416,10 @@ const MonthlyReport: React.FC = () => {
                       </div>
                       {oldData.tickets.oldestDate && (
                         <div className="mt-3 pt-3 border-t border-orange-200">
-                          <p className="text-xs text-gray-600">
+                          <p className="text-xs text-secondary">
                             <strong>Oldest Record:</strong> {new Date(oldData.tickets.oldestDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                           </p>
-                          <p className="text-xs text-gray-600 mt-1">
+                          <p className="text-xs text-secondary mt-1">
                             <strong>Date Range:</strong> {new Date(oldData.tickets.oldestDate).toLocaleDateString()} - {new Date(oldData.cutoffDate).toLocaleDateString()}
                           </p>
                         </div>
@@ -2430,28 +2430,28 @@ const MonthlyReport: React.FC = () => {
                 {/* Inspections Table */}
                 {oldData && oldData.inspections.total > 0 && (
                   <div className="mb-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-3">
+                    <h3 className="text-lg font-bold text-primary mb-3">
                         CVSA Inspections ({oldData.inspections.preview.length} of {oldData.inspections.total} shown)
                       </h3>
-                      <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <div className="border border-theme rounded-lg overflow-hidden">
                         <div className="overflow-x-auto max-h-96">
                           <table className="w-full text-sm">
-                            <thead className="bg-gray-50 sticky top-0">
+                            <thead className="bg-card sticky top-0">
                               <tr>
-                                <th className="px-4 py-2 text-left font-semibold text-gray-700">Inspection ID</th>
-                                <th className="px-4 py-2 text-left font-semibold text-gray-700">Date</th>
-                                <th className="px-4 py-2 text-left font-semibold text-gray-700">Status</th>
-                                <th className="px-4 py-2 text-left font-semibold text-gray-700">Location</th>
-                                <th className="px-4 py-2 text-left font-semibold text-gray-700">Vehicle</th>
-                                <th className="px-4 py-2 text-left font-semibold text-gray-700">Driver</th>
-                                <th className="px-4 py-2 text-left font-semibold text-gray-700">Violations</th>
+                                <th className="px-4 py-2 text-left font-semibold text-primary">Inspection ID</th>
+                                <th className="px-4 py-2 text-left font-semibold text-primary">Date</th>
+                                <th className="px-4 py-2 text-left font-semibold text-primary">Status</th>
+                                <th className="px-4 py-2 text-left font-semibold text-primary">Location</th>
+                                <th className="px-4 py-2 text-left font-semibold text-primary">Vehicle</th>
+                                <th className="px-4 py-2 text-left font-semibold text-primary">Driver</th>
+                                <th className="px-4 py-2 text-left font-semibold text-primary">Violations</th>
                               </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-gray-200">
                               {oldData.inspections.preview.map((inspection) => (
-                                <tr key={inspection._id} className="hover:bg-gray-50">
-                                  <td className="px-4 py-2 text-gray-900">{inspection.inspectionId}</td>
-                                  <td className="px-4 py-2 text-gray-600">{new Date(inspection.date).toLocaleDateString()}</td>
+                                <tr key={inspection._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                  <td className="px-4 py-2 text-primary">{inspection.inspectionId}</td>
+                                  <td className="px-4 py-2 text-secondary">{new Date(inspection.date).toLocaleDateString()}</td>
                                   <td className="px-4 py-2">
                                     <span className={`px-2 py-1 rounded text-xs font-semibold ${inspection.status === 'pass' ? 'bg-green-100 text-green-800' :
                                         inspection.status === 'fail' ? 'bg-red-100 text-red-800' :
@@ -2461,10 +2461,10 @@ const MonthlyReport: React.FC = () => {
                                       {inspection.status.toUpperCase()}
                                     </span>
                                   </td>
-                                  <td className="px-4 py-2 text-gray-600">{inspection.location}</td>
-                                  <td className="px-4 py-2 text-gray-600">{inspection.vehicle?.unitNo || 'N/A'}</td>
-                                  <td className="px-4 py-2 text-gray-600">{inspection.driver?.name || 'N/A'}</td>
-                                  <td className="px-4 py-2 text-gray-600">{inspection.violationsCount}</td>
+                                  <td className="px-4 py-2 text-secondary">{inspection.location}</td>
+                                  <td className="px-4 py-2 text-secondary">{inspection.vehicle?.unitNo || 'N/A'}</td>
+                                  <td className="px-4 py-2 text-secondary">{inspection.driver?.name || 'N/A'}</td>
+                                  <td className="px-4 py-2 text-secondary">{inspection.violationsCount}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -2477,30 +2477,30 @@ const MonthlyReport: React.FC = () => {
                 {/* Tickets Table */}
                 {oldData && oldData.tickets.total > 0 && (
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-3">
+                    <h3 className="text-lg font-bold text-primary mb-3">
                         Traffic Tickets ({oldData.tickets.preview.length} of {oldData.tickets.total} shown)
                       </h3>
-                      <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <div className="border border-theme rounded-lg overflow-hidden">
                         <div className="overflow-x-auto max-h-96">
                           <table className="w-full text-sm">
-                            <thead className="bg-gray-50 sticky top-0">
+                            <thead className="bg-card sticky top-0">
                               <tr>
-                                <th className="px-4 py-2 text-left font-semibold text-gray-700">Ticket #</th>
-                                <th className="px-4 py-2 text-left font-semibold text-gray-700">Date Issued</th>
-                                <th className="px-4 py-2 text-left font-semibold text-gray-700">Violation Type</th>
-                                <th className="px-4 py-2 text-left font-semibold text-gray-700">Amount</th>
-                                <th className="px-4 py-2 text-left font-semibold text-gray-700">Status</th>
-                                <th className="px-4 py-2 text-left font-semibold text-gray-700">Vehicle</th>
-                                <th className="px-4 py-2 text-left font-semibold text-gray-700">Driver</th>
+                                <th className="px-4 py-2 text-left font-semibold text-primary">Ticket #</th>
+                                <th className="px-4 py-2 text-left font-semibold text-primary">Date Issued</th>
+                                <th className="px-4 py-2 text-left font-semibold text-primary">Violation Type</th>
+                                <th className="px-4 py-2 text-left font-semibold text-primary">Amount</th>
+                                <th className="px-4 py-2 text-left font-semibold text-primary">Status</th>
+                                <th className="px-4 py-2 text-left font-semibold text-primary">Vehicle</th>
+                                <th className="px-4 py-2 text-left font-semibold text-primary">Driver</th>
                               </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-gray-200">
                               {oldData.tickets.preview.map((ticket) => (
-                                <tr key={ticket._id} className="hover:bg-gray-50">
-                                  <td className="px-4 py-2 text-gray-900">{ticket.ticketNumber}</td>
-                                  <td className="px-4 py-2 text-gray-600">{new Date(ticket.dateIssued).toLocaleDateString()}</td>
-                                  <td className="px-4 py-2 text-gray-600">{ticket.violationType}</td>
-                                  <td className="px-4 py-2 text-gray-600">${ticket.amount.toFixed(2)}</td>
+                                <tr key={ticket._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                  <td className="px-4 py-2 text-primary">{ticket.ticketNumber}</td>
+                                  <td className="px-4 py-2 text-secondary">{new Date(ticket.dateIssued).toLocaleDateString()}</td>
+                                  <td className="px-4 py-2 text-secondary">{ticket.violationType}</td>
+                                  <td className="px-4 py-2 text-secondary">${ticket.amount.toFixed(2)}</td>
                                   <td className="px-4 py-2">
                                     <span className={`px-2 py-1 rounded text-xs font-semibold ${ticket.status === 'paid' ? 'bg-green-100 text-green-800' :
                                         ticket.status === 'unpaid' ? 'bg-red-100 text-red-800' :
@@ -2510,8 +2510,8 @@ const MonthlyReport: React.FC = () => {
                                       {ticket.status.toUpperCase()}
                                     </span>
                                   </td>
-                                  <td className="px-4 py-2 text-gray-600">{ticket.vehicle?.unitNo || 'N/A'}</td>
-                                  <td className="px-4 py-2 text-gray-600">{ticket.driver?.name || 'N/A'}</td>
+                                  <td className="px-4 py-2 text-secondary">{ticket.vehicle?.unitNo || 'N/A'}</td>
+                                  <td className="px-4 py-2 text-secondary">{ticket.driver?.name || 'N/A'}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -2524,15 +2524,15 @@ const MonthlyReport: React.FC = () => {
               {/* Delete Button Section */}
               {oldData && (
                 <div className="mt-6 pt-6 border-t-2 border-red-300">
-                  <div className="bg-red-50 border border-red-300 rounded-lg p-4 mb-4">
+                  <div className="bg-card border border-red-300 rounded-lg p-4 mb-4">
                     <div className="flex items-start gap-3">
-                      <FaInfoCircle className="text-red-600 mt-1 flex-shrink-0" size={20} />
+                      <FaInfoCircle className="text-[#A855F7] mt-1 flex-shrink-0" size={20} />
                       <div className="flex-1">
                         <h4 className="font-bold text-red-900 mb-2">⚠️ Important: Data Deletion Warning</h4>
-                        <p className="text-sm text-gray-700 mb-2">
+                        <p className="text-sm text-primary mb-2">
                           This action will permanently delete <strong>{oldData.inspections.total + oldData.tickets.total} records</strong> from the database:
                         </p>
-                        <ul className="text-sm text-gray-700 list-disc list-inside space-y-1 mb-2">
+                        <ul className="text-sm text-primary list-disc list-inside space-y-1 mb-2">
                           <li><strong>{oldData.inspections.total} CVSA Inspection records</strong> older than {new Date(oldData.cutoffDate).toLocaleDateString()}</li>
                           <li><strong>{oldData.tickets.total} Traffic Ticket records</strong> older than {new Date(oldData.cutoffDate).toLocaleDateString()}</li>
                         </ul>
@@ -2543,7 +2543,7 @@ const MonthlyReport: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-secondary">
                       <p><strong>Total Records to Delete:</strong> {oldData.inspections.total + oldData.tickets.total}</p>
                       <p><strong>Cutoff Date:</strong> {new Date(oldData.cutoffDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                     </div>

@@ -109,9 +109,9 @@ const ExpiringVehicleDocumentsPopup: React.FC<ExpiringVehicleDocumentsPopupProps
   };
 
   const getUrgencyColor = (daysUntilExpiry: number) => {
-    if (daysUntilExpiry <= 7) return 'text-red-600 bg-red-50 border-red-200';
-    if (daysUntilExpiry <= 14) return 'text-orange-600 bg-orange-50 border-orange-200';
-    return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+    if (daysUntilExpiry <= 7) return 'text-[#A855F7] bg-card border-red-200';
+    if (daysUntilExpiry <= 14) return 'text-[#F59E0B] bg-card border-orange-200';
+    return 'text-[#00FFA3] bg-card border-yellow-200';
   };
 
   const getUrgencyBadge = (daysUntilExpiry: number) => {
@@ -137,12 +137,12 @@ const ExpiringVehicleDocumentsPopup: React.FC<ExpiringVehicleDocumentsPopupProps
 
   return (
     <div className="fixed top-4 right-4 z-[9999] max-w-md w-full">
-      <div className="bg-white rounded-xl shadow-2xl border border-red-200 overflow-hidden transform transition-all duration-500 ease-in-out animate-slide-in">
+      <div className="bg-card rounded-xl shadow-2xl border border-red-200 overflow-hidden transform transition-all duration-500 ease-in-out animate-slide-in">
         {/* Header with gradient background */}
         <div className="bg-gradient-to-r from-red-500 to-orange-500 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <div className="p-2 bg-card/20 rounded-lg backdrop-blur-sm">
                 <Truck className="w-6 h-6 text-white animate-pulse" />
               </div>
               <div>
@@ -154,7 +154,7 @@ const ExpiringVehicleDocumentsPopup: React.FC<ExpiringVehicleDocumentsPopupProps
             </div>
             <button
               onClick={handleClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 group"
+              className="p-2 hover:bg-card/20 rounded-lg transition-all duration-200 group"
             >
               <X className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </button>
@@ -166,7 +166,7 @@ const ExpiringVehicleDocumentsPopup: React.FC<ExpiringVehicleDocumentsPopupProps
           {loading ? (
             <div className="p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500 mx-auto"></div>
-              <p className="mt-4 text-sm text-gray-600">Loading expiring documents...</p>
+              <p className="mt-4 text-sm text-secondary">Loading expiring documents...</p>
             </div>
           ) : (
             <div className="p-4 space-y-3">
@@ -220,7 +220,7 @@ const ExpiringVehicleDocumentsPopup: React.FC<ExpiringVehicleDocumentsPopupProps
 
         {/* Footer */}
         {!loading && expiringDocuments.length > 0 && (
-          <div className="border-t border-gray-200 p-4 bg-gray-50">
+          <div className="border-t border-theme p-4 bg-card">
             <button
               onClick={handleViewDocuments}
               className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors"

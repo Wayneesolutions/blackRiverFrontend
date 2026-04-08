@@ -31,8 +31,8 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
 
     const bgColors = {
         success: 'bg-green-50 border-green-200',
-        error: 'bg-red-50 border-red-200',
-        warning: 'bg-yellow-50 border-yellow-200',
+        error: 'bg-card border-red-200',
+        warning: 'bg-card border-yellow-200',
     };
 
     useEffect(() => {
@@ -47,10 +47,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
             <div className="flex-shrink-0 mt-0.5">
                 {icons[notification.type]}
             </div>
-            <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+            <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
             <button
                 onClick={() => onClose(notification.id)}
-                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
             >
                 <FaTimes size={16} />
             </button>
@@ -1510,39 +1510,39 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         weight?: string;
     }) => {
         return (
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-200">
+            <div className="bg-card rounded-lg border border-theme p-4">
+                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-theme">
                     <div className="w-3 h-3 rounded-full bg-green-600"></div>
-                    <h4 className="text-sm font-semibold text-gray-800">Shipper</h4>
+                    <h4 className="text-sm font-semibold text-primary">Shipper</h4>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                     <div>
-                        <span className="font-semibold text-gray-700">Basic Information:</span>
-                        <div className="mt-1 text-gray-800">
+                        <span className="font-semibold text-primary">Basic Information:</span>
+                        <div className="mt-1 text-primary">
                             <div>{shipperData.name || 'N/A'}</div>
                             <div>{shipperData.address || 'N/A'}</div>
                             <div>{shipperData.phone || 'N/A'}</div>
                         </div>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Contact:</span>
-                        <span className="ml-2 text-gray-800">{shipperData.contact || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Contact:</span>
+                        <span className="ml-2 text-primary">{shipperData.contact || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Pick Up Number:</span>
-                        <span className="ml-2 text-gray-800">{shipperData.pickUpNumber || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Pick Up Number:</span>
+                        <span className="ml-2 text-primary">{shipperData.pickUpNumber || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">UoM:</span>
-                        <span className="ml-2 text-gray-800">{shipperData.uom || 'N/A'}</span>
+                        <span className="font-semibold text-primary">UoM:</span>
+                        <span className="ml-2 text-primary">{shipperData.uom || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Province:</span>
-                        <span className="ml-2 text-gray-800">{shipperData.province || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Province:</span>
+                        <span className="ml-2 text-primary">{shipperData.province || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Appointment:</span>
-                        <span className="ml-2 text-gray-800">
+                        <span className="font-semibold text-primary">Appointment:</span>
+                        <span className="ml-2 text-primary">
                             {shipperData.appointmentType || 'N/A'}
                             {shipperData.appointmentType === "EXACT" && shipperData.appointmentDate && (
                                 <span className="ml-1">- {shipperData.appointmentDate} {shipperData.appointmentTime || 'TBA'}</span>
@@ -1553,32 +1553,32 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                         </span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Temperature:</span>
-                        <span className="ml-2 text-gray-800">{shipperData.temperature || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Temperature:</span>
+                        <span className="ml-2 text-primary">{shipperData.temperature || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Postal Code:</span>
-                        <span className="ml-2 text-gray-800">{shipperData.postalCode || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Postal Code:</span>
+                        <span className="ml-2 text-primary">{shipperData.postalCode || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Goods:</span>
-                        <span className="ml-2 text-gray-800">{shipperData.goods || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Goods:</span>
+                        <span className="ml-2 text-primary">{shipperData.goods || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Skids:</span>
-                        <span className="ml-2 text-gray-800">{shipperData.skids || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Skids:</span>
+                        <span className="ml-2 text-primary">{shipperData.skids || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Cases:</span>
-                        <span className="ml-2 text-gray-800">{shipperData.cases || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Cases:</span>
+                        <span className="ml-2 text-primary">{shipperData.cases || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Pick Up Notes:</span>
-                        <span className="ml-2 text-gray-800">{shipperData.pickUpNotes || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Pick Up Notes:</span>
+                        <span className="ml-2 text-primary">{shipperData.pickUpNotes || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Weight:</span>
-                        <span className="ml-2 text-gray-800">{shipperData.weight || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Weight:</span>
+                        <span className="ml-2 text-primary">{shipperData.weight || 'N/A'}</span>
                     </div>
                 </div>
             </div>
@@ -1610,39 +1610,39 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         weight?: string;
     }) => {
         return (
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-200">
+            <div className="bg-card rounded-lg border border-theme p-4">
+                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-theme">
                     <div className="w-3 h-3 rounded-full bg-orange-600"></div>
-                    <h4 className="text-sm font-semibold text-gray-800">Receiver</h4>
+                    <h4 className="text-sm font-semibold text-primary">Receiver</h4>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                     <div>
-                        <span className="font-semibold text-gray-700">Basic Information:</span>
-                        <div className="mt-1 text-gray-800">
+                        <span className="font-semibold text-primary">Basic Information:</span>
+                        <div className="mt-1 text-primary">
                             <div>{receiverData.name || 'N/A'}</div>
                             <div>{receiverData.address || 'N/A'}</div>
                             <div>{receiverData.phone || 'N/A'}</div>
                         </div>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Contact:</span>
-                        <span className="ml-2 text-gray-800">{receiverData.contact || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Contact:</span>
+                        <span className="ml-2 text-primary">{receiverData.contact || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Drop Off Number:</span>
-                        <span className="ml-2 text-gray-800">{receiverData.dropOffNumber || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Drop Off Number:</span>
+                        <span className="ml-2 text-primary">{receiverData.dropOffNumber || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">UoM:</span>
-                        <span className="ml-2 text-gray-800">{receiverData.uom || 'N/A'}</span>
+                        <span className="font-semibold text-primary">UoM:</span>
+                        <span className="ml-2 text-primary">{receiverData.uom || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Province:</span>
-                        <span className="ml-2 text-gray-800">{receiverData.province || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Province:</span>
+                        <span className="ml-2 text-primary">{receiverData.province || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Appointment:</span>
-                        <span className="ml-2 text-gray-800">
+                        <span className="font-semibold text-primary">Appointment:</span>
+                        <span className="ml-2 text-primary">
                             {receiverData.appointmentType || 'N/A'}
                             {receiverData.appointmentType === "EXACT" && receiverData.appointmentDate && (
                                 <span className="ml-1">- {receiverData.appointmentDate} {receiverData.appointmentTime || 'TBA'}</span>
@@ -1653,32 +1653,32 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                         </span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Temperature:</span>
-                        <span className="ml-2 text-gray-800">{receiverData.temperature || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Temperature:</span>
+                        <span className="ml-2 text-primary">{receiverData.temperature || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Postal Code:</span>
-                        <span className="ml-2 text-gray-800">{receiverData.postalCode || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Postal Code:</span>
+                        <span className="ml-2 text-primary">{receiverData.postalCode || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Goods:</span>
-                        <span className="ml-2 text-gray-800">{receiverData.goods || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Goods:</span>
+                        <span className="ml-2 text-primary">{receiverData.goods || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Skids:</span>
-                        <span className="ml-2 text-gray-800">{receiverData.skids || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Skids:</span>
+                        <span className="ml-2 text-primary">{receiverData.skids || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Cases:</span>
-                        <span className="ml-2 text-gray-800">{receiverData.cases || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Cases:</span>
+                        <span className="ml-2 text-primary">{receiverData.cases || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Drop Off Notes:</span>
-                        <span className="ml-2 text-gray-800">{receiverData.dropOffNotes || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Drop Off Notes:</span>
+                        <span className="ml-2 text-primary">{receiverData.dropOffNotes || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-semibold text-gray-700">Weight:</span>
-                        <span className="ml-2 text-gray-800">{receiverData.weight || 'N/A'}</span>
+                        <span className="font-semibold text-primary">Weight:</span>
+                        <span className="ml-2 text-primary">{receiverData.weight || 'N/A'}</span>
                     </div>
                 </div>
             </div>
@@ -2634,21 +2634,21 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const stepNames = ["Customer", "Shipper", "Receiver", "Review", "Assignment", "Notes / Audit"];
 
     return (
-        <div className="h-full flex flex-col bg-white">
+        <div className="h-full flex flex-col bg-card">
             {/* Fixed Header */}
-            <div className="flex items-center justify-between p-5 border-b-2 border-gray-200 bg-gradient-to-r from-white to-gray-50 flex-shrink-0 shadow-sm">
+            <div className="flex items-center justify-between p-5 border-b-2 border-theme bg-gradient-to-r from-white to-gray-50 flex-shrink-0 shadow-sm">
                 <div className="flex-1">
                     <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-xl font-bold text-gray-800">{order ? 'Edit Order' : 'Create New Order'}</h2>
+                        <h2 className="text-xl font-bold text-primary">{order ? 'Edit Order' : 'Create New Order'}</h2>
                     </div>
                     {/* Step Indicator */}
                     <div className="flex items-center gap-1 flex-wrap">
                         {stepNames.map((name, index) => (
                             <div key={index} className="flex items-center">
-                                <div className={`flex items-center gap-2 ${index + 1 === currentStep ? 'text-white' : index + 1 < currentStep ? 'text-green-600' : 'text-gray-400'}`} style={index + 1 === currentStep ? { color: PRIMARY_COLOR } : {}}>
+                                <div className={`flex items-center gap-2 ${index + 1 === currentStep ? 'text-white' : index + 1 < currentStep ? 'text-green-600' : 'text-secondary'}`} style={index + 1 === currentStep ? { color: PRIMARY_COLOR } : {}}>
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all text-white ${index + 1 === currentStep ? 'shadow-md ring-2' :
                                         index + 1 < currentStep ? 'bg-green-600' :
-                                            'bg-gray-200 text-gray-500'
+                                            'bg-gray-200 text-secondary'
                                         }`} style={index + 1 === currentStep ? { background: PRIMARY_GRADIENT, '--tw-ring-color': PRIMARY_LIGHT_BG } as React.CSSProperties & { '--tw-ring-color'?: string } : {}}>
                                         {index + 1 < currentStep ? '✓' : index + 1}
                                     </div>
@@ -2665,7 +2665,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     onClick={onClose}
                     className="p-2 hover:bg-gray-100 rounded-full transition-colors ml-4"
                 >
-                    <X className="w-5 h-5 text-gray-500" />
+                    <X className="w-5 h-5 text-secondary" />
                 </button>
             </div>
 
@@ -2674,33 +2674,33 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 <div className="w-full mx-auto space-y-6 min-w-0">
                     {/* Step 1: Details Section */}
                     {currentStep === 1 && (
-                        <div className="border-b border-gray-200">
-                            <div className="p-5 border-b border-gray-200" style={{ background: `linear-gradient(to right, ${PRIMARY_LIGHT_BG}, rgba(229, 231, 235, 0.5))` }}>
-                                <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                        <div className="border-b border-theme">
+                            <div className="p-5 border-b border-theme" style={{ background: `linear-gradient(to right, ${PRIMARY_LIGHT_BG}, rgba(229, 231, 235, 0.5))` }}>
+                                <h3 className="text-base font-semibold text-primary flex items-center gap-2">
                                     <span className="w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold" style={{ background: PRIMARY_GRADIENT }}>1</span>
                                     Customer Details
                                 </h3>
-                                <p className="text-xs text-gray-600 mt-1 ml-10">Enter basic customer information and  details</p>
+                                <p className="text-xs text-secondary mt-1 ml-10">Enter basic customer information and  details</p>
                             </div>
                             <div className="px-5 pt-5 pb-0 space-y-6">
                              
 
                                 {/* Basic Information Section - Additional Customer Fields */}
-                                <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                    <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
+                                <div className="bg-card rounded-lg border border-theme p-4">
+                                    <h4 className="text-sm font-semibold text-primary mb-4 pb-2 border-b border-theme flex items-center gap-2">
                                        
                                         Basic Information
                                     </h4>
                                     <div className="space-y-4">
                                         {/* Select Customer */}
                                         <div className="relative" ref={customerDropdownRef}>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Select Customer *</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Select Customer *</label>
                                             <div className="relative">
                                                 <div
                                                     onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
-                                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75"
+                                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-opacity-75"
                                                 >
-                                                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${customerDropdownOpen ? 'rotate-180' : ''}`} />
+                                                    <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${customerDropdownOpen ? 'rotate-180' : ''}`} />
                                                     <input
                                                         type="text"
                                                         value={
@@ -2726,17 +2726,17 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             }}
                                                             className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                                                         >
-                                                            <X className="w-4 h-4 text-gray-400" />
+                                                            <X className="w-4 h-4 text-secondary" />
                                                         </button>
                                                     )}
-                                                    <ChevronUp className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${customerDropdownOpen ? '' : 'rotate-180 opacity-0'}`} />
+                                                    <ChevronUp className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${customerDropdownOpen ? '' : 'rotate-180 opacity-0'}`} />
                                                 </div>
 
                                                 {customerDropdownOpen && (
-                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                        <div className="p-2 border-b border-gray-200">
+                                                    <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                        <div className="p-2 border-b border-theme">
                                                             <div className="relative">
-                                                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                                 <input
                                                                     type="text"
                                                                     value={customerSearch}
@@ -2750,7 +2750,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         <div className="overflow-y-auto max-h-48">
                                                             {filteredCustomerOptions.length > 0 ? (
                                                                 <>
-                                                                    <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 sticky top-0">
+                                                                    <div className="px-3 py-1.5 text-xs font-semibold text-secondary bg-card border-b border-theme sticky top-0">
                                                                         Customers
                                                                     </div>
                                                                     {filteredCustomerOptions.map((customer) => {
@@ -2759,12 +2759,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             <div
                                                                                 key={`customer-${customer._id || customer.id}`}
                                                                                 onClick={() => handleCustomerSelect(customer)}
-                                                                                className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-50 ${
-                                                                                    (selectedCustomer?._id || selectedCustomer?.id) === (customer._id || customer.id) ? 'bg-blue-50' : ''
+                                                                                className={`px-3 py-2 cursor-pointer text-sm hover:bg-[rgba(255,255,255,0.03)] ${
+                                                                                    (selectedCustomer?._id || selectedCustomer?.id) === (customer._id || customer.id) ? 'bg-card' : ''
                                                                                 }`}
                                                                             >
                                                                                 <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
-                                                                                <div className="text-xs text-gray-600">
+                                                                                <div className="text-xs text-secondary">
                                                                                     {fullAddr || customer.email || customer.phone || ''}
                                                                                 </div>
                                                                             </div>
@@ -2772,7 +2772,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     })}
                                                                 </>
                                                             ) : (
-                                                                <div className="px-3 py-2 text-sm text-gray-500">No customers found</div>
+                                                                <div className="px-3 py-2 text-sm text-secondary">No customers found</div>
                                                             )}
                                                         </div>
                                                     </div>
@@ -2782,16 +2782,16 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Customer*</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Customer*</label>
                                             <input
                                                 type="text"
                                                 value={selectedCustomer?.name || ""}
                                                 readOnly
-                                                className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-sm"
+                                                className="w-full p-2 border border-gray-300 rounded bg-card text-sm"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Unit</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Unit</label>
                                             <input
                                                 type="text"
                                                 value={customerUnit}
@@ -2800,16 +2800,16 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Address*</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Address*</label>
                                             <input
                                                 type="text"
                                                 value={formatFullAddress(selectedCustomer)}
                                                 readOnly
-                                                className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-sm"
+                                                className="w-full p-2 border border-gray-300 rounded bg-card text-sm"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Postal Code*</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Postal Code*</label>
                                             <div className="flex gap-1">
                                                 <input
                                                     type="text"
@@ -2823,34 +2823,34 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">City*</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">City*</label>
                                             <input
                                                 type="text"
                                                 value={getCustomerAddress(selectedCustomer).city}
                                                 readOnly
-                                                className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-sm"
+                                                className="w-full p-2 border border-gray-300 rounded bg-card text-sm"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Country*</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Country*</label>
                                             <input
                                                 type="text"
                                                 value={getCustomerAddress(selectedCustomer).country}
                                                 readOnly
-                                                className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-sm"
+                                                className="w-full p-2 border border-gray-300 rounded bg-card text-sm"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Province/State*</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Province/State*</label>
                                             <input
                                                 type="text"
                                                 value={getCustomerAddress(selectedCustomer).state}
                                                 readOnly
-                                                className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-sm"
+                                                className="w-full p-2 border border-gray-300 rounded bg-card text-sm"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Primary Phone #</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Primary Phone #</label>
                                             <div className="flex gap-1">
                                                 <select className="w-20 p-2 border border-gray-300 rounded text-sm">
                                                     <option>🇺🇸 +1</option>
@@ -2864,7 +2864,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Secondary Phone #</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Secondary Phone #</label>
                                             <div className="flex gap-1">
                                                 <select className="w-20 p-2 border border-gray-300 rounded text-sm">
                                                     <option>🇺🇸 +1</option>
@@ -2878,7 +2878,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Contact</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Contact</label>
                                             <input
                                                 type="text"
                                                 value={customerContact}
@@ -2887,7 +2887,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Payable Email</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Payable Email</label>
                                             <input
                                                 type="email"
                                                 value={payableEmail}
@@ -2896,7 +2896,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Equipment*</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Equipment*</label>
                                             <select
                                                 value={selectedEquipment[0] || ""}
                                                 onChange={(e) => setSelectedEquipment(e.target.value ? [e.target.value] : [])}
@@ -2909,7 +2909,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Secondary Payable Email</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Secondary Payable Email</label>
                                             <input
                                                 type="email"
                                                 value={secondaryPayableEmail}
@@ -2921,11 +2921,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                 </div>
 
                                 {/* Customs Information Section */}
-                                <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                    <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Customs Information</h4>
+                                <div className="bg-card rounded-lg border border-theme p-4">
+                                    <h4 className="text-sm font-semibold text-primary mb-4 pb-2 border-b border-theme">Customs Information</h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Customs Broker</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Customs Broker</label>
                                             <div className="flex gap-1">
                                                 <input
                                                     type="text"
@@ -2934,13 +2934,13 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
                                                     placeholder="Enter customs broker"
                                                 />
-                                                <button className="p-2 border border-gray-300 rounded hover:bg-gray-50">
-                                                    <Search className="w-4 h-4 text-gray-400" />
+                                                <button className="p-2 border border-gray-300 rounded hover:bg-[rgba(255,255,255,0.03)]">
+                                                    <Search className="w-4 h-4 text-secondary" />
                                                 </button>
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Primary Phone #</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Primary Phone #</label>
                                             <div className="flex gap-1">
                                                 <select className="w-20 p-2 border border-gray-300 rounded text-sm">
                                                     <option>🇺🇸 +1</option>
@@ -2955,7 +2955,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Broker Email</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Broker Email</label>
                                             <input
                                                 type="email"
                                                 value={brokerEmail}
@@ -2965,7 +2965,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">PARS</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">PARS</label>
                                             <div className="flex gap-1">
                                                 <input
                                                     type="text"
@@ -2974,13 +2974,13 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
                                                     placeholder="Enter PARS number"
                                                 />
-                                                <button className="p-2 border border-gray-300 rounded hover:bg-gray-50">
-                                                    <Search className="w-4 h-4 text-gray-400" />
+                                                <button className="p-2 border border-gray-300 rounded hover:bg-[rgba(255,255,255,0.03)]">
+                                                    <Search className="w-4 h-4 text-secondary" />
                                                 </button>
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">PAPS</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">PAPS</label>
                                             <div className="flex gap-1">
                                                 <input
                                                     type="text"
@@ -2989,13 +2989,13 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
                                                     placeholder="Enter PAPS number"
                                                 />
-                                                <button className="p-2 border border-gray-300 rounded hover:bg-gray-50">
-                                                    <Search className="w-4 h-4 text-gray-400" />
+                                                <button className="p-2 border border-gray-300 rounded hover:bg-[rgba(255,255,255,0.03)]">
+                                                    <Search className="w-4 h-4 text-secondary" />
                                                 </button>
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Trailer Seal No.</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Trailer Seal No.</label>
                                             <input
                                                 type="text"
                                                 value={trailerSealNo}
@@ -3008,8 +3008,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                 </div>
 
                                 {/* Additional Section */}
-                                <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                    <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Additional</h4>
+                                <div className="bg-card rounded-lg border border-theme p-4">
+                                    <h4 className="text-sm font-semibold text-primary mb-4 pb-2 border-b border-theme">Additional</h4>
                                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
@@ -3018,7 +3018,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 onChange={(e) => setCsaFastApproved(e.target.checked)}
                                                 className="w-4 h-4"
                                             />
-                                            <span className="text-sm text-gray-700">CSA/FAST Approved</span>
+                                            <span className="text-sm text-primary">CSA/FAST Approved</span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
@@ -3027,7 +3027,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 onChange={(e) => setBondedShipmentCA(e.target.checked)}
                                                 className="w-4 h-4"
                                             />
-                                            <span className="text-sm text-gray-700">Bonded Shipment (CA)</span>
+                                            <span className="text-sm text-primary">Bonded Shipment (CA)</span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
@@ -3036,7 +3036,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 onChange={(e) => setBondedShipmentUS(e.target.checked)}
                                                 className="w-4 h-4"
                                             />
-                                            <span className="text-sm text-gray-700">Bonded Shipment (US)</span>
+                                            <span className="text-sm text-primary">Bonded Shipment (US)</span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
@@ -3045,7 +3045,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 onChange={(e) => setHighPriority(e.target.checked)}
                                                 className="w-4 h-4"
                                             />
-                                            <span className="text-sm text-gray-700">High Priority</span>
+                                            <span className="text-sm text-primary">High Priority</span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
@@ -3054,7 +3054,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 onChange={(e) => setCityDriver(e.target.checked)}
                                                 className="w-4 h-4"
                                             />
-                                            <span className="text-sm text-gray-700">City Driver</span>
+                                            <span className="text-sm text-primary">City Driver</span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
@@ -3063,7 +3063,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 onChange={(e) => setAdditionalInfo(prev => ({ ...prev, TARP: e.target.checked }))}
                                                 className="w-4 h-4"
                                             />
-                                            <span className="text-sm text-gray-700">Tarp Required</span>
+                                            <span className="text-sm text-primary">Tarp Required</span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
@@ -3072,7 +3072,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 onChange={(e) => setTeamLoad(e.target.checked)}
                                                 className="w-4 h-4"
                                             />
-                                            <span className="text-sm text-gray-700">Team Load</span>
+                                            <span className="text-sm text-primary">Team Load</span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
@@ -3081,7 +3081,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 onChange={(e) => setRoundTrip(e.target.checked)}
                                                 className="w-4 h-4"
                                             />
-                                            <span className="text-sm text-gray-700">Round Trip</span>
+                                            <span className="text-sm text-primary">Round Trip</span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
@@ -3090,7 +3090,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 onChange={(e) => setAdditionalInfo(prev => ({ ...prev, HAZMAT: e.target.checked }))}
                                                 className="w-4 h-4"
                                             />
-                                            <span className="text-sm text-gray-700">Hazmat Goods</span>
+                                            <span className="text-sm text-primary">Hazmat Goods</span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
@@ -3102,7 +3102,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 }}
                                                 className="w-4 h-4"
                                             />
-                                            <span className="text-sm text-gray-700">Oversized</span>
+                                            <span className="text-sm text-primary">Oversized</span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
@@ -3111,7 +3111,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 onChange={(e) => setEmpty(e.target.checked)}
                                                 className="w-4 h-4"
                                             />
-                                            <span className="text-sm text-gray-700">Empty</span>
+                                            <span className="text-sm text-primary">Empty</span>
                                         </label>
                                     </div>
                                 </div>
@@ -3119,11 +3119,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                 {/* Billing Information and Invoice Preview - Side by Side */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                     {/* Billing Information */}
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                        <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Billing Information</h4>
+                                    <div className="bg-card rounded-lg border border-theme p-4">
+                                        <h4 className="text-sm font-semibold text-primary mb-4 pb-2 border-b border-theme">Billing Information</h4>
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Order*</label>
+                                                <label className="block text-xs font-medium text-primary mb-1">Order*</label>
                                                 <input
                                                     type="text"
                                                     value={customerOrderNo}
@@ -3132,7 +3132,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Date</label>
+                                                <label className="block text-xs font-medium text-primary mb-1">Date</label>
                                                 <input
                                                     type="date"
                                                     value={billingDate}
@@ -3141,7 +3141,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Rate*</label>
+                                                <label className="block text-xs font-medium text-primary mb-1">Rate*</label>
                                                 <div className="flex gap-2">
                                                     <input
                                                         type="number"
@@ -3152,13 +3152,13 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <div className="flex border border-gray-300 rounded overflow-hidden">
                                                         <button
                                                             onClick={() => setRateCurrency("CAD")}
-                                                            className={`px-3 py-2 text-sm ${rateCurrency === "CAD" ? "bg-gray-800 !text-white" : "bg-white text-gray-700"}`}
+                                                            className={`px-3 py-2 text-sm ${rateCurrency === "CAD" ? "bg-gray-800 !text-white" : "bg-card text-primary"}`}
                                                         >
                                                             CAD
                                                         </button>
                                                         <button
                                                             onClick={() => setRateCurrency("USD")}
-                                                            className={`px-3 py-2 text-sm ${rateCurrency === "USD" ? "bg-gray-800 !text-white" : "bg-white text-gray-700"}`}
+                                                            className={`px-3 py-2 text-sm ${rateCurrency === "USD" ? "bg-gray-800 !text-white" : "bg-card text-primary"}`}
                                                         >
                                                             USD
                                                         </button>
@@ -3166,7 +3166,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Salesperson</label>
+                                                <label className="block text-xs font-medium text-primary mb-1">Salesperson</label>
                                                 <div className="flex gap-1">
                                                     <select
                                                         value={selectedSalesman}
@@ -3187,11 +3187,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             ))
                                                         )}
                                                     </select>
-                                                    <Search className="w-5 h-5 text-gray-400 mt-2" />
+                                                    <Search className="w-5 h-5 text-secondary mt-2" />
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Dispatcher</label>
+                                                <label className="block text-xs font-medium text-primary mb-1">Dispatcher</label>
                                                 <input
                                                     type="text"
                                                     value={dispatcher}
@@ -3200,7 +3200,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Dispatcher's Email</label>
+                                                <label className="block text-xs font-medium text-primary mb-1">Dispatcher's Email</label>
                                                 <input
                                                     type="email"
                                                     value={dispatcherEmail}
@@ -3216,7 +3216,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         onChange={(e) => setBookedForCarrier(e.target.checked)}
                                                         className="w-4 h-4"
                                                     />
-                                                    <span className="text-sm text-gray-700">Booked For Carrier</span>
+                                                    <span className="text-sm text-primary">Booked For Carrier</span>
                                                 </label>
                                                 <label className="flex items-center gap-2 cursor-pointer">
                                                     <input
@@ -3225,7 +3225,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         onChange={(e) => setSendToFactor(e.target.checked)}
                                                         className="w-4 h-4"
                                                     />
-                                                    <span className="text-sm text-gray-700">Send To Factor</span>
+                                                    <span className="text-sm text-primary">Send To Factor</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -3234,11 +3234,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                     {/* Tax Configuration and Invoice Preview */}
                                     <div className="space-y-4">
                                         {/* Tax Configuration */}
-                                        <div className="bg-white rounded-lg border-2 border-green-200 p-4">
-                                            <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Tax Configuration</h4>
+                                        <div className="bg-card rounded-lg border-2 border-green-200 p-4">
+                                            <h4 className="text-sm font-semibold text-primary mb-4 pb-2 border-b border-theme">Tax Configuration</h4>
                                             <div className="space-y-4">
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Tax Code</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Tax Code</label>
                                                     <select
                                                         value={taxCode}
                                                         onChange={(e) => {
@@ -3265,7 +3265,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Tax Amount (%)</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Tax Amount (%)</label>
                                                     <input
                                                         type="number"
                                                         value={taxAmount}
@@ -3277,19 +3277,19 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         </div>
 
                                         {/* Invoice Preview */}
-                                        <div className="bg-white rounded-lg border-2 border-green-200 p-4">
-                                            <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Invoice Preview</h4>
+                                        <div className="bg-card rounded-lg border-2 border-green-200 p-4">
+                                            <h4 className="text-sm font-semibold text-primary mb-4 pb-2 border-b border-theme">Invoice Preview</h4>
                                             <div className="space-y-3">
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-sm text-gray-700">Load Rate</span>
-                                                    <span className="text-sm font-medium text-gray-800">
+                                                    <span className="text-sm text-primary">Load Rate</span>
+                                                    <span className="text-sm font-medium text-primary">
                                                         {rateCurrency === "CAD" ? "$" : "$"}{invoiceCalculations.loadRate.toFixed(2)}
                                                     </span>
                                                 </div>
-                                                <div className="border-t border-gray-200 pt-3">
+                                                <div className="border-t border-theme pt-3">
                                                     <div className="flex justify-between items-center">
-                                                        <span className="text-sm text-gray-700">Subtotal</span>
-                                                        <span className="text-sm font-medium text-gray-800">
+                                                        <span className="text-sm text-primary">Subtotal</span>
+                                                        <span className="text-sm font-medium text-primary">
                                                             {rateCurrency === "CAD" ? "$" : "$"}{invoiceCalculations.subtotal.toFixed(2)}
                                                         </span>
                                                     </div>
@@ -3309,8 +3309,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
                                 {/* Invoice Instructions and Notes Section */}
                                 <div className="space-y-4 mt-6">
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                        <label className="block text-sm font-semibold text-gray-800 mb-2">Invoice Instructions</label>
+                                    <div className="bg-card rounded-lg border border-theme p-4">
+                                        <label className="block text-sm font-semibold text-primary mb-2">Invoice Instructions</label>
                                         <textarea
                                             rows={4}
                                             value={invoiceInstructions}
@@ -3320,8 +3320,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         />
                                     </div>
 
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                        <label className="block text-sm font-semibold text-gray-800 mb-2">Invoice Notes</label>
+                                    <div className="bg-card rounded-lg border border-theme p-4">
+                                        <label className="block text-sm font-semibold text-primary mb-2">Invoice Notes</label>
                                         <textarea
                                             rows={4}
                                             value={invoiceNotes}
@@ -3333,8 +3333,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                 </div>
 
                                 {/* Other Charges Section */}
-                                <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
-                                    <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Other Charges</h4>
+                                <div className="bg-card rounded-lg border border-theme p-4 mt-4">
+                                    <h4 className="text-sm font-semibold text-primary mb-4 pb-2 border-b border-theme">Other Charges</h4>
                                     <div className="space-y-3">
                                         {/* Add New Charge Row */}
                                         <div className="grid grid-cols-12 gap-2 items-end">
@@ -3397,8 +3397,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </div>
                                         </div>
                                         {/* Charges List Header and Display */}
-                                        <div className="border-t border-gray-200 pt-2">
-                                            <div className="grid grid-cols-12 gap-2 text-xs font-medium text-gray-600 mb-2 pb-1 border-b">
+                                        <div className="border-t border-theme pt-2">
+                                            <div className="grid grid-cols-12 gap-2 text-xs font-medium text-secondary mb-2 pb-1 border-b">
                                                 <div className="col-span-2">Charge %</div>
                                                 <div className="col-span-2">Charge $</div>
                                                 <div className="col-span-6">Description</div>
@@ -3409,7 +3409,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             {otherCharges.length > 0 ? (
                                                 <div className="max-h-40 overflow-y-auto space-y-1">
                                                     {otherCharges.map((charge, index) => (
-                                                        <div key={index} className="grid grid-cols-12 gap-2 text-xs items-center py-1 hover:bg-gray-50 border-b border-gray-100">
+                                                        <div key={index} className="grid grid-cols-12 gap-2 text-xs items-center py-1 hover:bg-[rgba(255,255,255,0.03)] border-b border-theme">
                                                             <div className="col-span-2">{charge.chargePercent || '-'}</div>
                                                             <div className="col-span-2">{charge.chargeAmount || '-'}</div>
                                                             <div className="col-span-6">{charge.category || charge.description || '-'}</div>
@@ -3427,7 +3427,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <div className="py-8 text-center text-sm text-gray-400 bg-gray-50 rounded border border-gray-200">
+                                                <div className="py-8 text-center text-sm text-secondary bg-card rounded border border-theme">
                                                     No charges added yet
                                                 </div>
                                             )}
@@ -3443,19 +3443,19 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
                     {
                         currentStep === 2 && (
-                            <div className="border-b border-gray-200">
-                                <div className="p-5 border-b border-gray-200" style={{ background: `linear-gradient(to right, ${PRIMARY_LIGHT_BG}, rgba(229, 231, 235, 0.5))` }}>
-                                    <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                            <div className="border-b border-theme">
+                                <div className="p-5 border-b border-theme" style={{ background: `linear-gradient(to right, ${PRIMARY_LIGHT_BG}, rgba(229, 231, 235, 0.5))` }}>
+                                    <h3 className="text-base font-semibold text-primary flex items-center gap-2">
                                         <span className="w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold" style={{ background: PRIMARY_GRADIENT }}>2</span>
                                         Shipper Information
                                     </h3>
-                                    <p className="text-xs text-gray-600 mt-1 ml-10">Enter shipper contact details and pickup appointment information</p>
+                                    <p className="text-xs text-secondary mt-1 ml-10">Enter shipper contact details and pickup appointment information</p>
                                 </div>
                                 <div className="px-1 pt-5 pb-0 space-y-6">
                                     {/* Stop Information Table */}
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                    <div className="bg-card rounded-lg border border-theme p-4">
                                         <div className="flex items-center justify-between mb-4">
-                                            <h4 className="text-sm font-semibold text-gray-800">Stop Information</h4>
+                                            <h4 className="text-sm font-semibold text-primary">Stop Information</h4>
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={addStop}
@@ -3469,42 +3469,42 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-xs border-collapse">
                                                 <thead>
-                                                    <tr className="bg-gray-50 border-b border-gray-200">
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Stop</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Shipper</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Date</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">End Date</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Appointment</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Pick Up #</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Contact</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Skids</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Cases</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Weight</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">UoM</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Temperature</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Address</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700">LTL</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700">Action</th>
+                                                    <tr className="bg-card border-b border-theme">
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Stop</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Shipper</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Date</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">End Date</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Appointment</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Pick Up #</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Contact</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Skids</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Cases</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Weight</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">UoM</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Temperature</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Address</th>
+                                                        <th className="p-2 text-left font-medium text-primary">LTL</th>
+                                                        <th className="p-2 text-left font-medium text-primary">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {stops.length > 0 ? (
                                                         stops.map((stop, index) => (
-                                                            <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                                                                <td className="p-2 border-r border-gray-200">{stop.stop}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.shipper || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.date || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.endDate || 'N/A'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.appointment || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.pickUpNumber || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.contact || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.skids || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.cases || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.weight || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.uom || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.temperature || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.address || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">
+                                                            <tr key={index} className="border-b border-theme hover:bg-[rgba(255,255,255,0.03)]">
+                                                                <td className="p-2 border-r border-theme">{stop.stop}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.shipper || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.date || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.endDate || 'N/A'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.appointment || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.pickUpNumber || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.contact || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.skids || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.cases || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.weight || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.uom || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.temperature || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.address || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">
                                                                     <input
                                                                         type="checkbox"
                                                                         checked={stop.ltl}
@@ -3529,7 +3529,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         ))
                                                     ) : (
                                                         <tr>
-                                                            <td colSpan={15} className="p-8 text-center text-gray-400 bg-gray-50">
+                                                            <td colSpan={15} className="p-8 text-center text-secondary bg-card">
                                                                 No stops added yet. Fill in the fields below and click "Add Stop" to add entries.
                                                             </td>
                                                         </tr>
@@ -3544,15 +3544,15 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         {/* Left Panel - Shipper Information */}
                                         <div className="space-y-4">
                                             {/* Select Shipper */}
-                                            <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                            <div className="bg-card rounded-lg border border-theme p-4">
                                                 <div className="relative" ref={shipperCustomerDropdownRef}>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Select Shipper *</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Select Shipper *</label>
                                                     <div className="relative">
                                                         <div
                                                             onClick={() => setShipperCustomerDropdownOpen(!shipperCustomerDropdownOpen)}
-                                                            className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75"
+                                                            className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-opacity-75"
                                                         >
-                                                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${shipperCustomerDropdownOpen ? 'rotate-180' : ''}`} />
+                                                            <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${shipperCustomerDropdownOpen ? 'rotate-180' : ''}`} />
                                                             <input
                                                                 type="text"
                                                                 value={
@@ -3582,17 +3582,17 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     }}
                                                                     className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                                                                 >
-                                                                    <X className="w-4 h-4 text-gray-400" />
+                                                                    <X className="w-4 h-4 text-secondary" />
                                                                 </button>
                                                             )}
-                                                            <ChevronUp className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${shipperCustomerDropdownOpen ? '' : 'rotate-180 opacity-0'}`} />
+                                                            <ChevronUp className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${shipperCustomerDropdownOpen ? '' : 'rotate-180 opacity-0'}`} />
                                                         </div>
 
                                                         {shipperCustomerDropdownOpen && (
-                                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                                <div className="p-2 border-b border-gray-200">
+                                                            <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                                <div className="p-2 border-b border-theme">
                                                                     <div className="relative">
-                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                                         <input
                                                                             type="text"
                                                                             value={shipperCustomerSearch}
@@ -3606,7 +3606,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 <div className="overflow-y-auto max-h-48">
                                                                     {filteredShipperOptions.length > 0 ? (
                                                                         <>
-                                                                            <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 sticky top-0">
+                                                                            <div className="px-3 py-1.5 text-xs font-semibold text-secondary bg-card border-b border-theme sticky top-0">
                                                                                 Customers
                                                                             </div>
                                                                             {filteredShipperOptions.map((customer) => {
@@ -3615,12 +3615,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                     <div
                                                                                         key={`customer-${customer._id || customer.id}`}
                                                                                         onClick={() => handleShipperSelect(customer)}
-                                                                                        className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-50 ${
-                                                                                            (selectedShipperCustomer?._id || selectedShipperCustomer?.id) === (customer._id || customer.id) ? 'bg-blue-50' : ''
+                                                                                        className={`px-3 py-2 cursor-pointer text-sm hover:bg-[rgba(255,255,255,0.03)] ${
+                                                                                            (selectedShipperCustomer?._id || selectedShipperCustomer?.id) === (customer._id || customer.id) ? 'bg-card' : ''
                                                                                         }`}
                                                                                     >
                                                                                         <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
-                                                                                        <div className="text-xs text-gray-600">
+                                                                                        <div className="text-xs text-secondary">
                                                                                             {fullAddr || customer.email || customer.phone || ''}
                                                                                         </div>
                                                                                     </div>
@@ -3628,7 +3628,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             })}
                                                                         </>
                                                                     ) : (
-                                                                        <div className="px-3 py-2 text-sm text-gray-500">No customers found</div>
+                                                                        <div className="px-3 py-2 text-sm text-secondary">No customers found</div>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -3638,7 +3638,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </div>
 
                                             {/* Search Address */}
-                                            <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                            <div className="bg-card rounded-lg border border-theme p-4">
                                                 <AddressSearch
                                                     label="Search Address"
                                                     placeholder="Search For An Address..."
@@ -3668,11 +3668,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </div>
 
                                             {/* Shipper Information Section */}
-                                            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                                <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Shipper Information</h4>
+                                            <div className="bg-card rounded-lg border border-theme p-4">
+                                                <h4 className="text-sm font-semibold text-primary mb-4 pb-2 border-b border-theme">Shipper Information</h4>
                                                 <div className="space-y-4">
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Shipper*</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Shipper*</label>
                                                         <input
                                                             type="text"
                                                             value={shipperName}
@@ -3681,7 +3681,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Unit</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Unit</label>
                                                         <input
                                                             type="text"
                                                             value={shipperUnit}
@@ -3690,7 +3690,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Address*</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Address*</label>
                                                         <input
                                                             type="text"
                                                             value={shipperAddress}
@@ -3699,7 +3699,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Country*</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Country*</label>
                                                         <select
                                                             value={shipperCountry}
                                                             onChange={(e) => setShipperCountry(e.target.value)}
@@ -3711,7 +3711,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         </select>
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Province/State*</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Province/State*</label>
                                                         <input
                                                             type="text"
                                                             value={shipperProvince}
@@ -3720,7 +3720,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">City*</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">City*</label>
                                                         <input
                                                             type="text"
                                                             value={shipperCity}
@@ -3729,7 +3729,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Postal Code</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Postal Code</label>
                                                         <div className="flex gap-1">
                                                             <input
                                                                 type="text"
@@ -3737,13 +3737,13 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 onChange={(e) => setShipperPostalCode(e.target.value)}
                                                                 className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
                                                             />
-                                                            <button className="p-2 border border-gray-300 rounded hover:bg-gray-50 text-green-600">
+                                                            <button className="p-2 border border-gray-300 rounded hover:bg-[rgba(255,255,255,0.03)] text-green-600">
                                                                 ✓
                                                             </button>
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Primary Phone #</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Primary Phone #</label>
                                                         <div className="flex gap-1">
                                                             <select className="w-20 p-2 border border-gray-300 rounded text-sm">
                                                                 <option>🇺🇸 +1</option>
@@ -3757,7 +3757,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Secondary Phone #</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Secondary Phone #</label>
                                                         <div className="flex gap-1">
                                                             <select className="w-20 p-2 border border-gray-300 rounded text-sm">
                                                                 <option>🇺🇸 +1</option>
@@ -3771,7 +3771,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Contact</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Contact</label>
                                                         <input
                                                             type="text"
                                                             value={shipperContact}
@@ -3780,7 +3780,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Store</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Store</label>
                                                         <input
                                                             type="text"
                                                             value={shipperStore}
@@ -3796,11 +3796,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 onChange={(e) => setCsaFastApproved(e.target.checked)}
                                                                 className="w-4 h-4"
                                                             />
-                                                            <span className="text-sm text-gray-700">CSA/FAST Approved</span>
+                                                            <span className="text-sm text-primary">CSA/FAST Approved</span>
                                                         </label>
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-2">Type</label>
+                                                        <label className="block text-xs font-medium text-primary mb-2">Type</label>
                                                         <div className="flex gap-2">
                                                             {["DROP", "HOOK & GO", "DELIVERY"].map((type) => (
                                                                 <button
@@ -3809,7 +3809,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
                                                                         shipperType === type
                                                                             ? "bg-blue-600 !text-white"
-                                                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                                            : "bg-gray-100 text-primary hover:bg-gray-200"
                                                                     }`}
                                                                 >
                                                                     {type}
@@ -3823,11 +3823,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
                                         {/* Right Panel - Goods and Pick Up Details */}
                                         <div className="space-y-4">
-                                            <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                                <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Goods and Pick Up Details</h4>
+                                            <div className="bg-card rounded-lg border border-theme p-4">
+                                                <h4 className="text-sm font-semibold text-primary mb-4 pb-2 border-b border-theme">Goods and Pick Up Details</h4>
                                                 <div className="space-y-4">
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Goods</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Goods</label>
                                                         <textarea
                                                             rows={4}
                                                             value={goods}
@@ -3836,7 +3836,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Pick Up Notes</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Pick Up Notes</label>
                                                         <textarea
                                                             rows={4}
                                                             value={pickUpNotes}
@@ -3845,7 +3845,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Pick Up Number</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Pick Up Number</label>
                                                         <input
                                                             type="text"
                                                             value={pickUpNumber}
@@ -3855,7 +3855,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div>
-                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Weight</label>
+                                                            <label className="block text-xs font-medium text-primary mb-1">Weight</label>
                                                             <input
                                                                 type="text"
                                                                 value={weight}
@@ -3864,7 +3864,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             />
                                                         </div>
                                                         <div>
-                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Skids</label>
+                                                            <label className="block text-xs font-medium text-primary mb-1">Skids</label>
                                                             <input
                                                                 type="text"
                                                                 value={pickupSkids}
@@ -3873,7 +3873,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             />
                                                         </div>
                                                         <div>
-                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Cases</label>
+                                                            <label className="block text-xs font-medium text-primary mb-1">Cases</label>
                                                             <input
                                                                 type="text"
                                                                 value={pickupCases}
@@ -3882,7 +3882,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             />
                                                         </div>
                                                         <div>
-                                                            <label className="block text-xs font-medium text-gray-700 mb-1">UoM</label>
+                                                            <label className="block text-xs font-medium text-primary mb-1">UoM</label>
                                                             <select
                                                                 value={pickupUoM}
                                                                 onChange={(e) => setPickupUoM(e.target.value)}
@@ -3894,7 +3894,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             </select>
                                                         </div>
                                                         <div>
-                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Temperature</label>
+                                                            <label className="block text-xs font-medium text-primary mb-1">Temperature</label>
                                                             <input
                                                                 type="text"
                                                                 value={temperature}
@@ -3903,7 +3903,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             />
                                                         </div>
                                                         <div>
-                                                            <label className="block text-xs font-medium text-gray-700 mb-1">Temp. Units</label>
+                                                            <label className="block text-xs font-medium text-primary mb-1">Temp. Units</label>
                                                             <select
                                                                 value={pickupTempUnits}
                                                                 onChange={(e) => setPickupTempUnits(e.target.value)}
@@ -3916,7 +3916,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-700 mb-2">Appointment</label>
+                                                        <label className="block text-xs font-medium text-primary mb-2">Appointment</label>
                                                         <div className="flex gap-2">
                                                             {["EXACT", "WINDOW"].map((type) => (
                                                                 <button
@@ -3926,7 +3926,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-all ${
                                                                         pickupAppointmentType === type
                                                                             ? "bg-blue-600 !text-white shadow-sm"
-                                                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                                            : "bg-gray-100 text-primary hover:bg-gray-200"
                                                                     }`}
                                                                 >
                                                                     {type}
@@ -3937,7 +3937,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     {pickupAppointmentType === "EXACT" ? (
                                                         <div className="grid grid-cols-2 gap-4">
                                                             <div>
-                                                                <label className="block text-xs font-medium text-gray-700 mb-1">Date*</label>
+                                                                <label className="block text-xs font-medium text-primary mb-1">Date*</label>
                                                                 <input
                                                                     type="date"
                                                                     value={pickupDate}
@@ -3946,7 +3946,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-xs font-medium text-gray-700 mb-1">Time</label>
+                                                                <label className="block text-xs font-medium text-primary mb-1">Time</label>
                                                                 <div className="relative flex items-center">
                                                                     <input
                                                                         type="time"
@@ -3961,7 +3961,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             title="Clear"
                                                                             type="button"
                                                                         >
-                                                                            <X className="w-3.5 h-3.5 text-gray-500 hover:text-gray-700" />
+                                                                            <X className="w-3.5 h-3.5 text-secondary hover:text-primary" />
                                                                         </button>
                                                                     )}
                                                                 </div>
@@ -3972,7 +3972,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             {/* Start Date and Time */}
                                                             <div className="grid grid-cols-2 gap-4">
                                                                 <div>
-                                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Start Date*</label>
+                                                                    <label className="block text-xs font-medium text-primary mb-1">Start Date*</label>
                                                                     <div className="relative">
                                                                         <input
                                                                             type="date"
@@ -3983,7 +3983,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     </div>
                                                                 </div>
                                                                 <div>
-                                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Time</label>
+                                                                    <label className="block text-xs font-medium text-primary mb-1">Time</label>
                                                                     <div className="relative flex items-center">
                                                                         <input
                                                                             type="text"
@@ -3999,7 +3999,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                 title="Clear"
                                                                                 type="button"
                                                                             >
-                                                                                <X className="w-3.5 h-3.5 text-gray-500 hover:text-gray-700" />
+                                                                                <X className="w-3.5 h-3.5 text-secondary hover:text-primary" />
                                                                             </button>
                                                                         )}
                                                                     </div>
@@ -4008,7 +4008,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             {/* End Date and Time */}
                                                             <div className="grid grid-cols-2 gap-4">
                                                                 <div>
-                                                                    <label className="block text-xs font-medium text-gray-700 mb-1">End Date*</label>
+                                                                    <label className="block text-xs font-medium text-primary mb-1">End Date*</label>
                                                                     <div className="relative">
                                                                         <input
                                                                             type="date"
@@ -4019,7 +4019,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     </div>
                                                                 </div>
                                                                 <div>
-                                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Time</label>
+                                                                    <label className="block text-xs font-medium text-primary mb-1">Time</label>
                                                                     <div className="relative flex items-center">
                                                                         <input
                                                                             type="text"
@@ -4035,7 +4035,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                 title="Clear"
                                                                                 type="button"
                                                                             >
-                                                                                <X className="w-3.5 h-3.5 text-gray-500 hover:text-gray-700" />
+                                                                                <X className="w-3.5 h-3.5 text-secondary hover:text-primary" />
                                                                             </button>
                                                                         )}
                                                                     </div>
@@ -4044,7 +4044,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         </div>
                                                     )}
                                                     {/* Add Stop Button */}
-                                                    <div className="mt-4 pt-4 border-t border-gray-200">
+                                                    <div className="mt-4 pt-4 border-t border-theme">
                                                         <button
                                                             onClick={addStop}
                                                             className="w-full px-4 py-2 bg-blue-600 !text-white rounded text-sm font-medium hover:bg-blue-700 flex items-center justify-center gap-2"
@@ -4067,19 +4067,19 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     {/* Step 3: Receiver Information Section */}
                     {
                         currentStep === 3 && (
-                            <div className="border-b border-gray-200">
-                                <div className="p-5 bg-gradient-to-r from-green-50 to-gray-50 border-b border-gray-200">
-                                    <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                            <div className="border-b border-theme">
+                                <div className="p-5 bg-gradient-to-r from-green-50 to-gray-50 border-b border-theme">
+                                    <h3 className="text-base font-semibold text-primary flex items-center gap-2">
                                         <span className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold">3</span>
                                         Receiver Information
                                     </h3>
-                                    <p className="text-xs text-gray-600 mt-1 ml-10">Enter receiver contact details and delivery appointment information</p>
+                                    <p className="text-xs text-secondary mt-1 ml-10">Enter receiver contact details and delivery appointment information</p>
                                 </div>
                                 <div className="px-5 pt-5 pb-0 space-y-6">
                                     {/* Stop Information Table */}
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                    <div className="bg-card rounded-lg border border-theme p-4">
                                         <div className="flex items-center justify-between mb-4">
-                                            <h4 className="text-sm font-semibold text-gray-800">Stop Information</h4>
+                                            <h4 className="text-sm font-semibold text-primary">Stop Information</h4>
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={addReceiverStop}
@@ -4093,42 +4093,42 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-xs border-collapse">
                                                 <thead>
-                                                    <tr className="bg-gray-50 border-b border-gray-200">
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Stop</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Receiver</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Date</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">End Date</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Appointment</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Drop Off #</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Contact</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Skids</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Cases</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Weight</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">UoM</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Temperature</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700 border-r border-gray-200">Address</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700">LTL</th>
-                                                        <th className="p-2 text-left font-medium text-gray-700">Action</th>
+                                                    <tr className="bg-card border-b border-theme">
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Stop</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Receiver</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Date</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">End Date</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Appointment</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Drop Off #</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Contact</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Skids</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Cases</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Weight</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">UoM</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Temperature</th>
+                                                        <th className="p-2 text-left font-medium text-primary border-r border-theme">Address</th>
+                                                        <th className="p-2 text-left font-medium text-primary">LTL</th>
+                                                        <th className="p-2 text-left font-medium text-primary">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {receiverStops.length > 0 ? (
                                                         receiverStops.map((stop, index) => (
-                                                            <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                                                                <td className="p-2 border-r border-gray-200">{stop.stop}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.receiver || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.date || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.endDate || 'N/A'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.appointment || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.dropOffNumber || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.contact || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.skids || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.cases || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.weight || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.uom || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.temperature || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">{stop.address || '-'}</td>
-                                                                <td className="p-2 border-r border-gray-200">
+                                                            <tr key={index} className="border-b border-theme hover:bg-[rgba(255,255,255,0.03)]">
+                                                                <td className="p-2 border-r border-theme">{stop.stop}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.receiver || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.date || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.endDate || 'N/A'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.appointment || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.dropOffNumber || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.contact || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.skids || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.cases || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.weight || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.uom || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.temperature || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">{stop.address || '-'}</td>
+                                                                <td className="p-2 border-r border-theme">
                                                                     <input
                                                                         type="checkbox"
                                                                         checked={stop.ltl}
@@ -4153,7 +4153,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         ))
                                                     ) : (
                                                         <tr>
-                                                            <td colSpan={15} className="p-8 text-center text-gray-400 bg-gray-50">
+                                                            <td colSpan={15} className="p-8 text-center text-secondary bg-card">
                                                                 No stops added yet. Fill in the fields below and click "Add Stop" to add entries.
                                                             </td>
                                                         </tr>
@@ -4164,18 +4164,18 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                     </div>
 
                                     {/* Receiver Contact Information */}
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                        <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Contact Information</h4>
+                                    <div className="bg-card rounded-lg border border-theme p-4">
+                                        <h4 className="text-sm font-semibold text-primary mb-4 pb-2 border-b border-theme">Contact Information</h4>
                                         <div className="space-y-4">
                                             {/* Select Receiver (Customers Only) */}
                                             <div className="relative" ref={receiverCustomerDropdownRef}>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Select Receiver *</label>
+                                                <label className="block text-xs font-medium text-primary mb-1">Select Receiver *</label>
                                                 <div className="relative">
                                                     <div
                                                         onClick={() => setReceiverCustomerDropdownOpen(!receiverCustomerDropdownOpen)}
-                                                        className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-opacity-75"
+                                                        className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-opacity-75"
                                                     >
-                                                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${receiverCustomerDropdownOpen ? 'rotate-180' : ''}`} />
+                                                        <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${receiverCustomerDropdownOpen ? 'rotate-180' : ''}`} />
                                                         <input
                                                             type="text"
                                                             value={
@@ -4205,17 +4205,17 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 }}
                                                                 className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                                                             >
-                                                                <X className="w-4 h-4 text-gray-400" />
+                                                                <X className="w-4 h-4 text-secondary" />
                                                             </button>
                                                         )}
-                                                        <ChevronUp className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${receiverCustomerDropdownOpen ? '' : 'rotate-180 opacity-0'}`} />
+                                                        <ChevronUp className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${receiverCustomerDropdownOpen ? '' : 'rotate-180 opacity-0'}`} />
                                                     </div>
 
                                                     {receiverCustomerDropdownOpen && (
-                                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                            <div className="p-2 border-b border-gray-200">
+                                                        <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                            <div className="p-2 border-b border-theme">
                                                                 <div className="relative">
-                                                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                                     <input
                                                                         type="text"
                                                                         value={receiverCustomerSearch}
@@ -4229,7 +4229,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             <div className="overflow-y-auto max-h-48">
                                                                 {filteredReceiverOptions.length > 0 ? (
                                                                     <>
-                                                                        <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 sticky top-0">
+                                                                        <div className="px-3 py-1.5 text-xs font-semibold text-secondary bg-card border-b border-theme sticky top-0">
                                                                             Customers
                                                                         </div>
                                                                         {filteredReceiverOptions.map((customer) => {
@@ -4238,12 +4238,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                 <div
                                                                                     key={`customer-${customer._id || customer.id}`}
                                                                                     onClick={() => handleReceiverSelect(customer)}
-                                                                                    className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-50 ${
-                                                                                        (selectedReceiverCustomer?._id || selectedReceiverCustomer?.id) === (customer._id || customer.id) ? 'bg-blue-50' : ''
+                                                                                    className={`px-3 py-2 cursor-pointer text-sm hover:bg-[rgba(255,255,255,0.03)] ${
+                                                                                        (selectedReceiverCustomer?._id || selectedReceiverCustomer?.id) === (customer._id || customer.id) ? 'bg-card' : ''
                                                                                     }`}
                                                                                 >
                                                                                     <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
-                                                                                    <div className="text-xs text-gray-600">
+                                                                                    <div className="text-xs text-secondary">
                                                                                         {fullAddr || customer.email || customer.phone || ''}
                                                                                     </div>
                                                                                 </div>
@@ -4251,7 +4251,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                         })}
                                                                     </>
                                                                 ) : (
-                                                                    <div className="px-3 py-2 text-sm text-gray-500">No customers found</div>
+                                                                    <div className="px-3 py-2 text-sm text-secondary">No customers found</div>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -4261,31 +4261,31 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
                                             {/* Receiver Name (Read-only, auto-populated) */}
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Receiver Name *</label>
+                                                <label className="block text-xs font-medium text-primary mb-1">Receiver Name *</label>
                                                 <input
                                                     type="text"
                                                     value={receiverName}
                                                     readOnly
-                                                    className="w-full p-2.5 border border-gray-300 rounded-md bg-gray-50 text-sm cursor-not-allowed"
+                                                    className="w-full p-2.5 border border-gray-300 rounded-md bg-card text-sm cursor-not-allowed"
                                                     placeholder="Auto-filled from selection"
                                                 />
                                             </div>
 
                                             {/* Receiver Phone (Read-only, auto-populated) */}
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Receiver Phone *</label>
+                                                <label className="block text-xs font-medium text-primary mb-1">Receiver Phone *</label>
                                                 <input
                                                     type="tel"
                                                     value={receiverPhone}
                                                     readOnly
-                                                    className="w-full p-2.5 border border-gray-300 rounded-md bg-gray-50 text-sm cursor-not-allowed"
+                                                    className="w-full p-2.5 border border-gray-300 rounded-md bg-card text-sm cursor-not-allowed"
                                                     placeholder="Auto-filled from selection"
                                                 />
                                             </div>
 
                                             {/* Search Address for Delivery Location */}
                                             {!selectedReceiverCustomer && (
-                                                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                                <div className="bg-card rounded-lg border border-theme p-4">
                                                     <AddressSearch
                                                         label="Search Delivery Address"
                                                         placeholder="Search For A Delivery Address..."
@@ -4309,12 +4309,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             {/* Delivery Location Address (Read-only, auto-populated from customer) */}
                                             {selectedReceiverCustomer && (
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Delivery Location Address *</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Delivery Location Address *</label>
                                                     <input
                                                         type="text"
                                                         value={deliveryLocationAddress}
                                                         readOnly
-                                                        className="w-full p-2.5 border border-gray-300 rounded-md bg-gray-50 text-sm cursor-not-allowed"
+                                                        className="w-full p-2.5 border border-gray-300 rounded-md bg-card text-sm cursor-not-allowed"
                                                         placeholder="Auto-filled from customer"
                                                     />
                                                 </div>
@@ -4323,7 +4323,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             {/* Receiver Address (editable when no customer selected) */}
                                             {!selectedReceiverCustomer && (
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Receiver Address</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Receiver Address</label>
                                                     <input
                                                         type="text"
                                                         value={receiverAddress}
@@ -4338,11 +4338,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                 
 
                                     {/* Goods and Drop Off Details */}
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                        <h4 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Goods and Drop Off Details</h4>
+                                    <div className="bg-card rounded-lg border border-theme p-4">
+                                        <h4 className="text-sm font-semibold text-primary mb-4 pb-2 border-b border-theme">Goods and Drop Off Details</h4>
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Goods</label>
+                                                <label className="block text-xs font-medium text-primary mb-1">Goods</label>
                                                 <textarea
                                                     rows={4}
                                                     value={deliveryGoods}
@@ -4351,7 +4351,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Drop Off Notes</label>
+                                                <label className="block text-xs font-medium text-primary mb-1">Drop Off Notes</label>
                                                 <textarea
                                                     rows={4}
                                                     value={dropOffNotes}
@@ -4361,7 +4361,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Drop Off Number</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Drop Off Number</label>
                                                     <input
                                                         type="text"
                                                         value={dropOffNumber}
@@ -4370,7 +4370,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Skids</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Skids</label>
                                                     <input
                                                         type="text"
                                                         value={deliverySkids}
@@ -4381,7 +4381,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Cases</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Cases</label>
                                                     <input
                                                         type="text"
                                                         value={deliveryCases}
@@ -4390,7 +4390,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Weight</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Weight</label>
                                                     <input
                                                         type="text"
                                                         value={weight}
@@ -4401,7 +4401,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">UoM</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">UoM</label>
                                                     <select
                                                         value={deliveryUoM}
                                                         onChange={(e) => setDeliveryUoM(e.target.value)}
@@ -4412,7 +4412,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Temperature</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Temperature</label>
                                                     <input
                                                         type="text"
                                                         value={temperature}
@@ -4422,7 +4422,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Temp. Units</label>
+                                                <label className="block text-xs font-medium text-primary mb-1">Temp. Units</label>
                                                 <select
                                                     value={deliveryTempUnits}
                                                     onChange={(e) => setDeliveryTempUnits(e.target.value)}
@@ -4434,7 +4434,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 </select>
                                             </div>
                                             {/* Add Stop Button */}
-                                            <div className="mt-4 pt-4 border-t border-gray-200">
+                                            <div className="mt-4 pt-4 border-t border-theme">
                                                 <button
                                                     onClick={addReceiverStop}
                                                     className="w-full px-4 py-2 bg-blue-600 !text-white rounded text-sm font-medium hover:bg-blue-700 flex items-center justify-center gap-2"
@@ -4455,84 +4455,84 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     {/* Step 4: Review Section (After Receiver) */}
                     {
                         currentStep === 4 && (
-                            <div className="border-b border-gray-200">
-                                <div className="p-5 border-b border-gray-200" style={{ background: `linear-gradient(to right, ${PRIMARY_LIGHT_BG}, rgba(229, 231, 235, 0.5))` }}>
-                                    <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                            <div className="border-b border-theme">
+                                <div className="p-5 border-b border-theme" style={{ background: `linear-gradient(to right, ${PRIMARY_LIGHT_BG}, rgba(229, 231, 235, 0.5))` }}>
+                                    <h3 className="text-base font-semibold text-primary flex items-center gap-2">
                                         <span className="w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold" style={{ background: PRIMARY_GRADIENT }}>4</span>
                                         Review
                                     </h3>
-                                    <p className="text-xs text-gray-600 mt-1 ml-10">Review customer, shipper, and receiver information</p>
+                                    <p className="text-xs text-secondary mt-1 ml-10">Review customer, shipper, and receiver information</p>
                                 </div>
                                 <div className="px-5 pt-5 pb-0 space-y-6">
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                         {/* Customer Panel */}
-                                        <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                            <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-200">
+                                        <div className="bg-card rounded-lg border border-theme p-4">
+                                            <div className="flex items-center gap-2 mb-4 pb-2 border-b border-theme">
                                                 <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-                                                <h4 className="text-sm font-semibold text-gray-800">Customer</h4>
+                                                <h4 className="text-sm font-semibold text-primary">Customer</h4>
                                             </div>
                                             <div className="space-y-3 text-sm">
                                                 <div>
-                                                    <span className="font-semibold text-gray-700">Basic Information:</span>
-                                                    <div className="mt-1 text-gray-800">
+                                                    <span className="font-semibold text-primary">Basic Information:</span>
+                                                    <div className="mt-1 text-primary">
                                                         <div>{selectedCustomer?.name || 'N/A'}</div>
                                                         <div>{formatFullAddress(selectedCustomer) || 'N/A'}</div>
                                                         <div>{customerPrimaryPhone || 'N/A'}</div>
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <span className="font-semibold text-gray-700">Order No:</span>
-                                                    <span className="ml-2 text-gray-800">{customerOrderNo || 'N/A'}</span>
+                                                    <span className="font-semibold text-primary">Order No:</span>
+                                                    <span className="ml-2 text-primary">{customerOrderNo || 'N/A'}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="font-semibold text-gray-700">Equipment Code:</span>
-                                                    <span className="ml-2 text-gray-800">{selectedEquipment.join(', ') || 'N/A'}</span>
+                                                    <span className="font-semibold text-primary">Equipment Code:</span>
+                                                    <span className="ml-2 text-primary">{selectedEquipment.join(', ') || 'N/A'}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="font-semibold text-gray-700">Dispatcher:</span>
-                                                    <span className="ml-2 text-gray-800">
+                                                    <span className="font-semibold text-primary">Dispatcher:</span>
+                                                    <span className="ml-2 text-primary">
                                                         {selectedSalesman 
                                                             ? salespersons.find(s => s._id === selectedSalesman)?.name || selectedSalesman 
                                                             : 'N/A'}
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <span className="font-semibold text-gray-700">Customs Broker:</span>
-                                                    <span className="ml-2 text-gray-800">{brokerName || 'N/A'}</span>
+                                                    <span className="font-semibold text-primary">Customs Broker:</span>
+                                                    <span className="ml-2 text-primary">{brokerName || 'N/A'}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="font-semibold text-gray-700">Additional:</span>
-                                                    <span className="ml-2 text-gray-800">{orderNotes || 'N/A'}</span>
+                                                    <span className="font-semibold text-primary">Additional:</span>
+                                                    <span className="ml-2 text-primary">{orderNotes || 'N/A'}</span>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Finance Panel */}
-                                        <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                            <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-200">
+                                        <div className="bg-card rounded-lg border border-theme p-4">
+                                            <div className="flex items-center gap-2 mb-4 pb-2 border-b border-theme">
                                                 <div className="w-3 h-3 rounded-full bg-purple-600"></div>
-                                                <h4 className="text-sm font-semibold text-gray-800">Finance</h4>
+                                                <h4 className="text-sm font-semibold text-primary">Finance</h4>
                                             </div>
                                             <div className="space-y-3 text-sm">
                                                 <div>
-                                                    <span className="font-semibold text-gray-700">Rate:</span>
-                                                    <span className="ml-2 text-gray-800">
+                                                    <span className="font-semibold text-primary">Rate:</span>
+                                                    <span className="ml-2 text-primary">
                                                         {rate ? `$${parseFloat(rate).toFixed(2)} (${rateCurrency})` : '$0.00 (CAD)'}
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <span className="font-semibold text-gray-700">Payable:</span>
-                                                    <span className="ml-2 text-gray-800">{payableEmail || 'N/A'}</span>
+                                                    <span className="font-semibold text-primary">Payable:</span>
+                                                    <span className="ml-2 text-primary">{payableEmail || 'N/A'}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="font-semibold text-gray-700">Charges:</span>
-                                                    <span className="ml-2 text-gray-800">
+                                                    <span className="font-semibold text-primary">Charges:</span>
+                                                    <span className="ml-2 text-primary">
                                                         {otherCharges.length > 0 ? `${otherCharges.length} charge(s)` : 'N/A'}
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <span className="font-semibold text-gray-700">Total Rate:</span>
-                                                    <span className="ml-2 text-gray-800">
+                                                    <span className="font-semibold text-primary">Total Rate:</span>
+                                                    <span className="ml-2 text-primary">
                                                         ${invoiceCalculations.total.toFixed(2)} ({rateCurrency || 'CAD'})
                                                     </span>
                                                 </div>
@@ -4633,39 +4633,39 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     {/* Step 5: Assignment Section */}
                     {
                         currentStep === 5 && (
-                            <div className="border-b border-gray-200">
-                                <div className="p-5 border-b border-gray-200" style={{ background: `linear-gradient(to right, ${PRIMARY_LIGHT_BG}, rgba(229, 231, 235, 0.5))` }}>
-                                    <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                            <div className="border-b border-theme">
+                                <div className="p-5 border-b border-theme" style={{ background: `linear-gradient(to right, ${PRIMARY_LIGHT_BG}, rgba(229, 231, 235, 0.5))` }}>
+                                    <h3 className="text-base font-semibold text-primary flex items-center gap-2">
                                         <span className="w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold" style={{ background: PRIMARY_GRADIENT }}>5</span>
                                         Assignment
                                     </h3>
-                                    <p className="text-xs text-gray-600 mt-1 ml-10">Assign truck, trailer, driver, and co-driver</p>
+                                    <p className="text-xs text-secondary mt-1 ml-10">Assign truck, trailer, driver, and co-driver</p>
                                 </div>
                                 <div className="px-5 pt-5 pb-5 space-y-6">
                                     {/* Job Stops Table */}
-                                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                    <div className="bg-card rounded-lg border border-theme overflow-hidden">
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-sm">
-                                                <thead className="bg-gray-50 border-b border-gray-200">
+                                                <thead className="bg-card border-b border-theme">
                                                     <tr>
-                                                        <th className="px-3 py-2 text-left font-semibold text-gray-700 border-r border-gray-200">
+                                                        <th className="px-3 py-2 text-left font-semibold text-primary border-r border-theme">
                                                             <div className="flex items-center gap-1">
                                                                 Sr. No.
                                                                 <div className="flex flex-col">
-                                                                    <ChevronUp className="w-3 h-3 text-gray-400" />
-                                                                    <ChevronDown className="w-3 h-3 text-gray-400 -mt-1" />
+                                                                    <ChevronUp className="w-3 h-3 text-secondary" />
+                                                                    <ChevronDown className="w-3 h-3 text-secondary -mt-1" />
                                                                 </div>
                                                             </div>
                                                         </th>
-                                                        <th className="px-3 py-2 text-left font-semibold text-gray-700 border-r border-gray-200">Job</th>
-                                                        <th className="px-3 py-2 text-left font-semibold text-gray-700 border-r border-gray-200">Name</th>
-                                                        <th className="px-3 py-2 text-left font-semibold text-gray-700 border-r border-gray-200">City</th>
-                                                        <th className="px-3 py-2 text-left font-semibold text-gray-700 border-r border-gray-200">Date</th>
-                                                        <th className="px-3 py-2 text-left font-semibold text-gray-700 border-r border-gray-200">Truck</th>
-                                                        <th className="px-3 py-2 text-left font-semibold text-gray-700 border-r border-gray-200">Trailer</th>
-                                                        <th className="px-3 py-2 text-left font-semibold text-gray-700 border-r border-gray-200">Driver / Carrier</th>
-                                                        <th className="px-3 py-2 text-left font-semibold text-gray-700 border-r border-gray-200">Co-Driver</th>
-                                                        <th className="px-3 py-2 text-left font-semibold text-gray-700">Status</th>
+                                                        <th className="px-3 py-2 text-left font-semibold text-primary border-r border-theme">Job</th>
+                                                        <th className="px-3 py-2 text-left font-semibold text-primary border-r border-theme">Name</th>
+                                                        <th className="px-3 py-2 text-left font-semibold text-primary border-r border-theme">City</th>
+                                                        <th className="px-3 py-2 text-left font-semibold text-primary border-r border-theme">Date</th>
+                                                        <th className="px-3 py-2 text-left font-semibold text-primary border-r border-theme">Truck</th>
+                                                        <th className="px-3 py-2 text-left font-semibold text-primary border-r border-theme">Trailer</th>
+                                                        <th className="px-3 py-2 text-left font-semibold text-primary border-r border-theme">Driver / Carrier</th>
+                                                        <th className="px-3 py-2 text-left font-semibold text-primary border-r border-theme">Co-Driver</th>
+                                                        <th className="px-3 py-2 text-left font-semibold text-primary">Status</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -4674,19 +4674,19 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             <tr 
                                                                 key={index}
                                                                 onClick={() => setSelectedStopIndex(index)}
-                                                                className={`border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                                                                    selectedStopIndex === index ? 'bg-blue-50' : ''
+                                                                className={`border-b border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${
+                                                                    selectedStopIndex === index ? 'bg-card' : ''
                                                                 }`}
                                                             >
-                                                                <td className="px-3 py-2 border-r border-gray-200">{stop.job}</td>
-                                                                <td className="px-3 py-2 border-r border-gray-200">
+                                                                <td className="px-3 py-2 border-r border-theme">{stop.job}</td>
+                                                                <td className="px-3 py-2 border-r border-theme">
                                                                     {stop.type}
                                                                 </td>
-                                                                <td className="px-3 py-2 border-r border-gray-200">
+                                                                <td className="px-3 py-2 border-r border-theme">
                                                                     {stop.name || ''}
                                                                 </td>
-                                                                <td className="px-3 py-2 border-r border-gray-200">{stop.city || ''}</td>
-                                                                <td className="px-3 py-2 border-r border-gray-200">
+                                                                <td className="px-3 py-2 border-r border-theme">{stop.city || ''}</td>
+                                                                <td className="px-3 py-2 border-r border-theme">
                                                                     {stop.date && stop.date !== '-' && stop.date.includes('TBA') ? (
                                                                         <div className="flex flex-col">
                                                                             <span>{stop.date.split(' TBA')[0]}</span>
@@ -4707,9 +4707,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                         '-'
                                                                     )}
                                                                 </td>
-                                                                <td className="px-3 py-2 border-r border-gray-200">
+                                                                <td className="px-3 py-2 border-r border-theme">
                                                                     {stop.truck && stop.truck !== 'TBA' && stop.truck !== '12/31/2025 TBA' && !stop.truck.includes('2025-12-31') ? (
-                                                                        <span className="text-red-600">
+                                                                        <span className="text-[#A855F7]">
                                                                             {stop.truck.includes(' ') ? (
                                                                                 <div className="flex flex-col">
                                                                                     <span>{stop.truck.split(' ')[0]}</span>
@@ -4736,9 +4736,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                         </div>
                                                                     )}
                                                                 </td>
-                                                                <td className="px-3 py-2 border-r border-gray-200">
+                                                                <td className="px-3 py-2 border-r border-theme">
                                                                     {stop.trailer && stop.trailer !== 'TBA' ? (
-                                                                        <span className="text-red-600">
+                                                                        <span className="text-[#A855F7]">
                                                                             {stop.trailer.includes(' ') ? (
                                                                                 <div className="flex flex-col">
                                                                                     <span>{stop.trailer.split(' ')[0]}</span>
@@ -4755,7 +4755,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                         </div>
                                                                     )}
                                                                 </td>
-                                                                <td className="px-3 py-2 border-r border-gray-200">
+                                                                <td className="px-3 py-2 border-r border-theme">
                                                                     {stop.driver && stop.driver !== 'TBA' ? (
                                                                         <div className="flex flex-col text-xs">
                                                                             {stop.driver.split(' ').length > 2 ? (
@@ -4771,7 +4771,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                         'TBA'
                                                                     )}
                                                                 </td>
-                                                                <td className="px-3 py-2 border-r border-gray-200">
+                                                                <td className="px-3 py-2 border-r border-theme">
                                                                     {stop.coDriver && stop.coDriver !== '-' ? (
                                                                         <div className="flex flex-col text-xs">
                                                                             {stop.coDriver.split(' ').length > 2 ? (
@@ -4788,7 +4788,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     )}
                                                                 </td>
                                                                 <td className="px-3 py-2">
-                                                                    <span className={stop.status === 'PENDING' ? "text-orange-600" : ""}>
+                                                                    <span className={stop.status === 'PENDING' ? "text-[#F59E0B]" : ""}>
                                                                         {stop.status || ''}
                                                                     </span>
                                                                 </td>
@@ -4796,7 +4796,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         ))
                                                     ) : (
                                                         <tr>
-                                                            <td colSpan={10} className="px-3 py-4 text-center text-gray-500">
+                                                            <td colSpan={10} className="px-3 py-4 text-center text-secondary">
                                                                 No job stops added yet. Use YARD START or YARD END to add stops.
                                                             </td>
                                                         </tr>
@@ -4807,9 +4807,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                     </div>
 
                                     {/* Stop Edit Panel */}
-                                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                        <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
-                                            <h4 className="text-sm font-semibold text-gray-800">Stop Edit</h4>
+                                    <div className="bg-card rounded-lg border border-theme p-4">
+                                        <div className="flex items-center justify-between mb-4 pb-2 border-b border-theme">
+                                            <h4 className="text-sm font-semibold text-primary">Stop Edit</h4>
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => {
@@ -4856,7 +4856,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     setSelectedStopIndex(0);
                                                     addNotification('success', 'YARD START - Pick Up job added at the top');
                                                 }}
-                                                className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded text-xs font-medium text-gray-700"
+                                                className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded text-xs font-medium text-primary"
                                             >
                                                 YARD START
                                             </button>
@@ -4880,7 +4880,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     setSelectedStopIndex(updatedStops.length - 1);
                                                     addNotification('success', 'YARD END - Drop Off job added at the bottom');
                                                 }}
-                                                className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded text-xs font-medium text-gray-700"
+                                                className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded text-xs font-medium text-primary"
                                             >
                                                 YARD END
                                             </button>
@@ -4913,7 +4913,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     setSelectedStopIndex(insertIndex);
                                                     addNotification('success', 'TAKE TO YARD - Drop Off job added');
                                                 }}
-                                                className="px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded text-xs font-medium text-gray-700"
+                                                className="px-3 py-1.5 bg-card hover:bg-[rgba(255,255,255,0.03)] border border-gray-300 rounded text-xs font-medium text-primary"
                                             >
                                                 TAKE TO YARD
                                             </button>
@@ -4945,7 +4945,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     setSelectedStopIndex(insertIndex);
                                                     addNotification('success', 'TRACTOR SWAP - Drop Off job added');
                                                 }}
-                                                className="px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded text-xs font-medium text-gray-700"
+                                                className="px-3 py-1.5 bg-card hover:bg-[rgba(255,255,255,0.03)] border border-gray-300 rounded text-xs font-medium text-primary"
                                             >
                                                 TRACTOR SWAP
                                             </button>
@@ -4953,18 +4953,18 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
                                         {/* Stop Details */}
                                         {selectedStopIndex !== null && jobStops[selectedStopIndex] && (
-                                            <div className="mb-4 p-3 bg-gray-50 rounded border border-gray-200">
+                                            <div className="mb-4 p-3 bg-card rounded border border-theme">
                                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                                                     <div>
-                                                        <label className="text-xs font-medium text-gray-600">Type</label>
-                                                        <div className="mt-1 text-red-600 font-medium">
+                                                        <label className="text-xs font-medium text-secondary">Type</label>
+                                                        <div className="mt-1 text-[#A855F7] font-medium">
                                                             {jobStops[selectedStopIndex].type === "YARD START" || jobStops[selectedStopIndex].type === "YARD END" 
                                                                 ? jobStops[selectedStopIndex].type 
                                                                 : jobStops[selectedStopIndex].type}
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="text-xs font-medium text-gray-600">Date</label>
+                                                        <label className="text-xs font-medium text-secondary">Date</label>
                                                         <div className="mt-1 flex items-center gap-2">
                                                             <input
                                                                 type="text"
@@ -4982,7 +4982,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="text-xs font-medium text-gray-600">Address</label>
+                                                        <label className="text-xs font-medium text-secondary">Address</label>
                                                         <select 
                                                             value={jobStops[selectedStopIndex]?.city || ''}
                                                             onChange={(e) => {
@@ -5009,7 +5009,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         {/* Assignment Column */}
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between mb-4">
-                                                <h4 className="text-sm font-semibold text-gray-800">Assignment</h4>
+                                                <h4 className="text-sm font-semibold text-primary">Assignment</h4>
                                                 <div className="flex items-center gap-2">
                                                     <button
                                                         onClick={() => {
@@ -5037,7 +5037,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                         assignmentType === "DRIVER"
                                                             ? "bg-gray-800 !text-white"
-                                                            : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                                            : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
                                                     }`}
                                                 >
                                                     DRIVER
@@ -5047,7 +5047,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     className={`px-3 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-1 ${
                                                         assignmentType === "CARRIER"
                                                             ? "bg-gray-800 !text-white"
-                                                            : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                                            : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
                                                     }`}
                                                 >
                                                     CARRIER
@@ -5059,7 +5059,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 {/* Carrier Field - Only shown when CARRIER is selected */}
                                                 {assignmentType === "CARRIER" && (
                                                     <div className="relative assignment-dropdown-container">
-                                                        <label className="block text-xs font-medium text-gray-700 mb-1">Carrier</label>
+                                                        <label className="block text-xs font-medium text-primary mb-1">Carrier</label>
                                                         <div className="relative">
                                                             <input
                                                                 type="text"
@@ -5072,12 +5072,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 placeholder="Search carrier..."
                                                                 className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm pr-10"
                                                             />
-                                                            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                             {carrierDropdownOpen && (
-                                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                                    <div className="p-2 border-b border-gray-200">
+                                                                <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                                    <div className="p-2 border-b border-theme">
                                                                         <div className="relative">
-                                                                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                                             <input
                                                                                 type="text"
                                                                                 value={carrierSearch}
@@ -5114,19 +5114,19 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                 </div>
                                                                             ))}
                                                                         {carriers.length === 0 && (
-                                                                            <div className="p-2 text-sm text-gray-500">No carriers found</div>
+                                                                            <div className="p-2 text-sm text-secondary">No carriers found</div>
                                                                         )}
                                                                     </div>
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                                                        <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
                                                             <button 
                                                                 onClick={() => {
                                                                     setSelectedCarrier(null);
                                                                     setCarrierSearch('');
                                                                 }}
-                                                                className="hover:text-gray-700"
+                                                                className="hover:text-primary"
                                                             >
                                                                 Clear
                                                             </button>
@@ -5140,7 +5140,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <>
                                                 {/* Truck Field */}
                                                 <div className="relative assignment-dropdown-container">
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Truck</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Truck</label>
                                                     <div className="relative">
                                                         <input
                                                             type="text"
@@ -5153,12 +5153,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             placeholder="Search truck..."
                                                             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm pr-10"
                                                         />
-                                                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                         {truckDropdownOpen && (
-                                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                                <div className="p-2 border-b border-gray-200">
+                                                            <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                                <div className="p-2 border-b border-theme">
                                                                     <div className="relative">
-                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                                         <input
                                                                             type="text"
                                                                             value={truckSearch}
@@ -5193,12 +5193,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Truck Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-theme last:border-b-0"
                                                                             >
-                                                                                <div className="font-medium text-gray-900">
+                                                                                <div className="font-medium text-primary">
                                                                                     {truck.plateNumber || truck.vehicleNumber || truck.unitNumber || truck.name || 'N/A'}
                                                                                 </div>
-                                                                                <div className="text-xs text-gray-600 mt-0.5 space-y-0.5">
+                                                                                <div className="text-xs text-secondary mt-0.5 space-y-0.5">
                                                                                     {truck.internalId && <div>ID: {truck.internalId}</div>}
                                                                                     {(truck.make || truck.model) && (
                                                                                         <div>{truck.make || ''} {truck.model || ''}</div>
@@ -5206,33 +5206,33 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                     {truck.unitNumber && truck.unitNumber !== (truck.plateNumber || truck.vehicleNumber) && (
                                                                                         <div>Unit: {truck.unitNumber}</div>
                                                                                     )}
-                                                                                    {truck.status && <div className="text-gray-500">Status: {truck.status}</div>}
+                                                                                    {truck.status && <div className="text-secondary">Status: {truck.status}</div>}
                                                                                 </div>
                                                                             </div>
                                                                         ))}
                                                                     {trucks.length === 0 && (
-                                                                        <div className="p-2 text-sm text-gray-500">No trucks found</div>
+                                                                        <div className="p-2 text-sm text-secondary">No trucks found</div>
                                                                     )}
                                                                 </div>
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                                                    <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
                                                         <button 
                                                             onClick={() => {
                                                                 setSelectedTruck(null);
                                                                 setTruckSearch('');
                                                             }}
-                                                            className="hover:text-gray-700"
+                                                            className="hover:text-primary"
                                                         >
                                                             Clear
                                                         </button>
                                                         <span>Clear All</span>
                                                     </div>
                                                     {selectedTruck && (
-                                                        <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                        <div className="mt-2 p-3 bg-card border border-blue-200 rounded-lg">
                                                             <div className="text-xs font-semibold text-blue-900 mb-2">Selected Truck Details:</div>
-                                                            <div className="text-xs text-gray-700 space-y-1">
+                                                            <div className="text-xs text-primary space-y-1">
                                                                 {selectedTruck.internalId && <div><span className="font-medium">Internal ID:</span> {selectedTruck.internalId}</div>}
                                                                 <div><span className="font-medium">Plate Number:</span> {selectedTruck.plateNumber || selectedTruck.vehicleNumber || 'N/A'}</div>
                                                                 {selectedTruck.unitNumber && <div><span className="font-medium">Unit Number:</span> {selectedTruck.unitNumber}</div>}
@@ -5249,7 +5249,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
                                                 {/* Trailer Field */}
                                                 <div className="relative assignment-dropdown-container">
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Trailer</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Trailer</label>
                                                     <div className="relative">
                                                         <input
                                                             type="text"
@@ -5262,12 +5262,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             placeholder="Search trailer..."
                                                             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm pr-10"
                                                         />
-                                                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                         {trailerDropdownOpen && (
-                                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                                <div className="p-2 border-b border-gray-200">
+                                                            <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                                <div className="p-2 border-b border-theme">
                                                                     <div className="relative">
-                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                                         <input
                                                                             type="text"
                                                                             value={trailerSearch}
@@ -5301,35 +5301,35 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Trailer Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-theme last:border-b-0"
                                                                             >
-                                                                                <div className="font-medium text-gray-900">
+                                                                                <div className="font-medium text-primary">
                                                                                     {trailer.trailer || trailer.plateNumber || trailer.unitNumber || trailer.name || 'N/A'}
                                                                                 </div>
-                                                                                <div className="text-xs text-gray-600 mt-0.5 space-y-0.5">
+                                                                                <div className="text-xs text-secondary mt-0.5 space-y-0.5">
                                                                                     {trailer.internalId && <div>ID: {trailer.internalId}</div>}
                                                                                     {trailer.type && <div>Type: {trailer.type}</div>}
                                                                                     {trailer.unitNumber && trailer.unitNumber !== (trailer.trailer || trailer.plateNumber) && (
                                                                                         <div>Unit: {trailer.unitNumber}</div>
                                                                                     )}
-                                                                                    {trailer.status && <div className="text-gray-500">Status: {trailer.status}</div>}
+                                                                                    {trailer.status && <div className="text-secondary">Status: {trailer.status}</div>}
                                                                                 </div>
                                                                             </div>
                                                                         ))}
                                                                     {trailers.length === 0 && (
-                                                                        <div className="p-2 text-sm text-gray-500">No trailers found</div>
+                                                                        <div className="p-2 text-sm text-secondary">No trailers found</div>
                                                                     )}
                                                                 </div>
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                                                    <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
                                                         <button 
                                                             onClick={() => {
                                                                 setSelectedTrailer(null);
                                                                 setTrailerSearch('');
                                                             }}
-                                                            className="hover:text-gray-700"
+                                                            className="hover:text-primary"
                                                         >
                                                             Clear
                                                         </button>
@@ -5338,7 +5338,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     {selectedTrailer && (
                                                         <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                                                             <div className="text-xs font-semibold text-green-900 mb-2">Selected Trailer Details:</div>
-                                                            <div className="text-xs text-gray-700 space-y-1">
+                                                            <div className="text-xs text-primary space-y-1">
                                                                 {selectedTrailer.internalId && <div><span className="font-medium">Internal ID:</span> {selectedTrailer.internalId}</div>}
                                                                 <div><span className="font-medium">Trailer Number:</span> {selectedTrailer.trailer || selectedTrailer.plateNumber || 'N/A'}</div>
                                                                 {selectedTrailer.plateNumber && <div><span className="font-medium">Plate Number:</span> {selectedTrailer.plateNumber}</div>}
@@ -5353,7 +5353,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
                                                 {/* Driver Field */}
                                                 <div className="relative assignment-dropdown-container">
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Driver</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Driver</label>
                                                     <div className="relative">
                                                         <input
                                                             type="text"
@@ -5366,12 +5366,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             placeholder="Search driver..."
                                                             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm pr-10"
                                                         />
-                                                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                         {driverDropdownOpen && (
-                                                            <div className="absolute z-50 w-full bottom-full mb-1 bg-white border border-gray-300 rounded-lg shadow-xl max-h-96 overflow-hidden" style={{ maxHeight: '24rem' }}>
-                                                                <div className="p-2 border-b border-gray-200">
+                                                            <div className="absolute z-50 w-full bottom-full mb-1 bg-card border border-gray-300 rounded-lg shadow-xl max-h-96 overflow-hidden" style={{ maxHeight: '24rem' }}>
+                                                                <div className="p-2 border-b border-theme">
                                                                     <div className="relative">
-                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                                         <input
                                                                             type="text"
                                                                             value={driverSearch}
@@ -5404,9 +5404,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Driver Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                                                                                className="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-theme last:border-b-0"
                                                                             >
-                                                                                <div className="font-medium text-gray-900 flex items-center justify-between mb-1">
+                                                                                <div className="font-medium text-primary flex items-center justify-between mb-1">
                                                                                     <span>{driver.name || driver.internalId || 'N/A'}</span>
                                                                                     {driver.onboardingPercentage !== undefined && (
                                                                                         <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${
@@ -5418,7 +5418,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         </span>
                                                                                     )}
                                                                                 </div>
-                                                                                <div className="text-xs text-gray-600 space-y-1">
+                                                                                <div className="text-xs text-secondary space-y-1">
                                                                                     {driver.internalId && <div>Internal ID: {driver.internalId}</div>}
                                                                                     {driver.phone && <div>Phone: {driver.phone}</div>}
                                                                                     {driver.email && <div>Email: {driver.email}</div>}
@@ -5429,8 +5429,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                             ? (driver.cross_border_eligible ? 'Yes' : 'No')
                                                                                             : 'No')}</div>
                                                                                     {driver.onboardingPercentage !== undefined && (
-                                                                                        <div className="mt-2 pt-2 border-t border-gray-200">
-                                                                                            <div className="font-medium text-gray-700 mb-1">Onboarding Status:</div>
+                                                                                        <div className="mt-2 pt-2 border-t border-theme">
+                                                                                            <div className="font-medium text-primary mb-1">Onboarding Status:</div>
                                                                                             <div className="space-y-0.5">
                                                                                                 <div>Training: {driver.trainingCompleted ? '✓ Completed' : '✗ Pending'}</div>
                                                                                                 <div>Tests: {driver.testsCompleted ? '✓ Completed' : '✗ Pending'}</div>
@@ -5442,28 +5442,28 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             </div>
                                                                         ))}
                                                                     {drivers.length === 0 && (
-                                                                        <div className="p-2 text-sm text-gray-500">No eligible drivers found (80%+ onboarding required)</div>
+                                                                        <div className="p-2 text-sm text-secondary">No eligible drivers found (80%+ onboarding required)</div>
                                                                     )}
                                                                 </div>
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                                                    <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
                                                         <button 
                                                             onClick={() => {
                                                                 setSelectedDriver(null);
                                                                 setDriverSearch('');
                                                             }}
-                                                            className="hover:text-gray-700"
+                                                            className="hover:text-primary"
                                                         >
                                                             Clear
                                                         </button>
                                                         <span>Clear All</span>
                                                     </div>
                                                     {selectedDriver && (
-                                                        <div className="mt-3 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                                                        <div className="mt-3 p-4 bg-card border border-purple-200 rounded-lg">
                                                             <div className="text-sm font-semibold text-purple-900 mb-3">Selected Driver Details</div>
-                                                            <div className="text-xs text-gray-700 space-y-2">
+                                                            <div className="text-xs text-primary space-y-2">
                                                                 {selectedDriver.internalId && (
                                                                     <div className="flex">
                                                                         <span className="font-medium w-24 flex-shrink-0">Internal ID:</span>
@@ -5496,7 +5496,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     <div className="flex">
                                                                         <span className="font-medium w-24 flex-shrink-0">Status:</span>
                                                                         <span className={`font-medium ${
-                                                                            selectedDriver.status === 'ACTIVE' ? 'text-green-600' : 'text-gray-600'
+                                                                            selectedDriver.status === 'ACTIVE' ? 'text-green-600' : 'text-secondary'
                                                                         }`}>{selectedDriver.status}</span>
                                                                     </div>
                                                                 )}
@@ -5522,18 +5522,18 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                     style={{ width: `${selectedDriver.onboardingPercentage}%` }}
                                                                                 ></div>
                                                                             </div>
-                                                                            <span className="font-semibold text-sm text-gray-700 min-w-[3rem] text-right">{selectedDriver.onboardingPercentage.toFixed(0)}%</span>
+                                                                            <span className="font-semibold text-sm text-primary min-w-[3rem] text-right">{selectedDriver.onboardingPercentage.toFixed(0)}%</span>
                                                                         </div>
                                                                         <div className="space-y-1.5 mt-2">
                                                                             <div className="flex items-center">
                                                                                 <span className="w-24 flex-shrink-0">Training:</span>
-                                                                                <span className={selectedDriver.trainingCompleted ? 'text-green-600 font-medium' : 'text-gray-500'}>
+                                                                                <span className={selectedDriver.trainingCompleted ? 'text-green-600 font-medium' : 'text-secondary'}>
                                                                                     {selectedDriver.trainingCompleted ? '✓ Completed' : '✗ Pending'}
                                                                                 </span>
                                                                             </div>
                                                                             <div className="flex items-center">
                                                                                 <span className="w-24 flex-shrink-0">Tests:</span>
-                                                                                <span className={selectedDriver.testsCompleted ? 'text-green-600 font-medium' : 'text-gray-500'}>
+                                                                                <span className={selectedDriver.testsCompleted ? 'text-green-600 font-medium' : 'text-secondary'}>
                                                                                     {selectedDriver.testsCompleted ? '✓ Completed' : '✗ Pending'}
                                                                                 </span>
                                                                             </div>
@@ -5541,8 +5541,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                 <span className="w-24 flex-shrink-0">HR Approval:</span>
                                                                                 <span className={
                                                                                     selectedDriver.hrApprovalStatus === 'APPROVED' ? 'text-green-600 font-medium' : 
-                                                                                    selectedDriver.hrApprovalStatus === 'IN_REVIEW' ? 'text-yellow-600 font-medium' : 
-                                                                                    'text-gray-500'
+                                                                                    selectedDriver.hrApprovalStatus === 'IN_REVIEW' ? 'text-[#00FFA3] font-medium' : 
+                                                                                    'text-secondary'
                                                                                 }>
                                                                                     {selectedDriver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : 
                                                                                      selectedDriver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : 
@@ -5557,8 +5557,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         <span className="w-24 flex-shrink-0">Drug Test:</span>
                                                                                         <span className={`font-medium ${
                                                                                             drugTestStatus === 'completed' ? 'text-green-600' :
-                                                                                            drugTestStatus === 'pending' ? 'text-yellow-600' :
-                                                                                            'text-red-600'
+                                                                                            drugTestStatus === 'pending' ? 'text-[#00FFA3]' :
+                                                                                            'text-[#A855F7]'
                                                                                         }`}>
                                                                                             {drugTestStatus === 'completed' ? '✓ Completed' :
                                                                                              drugTestStatus === 'pending' ? '⏳ Pending' :
@@ -5577,7 +5577,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
                                                 {/* Co-Driver Field */}
                                                 <div className="relative assignment-dropdown-container mt-4">
-                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Co-Driver</label>
+                                                    <label className="block text-xs font-medium text-primary mb-1">Co-Driver</label>
                                                     <div className="relative">
                                                         <input
                                                             type="text"
@@ -5590,12 +5590,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             placeholder="Search co-driver..."
                                                             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm pr-10"
                                                         />
-                                                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                         {coDriverDropdownOpen && (
-                                                            <div className="absolute z-50 w-full bottom-full mb-1 bg-white border border-gray-300 rounded-lg shadow-xl max-h-96 overflow-hidden" style={{ maxHeight: '24rem' }}>
-                                                                <div className="p-2 border-b border-gray-200">
+                                                            <div className="absolute z-50 w-full bottom-full mb-1 bg-card border border-gray-300 rounded-lg shadow-xl max-h-96 overflow-hidden" style={{ maxHeight: '24rem' }}>
+                                                                <div className="p-2 border-b border-theme">
                                                                     <div className="relative">
-                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                                         <input
                                                                             type="text"
                                                                             value={coDriverSearch}
@@ -5628,9 +5628,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Codriver Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                                                                                className="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-theme last:border-b-0"
                                                                             >
-                                                                                <div className="font-medium text-gray-900 flex items-center justify-between mb-1">
+                                                                                <div className="font-medium text-primary flex items-center justify-between mb-1">
                                                                                     <span>{driver.name || driver.internalId || 'N/A'}</span>
                                                                                     {driver.onboardingPercentage !== undefined && (
                                                                                         <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${
@@ -5642,7 +5642,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         </span>
                                                                                     )}
                                                                                 </div>
-                                                                                <div className="text-xs text-gray-600 space-y-1">
+                                                                                <div className="text-xs text-secondary space-y-1">
                                                                                     {driver.internalId && <div>Internal ID: {driver.internalId}</div>}
                                                                                     {driver.phone && <div>Phone: {driver.phone}</div>}
                                                                                     {driver.email && <div>Email: {driver.email}</div>}
@@ -5653,8 +5653,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                             ? (driver.cross_border_eligible ? 'Yes' : 'No')
                                                                                             : 'No')}</div>
                                                                                     {driver.onboardingPercentage !== undefined && (
-                                                                                        <div className="mt-2 pt-2 border-t border-gray-200">
-                                                                                            <div className="font-medium text-gray-700 mb-1">Onboarding Status:</div>
+                                                                                        <div className="mt-2 pt-2 border-t border-theme">
+                                                                                            <div className="font-medium text-primary mb-1">Onboarding Status:</div>
                                                                                             <div className="space-y-0.5">
                                                                                                 <div>Training: {driver.trainingCompleted ? '✓ Completed' : '✗ Pending'}</div>
                                                                                                 <div>Tests: {driver.testsCompleted ? '✓ Completed' : '✗ Pending'}</div>
@@ -5663,12 +5663,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                                     const driverId = driver._id || driver.id;
                                                                                                     const drugTestStatus = driverDrugTestStatuses[driverId];
                                                                                                     return (
-                                                                                                        <div className="mt-1 pt-1 border-t border-gray-200">
-                                                                                                            <div className="font-medium text-gray-700 mb-0.5">Drug Test:</div>
+                                                                                                        <div className="mt-1 pt-1 border-t border-theme">
+                                                                                                            <div className="font-medium text-primary mb-0.5">Drug Test:</div>
                                                                                                             <div className={`${
                                                                                                                 drugTestStatus === 'completed' ? 'text-green-600 font-medium' :
-                                                                                                                drugTestStatus === 'pending' ? 'text-yellow-600 font-medium' :
-                                                                                                                'text-red-600 font-medium'
+                                                                                                                drugTestStatus === 'pending' ? 'text-[#00FFA3] font-medium' :
+                                                                                                                'text-[#A855F7] font-medium'
                                                                                                             }`}>
                                                                                                                 {drugTestStatus === 'completed' ? '✓ Completed' :
                                                                                                                  drugTestStatus === 'pending' ? '⏳ Pending' :
@@ -5684,28 +5684,28 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             </div>
                                                                         ))}
                                                                     {coDrivers.length === 0 && (
-                                                                        <div className="p-2 text-sm text-gray-500">No eligible co-drivers found (80%+ onboarding required)</div>
+                                                                        <div className="p-2 text-sm text-secondary">No eligible co-drivers found (80%+ onboarding required)</div>
                                                                     )}
                                                                 </div>
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                                                    <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
                                                         <button 
                                                             onClick={() => {
                                                                 setSelectedCoDriver(null);
                                                                 setCoDriverSearch('');
                                                             }}
-                                                            className="hover:text-gray-700"
+                                                            className="hover:text-primary"
                                                         >
                                                             Clear
                                                         </button>
                                                         <span>Clear All</span>
                                                     </div>
                                                     {selectedCoDriver && (
-                                                        <div className="mt-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                                                        <div className="mt-3 p-4 bg-card border border-orange-200 rounded-lg">
                                                             <div className="text-sm font-semibold text-orange-900 mb-3">Selected Co-Driver Details</div>
-                                                            <div className="text-xs text-gray-700 space-y-2">
+                                                            <div className="text-xs text-primary space-y-2">
                                                                 {selectedCoDriver.internalId && (
                                                                     <div className="flex">
                                                                         <span className="font-medium w-24 flex-shrink-0">Internal ID:</span>
@@ -5738,7 +5738,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     <div className="flex">
                                                                         <span className="font-medium w-24 flex-shrink-0">Status:</span>
                                                                         <span className={`font-medium ${
-                                                                            selectedCoDriver.status === 'ACTIVE' ? 'text-green-600' : 'text-gray-600'
+                                                                            selectedCoDriver.status === 'ACTIVE' ? 'text-green-600' : 'text-secondary'
                                                                         }`}>{selectedCoDriver.status}</span>
                                                                     </div>
                                                                 )}
@@ -5764,18 +5764,18 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                     style={{ width: `${selectedCoDriver.onboardingPercentage}%` }}
                                                                                 ></div>
                                                                             </div>
-                                                                            <span className="font-semibold text-sm text-gray-700 min-w-[3rem] text-right">{selectedCoDriver.onboardingPercentage.toFixed(0)}%</span>
+                                                                            <span className="font-semibold text-sm text-primary min-w-[3rem] text-right">{selectedCoDriver.onboardingPercentage.toFixed(0)}%</span>
                                                                         </div>
                                                                         <div className="space-y-1.5 mt-2">
                                                                             <div className="flex items-center">
                                                                                 <span className="w-24 flex-shrink-0">Training:</span>
-                                                                                <span className={selectedCoDriver.trainingCompleted ? 'text-green-600 font-medium' : 'text-gray-500'}>
+                                                                                <span className={selectedCoDriver.trainingCompleted ? 'text-green-600 font-medium' : 'text-secondary'}>
                                                                                     {selectedCoDriver.trainingCompleted ? '✓ Completed' : '✗ Pending'}
                                                                                 </span>
                                                                             </div>
                                                                             <div className="flex items-center">
                                                                                 <span className="w-24 flex-shrink-0">Tests:</span>
-                                                                                <span className={selectedCoDriver.testsCompleted ? 'text-green-600 font-medium' : 'text-gray-500'}>
+                                                                                <span className={selectedCoDriver.testsCompleted ? 'text-green-600 font-medium' : 'text-secondary'}>
                                                                                     {selectedCoDriver.testsCompleted ? '✓ Completed' : '✗ Pending'}
                                                                                 </span>
                                                                             </div>
@@ -5783,8 +5783,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                 <span className="w-24 flex-shrink-0">HR Approval:</span>
                                                                                 <span className={
                                                                                     selectedCoDriver.hrApprovalStatus === 'APPROVED' ? 'text-green-600 font-medium' : 
-                                                                                    selectedCoDriver.hrApprovalStatus === 'IN_REVIEW' ? 'text-yellow-600 font-medium' : 
-                                                                                    'text-gray-500'
+                                                                                    selectedCoDriver.hrApprovalStatus === 'IN_REVIEW' ? 'text-[#00FFA3] font-medium' : 
+                                                                                    'text-secondary'
                                                                                 }>
                                                                                     {selectedCoDriver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : 
                                                                                      selectedCoDriver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : 
@@ -5799,8 +5799,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         <span className="w-24 flex-shrink-0">Drug Test:</span>
                                                                                         <span className={`font-medium ${
                                                                                             drugTestStatus === 'completed' ? 'text-green-600' :
-                                                                                            drugTestStatus === 'pending' ? 'text-yellow-600' :
-                                                                                            'text-red-600'
+                                                                                            drugTestStatus === 'pending' ? 'text-[#00FFA3]' :
+                                                                                            'text-[#A855F7]'
                                                                                         }`}>
                                                                                             {drugTestStatus === 'completed' ? '✓ Completed' :
                                                                                              drugTestStatus === 'pending' ? '⏳ Pending' :
@@ -5830,7 +5830,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     className={`w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-sm transition-colors ${
                                                         payType === "ADD"
                                                             ? "bg-gray-800 !text-white border-gray-800"
-                                                            : "bg-white"
+                                                            : "bg-card"
                                                     }`}
                                                 >
                                                     +
@@ -5840,14 +5840,14 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     className={`w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-sm transition-colors ${
                                                         payType === "SUBTRACT"
                                                             ? "bg-gray-800 !text-white border-gray-800"
-                                                            : "bg-white"
+                                                            : "bg-card"
                                                     }`}
                                                 >
                                                     -
                                                 </button>
                                             </div>
 
-                                            <h4 className="text-sm font-semibold text-gray-800">Pay</h4>
+                                            <h4 className="text-sm font-semibold text-primary">Pay</h4>
                                             
                                             {/* Driver Dropdown */}
                                             <div>
@@ -5870,7 +5870,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             
                                             {/* Auto-select driver from assignment if available */}
                                             {selectedDriver && !selectedPayDriver && (
-                                                <div className="text-xs text-gray-500">
+                                                <div className="text-xs text-secondary">
                                                     Using assigned driver: {selectedDriver.name || selectedDriver.internalId}
                                                 </div>
                                             )}
@@ -5882,7 +5882,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                         payType === "TOTAL"
                                                             ? "bg-gray-800 !text-white"
-                                                            : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                                            : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
                                                     }`}
                                                 >
                                                     TOTAL
@@ -5893,7 +5893,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                             payType === "BASE"
                                                                 ? "bg-gray-800 !text-white"
-                                                                : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                                                : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
                                                         }`}
                                                     >
                                                         BASE
@@ -5903,7 +5903,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         className={`w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-sm transition-colors ${
                                                             payType === "ADD"
                                                                 ? "bg-gray-800 !text-white border-gray-800"
-                                                                : "bg-white"
+                                                                : "bg-card"
                                                         }`}
                                                     >
                                                         +
@@ -5913,7 +5913,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         className={`w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-sm transition-colors ${
                                                             payType === "SUBTRACT"
                                                                 ? "bg-gray-800 !text-white border-gray-800"
-                                                                : "bg-white"
+                                                                : "bg-card"
                                                         }`}
                                                     >
                                                         -
@@ -5924,7 +5924,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             {/* Pay Content Based on Type */}
                                             {payType === "BASE" && (
                                                 <div className="space-y-3">
-                                                    <div className="text-xs font-medium text-gray-700">Driver Pay</div>
+                                                    <div className="text-xs font-medium text-primary">Driver Pay</div>
                                                     
                                                     {/* Currency Selection */}
                                                     <div className="flex items-center gap-2">
@@ -5933,7 +5933,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payCurrency === "CAD"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             CAD
@@ -5943,7 +5943,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payCurrency === "USD"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             USD
@@ -5957,7 +5957,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payRateUnit === "/MILE"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             /MILE
@@ -5967,7 +5967,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payRateUnit === "/TRIP"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             /TRIP
@@ -5977,7 +5977,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payRateUnit === "/HR"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             /HR
@@ -5987,7 +5987,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payRateUnit === "/%"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             /%
@@ -5997,7 +5997,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payRateUnit === "/LOAD"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             /LOAD
@@ -6007,7 +6007,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payRateUnit === "/DAY"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             /DAY
@@ -6016,7 +6016,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     
                                                     {/* Rate Input */}
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                                                        <label className="block text-xs font-medium text-secondary mb-1">
                                                             Rate{payRateUnit === "/MILE" ? "/Mile" : payRateUnit === "/TRIP" ? "/Trip" : payRateUnit === "/HR" ? "/Hr" : payRateUnit === "/%" ? "" : payRateUnit === "/LOAD" ? "/Load" : "/Day"}
                                                         </label>
                                                         <input
@@ -6031,7 +6031,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     {/* Number of Hours - Only shown when /HR is selected */}
                                                     {payRateUnit === "/HR" && (
                                                         <div>
-                                                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                                                            <label className="block text-xs font-medium text-secondary mb-1">
                                                                 Number of Hours
                                                             </label>
                                                             <input
@@ -6050,7 +6050,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 <div className="space-y-3">
                                                     {/* Amount Input */}
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-600 mb-1">Amount</label>
+                                                        <label className="block text-xs font-medium text-secondary mb-1">Amount</label>
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-sm font-medium">$</span>
                                                             <input
@@ -6065,7 +6065,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     
                                                     {/* Date Input */}
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
+                                                        <label className="block text-xs font-medium text-secondary mb-1">Date</label>
                                                         <input
                                                             type="date"
                                                             value={payDate}
@@ -6076,7 +6076,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     
                                                     {/* Currency Selection */}
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-600 mb-1">Currency</label>
+                                                        <label className="block text-xs font-medium text-secondary mb-1">Currency</label>
                                                         <select
                                                             value={payCurrency}
                                                             onChange={(e) => setPayCurrency(e.target.value as "CAD" | "USD")}
@@ -6089,7 +6089,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     
                                                     {/* Memo Input */}
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-600 mb-1">Memo</label>
+                                                        <label className="block text-xs font-medium text-secondary mb-1">Memo</label>
                                                         <input
                                                             type="text"
                                                             value={payMemo}
@@ -6101,7 +6101,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     
                                                     {/* GST Checkbox and Add Button */}
                                                     <div className="flex items-center justify-between">
-                                                        <label className="flex items-center gap-2 text-xs text-gray-700">
+                                                        <label className="flex items-center gap-2 text-xs text-primary">
                                                             <input
                                                                 type="checkbox"
                                                                 checked={payGst}
@@ -6158,15 +6158,15 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     {payItems.length > 0 && (
                                                         <div className="space-y-2">
                                                             {payItems.map((item, index) => (
-                                                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 border border-gray-300 rounded text-sm">
+                                                                <div key={index} className="flex items-center justify-between p-2 bg-card border border-gray-300 rounded text-sm">
                                                                     <span className="font-medium">${item.amount}</span>
-                                                                    <span className="text-gray-600">{item.date}</span>
+                                                                    <span className="text-secondary">{item.date}</span>
                                                                     <button
                                                                         onClick={() => {
                                                                             const updated = payItems.filter((_, i) => i !== index);
                                                                             setPayItems(updated);
                                                                         }}
-                                                                        className="text-red-600 hover:text-red-800 text-xs"
+                                                                        className="text-[#A855F7] hover:text-red-800 text-xs"
                                                                     >
                                                                         X
                                                                     </button>
@@ -6176,7 +6176,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     )}
                                                     
                                                     {payItems.length === 0 && (
-                                                        <div className="text-xs text-gray-500">No deductions</div>
+                                                        <div className="text-xs text-secondary">No deductions</div>
                                                     )}
                                                 </div>
                                             )}
@@ -6184,10 +6184,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             {payType === "TOTAL" && (
                                                 <div className="bg-gray-100 border border-gray-300 rounded p-3 text-sm">
                                                     <div className="flex items-center justify-between mb-2">
-                                                        <span className="text-gray-600">Base Pay ({payRateUnit})</span>
+                                                        <span className="text-secondary">Base Pay ({payRateUnit})</span>
                                                         <span className="font-medium">$0.00</span>
                                                     </div>
-                                                    <div className="text-xs text-gray-500 mb-2">
+                                                    <div className="text-xs text-secondary mb-2">
                                                         0.00 mi x ${payRate}
                                                     </div>
                                                     <div className="border-t border-gray-300 pt-2 flex items-center justify-between">
@@ -6201,7 +6201,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 <div className="space-y-3">
                                                     {/* Amount Input */}
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-600 mb-1">Amount</label>
+                                                        <label className="block text-xs font-medium text-secondary mb-1">Amount</label>
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-sm font-medium">$</span>
                                                             <input
@@ -6216,7 +6216,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     
                                                     {/* Date Input */}
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
+                                                        <label className="block text-xs font-medium text-secondary mb-1">Date</label>
                                                         <input
                                                             type="date"
                                                             value={deductionDate}
@@ -6227,7 +6227,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     
                                                     {/* Currency Selection */}
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-600 mb-1">Currency</label>
+                                                        <label className="block text-xs font-medium text-secondary mb-1">Currency</label>
                                                         <select
                                                             value={payCurrency}
                                                             onChange={(e) => setPayCurrency(e.target.value as "CAD" | "USD")}
@@ -6240,7 +6240,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     
                                                     {/* Memo Input */}
                                                     <div>
-                                                        <label className="block text-xs font-medium text-gray-600 mb-1">Memo</label>
+                                                        <label className="block text-xs font-medium text-secondary mb-1">Memo</label>
                                                         <input
                                                             type="text"
                                                             value={deductionMemo}
@@ -6252,7 +6252,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     
                                                     {/* GST Checkbox and Add Button */}
                                                     <div className="flex items-center justify-between">
-                                                        <label className="flex items-center gap-2 text-xs text-gray-700">
+                                                        <label className="flex items-center gap-2 text-xs text-primary">
                                                             <input
                                                                 type="checkbox"
                                                                 checked={deductionGst}
@@ -6309,15 +6309,15 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     {deductionItems.length > 0 && (
                                                         <div className="space-y-2">
                                                             {deductionItems.map((item, index) => (
-                                                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 border border-gray-300 rounded text-sm">
+                                                                <div key={index} className="flex items-center justify-between p-2 bg-card border border-gray-300 rounded text-sm">
                                                                     <span className="font-medium">${item.amount}</span>
-                                                                    <span className="text-gray-600">{item.date}</span>
+                                                                    <span className="text-secondary">{item.date}</span>
                                                                     <button
                                                                         onClick={() => {
                                                                             const updated = deductionItems.filter((_, i) => i !== index);
                                                                             setDeductionItems(updated);
                                                                         }}
-                                                                        className="text-red-600 hover:text-red-800 text-xs"
+                                                                        className="text-[#A855F7] hover:text-red-800 text-xs"
                                                                     >
                                                                         X
                                                                     </button>
@@ -6327,7 +6327,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     )}
                                                     
                                                     {deductionItems.length === 0 && (
-                                                        <div className="text-xs text-gray-500">No deductions</div>
+                                                        <div className="text-xs text-secondary">No deductions</div>
                                                     )}
                                                 </div>
                                             )}
@@ -6335,20 +6335,20 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
                                         {/* Miles Column */}
                                         <div className="space-y-4">
-                                            <h4 className="text-sm font-semibold text-gray-800">Miles</h4>
+                                            <h4 className="text-sm font-semibold text-primary">Miles</h4>
                                             
                                             {/* Route Segments */}
                                             <div className="space-y-2">
                                                 {routeSegments.map((segment, index) => (
-                                                    <div key={index} className="p-2 bg-gray-100 border border-gray-200 rounded text-sm">
+                                                    <div key={index} className="p-2 bg-gray-100 border border-theme rounded text-sm">
                                                         <div className="flex-1">
-                                                            <div className="font-medium text-gray-700">
+                                                            <div className="font-medium text-primary">
                                                                 {segment.from} → {segment.to}
                                                             </div>
-                                                            <div className="text-gray-600 mt-1">{segment.miles.toFixed(2)} miles</div>
+                                                            <div className="text-secondary mt-1">{segment.miles.toFixed(2)} miles</div>
                                                         </div>
                                                         <div className="flex items-center gap-2 mt-2 justify-end">
-                                                            <button className="text-gray-400 hover:text-gray-600">
+                                                            <button className="text-secondary hover:text-secondary">
                                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                                                 </svg>
@@ -6360,7 +6360,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     </div>
                                                 ))}
                                                 {routeSegments.length === 0 && (
-                                                    <div className="p-2 bg-gray-100 border border-gray-200 rounded text-sm text-gray-500">
+                                                    <div className="p-2 bg-gray-100 border border-theme rounded text-sm text-secondary">
                                                         No route segments configured
                                                     </div>
                                                 )}
@@ -6368,7 +6368,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
                                             {/* Total Miles */}
                                             <div className="pt-2">
-                                                <div className="flex justify-between items-center text-sm font-semibold text-gray-800">
+                                                <div className="flex justify-between items-center text-sm font-semibold text-primary">
                                                     <span>Total Miles</span>
                                                     <span>{totalMiles.toFixed(2)}</span>
                                                 </div>
@@ -6389,26 +6389,26 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     {/* Step 6: Notes / Audit Page */}
                     {
                         currentStep === 6 && (
-                            <div className="border-b border-gray-200">
-                                <div className="p-5 bg-gradient-to-r from-green-50 to-gray-50 border-b border-gray-200">
-                                    <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                            <div className="border-b border-theme">
+                                <div className="p-5 bg-gradient-to-r from-green-50 to-gray-50 border-b border-theme">
+                                    <h3 className="text-base font-semibold text-primary flex items-center gap-2">
                                         <span className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold">6</span>
                                         Notes / Audit
                                     </h3>
-                                    <p className="text-xs text-gray-600 mt-1 ml-10">Add notes and view audit trail</p>
+                                    <p className="text-xs text-secondary mt-1 ml-10">Add notes and view audit trail</p>
                                 </div>
                                 <div className="px-5 pt-5 pb-5 space-y-6">
                                     {/* Two Column Layout: Other Notes and Audit Trail */}
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                         {/* Other Notes Section */}
                                         <div className="space-y-4">
-                                            <h4 className="text-sm font-semibold text-gray-800">Other Notes</h4>
+                                            <h4 className="text-sm font-semibold text-primary">Other Notes</h4>
                                             
                                             {/* Note Type Selection */}
                                             <div className="space-y-2">
-                                                <label className="text-xs font-medium text-gray-700">Note Type:</label>
+                                                <label className="text-xs font-medium text-primary">Note Type:</label>
                                                 <div className="flex flex-col gap-2">
-                                                    <label className="flex items-center gap-2 text-sm text-gray-700">
+                                                    <label className="flex items-center gap-2 text-sm text-primary">
                                                         <input
                                                             type="radio"
                                                             name="noteType"
@@ -6419,7 +6419,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         />
                                                         Public (Visible to everyone)
                                                     </label>
-                                                    <label className="flex items-center gap-2 text-sm text-gray-700">
+                                                    <label className="flex items-center gap-2 text-sm text-primary">
                                                         <input
                                                             type="radio"
                                                             name="noteType"
@@ -6470,13 +6470,13 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             {notes.length > 0 && (
                                                 <div className="space-y-2 mt-4">
                                                     {notes.map((note) => (
-                                                        <div key={note.id} className="p-3 bg-gray-50 border border-gray-200 rounded text-sm">
+                                                        <div key={note.id} className="p-3 bg-card border border-theme rounded text-sm">
                                                             <div className="flex items-start justify-between mb-1">
-                                                                <span className="font-medium text-gray-700">{note.user}</span>
-                                                                <span className="text-xs text-gray-500">{note.date}</span>
+                                                                <span className="font-medium text-primary">{note.user}</span>
+                                                                <span className="text-xs text-secondary">{note.date}</span>
                                                             </div>
-                                                            <p className="text-gray-600">{note.text}</p>
-                                                            <span className="text-xs text-gray-400 mt-1 inline-block">
+                                                            <p className="text-secondary">{note.text}</p>
+                                                            <span className="text-xs text-secondary mt-1 inline-block">
                                                                 {note.type === "public" ? "Public" : "Private"}
                                                             </span>
                                                         </div>
@@ -6488,43 +6488,43 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         {/* Audit Trail Section */}
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between">
-                                                <h4 className="text-sm font-semibold text-gray-800">Audit Trail</h4>
+                                                <h4 className="text-sm font-semibold text-primary">Audit Trail</h4>
                                                 {auditTrailLoading && (
-                                                    <span className="text-xs text-gray-500">Loading...</span>
+                                                    <span className="text-xs text-secondary">Loading...</span>
                                                 )}
                                             </div>
                                             
                                             {/* Audit Trail Table */}
-                                            <div className="border border-gray-200 rounded overflow-hidden">
+                                            <div className="border border-theme rounded overflow-hidden">
                                                 <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
                                                     <table className="w-full text-sm">
-                                                        <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
+                                                        <thead className="bg-card border-b border-theme sticky top-0">
                                                             <tr>
-                                                                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700">User</th>
-                                                                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700">Action</th>
-                                                                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700">Date</th>
-                                                                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700">Details</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-semibold text-primary">User</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-semibold text-primary">Action</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-semibold text-primary">Date</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-semibold text-primary">Details</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-gray-200">
                                                             {auditTrailLoading ? (
                                                                 <tr>
-                                                                    <td colSpan={4} className="px-3 py-4 text-center text-gray-500 text-sm">
+                                                                    <td colSpan={4} className="px-3 py-4 text-center text-secondary text-sm">
                                                                         Loading audit trail...
                                                                     </td>
                                                                 </tr>
                                                             ) : auditTrail.length > 0 ? (
                                                                 auditTrail.map((audit) => (
-                                                                    <tr key={audit.id} className="hover:bg-gray-50">
-                                                                        <td className="px-3 py-2 text-gray-700">{audit.user}</td>
-                                                                        <td className="px-3 py-2 text-gray-600">{audit.action}</td>
-                                                                        <td className="px-3 py-2 text-gray-500 text-xs">{audit.date}</td>
-                                                                        <td className="px-3 py-2 text-gray-500 text-xs">{audit.details || '-'}</td>
+                                                                    <tr key={audit.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                                                        <td className="px-3 py-2 text-primary">{audit.user}</td>
+                                                                        <td className="px-3 py-2 text-secondary">{audit.action}</td>
+                                                                        <td className="px-3 py-2 text-secondary text-xs">{audit.date}</td>
+                                                                        <td className="px-3 py-2 text-secondary text-xs">{audit.details || '-'}</td>
                                                                     </tr>
                                                                 ))
                                                             ) : (
                                                                 <tr>
-                                                                    <td colSpan={4} className="px-3 py-4 text-center text-gray-500 text-sm">
+                                                                    <td colSpan={4} className="px-3 py-4 text-center text-secondary text-sm">
                                                                         No audit trail entries yet
                                                                     </td>
                                                                 </tr>
@@ -6537,15 +6537,15 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                     </div>
                                     
                                     {/* File Attachments Section */}
-                                    <div className="space-y-4 pt-4 border-t border-gray-200">
-                                        <h4 className="text-sm font-semibold text-gray-800">Attachments</h4>
+                                    <div className="space-y-4 pt-4 border-t border-theme">
+                                        <h4 className="text-sm font-semibold text-primary">Attachments</h4>
                                         
                                         {/* Attachments List */}
                                         {attachments.length > 0 && (
                                             <div className="space-y-2">
                                                 {attachments.map((attachment) => (
-                                                    <div key={attachment.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded">
-                                                        <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
+                                                    <div key={attachment.id} className="flex items-center gap-3 p-3 bg-card border border-theme rounded">
+                                                        <GripVertical className="w-4 h-4 text-secondary cursor-move" />
                                                         <button
                                                             onClick={() => {
                                                                 if (attachment.file) {
@@ -6553,11 +6553,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     window.open(url, '_blank');
                                                                 }
                                                             }}
-                                                            className="flex-1 text-sm text-blue-600 hover:text-blue-800 hover:underline text-left"
+                                                            className="flex-1 text-sm text-[#00D1FF] hover:text-blue-800 hover:underline text-left"
                                                         >
                                                             {attachment.name}
                                                         </button>
-                                                        <label className="flex items-center gap-1 text-xs text-gray-700">
+                                                        <label className="flex items-center gap-1 text-xs text-primary">
                                                             <input
                                                                 type="checkbox"
                                                                 checked={attachment.payable}
@@ -6571,7 +6571,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             />
                                                             Payable
                                                         </label>
-                                                        <label className="flex items-center gap-1 text-xs text-gray-700">
+                                                        <label className="flex items-center gap-1 text-xs text-primary">
                                                             <input
                                                                 type="checkbox"
                                                                 checked={attachment.shareWithDriver}
@@ -6589,7 +6589,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             onClick={() => {
                                                                 // Edit functionality
                                                             }}
-                                                            className="p-1 text-blue-600 hover:text-blue-800"
+                                                            className="p-1 text-[#00D1FF] hover:text-blue-800"
                                                         >
                                                             <Edit className="w-4 h-4" />
                                                         </button>
@@ -6597,7 +6597,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             onClick={() => {
                                                                 setAttachments(attachments.filter(a => a.id !== attachment.id));
                                                             }}
-                                                            className="p-1 text-red-600 hover:text-red-800"
+                                                            className="p-1 text-[#A855F7] hover:text-red-800"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
@@ -6677,13 +6677,13 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             )}
             
             {/* Fixed Footer */}
-            < div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 shadow-lg" >
+            < div className="border-t border-theme p-4 bg-card flex-shrink-0 shadow-lg" >
                 <div className="flex gap-3 justify-between">
                     <div className="flex gap-3">
                         {currentStep > 1 && (
                             <button
                                 onClick={prevStep}
-                                className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm"
+                                className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-primary font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm"
                             >
                                 <ArrowLeft className="w-4 h-4" />
                                 Previous
@@ -6693,7 +6693,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     <div className="flex gap-3">
                         <button
                             onClick={onClose}
-                            className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors shadow-sm"
+                            className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-primary font-medium rounded-lg transition-colors shadow-sm"
                         >
                             Cancel
                         </button>
@@ -6754,14 +6754,14 @@ const ValidationDisplay = ({ validationResults }: { validationResults: any }) =>
     }
 
     return (
-        <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+        <div className="space-y-4 p-4 bg-card rounded-lg border border-theme">
+            <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
                 <FaExclamationCircle className={valid ? "text-yellow-500" : "text-red-500"} />
                 Document Validation Summary
             </h3>
 
             {!valid && errors?.length > 0 && (
-                <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-lg">
+                <div className="bg-card border border-red-200 text-red-800 p-3 rounded-lg">
                     <p className="font-medium mb-2">Critical Errors Found:</p>
                     <ul className="list-disc list-inside space-y-1">
                         {errors.map((err: any, i: number) => (
@@ -6781,7 +6781,7 @@ const ValidationDisplay = ({ validationResults }: { validationResults: any }) =>
             )}
 
             {warnings?.length > 0 && (
-                <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded-lg">
+                <div className="bg-card border border-yellow-200 text-yellow-800 p-3 rounded-lg">
                     <p className="font-medium mb-2">Warnings:</p>
                     <ul className="list-disc list-inside space-y-1">
                         {warnings.map((warn: any, i: number) => (
@@ -6794,7 +6794,7 @@ const ValidationDisplay = ({ validationResults }: { validationResults: any }) =>
             )}
 
             {missing?.length > 0 && (
-                <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-lg">
+                <div className="bg-card border border-red-200 text-red-800 p-3 rounded-lg">
                     <p className="font-medium mb-2">Missing Required Documents:</p>
                     <ul className="list-disc list-inside space-y-1">
                         {missing.map((m: any, i: number) => (
@@ -6808,27 +6808,27 @@ const ValidationDisplay = ({ validationResults }: { validationResults: any }) =>
 
             {documentDetails?.length > 0 && (
                 <div className="space-y-3">
-                    <p className="font-medium text-gray-700">Document Details:</p>
+                    <p className="font-medium text-primary">Document Details:</p>
                     {documentDetails.map((doc: any, i: number) => (
-                        <div key={`doc-detail-${i}`} className="border border-gray-200 rounded-lg p-3 bg-white">
+                        <div key={`doc-detail-${i}`} className="border border-theme rounded-lg p-3 bg-card">
                             <div className="flex items-center gap-2 mb-1">
                                 {doc.status === 'valid' && <FaCheckCircle className="text-green-500" size={16} />}
                                 {doc.status === 'error' && <FaExclamationCircle className="text-red-500" size={16} />}
                                 {doc.status === 'warning' && <FaExclamationCircle className="text-yellow-500" size={16} />}
-                                <p className="font-semibold text-gray-800">{doc.document} ({doc.type})</p>
+                                <p className="font-semibold text-primary">{doc.document} ({doc.type})</p>
                                 {doc.actualType && doc.actualType !== doc.type && (
-                                    <span className="text-xs text-red-600 font-medium">(Detected as: {doc.actualType})</span>
+                                    <span className="text-xs text-[#A855F7] font-medium">(Detected as: {doc.actualType})</span>
                                 )}
                             </div>
                             {doc.status !== 'valid' && doc.issues && doc.issues.length > 0 && (
-                                <ul className="list-disc list-inside ml-4 text-sm text-gray-600">
+                                <ul className="list-disc list-inside ml-4 text-sm text-secondary">
                                     {doc.issues.map((issue: string, j: number) => (
                                         <li key={`doc-issue-${i}-${j}`}>{issue}</li>
                                     ))}
                                 </ul>
                             )}
                             {doc.expirationDate && (
-                                <p className="text-sm text-gray-600 mt-1">Expires: {new Date(doc.expirationDate).toLocaleDateString()}</p>
+                                <p className="text-sm text-secondary mt-1">Expires: {new Date(doc.expirationDate).toLocaleDateString()}</p>
                             )}
                         </div>
                     ))}

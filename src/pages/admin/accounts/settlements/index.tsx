@@ -524,7 +524,7 @@ export default function SettlementSystem() {
   );
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF]">
+    <div className="min-h-screen bg-main">
       {notification && (
         <div className={`fixed top-4 right-4 z-[10000] flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
           } text-white`}>
@@ -542,12 +542,12 @@ export default function SettlementSystem() {
 
       {/* Header */}
       <div className="p-5">
-        <div className="bg-white border-b border-gray-200">
+        <div className="bg-card border-b border-theme">
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Settlement Management</h1>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-secondary mt-1">
                   Manage driver settlements, deductions/additions, and miles tracking for IFTA reporting
                 </p>
               </div>
@@ -581,7 +581,7 @@ export default function SettlementSystem() {
 
           {/* Tabs */}
           <div className="px-6">
-            <div className="flex gap-1 border-b border-gray-200">
+            <div className="flex gap-1 border-b border-theme">
               {tabs.map(tab => {
                 const Icon = tab.icon;
                 return (
@@ -590,7 +590,7 @@ export default function SettlementSystem() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === tab.id
                       ? 'border-[#42aeec] text-[#016ab2]'
-                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                      : 'border-transparent text-secondary hover:text-primary hover:border-gray-300'
                       }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -614,7 +614,7 @@ export default function SettlementSystem() {
                     'bg-[#FFF3E0] border-orange-100'
                 }`}>
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-white`}>
+                  <div className={`p-3 rounded-lg bg-card`}>
                     <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[#42aeec]' :
                       card.color === 'green' ? 'text-[#0ea3d8]' :
                         card.color === 'purple' ? 'text-[#1db5f5]' :
@@ -631,12 +631,12 @@ export default function SettlementSystem() {
         </div>
 
         {/* Main Content */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-card rounded-lg shadow">
           {/* Toolbar */}
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          <div className="p-4 border-b border-theme flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search..."
@@ -645,12 +645,12 @@ export default function SettlementSystem() {
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
                 />
               </div>
-              <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                <Filter className="w-4 h-4 text-gray-600" />
+              <button className="p-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                <Filter className="w-4 h-4 text-secondary" />
               </button>
             </div>
             <div className="flex items-center gap-2">
-              <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+              <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-2">
                 <Download className="w-4 h-4" />
                 Export
               </button>
@@ -712,50 +712,50 @@ export default function SettlementSystem() {
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                 </div>
               ) : filteredSettlements.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-secondary">
                   No settlements found
                 </div>
               ) : (
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-card border-b border-theme">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Settlement ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pay Period</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payee</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gross Pay</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deductions</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Net Pay</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Settlement ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Pay Period</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Payee</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Gross Pay</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Deductions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Net Pay</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-gray-200">
                     {filteredSettlements.map(settlement => (
                       <tr 
                         key={settlement._id} 
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedItem({ ...settlement, type: 'settlement' });
                           setShowDetailModal(true);
                         }}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{settlement.settlementId}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#00D1FF]">{settlement.settlementId}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                           {formatPayPeriod(settlement.payPeriod.startDate, settlement.payPeriod.endDate)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{settlement.driver?.name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">{settlement.driver?.name || 'Unknown'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${settlement.status === 'Paid' ? 'bg-green-100 text-green-800' :
                             settlement.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                               settlement.status === 'Processing' ? 'bg-blue-100 text-blue-800' :
-                                'bg-gray-100 text-gray-800'
+                                'bg-gray-100 text-primary'
                             }`}>
                             {settlement.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${settlement.grossPay.toLocaleString()}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">-${settlement.deductions.toLocaleString()}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${settlement.netPay.toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">${settlement.grossPay.toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#A855F7]">-${settlement.deductions.toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">${settlement.netPay.toLocaleString()}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
 
@@ -778,7 +778,7 @@ export default function SettlementSystem() {
                                 });
                                 setShowSettlementModal(true);
                               }}
-                              className="p-1 text-gray-600 hover:bg-gray-50 rounded"
+                              className="p-1 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded"
                               title="Edit"
                             >
                               <Edit className="w-4 h-4" />
@@ -802,32 +802,32 @@ export default function SettlementSystem() {
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                 </div>
               ) : filteredDeductions.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-secondary">
                   No deductions/additions found
                 </div>
               ) : (
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-card border-b border-theme">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recurrence</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Recurrence</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Amount</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Assigned To</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-gray-200">
                     {filteredDeductions.map(item => (
                       <tr 
                         key={item._id} 
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedItem({ ...item, type: 'deduction' });
                           setShowDetailModal(true);
                         }}
                       >
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.name}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-primary">{item.name}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit ${item.type === 'Addition' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                             }`}>
@@ -835,9 +835,9 @@ export default function SettlementSystem() {
                             {item.type}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.recurrence}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${item.amount.toLocaleString()}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.assignedTo?.name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">{item.recurrence}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">${item.amount.toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">{item.assignedTo?.name || 'Unknown'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button
@@ -855,13 +855,13 @@ export default function SettlementSystem() {
                                 });
                                 setShowDeductionModal(true);
                               }}
-                              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                              className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDelete(item._id, 'deduction')}
-                              className="p-1 text-red-600 hover:bg-red-50 rounded"
+                              className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -883,49 +883,49 @@ export default function SettlementSystem() {
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                 </div>
               ) : filteredMilesTracking.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-secondary">
                   No miles tracking records found
                 </div>
               ) : (
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-card border-b border-theme">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State/Province</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Miles</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loaded Miles</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Empty Miles</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IFTA Miles</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Vehicle</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Driver</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">State/Province</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Total Miles</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Loaded Miles</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Empty Miles</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">IFTA Miles</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-gray-200">
                     {filteredMilesTracking.map(record => (
                       <tr 
                         key={record._id} 
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedItem({ ...record, type: 'miles' });
                           setShowDetailModal(true);
                         }}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                           {new Date(record.date).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#00D1FF]">
                           {record.vehicle?.plateNumber || record.vehicle?.unitNumber || record.vehicle?.internalId || 'N/A'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{record.driver?.name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">{record.driver?.name || 'Unknown'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
                             {record.state}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{record.totalMiles}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">{record.totalMiles}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">{record.loadedMiles}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-orange-600">{record.emptyMiles}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-medium">{record.iftaMiles}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#F59E0B]">{record.emptyMiles}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#00D1FF] font-medium">{record.iftaMiles}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -940,18 +940,18 @@ export default function SettlementSystem() {
       {
         showSettlementModal && (
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-900">
+            <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
+                <h3 className="text-xl font-bold text-primary">
                   {editingItem ? 'Edit Settlement' : 'Create New Settlement'}
                 </h3>
-                <button onClick={() => setShowSettlementModal(false)} className="text-gray-400 hover:text-gray-600">
+                <button onClick={() => setShowSettlementModal(false)} className="text-secondary hover:text-secondary">
                   <X size={24} />
                 </button>
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Driver *</label>
+                  <label className="block text-sm font-medium text-primary mb-2">Driver *</label>
                   <select
                     value={settlementForm.driver}
                     onChange={(e) => setSettlementForm({ ...settlementForm, driver: e.target.value })}
@@ -972,7 +972,7 @@ export default function SettlementSystem() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Start Date *</label>
                     <input
                       type="date"
                       value={settlementForm.payPeriod.startDate}
@@ -982,7 +982,7 @@ export default function SettlementSystem() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">End Date *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">End Date *</label>
                     <input
                       type="date"
                       value={settlementForm.payPeriod.endDate}
@@ -994,7 +994,7 @@ export default function SettlementSystem() {
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Gross Pay *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Gross Pay *</label>
                     <input
                       type="number"
                       value={settlementForm.grossPay}
@@ -1006,7 +1006,7 @@ export default function SettlementSystem() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Deductions</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Deductions</label>
                     <input
                       type="number"
                       value={settlementForm.deductions}
@@ -1017,7 +1017,7 @@ export default function SettlementSystem() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Additions</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Additions</label>
                     <input
                       type="number"
                       value={settlementForm.additions}
@@ -1029,7 +1029,7 @@ export default function SettlementSystem() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  <label className="block text-sm font-medium text-primary mb-2">Status</label>
                   <select
                     value={settlementForm.status}
                     onChange={(e) => setSettlementForm({ ...settlementForm, status: e.target.value as any })}
@@ -1044,7 +1044,7 @@ export default function SettlementSystem() {
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={() => setShowSettlementModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                     disabled={submitting}
                   >
                     Cancel
@@ -1107,18 +1107,18 @@ export default function SettlementSystem() {
       {
         showDeductionModal && (
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-900">
+            <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
+                <h3 className="text-xl font-bold text-primary">
                   {editingItem ? 'Edit Deduction/Addition' : 'Create New Deduction/Addition'}
                 </h3>
-                <button onClick={() => setShowDeductionModal(false)} className="text-gray-400 hover:text-gray-600">
+                <button onClick={() => setShowDeductionModal(false)} className="text-secondary hover:text-secondary">
                   <X size={24} />
                 </button>
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+                  <label className="block text-sm font-medium text-primary mb-2">Name *</label>
                   <input
                     type="text"
                     value={deductionForm.name}
@@ -1129,7 +1129,7 @@ export default function SettlementSystem() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Type *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Type *</label>
                     <select
                       value={deductionForm.type}
                       onChange={(e) => setDeductionForm({ ...deductionForm, type: e.target.value as any })}
@@ -1141,7 +1141,7 @@ export default function SettlementSystem() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Recurrence *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Recurrence *</label>
                     <select
                       value={deductionForm.recurrence}
                       onChange={(e) => setDeductionForm({ ...deductionForm, recurrence: e.target.value as any })}
@@ -1159,7 +1159,7 @@ export default function SettlementSystem() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Amount *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Amount *</label>
                     <input
                       type="number"
                       value={deductionForm.amount}
@@ -1171,7 +1171,7 @@ export default function SettlementSystem() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Assigned To (Driver) *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Assigned To (Driver) *</label>
                     <select
                       value={deductionForm.assignedTo}
                       onChange={(e) => setDeductionForm({ ...deductionForm, assignedTo: e.target.value })}
@@ -1186,7 +1186,7 @@ export default function SettlementSystem() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <label className="block text-sm font-medium text-primary mb-2">Description</label>
                   <textarea
                     value={deductionForm.description}
                     onChange={(e) => setDeductionForm({ ...deductionForm, description: e.target.value })}
@@ -1197,7 +1197,7 @@ export default function SettlementSystem() {
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={() => setShowDeductionModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                     disabled={submitting}
                   >
                     Cancel
@@ -1253,19 +1253,19 @@ export default function SettlementSystem() {
       {
         showMilesModal && (
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-900">
+            <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
+                <h3 className="text-xl font-bold text-primary">
                   {editingItem ? 'Edit Miles Tracking' : 'Create New Miles Tracking'}
                 </h3>
-                <button onClick={() => setShowMilesModal(false)} className="text-gray-400 hover:text-gray-600">
+                <button onClick={() => setShowMilesModal(false)} className="text-secondary hover:text-secondary">
                   <X size={24} />
                 </button>
               </div>
               <div className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Date *</label>
                     <input
                       type="date"
                       value={milesForm.date}
@@ -1275,7 +1275,7 @@ export default function SettlementSystem() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">State/Province *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">State/Province *</label>
                     <input
                       type="text"
                       value={milesForm.state}
@@ -1289,7 +1289,7 @@ export default function SettlementSystem() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Driver *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Driver *</label>
                     <select
                       value={milesForm.driver}
                       onChange={(e) => setMilesForm({ ...milesForm, driver: e.target.value })}
@@ -1303,7 +1303,7 @@ export default function SettlementSystem() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Vehicle *</label>
                     <select
                       value={milesForm.vehicle}
                       onChange={(e) => setMilesForm({ ...milesForm, vehicle: e.target.value })}
@@ -1331,7 +1331,7 @@ export default function SettlementSystem() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Miles *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Total Miles *</label>
                     <input
                       type="number"
                       value={milesForm.totalMiles}
@@ -1343,7 +1343,7 @@ export default function SettlementSystem() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">IFTA Miles *</label>
+                    <label className="block text-sm font-medium text-primary mb-2">IFTA Miles *</label>
                     <input
                       type="number"
                       value={milesForm.iftaMiles}
@@ -1357,7 +1357,7 @@ export default function SettlementSystem() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Loaded Miles</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Loaded Miles</label>
                     <input
                       type="number"
                       value={milesForm.loadedMiles}
@@ -1368,7 +1368,7 @@ export default function SettlementSystem() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Empty Miles</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Empty Miles</label>
                     <input
                       type="number"
                       value={milesForm.emptyMiles}
@@ -1380,7 +1380,7 @@ export default function SettlementSystem() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                  <label className="block text-sm font-medium text-primary mb-2">Notes</label>
                   <textarea
                     value={milesForm.notes}
                     onChange={(e) => setMilesForm({ ...milesForm, notes: e.target.value })}
@@ -1391,7 +1391,7 @@ export default function SettlementSystem() {
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={() => setShowMilesModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                     disabled={submitting}
                   >
                     Cancel
@@ -1447,18 +1447,18 @@ export default function SettlementSystem() {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <div className="flex items-center gap-3 mb-4 text-red-600">
+          <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4 text-[#A855F7]">
               <Trash2 className="w-6 h-6" />
               <h3 className="text-lg font-bold">Confirm Deletion</h3>
             </div>
-            <p className="text-gray-600 mb-6">
+            <p className="text-secondary mb-6">
               Are you sure you want to delete this item? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-primary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>
@@ -1479,7 +1479,7 @@ export default function SettlementSystem() {
       {/* Detail View Modal */}
       {showDetailModal && selectedItem && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] p-6 flex justify-between items-center rounded-t-xl">
               <div className="flex items-center gap-3">
                 {selectedItem.type === 'settlement' && <DollarSign className="w-7 h-7 text-white" />}
@@ -1500,7 +1500,7 @@ export default function SettlementSystem() {
               </div>
               <button 
                 onClick={() => setShowDetailModal(false)}
-                className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                className="text-white hover:bg-card/20 rounded-lg p-2 transition-colors"
               >
                 <X size={24} />
               </button>
@@ -1521,7 +1521,7 @@ export default function SettlementSystem() {
                         <p className="text-sm text-blue-700">{selectedItem.driver.phone}</p>
                       )}
                       {selectedItem.driver?.internalId && (
-                        <p className="text-xs text-blue-600 mt-2">ID: {selectedItem.driver.internalId}</p>
+                        <p className="text-xs text-[#00D1FF] mt-2">ID: {selectedItem.driver.internalId}</p>
                       )}
                     </div>
 
@@ -1556,20 +1556,20 @@ export default function SettlementSystem() {
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wide">Payment Breakdown</h4>
+                  <div className="bg-card rounded-lg p-4 border border-theme">
+                    <h4 className="text-sm font-bold text-primary mb-3 uppercase tracking-wide">Payment Breakdown</h4>
                     <div className="space-y-3">
                       <div className="flex justify-between items-center py-2 border-b border-gray-300">
-                        <span className="text-gray-700 font-medium">Gross Pay</span>
+                        <span className="text-primary font-medium">Gross Pay</span>
                         <span className="text-lg font-bold text-green-600">${selectedItem.grossPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
                       <div className="flex justify-between items-center py-2 border-b border-gray-300">
-                        <span className="text-gray-700 font-medium">Deductions</span>
-                        <span className="text-lg font-bold text-red-600">-${selectedItem.deductions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span className="text-primary font-medium">Deductions</span>
+                        <span className="text-lg font-bold text-[#A855F7]">-${selectedItem.deductions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
                       <div className="flex justify-between items-center py-2 border-b border-gray-300">
-                        <span className="text-gray-700 font-medium">Additions</span>
-                        <span className="text-lg font-bold text-blue-600">+${selectedItem.additions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span className="text-primary font-medium">Additions</span>
+                        <span className="text-lg font-bold text-[#00D1FF]">+${selectedItem.additions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
                       <div className="flex justify-between items-center py-3 bg-gradient-to-r from-purple-100 to-purple-200 rounded-lg px-3 mt-3">
                         <span className="text-purple-900 font-bold text-lg">Net Pay</span>
@@ -1678,23 +1678,23 @@ export default function SettlementSystem() {
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wide">Miles Breakdown</h4>
+                  <div className="bg-card rounded-lg p-4 border border-theme">
+                    <h4 className="text-sm font-bold text-primary mb-3 uppercase tracking-wide">Miles Breakdown</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-white rounded-lg p-3 border border-gray-300">
-                        <label className="text-xs text-gray-600 mb-1 block">Total Miles</label>
-                        <p className="text-2xl font-bold text-gray-900">{selectedItem.totalMiles.toLocaleString()}</p>
+                      <div className="bg-card rounded-lg p-3 border border-gray-300">
+                        <label className="text-xs text-secondary mb-1 block">Total Miles</label>
+                        <p className="text-2xl font-bold text-primary">{selectedItem.totalMiles.toLocaleString()}</p>
                       </div>
-                      <div className="bg-white rounded-lg p-3 border border-gray-300">
-                        <label className="text-xs text-gray-600 mb-1 block">Loaded Miles</label>
+                      <div className="bg-card rounded-lg p-3 border border-gray-300">
+                        <label className="text-xs text-secondary mb-1 block">Loaded Miles</label>
                         <p className="text-2xl font-bold text-green-600">{selectedItem.loadedMiles.toLocaleString()}</p>
                       </div>
-                      <div className="bg-white rounded-lg p-3 border border-gray-300">
-                        <label className="text-xs text-gray-600 mb-1 block">Empty Miles</label>
-                        <p className="text-2xl font-bold text-orange-600">{selectedItem.emptyMiles.toLocaleString()}</p>
+                      <div className="bg-card rounded-lg p-3 border border-gray-300">
+                        <label className="text-xs text-secondary mb-1 block">Empty Miles</label>
+                        <p className="text-2xl font-bold text-[#F59E0B]">{selectedItem.emptyMiles.toLocaleString()}</p>
                       </div>
-                      <div className="bg-white rounded-lg p-3 border border-blue-300 bg-blue-50">
-                        <label className="text-xs text-blue-600 mb-1 block font-semibold">IFTA Miles</label>
+                      <div className="bg-card rounded-lg p-3 border border-blue-300 bg-card">
+                        <label className="text-xs text-[#00D1FF] mb-1 block font-semibold">IFTA Miles</label>
                         <p className="text-2xl font-bold text-blue-700">{selectedItem.iftaMiles.toLocaleString()}</p>
                       </div>
                     </div>

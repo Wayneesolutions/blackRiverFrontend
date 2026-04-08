@@ -119,17 +119,17 @@ const MonthlySalaryReport = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-card p-6">
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-                                <Sparkles className="text-blue-600" size={32} />
+                            <h1 className="text-3xl font-bold text-primary mb-2 flex items-center gap-2">
+                                <Sparkles className="text-[#00D1FF]" size={32} />
                                 Monthly Salary Report
                             </h1>
-                            <p className="text-gray-600">AI-powered salary calculation with attendance details</p>
+                            <p className="text-secondary">AI-powered salary calculation with attendance details</p>
                         </div>
                         <button
                             onClick={handleExport}
@@ -144,7 +144,7 @@ const MonthlySalaryReport = () => {
                     {/* Date Selector */}
                     <div className="flex gap-4 items-center">
                         <div className="flex items-center gap-2">
-                            <Calendar className="text-gray-500" size={20} />
+                            <Calendar className="text-secondary" size={20} />
                             <select
                                 value={selectedMonth}
                                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
@@ -175,16 +175,16 @@ const MonthlySalaryReport = () => {
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-2">
-                        <AlertCircle className="text-red-600" size={20} />
+                    <div className="bg-card border border-red-200 rounded-lg p-4 flex items-center gap-2">
+                        <AlertCircle className="text-[#A855F7]" size={20} />
                         <p className="text-red-800">{error}</p>
                     </div>
                 )}
 
                 {loading && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                    <div className="bg-card rounded-xl shadow-sm border border-theme p-12 text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                        <p className="mt-4 text-gray-600">Generating report...</p>
+                        <p className="mt-4 text-secondary">Generating report...</p>
                     </div>
                 )}
 
@@ -192,22 +192,22 @@ const MonthlySalaryReport = () => {
                     <>
                         {/* Summary Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-sm text-gray-600 mb-1">Total Employees</p>
-                                        <p className="text-3xl font-bold text-gray-900">{report.summary.totalEmployees}</p>
+                                        <p className="text-sm text-secondary mb-1">Total Employees</p>
+                                        <p className="text-3xl font-bold text-primary">{report.summary.totalEmployees}</p>
                                     </div>
                                     <div className="p-3 bg-blue-100 rounded-full">
-                                        <Users className="text-blue-600" size={24} />
+                                        <Users className="text-[#00D1FF]" size={24} />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-sm text-gray-600 mb-1">Total Payroll</p>
+                                        <p className="text-sm text-secondary mb-1">Total Payroll</p>
                                         <p className="text-3xl font-bold text-green-600">
                                             ${report.summary.totalPayroll.toFixed(2)}
                                         </p>
@@ -218,28 +218,28 @@ const MonthlySalaryReport = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-sm text-gray-600 mb-1">Avg Attendance</p>
-                                        <p className="text-3xl font-bold text-blue-600">
+                                        <p className="text-sm text-secondary mb-1">Avg Attendance</p>
+                                        <p className="text-3xl font-bold text-[#00D1FF]">
                                             {report.summary.averageAttendance.toFixed(1)}%
                                         </p>
                                     </div>
                                     <div className="p-3 bg-blue-100 rounded-full">
-                                        <TrendingUp className="text-blue-600" size={24} />
+                                        <TrendingUp className="text-[#00D1FF]" size={24} />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-sm text-gray-600 mb-1">Absent Days</p>
-                                        <p className="text-3xl font-bold text-red-600">{report.summary.totalAbsentDays}</p>
+                                        <p className="text-sm text-secondary mb-1">Absent Days</p>
+                                        <p className="text-3xl font-bold text-[#A855F7]">{report.summary.totalAbsentDays}</p>
                                     </div>
                                     <div className="p-3 bg-red-100 rounded-full">
-                                        <XCircle className="text-red-600" size={24} />
+                                        <XCircle className="text-[#A855F7]" size={24} />
                                     </div>
                                 </div>
                             </div>
@@ -248,27 +248,27 @@ const MonthlySalaryReport = () => {
                         {/* AI Insights */}
                         {report.aiInsights && (
                             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-sm border border-blue-200 p-6">
-                                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                    <Sparkles className="text-blue-600" size={24} />
+                                <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+                                    <Sparkles className="text-[#00D1FF]" size={24} />
                                     AI Insights & Recommendations
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <h3 className="font-semibold text-gray-800 mb-2">Key Insights</h3>
+                                        <h3 className="font-semibold text-primary mb-2">Key Insights</h3>
                                         <ul className="space-y-2">
                                             {report.aiInsights.insights.map((insight, idx) => (
-                                                <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-                                                    <CheckCircle className="text-blue-600 mt-0.5 flex-shrink-0" size={16} />
+                                                <li key={idx} className="text-sm text-primary flex items-start gap-2">
+                                                    <CheckCircle className="text-[#00D1FF] mt-0.5 flex-shrink-0" size={16} />
                                                     {insight}
                                                 </li>
                                             ))}
                                         </ul>
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-gray-800 mb-2">Recommendations</h3>
+                                        <h3 className="font-semibold text-primary mb-2">Recommendations</h3>
                                         <ul className="space-y-2">
                                             {report.aiInsights.recommendations.map((rec, idx) => (
-                                                <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                                                <li key={idx} className="text-sm text-primary flex items-start gap-2">
                                                     <AlertCircle className="text-purple-600 mt-0.5 flex-shrink-0" size={16} />
                                                     {rec}
                                                 </li>
@@ -280,43 +280,43 @@ const MonthlySalaryReport = () => {
                         )}
 
                         {/* Employee Details Table */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                            <div className="p-6 border-b border-gray-200">
-                                <h2 className="text-xl font-bold text-gray-900">Employee Details</h2>
+                        <div className="bg-card rounded-xl shadow-sm border border-theme">
+                            <div className="p-6 border-b border-theme">
+                                <h2 className="text-xl font-bold text-primary">Employee Details</h2>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full">
-                                    <thead className="bg-gray-50 border-b border-gray-200">
+                                    <thead className="bg-card border-b border-theme">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Base Salary</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deductions</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Salary</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Attendance</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Employee</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Base Salary</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Bonus</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Deductions</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Total Salary</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Attendance</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Details</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
                                         {report.employees.map((employee) => (
                                             <React.Fragment key={employee.employeeId}>
-                                                <tr className="hover:bg-gray-50 transition-colors">
+                                                <tr className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div>
-                                                            <div className="font-medium text-gray-900">{employee.name}</div>
-                                                            <div className="text-sm text-gray-500">{employee.role}</div>
+                                                            <div className="font-medium text-primary">{employee.name}</div>
+                                                            <div className="text-sm text-secondary">{employee.role}</div>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                                                         ${employee.baseSalary.toFixed(2)}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
                                                         +${employee.bonus.toFixed(2)}
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#A855F7] font-medium">
                                                         -${employee.deductions.toFixed(2)}
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">
                                                         ${employee.calculatedSalary.toFixed(2)}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -329,7 +329,7 @@ const MonthlySalaryReport = () => {
                                                             onClick={() => setExpandedEmployee(
                                                                 expandedEmployee === employee.employeeId ? null : employee.employeeId
                                                             )}
-                                                            className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                                                            className="text-[#00D1FF] hover:text-blue-800 font-medium text-sm"
                                                         >
                                                             {expandedEmployee === employee.employeeId ? 'Hide' : 'Show'} Details
                                                         </button>
@@ -337,34 +337,34 @@ const MonthlySalaryReport = () => {
                                                 </tr>
                                                 {expandedEmployee === employee.employeeId && (
                                                     <tr>
-                                                        <td colSpan={7} className="px-6 py-4 bg-gray-50">
+                                                        <td colSpan={7} className="px-6 py-4 bg-card">
                                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                                                 <div className="flex items-center gap-2">
                                                                     <CheckCircle className="text-green-600" size={16} />
-                                                                    <span className="text-sm text-gray-700">
+                                                                    <span className="text-sm text-primary">
                                                                         <strong>Present:</strong> {employee.attendance.present} days
                                                                     </span>
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
-                                                                    <XCircle className="text-red-600" size={16} />
-                                                                    <span className="text-sm text-gray-700">
+                                                                    <XCircle className="text-[#A855F7]" size={16} />
+                                                                    <span className="text-sm text-primary">
                                                                         <strong>Absent:</strong> {employee.attendance.absent} days
                                                                     </span>
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
                                                                     <AlertCircle className="text-purple-600" size={16} />
-                                                                    <span className="text-sm text-gray-700">
+                                                                    <span className="text-sm text-primary">
                                                                         <strong>Leave:</strong> {employee.attendance.leave} days
                                                                     </span>
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
-                                                                    <Clock className="text-yellow-600" size={16} />
-                                                                    <span className="text-sm text-gray-700">
+                                                                    <Clock className="text-[#00FFA3]" size={16} />
+                                                                    <span className="text-sm text-primary">
                                                                         <strong>Late:</strong> {employee.attendance.late} days
                                                                     </span>
                                                                 </div>
                                                                 <div className="col-span-4 mt-2">
-                                                                    <span className="text-sm text-gray-700">
+                                                                    <span className="text-sm text-primary">
                                                                         <strong>Total Hours:</strong> {employee.attendance.totalHours.toFixed(2)} hours
                                                                     </span>
                                                                     {employee.hasPayroll && (

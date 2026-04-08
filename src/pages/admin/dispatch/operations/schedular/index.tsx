@@ -231,7 +231,7 @@ const SchedulerPage = () => {
         
         const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         const cells = dayNames.map((day) => (
-                <div key={day} className="text-center text-sm font-medium text-gray-600 p-2">
+                <div key={day} className="text-center text-sm font-medium text-secondary p-2">
                     {day}
                 </div>
         ));
@@ -239,7 +239,7 @@ const SchedulerPage = () => {
         for (let i = firstDay - 1; i >= 0; i--) {
             const day = prevMonthDays - i;
             cells.push(
-                <div key={`prev-${day}`} className="text-center p-2 text-gray-400 text-sm">
+                <div key={`prev-${day}`} className="text-center p-2 text-secondary text-sm">
                     {day}
                 </div>
             );
@@ -262,7 +262,7 @@ const SchedulerPage = () => {
                         ${isSelected ? "bg-blue-200 text-blue-800" : ""}
                         ${hasTrip && !isSelected ? "bg-green-100" : ""}
                         ${isToday && !isSelected ? "bg-yellow-100 text-yellow-800" : ""}
-                        ${draggedTrip ? "bg-blue-50 border-2 border-dashed border-blue-300" : ""}
+                        ${draggedTrip ? "bg-card border-2 border-dashed border-blue-300" : ""}
                         hover:bg-gray-100
                     `}
                 >
@@ -287,7 +287,7 @@ const SchedulerPage = () => {
         const remainingCells = 42 - totalCells;
         for (let day = 1; day <= remainingCells; day++) {
             cells.push(
-                <div key={`next-${day}`} className="text-center p-2 text-gray-400 text-sm">
+                <div key={`next-${day}`} className="text-center p-2 text-secondary text-sm">
                     {day}
                 </div>
             );
@@ -314,18 +314,18 @@ const SchedulerPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#EDF8FF]">
-            <div className="border-b border-gray-200 p-4">
+        <div className="min-h-screen bg-main">
+            <div className="border-b border-theme p-4">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-semibold text-gray-800">Trip Scheduler</h1>
+                    <h1 className="text-2xl font-semibold text-primary">Trip Scheduler</h1>
                     <div className="flex items-center space-x-4">
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-secondary">
                             <span className="font-medium">{scheduledTrips.length}</span> scheduled
                         </div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-secondary">
                             <span className="font-medium">{unscheduledTrips.length}</span> unscheduled
                         </div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-secondary">
                             <span className="font-medium">{trips.length}</span> total trips
                         </div>
                     </div>
@@ -333,40 +333,40 @@ const SchedulerPage = () => {
             </div>
 
             {emptyStateMessage && currentTrips.length === 0 && (
-                <div className="bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3 m-4">
+                <div className="bg-card border border-blue-100 text-blue-700 px-4 py-3 rounded-lg flex items-center gap-3 m-4">
                     <Calendar className="text-xl" />
                     <span className="text-sm">{emptyStateMessage}</span>
                 </div>
             )}
 
             <div className="flex">
-                <div className="w-80 border-r border-gray-200 bg-white">
-                    <div className="p-4 border-b border-gray-200 bg-gray-50">
-                        <h3 className="text-sm font-medium text-gray-700 mb-3">Quick Stats</h3>
+                <div className="w-80 border-r border-theme bg-card">
+                    <div className="p-4 border-b border-theme bg-card">
+                        <h3 className="text-sm font-medium text-primary mb-3">Quick Stats</h3>
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-white p-3 rounded-lg border">
+                            <div className="bg-card p-3 rounded-lg border">
                                 <div className="text-lg font-semibold text-green-600">{scheduledTrips.length}</div>
-                                <div className="text-xs text-gray-500">Scheduled Trips</div>
+                                <div className="text-xs text-secondary">Scheduled Trips</div>
                             </div>
-                            <div className="bg-white p-3 rounded-lg border">
-                                <div className="text-lg font-semibold text-orange-600">{unscheduledTrips.length}</div>
-                                <div className="text-xs text-gray-500">Pending Trips</div>
+                            <div className="bg-card p-3 rounded-lg border">
+                                <div className="text-lg font-semibold text-[#F59E0B]">{unscheduledTrips.length}</div>
+                                <div className="text-xs text-secondary">Pending Trips</div>
                             </div>
                         </div>
-                        <div className="mt-3 bg-white p-3 rounded-lg border">
-                            <div className="text-lg font-semibold text-blue-600">{trips.length}</div>
-                            <div className="text-xs text-gray-500">Total Trips</div>
+                        <div className="mt-3 bg-card p-3 rounded-lg border">
+                            <div className="text-lg font-semibold text-[#00D1FF]">{trips.length}</div>
+                            <div className="text-xs text-secondary">Total Trips</div>
                         </div>
                     </div>
 
-                    <div className="border-b border-gray-200">
+                    <div className="border-b border-theme">
                         <div className="flex">
                             <button
                                 onClick={() => setActiveTab("unscheduled")}
                                 className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors
                                     ${activeTab === "unscheduled" 
-                                        ? "border-blue-500 text-blue-600 bg-blue-50" 
-                                        : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                        ? "border-blue-500 text-[#00D1FF] bg-card" 
+                                        : "border-transparent text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)]"
                                     }`}
                             >
                                 Unscheduled Trips
@@ -375,8 +375,8 @@ const SchedulerPage = () => {
                                 onClick={() => setActiveTab("scheduled")}
                                 className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors
                                     ${activeTab === "scheduled" 
-                                        ? "border-blue-500 text-blue-600 bg-blue-50" 
-                                        : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                        ? "border-blue-500 text-[#00D1FF] bg-card" 
+                                        : "border-transparent text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)]"
                                     }`}
                             >
                                 Scheduled Trips
@@ -396,7 +396,7 @@ const SchedulerPage = () => {
                                         className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md
                                             ${activeTab === "scheduled" 
                                                 ? "bg-green-50 border-green-200" 
-                                                : "bg-gray-50 border-gray-200"
+                                                : "bg-card border-theme"
                                             }
                                             ${draggedTrip?._id === trip._id ? "opacity-50" : ""}
                                         `}
@@ -414,25 +414,25 @@ const SchedulerPage = () => {
                                     >
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
-                                                <div className="font-medium text-gray-900">
+                                                <div className="font-medium text-primary">
                                                     {getTripIdentifier(trip)}
                                                 </div>
-                                                <div className="text-sm text-gray-600 flex items-center mt-1">
+                                                <div className="text-sm text-secondary flex items-center mt-1">
                                                     <User className="w-3 h-3 mr-1" />
                                                     {getCustomerName(trip)}
                                                 </div>
                                                 {trip.driver?.name && (
-                                                    <div className="text-sm text-gray-600 flex items-center mt-1">
+                                                    <div className="text-sm text-secondary flex items-center mt-1">
                                                         <Truck className="w-3 h-3 mr-1" />
                                                         {trip.driver.name}
                                                     </div>
                                                 )}
-                                                <div className="text-xs text-gray-500 mt-2 flex items-center">
+                                                <div className="text-xs text-secondary mt-2 flex items-center">
                                                     <Clock className="w-3 h-3 mr-1" />
                                                     Status: {trip.status}
                                                 </div>
                                                 {trip.scheduledDate && (
-                                                    <div className="text-xs text-gray-500 mt-1">
+                                                    <div className="text-xs text-secondary mt-1">
                                                         {trip.scheduledDate.toLocaleDateString("en-GB")}
                                                     </div>
                                                 )}
@@ -444,7 +444,7 @@ const SchedulerPage = () => {
                                                             e.stopPropagation();
                                                             unscheduleTrip(trip);
                                                         }}
-                                                        className="p-1 text-red-600 hover:bg-red-100 rounded"
+                                                        className="p-1 text-[#A855F7] hover:bg-red-100 rounded"
                                                         title="Unschedule"
                                                     >
                                                         <Trash2 className="w-3 h-3" />
@@ -462,7 +462,7 @@ const SchedulerPage = () => {
                                                             setSelectedTime(formatTimeFromDate(trip.scheduledDate));
                                                             setShowScheduleModal(true);
                                                         }}
-                                                        className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+                                                        className="p-1 text-[#00D1FF] hover:bg-blue-100 rounded"
                                                         title="Schedule"
                                                     >
                                                         <Calendar className="w-3 h-3" />
@@ -475,9 +475,9 @@ const SchedulerPage = () => {
                             ) : (
                                 <div className="text-center py-8">
                                     <Truck className="mx-auto mb-3 text-gray-300" size={32} />
-                                    <p className="text-gray-500">No trips found</p>
+                                    <p className="text-secondary">No trips found</p>
                                     {emptyStateMessage && (
-                                        <p className="text-xs text-gray-400 mt-1">{emptyStateMessage}</p>
+                                        <p className="text-xs text-secondary mt-1">{emptyStateMessage}</p>
                                     )}
                                 </div>
                             )}
@@ -501,7 +501,7 @@ const SchedulerPage = () => {
                             >
                                 Today
                             </button>
-                            <h2 className="text-xl font-semibold text-gray-800">
+                            <h2 className="text-xl font-semibold text-primary">
                                 {currentMonth.toLocaleDateString("en-US", { 
                                     month: "long", 
                                     year: "numeric" 
@@ -517,12 +517,12 @@ const SchedulerPage = () => {
                         </button>
                     </div>
 
-                    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div className="bg-card border border-theme rounded-lg p-4 shadow-sm">
                         {renderCalendar()}
                     </div>
 
-                    <div className="mt-4 bg-gray-50 rounded-lg p-4">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">Calendar Legend</h4>
+                    <div className="mt-4 bg-card rounded-lg p-4">
+                        <h4 className="text-sm font-medium text-primary mb-2">Calendar Legend</h4>
                         <div className="grid grid-cols-2 gap-2 text-xs">
                             <div className="flex items-center">
                                 <div className="w-3 h-3 bg-yellow-100 border border-yellow-300 rounded mr-2"></div>
@@ -537,47 +537,47 @@ const SchedulerPage = () => {
                                 <span>Has Trips</span>
                             </div>
                             <div className="flex items-center">
-                                <div className="w-3 h-3 bg-blue-50 border-2 border-dashed border-blue-300 rounded mr-2"></div>
+                                <div className="w-3 h-3 bg-card border-2 border-dashed border-blue-300 rounded mr-2"></div>
                                 <span>Drop Zone</span>
                             </div>
                         </div>
-                        <div className="mt-2 text-xs text-gray-500">
+                        <div className="mt-2 text-xs text-secondary">
                             💡 Drag unscheduled trips to calendar dates to schedule them
                         </div>
                     </div>
 
                     {activeTab === "scheduled" && selectedDateTrips.length > 0 && (
-                        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="mt-6 bg-card border border-blue-200 rounded-lg p-4">
                             <h3 className="font-medium text-blue-800 mb-3 flex items-center">
                                 <Calendar className="w-4 h-4 mr-2" />
                                 Trips for {selectedDate.toLocaleDateString("en-GB")}
                             </h3>
                             <div className="space-y-3">
                                 {selectedDateTrips.map((trip) => (
-                                    <div key={trip._id} className="bg-white p-3 rounded border">
+                                    <div key={trip._id} className="bg-card p-3 rounded border">
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
-                                                <div className="font-medium text-gray-900">
+                                                <div className="font-medium text-primary">
                                                     {getTripIdentifier(trip)}
                                                 </div>
-                                                <div className="text-sm text-gray-600 flex items-center mt-1">
+                                                <div className="text-sm text-secondary flex items-center mt-1">
                                                     <User className="w-3 h-3 mr-1" />
                                                     {getCustomerName(trip)}
                                                 </div>
                                                 {trip.driver?.name && (
-                                                    <div className="text-sm text-gray-600 flex items-center mt-1">
+                                                    <div className="text-sm text-secondary flex items-center mt-1">
                                                         <Truck className="w-3 h-3 mr-1" />
                                                         {trip.driver.name}
                                                     </div>
                                                 )}
-                                                <div className="text-xs text-gray-500 mt-2 flex items-center">
+                                                <div className="text-xs text-secondary mt-2 flex items-center">
                                                     <Clock className="w-3 h-3 mr-1" />
                                                     Status: {trip.status}
                                                 </div>
                                             </div>
                                             <button
                                                 onClick={() => unscheduleTrip(trip)}
-                                                className="p-1 text-red-600 hover:bg-red-100 rounded"
+                                                className="p-1 text-[#A855F7] hover:bg-red-100 rounded"
                                                 title="Unschedule"
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -593,32 +593,32 @@ const SchedulerPage = () => {
 
             {showScheduleModal && selectedTrip && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-96 max-w-full mx-4">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    <div className="bg-card rounded-lg p-6 w-96 max-w-full mx-4">
+                        <h3 className="text-lg font-semibold text-primary mb-4">
                             Schedule Trip
                         </h3>
                         
                         <div className="mb-4">
-                            <div className="font-medium text-gray-900">
+                            <div className="font-medium text-primary">
                                 {getTripIdentifier(selectedTrip)}
                             </div>
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-secondary">
                                 Customer: {getCustomerName(selectedTrip)}
                             </div>
                             {selectedTrip.driver?.name && (
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-secondary">
                                     Driver: {selectedTrip.driver.name}
                             </div>
                             )}
                             {selectedTrip.truck?.internalId && (
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-secondary">
                                     Truck: {selectedTrip.truck.internalId}
                                 </div>
                             )}
                         </div>
 
                         <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-primary mb-2">
                                 Select Date
                             </label>
                             <input
@@ -634,7 +634,7 @@ const SchedulerPage = () => {
                         </div>
 
                         <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-primary mb-2">
                                 Select Time
                             </label>
                             <input
@@ -652,7 +652,7 @@ const SchedulerPage = () => {
                                     setSelectedTrip(null);
                                     setSelectedTime(DEFAULT_SCHEDULE_TIME);
                                 }}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="px-4 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 Cancel
                             </button>

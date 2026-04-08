@@ -219,8 +219,8 @@ export default function QuickStatsUI() {
     return (
       <div className="p-6 flex items-center justify-center min-h-screen bg-main">
         <div className="text-center">
-          <RefreshCw className="animate-spin h-10 w-10 text-blue-600 mx-auto mb-3" />
-          <p className="text-gray-600">Loading dashboard...</p>
+          <RefreshCw className="animate-spin h-10 w-10 text-[#00D1FF] mx-auto mb-3" />
+          <p className="text-secondary">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -231,7 +231,7 @@ export default function QuickStatsUI() {
       <div className="p-6 flex items-center justify-center min-h-screen bg-main border-2 border-red-700">
         <div className="text-center bg-main p-6 rounded-lg shadow-lg">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-3" />
-          <div className="text-red-600 text-lg font-semibold mb-2">{error}</div>
+          <div className="text-[#A855F7] text-lg font-semibold mb-2">{error}</div>
           <button
             onClick={fetchDashboardData}
             className="mt-3 px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium inline-flex items-center gap-2"
@@ -300,13 +300,13 @@ export default function QuickStatsUI() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-10 border-2 border-green-700">
         <InternalCard className="lg:col-span-2 cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5" onClick={() => navigate("/admin/dispatch/trips")}>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-primary flex items-center gap-2">
               <div className="p-1.5 bg-blue-100 rounded-lg">
-                <Package className="h-4 w-4 text-blue-600" />
+                <Package className="h-4 w-4 text-[#00D1FF]" />
               </div>
               Trips per Month
             </h3>
-            <div className="flex items-center gap-1 text-xs text-gray-500">
+            <div className="flex items-center gap-1 text-xs text-secondary">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse border-2 border-red-700"></div>
               Live
             </div>
@@ -353,7 +353,7 @@ export default function QuickStatsUI() {
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-60 flex flex-col items-center justify-center text-gray-400">
+            <div className="h-60 flex flex-col items-center justify-center text-secondary">
               <Package className="h-12 w-12 mb-2 opacity-30" />
               <p className="text-sm">No trip data available</p>
             </div>
@@ -362,7 +362,7 @@ export default function QuickStatsUI() {
 
         <InternalCard className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5" onClick={() => navigate("/admin/accounts/invoice")}>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-primary flex items-center gap-2">
               <div className="p-1.5 bg-emerald-100 rounded-lg">
                 <FileText className="h-4 w-4 text-emerald-600" />
               </div>
@@ -408,7 +408,7 @@ export default function QuickStatsUI() {
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-52 flex flex-col items-center justify-center text-gray-400">
+            <div className="h-52 flex flex-col items-center justify-center text-secondary">
               <FileText className="h-12 w-12 mb-2 opacity-30" />
               <p className="text-sm">No revenue data available</p>
             </div>
@@ -422,7 +422,7 @@ export default function QuickStatsUI() {
           {/* Decorative gradient orb */}
           <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-rose-300/20 to-amber-300/20 rounded-full blur-2xl"></div>
 
-          <h3 className="text-base font-semibold mb-3 text-gray-800 flex items-center gap-2 relative z-10">
+          <h3 className="text-base font-semibold mb-3 text-primary flex items-center gap-2 relative z-10">
             <div className="p-1.5 bg-rose-100 rounded-lg">
               <AlertTriangle className="h-4 w-4 text-rose-600" />
             </div>
@@ -430,8 +430,8 @@ export default function QuickStatsUI() {
           </h3>
 
           {alertError ? (
-            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="p-3 bg-card border border-yellow-200 rounded-lg flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-[#00FFA3] flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-medium text-yellow-800">Alert System Unavailable</p>
                 <p className="text-xs text-yellow-700 mt-0.5">{alertError}</p>
@@ -455,8 +455,8 @@ export default function QuickStatsUI() {
                       <div className="flex items-center gap-2">
                         <Truck className="h-4 w-4 text-rose-600" />
                         <div>
-                          <div className="font-medium text-sm text-gray-800">{vehicle.plateNumber}</div>
-                          <div className="text-xs text-gray-600 flex items-center gap-1 mt-0.5">
+                          <div className="font-medium text-sm text-primary">{vehicle.plateNumber}</div>
+                          <div className="text-xs text-secondary flex items-center gap-1 mt-0.5">
                             <Calendar className="h-3 w-3" />
                             {formatDate(vehicle.nextServiceDate)}
                           </div>
@@ -466,7 +466,7 @@ export default function QuickStatsUI() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-xs text-gray-600 p-2.5 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200 flex items-center gap-2">
+                  <div className="text-xs text-secondary p-2.5 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200 flex items-center gap-2">
                     <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full"></div>
                     No maintenance overdue
                   </div>
@@ -489,8 +489,8 @@ export default function QuickStatsUI() {
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-amber-600" />
                         <div>
-                          <div className="font-medium text-sm text-gray-800">Driver License - {doc.name}</div>
-                          <div className="text-xs text-gray-600 flex items-center gap-1 mt-0.5">
+                          <div className="font-medium text-sm text-primary">Driver License - {doc.name}</div>
+                          <div className="text-xs text-secondary flex items-center gap-1 mt-0.5">
                             <Calendar className="h-3 w-3" />
                             {formatDate(doc.license?.expiryDate || '')}
                           </div>
@@ -500,7 +500,7 @@ export default function QuickStatsUI() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-xs text-gray-600 p-2.5 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200 flex items-center gap-2">
+                  <div className="text-xs text-secondary p-2.5 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200 flex items-center gap-2">
                     <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full"></div>
                     All documents valid
                   </div>
@@ -521,10 +521,10 @@ export default function QuickStatsUI() {
                       onClick={() => navigate("/admin/dispatch/trips")}
                     >
                       <div className="flex items-center gap-2">
-                        <Package className="h-4 w-4 text-orange-600" />
+                        <Package className="h-4 w-4 text-[#F59E0B]" />
                         <div>
-                          <div className="font-medium text-sm text-gray-800">Trip #{trip.loadId || trip._id}</div>
-                          <div className="text-xs text-gray-600 flex items-center gap-1 mt-0.5">
+                          <div className="font-medium text-sm text-primary">Trip #{trip.loadId || trip._id}</div>
+                          <div className="text-xs text-secondary flex items-center gap-1 mt-0.5">
                             <Calendar className="h-3 w-3" />
                             {formatDate(trip.deliveryDate)} • {trip.status}
                           </div>
@@ -534,7 +534,7 @@ export default function QuickStatsUI() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-xs text-gray-600 p-2.5 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200 flex items-center gap-2">
+                  <div className="text-xs text-secondary p-2.5 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200 flex items-center gap-2">
                     <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full"></div>
                     All trips on track
                   </div>
@@ -549,9 +549,9 @@ export default function QuickStatsUI() {
           {/* Decorative gradient orb */}
           <div className="absolute -left-8 -bottom-8 w-32 h-32 bg-gradient-to-tr from-blue-300/20 to-violet-300/20 rounded-full blur-2xl"></div>
 
-          <h3 className="text-base font-semibold mb-3 text-gray-800 relative z-10">Summary</h3>
+          <h3 className="text-base font-semibold mb-3 text-primary relative z-10">Summary</h3>
           <div className="space-y-2 relative z-10">
-            <SummaryItem label="Total Vehicles" value={stats.totalVehicles} icon={<Truck className="h-3.5 w-3.5 text-blue-600" />} />
+            <SummaryItem label="Total Vehicles" value={stats.totalVehicles} icon={<Truck className="h-3.5 w-3.5 text-[#00D1FF]" />} />
             <SummaryItem label="Active Trips" value={stats.activeTrips || stats.activeLoads || 0} icon={<Package className="h-3.5 w-3.5 text-violet-600" />} />
             <SummaryItem label="Drivers on Duty" value={stats.driversOnDuty} icon={<Users className="h-3.5 w-3.5 text-emerald-600" />} />
             <SummaryItem label="Pending Work Orders" value={stats.pendingWorkOrders} icon={<Wrench className="h-3.5 w-3.5 text-amber-600" />} />
@@ -610,12 +610,12 @@ export default function QuickStatsUI() {
 //       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
 
 //       <div className="flex items-center justify-between mb-2 relative z-10">
-//         <div className="text-xs font-semibold text-gray-700">{title}</div>
+//         <div className="text-xs font-semibold text-primary">{title}</div>
 //         <div className={`p-2 rounded-lg ${iconBgClasses[color]} transition-all duration-300`}>
 //           {icon}
 //         </div>
 //       </div>
-//       <div className="text-2xl font-bold text-gray-900 relative z-10">{value}</div>
+//       <div className="text-2xl font-bold text-primary relative z-10">{value}</div>
 //     </div>
 //   );
 // }
@@ -623,7 +623,7 @@ export default function QuickStatsUI() {
 function InternalCard({ children, className = "", onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
   return (
     <div
-      className={`bg-white/90 backdrop-blur-md rounded-xl p-4 shadow-md border border-gray-200/50 hover:border-gray-300/50 ${className} border-2 border-green-700`}
+      className={`bg-card/90 backdrop-blur-md rounded-xl p-4 shadow-md border border-theme/50 hover:border-gray-300/50 ${className} border-2 border-green-700`}
       onClick={onClick}
     >
       {children}
@@ -635,10 +635,10 @@ function AlertSection({ title, children, count, icon, onClick }: { title: string
   return (
     <div>
       <div
-        className={`flex items-center justify-between mb-2 ${onClick ? 'cursor-pointer hover:text-gray-900 transition-colors' : ''}`}
+        className={`flex items-center justify-between mb-2 ${onClick ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
         onClick={onClick}
       >
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
           {icon}
           {title}
         </div>
@@ -655,12 +655,12 @@ function AlertSection({ title, children, count, icon, onClick }: { title: string
 
 function SummaryItem({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
   return (
-    <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+    <div className="flex justify-between items-center py-2 border-b border-theme last:border-0">
       <div className="flex items-center gap-1.5">
         {icon}
-        <span className="text-xs text-gray-700">{label}</span>
+        <span className="text-xs text-primary">{label}</span>
       </div>
-      <span className="text-base font-semibold text-gray-900">{value}</span>
+      <span className="text-base font-semibold text-primary">{value}</span>
     </div>
   );
 }
@@ -737,7 +737,7 @@ function StatCard({
       </div>
 
       {/* PROGRESS */}
-      <div className="mt-4 h-[3px] bg-white/10 rounded-full overflow-hidden">
+      <div className="mt-4 h-[3px] bg-card/10 rounded-full overflow-hidden">
         <div className={`h-full ${style.bg}`} style={{ width: "60%" }} />
       </div>
     </Card>

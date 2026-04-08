@@ -756,7 +756,7 @@ const InvoiceManagement: React.FC = () => {
     };
 
     const getStatusColor = (status: string): string => {
-        return status === 'paid' ? 'text-green-600 bg-green-100' : 'text-yellow-600 bg-yellow-100';
+        return status === 'paid' ? 'text-green-600 bg-green-100' : 'text-[#00FFA3] bg-yellow-100';
     };
 
     const calculateStats = () => {
@@ -776,13 +776,13 @@ const InvoiceManagement: React.FC = () => {
             {notifications.map((notification) => (
                 <div
                     key={notification.id}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-card border border-red-200'
                         }`}
                 >
                     {notification.type === 'success' ? (
                         <CheckCircle className="h-5 w-5 text-green-600" />
                     ) : (
-                        <AlertCircle className="h-5 w-5 text-red-600" />
+                        <AlertCircle className="h-5 w-5 text-[#A855F7]" />
                     )}
                     <p className={`text-sm font-medium ${notification.type === 'success' ? 'text-green-800' : 'text-red-800'}`}>
                         {notification.message}
@@ -791,7 +791,7 @@ const InvoiceManagement: React.FC = () => {
                         onClick={() => setNotifications(prev => prev.filter(n => n.id !== notification.id))}
                         className="ml-2"
                     >
-                        <X className={`h-4 w-4 ${notification.type === 'success' ? 'text-green-600' : 'text-red-600'}`} />
+                        <X className={`h-4 w-4 ${notification.type === 'success' ? 'text-green-600' : 'text-[#A855F7]'}`} />
                     </button>
                 </div>
             ))}
@@ -817,21 +817,21 @@ const InvoiceManagement: React.FC = () => {
 
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40  ">
-                <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4">
                     <div className="p-6">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="bg-red-100 p-3 rounded-full">
-                                <Trash2 className="h-6 w-6 text-red-600" />
+                                <Trash2 className="h-6 w-6 text-[#A855F7]" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900">Delete Invoice</h3>
+                            <h3 className="text-lg font-semibold text-primary">Delete Invoice</h3>
                         </div>
-                        <p className="text-gray-600 mb-6">
+                        <p className="text-secondary mb-6">
                             Are you sure you want to delete this invoice? This action cannot be undone.
                         </p>
                         <div className="flex gap-3 justify-end">
                             <button
                                 onClick={() => setDeleteModal({ show: false, invoiceId: null })}
-                                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                                className="px-4 py-2 text-primary bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
                             >
                                 Cancel
                             </button>
@@ -859,7 +859,7 @@ const InvoiceManagement: React.FC = () => {
                         </p>
                         <p className="text-xs text-[#063f6f]">{invoices.length} invoices</p>
                     </div>
-                    <div className="bg-white p-3 rounded-full">
+                    <div className="bg-card p-3 rounded-full">
                         <DollarSign className="h-6 w-6 text-[#42aeec]" />
                     </div>
                 </div>
@@ -874,7 +874,7 @@ const InvoiceManagement: React.FC = () => {
                         </p>
                         <p className="text-xs text-[#063f6f]">{stats.paidCount} invoices</p>
                     </div>
-                    <div className="bg-white p-3 rounded-full">
+                    <div className="bg-card p-3 rounded-full">
                         <TrendingUp className="h-6 w-6 text-[#0ea3d8]" />
                     </div>
                 </div>
@@ -889,7 +889,7 @@ const InvoiceManagement: React.FC = () => {
                         </p>
                         <p className="text-xs text-[#063f6f]">{stats.pendingCount} invoices</p>
                     </div>
-                    <div className="bg-white p-3 rounded-full">
+                    <div className="bg-card p-3 rounded-full">
                         <Calendar className="h-6 w-6 text-[#f59e0b]" />
                     </div>
                 </div>
@@ -904,7 +904,7 @@ const InvoiceManagement: React.FC = () => {
                         </p>
                         <p className="text-xs text-[#063f6f]">Payment efficiency</p>
                     </div>
-                    <div className="bg-white p-3 rounded-full">
+                    <div className="bg-card p-3 rounded-full">
                         <Users className="h-6 w-6 text-[#1db5f5]" />
                     </div>
                 </div>
@@ -913,13 +913,13 @@ const InvoiceManagement: React.FC = () => {
     );
 
     const InvoiceList: React.FC = () => (
-        <div className="bg-white rounded-lg" >
-            <div className="p-6 border-b border-gray-200">
+        <div className="bg-card rounded-lg" >
+            <div className="p-6 border-b border-theme">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4 sm:mb-0">Invoice List</h2>
+                    <h2 className="text-xl font-semibold text-primary mb-4 sm:mb-0">Invoice List</h2>
                     <div className="flex flex-col sm:flex-row gap-3">
                         <div className="flex items-center gap-2">
-                            <Filter className="h-4 w-4 text-gray-500" />
+                            <Filter className="h-4 w-4 text-secondary" />
                             <select
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
@@ -936,20 +936,20 @@ const InvoiceManagement: React.FC = () => {
 
             <div className="overflow-x-auto">
                 {loading ? (
-                    <div className="p-8 text-center text-gray-500">Loading invoices...</div>
+                    <div className="p-8 text-center text-secondary">Loading invoices...</div>
                 ) : filteredInvoices.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500">No invoices found</div>
+                    <div className="p-8 text-center text-secondary">No invoices found</div>
                 ) : (
                     <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                             <tr>
-                                <th className="text-left py-3 px-6 font-medium text-gray-500">Invoice ID</th>
-                                <th className="text-left py-3 px-6 font-medium text-gray-500">Client</th>
-                                <th className="text-left py-3 px-6 font-medium text-gray-500">Trip Details</th>
-                                <th className="text-left py-3 px-6 font-medium text-gray-500">Amount</th>
-                                <th className="text-left py-3 px-6 font-medium text-gray-500">Due Date</th>
-                                <th className="text-left py-3 px-6 font-medium text-gray-500">Status</th>
-                                <th className="text-left py-3 px-6 font-medium text-gray-500">Actions</th>
+                                <th className="text-left py-3 px-6 font-medium text-secondary">Invoice ID</th>
+                                <th className="text-left py-3 px-6 font-medium text-secondary">Client</th>
+                                <th className="text-left py-3 px-6 font-medium text-secondary">Trip Details</th>
+                                <th className="text-left py-3 px-6 font-medium text-secondary">Amount</th>
+                                <th className="text-left py-3 px-6 font-medium text-secondary">Due Date</th>
+                                <th className="text-left py-3 px-6 font-medium text-secondary">Status</th>
+                                <th className="text-left py-3 px-6 font-medium text-secondary">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
@@ -972,7 +972,7 @@ const InvoiceManagement: React.FC = () => {
                                 return (
                                     <tr
                                         key={invoice._id}
-                                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                                         onClick={() => {
                                             setSelectedInvoice(invoice);
                                             setActiveTab('view');
@@ -980,69 +980,69 @@ const InvoiceManagement: React.FC = () => {
                                     >
                                         <td className="py-4 px-6">
                                             <div className="flex items-center">
-                                                <FileText className="h-4 w-4 text-gray-400 mr-2" />
+                                                <FileText className="h-4 w-4 text-secondary mr-2" />
                                                 <span className="font-mono text-sm">{invoice._id.slice(-8)}</span>
                                             </div>
                                         </td>
                                         <td className="py-4 px-6">
                                             <div>
-                                                <div className="font-medium text-gray-900">{invoice.clientName}</div>
-                                                <div className="text-sm text-gray-500">{invoice.clientEmail}</div>
+                                                <div className="font-medium text-primary">{invoice.clientName}</div>
+                                                <div className="text-sm text-secondary">{invoice.clientEmail}</div>
                                             </div>
                                         </td>
                                         <td className="py-4 px-6">
                                             {trip ? (
                                                 <div className="space-y-1">
                                                     {trip?.tripNumber && (
-                                                        <div className="font-medium text-gray-900 text-sm">
+                                                        <div className="font-medium text-primary text-sm">
                                                             {trip?.tripNumber}
                                                         </div>
                                                     )}
-                                                    <div className="text-xs text-gray-600">
+                                                    <div className="text-xs text-secondary">
                                                         {startLocation} → {endLocation}
                                                     </div>
                                                     {ordersCount > 0 && (
-                                                        <div className="text-xs text-gray-500">
+                                                        <div className="text-xs text-secondary">
                                                             {ordersCount} {ordersCount === 1 ? 'order' : 'orders'}
                                                         </div>
                                                     )}
                                                     {trip.truck && (
-                                                        <div className="text-xs text-gray-500">
+                                                        <div className="text-xs text-secondary">
                                                             Truck: {trip.truck.plateNumber || trip.truck.licensePlate || trip.truck.unitNumber || trip.truck.internalId || 'N/A'}
                                                         </div>
                                                     )}
                                                 </div>
                                             ) : displayId ? (
                                                 <div className="space-y-1">
-                                                    <div className="font-medium text-gray-900 text-sm">
+                                                    <div className="font-medium text-primary text-sm">
                                                         {displayId}
                                                     </div>
-                                                    <div className="text-xs text-gray-600">
+                                                    <div className="text-xs text-secondary">
                                                         {startLocation} → {endLocation}
                                                     </div>
                                                     {order && (
-                                                        <div className="text-xs text-gray-400">
+                                                        <div className="text-xs text-secondary">
                                                             Order Invoice
                                                         </div>
                                                     )}
                                                     {invoice.notes && invoice.notes.includes('Auto-generated') && (
-                                                        <div className="text-xs text-gray-400">
+                                                        <div className="text-xs text-secondary">
                                                             Auto-generated
                                                         </div>
                                                     )}
                                                 </div>
                                             ) : invoice.tripId ? (
-                                                <div className="text-sm text-gray-500">
+                                                <div className="text-sm text-secondary">
                                                     Trip: {typeof invoice.tripId === 'string' ? invoice.tripId.slice(-8) : 'N/A'}
                                                 </div>
                                             ) : (
-                                                <div className="text-sm text-gray-400">-</div>
+                                                <div className="text-sm text-secondary">-</div>
                                             )}
                                         </td>
                                         <td className="py-4 px-6">
-                                            <span className="font-medium text-gray-900">{formatCurrency(Number(invoice.amount))}</span>
+                                            <span className="font-medium text-primary">{formatCurrency(Number(invoice.amount))}</span>
                                         </td>
-                                        <td className="py-4 px-6 text-sm text-gray-900">
+                                        <td className="py-4 px-6 text-sm text-primary">
                                             {formatDate(invoice.dueDate)}
                                         </td>
                                         <td className="py-4 px-6">
@@ -1057,7 +1057,7 @@ const InvoiceManagement: React.FC = () => {
                                                         setSelectedInvoice(invoice);
                                                         setActiveTab('view');
                                                     }}
-                                                    className="text-blue-600 hover:text-blue-800 transition-colors"
+                                                    className="text-[#00D1FF] hover:text-blue-800 transition-colors"
                                                     title="View Invoice"
                                                 >
                                                     <Eye className="h-4 w-4" />
@@ -1067,7 +1067,7 @@ const InvoiceManagement: React.FC = () => {
                                                         e.stopPropagation();
                                                         handleDownloadPDF(invoice);
                                                     }}
-                                                    className="p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+                                                    className="p-2 text-primary hover:text-primary hover:bg-gray-100 rounded-lg transition-all"
                                                     title="Download PDF"
                                                 >
                                                     <Download className="h-4 w-4" />
@@ -1077,14 +1077,14 @@ const InvoiceManagement: React.FC = () => {
                                                         setSelectedInvoice(invoice);
                                                         setActiveTab('edit');
                                                     }}
-                                                    className="text-gray-600 hover:text-gray-800 transition-colors"
+                                                    className="text-secondary hover:text-primary transition-colors"
                                                     title="Edit Invoice"
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => setDeleteModal({ show: true, invoiceId: invoice._id })}
-                                                    className="text-red-600 hover:text-red-800 transition-colors"
+                                                    className="text-[#A855F7] hover:text-red-800 transition-colors"
                                                     title="Delete Invoice"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -1129,10 +1129,10 @@ const InvoiceManagement: React.FC = () => {
 
 
         return (
-            <div className="bg-white rounded-lg">
-                <div className="p-6 border-b border-gray-200">
+            <div className="bg-card rounded-lg">
+                <div className="p-6 border-b border-theme">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-semibold text-gray-900">Invoice Preview</h2>
+                        <h2 className="text-xl font-semibold text-primary">Invoice Preview</h2>
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => handleDownloadPDF(selectedInvoice)}
@@ -1143,7 +1143,7 @@ const InvoiceManagement: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('list')}
-                                className="text-gray-500 hover:text-gray-700 transition-colors px-3 py-2 hover:bg-gray-100 rounded-lg"
+                                className="text-secondary hover:text-primary transition-colors px-3 py-2 hover:bg-gray-100 rounded-lg"
                             >
                                 ← Back to List
                             </button>
@@ -1153,9 +1153,9 @@ const InvoiceManagement: React.FC = () => {
 
                 <div className="p-6 bg-gray-100">
                     {/* Invoice Document Preview */}
-                    <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-sm overflow-hidden border border-gray-200">
+                    <div className="max-w-4xl mx-auto bg-card shadow-2xl rounded-sm overflow-hidden border border-theme">
                         {/* Header - White Background with Logo and Title */}
-                        <div className="bg-white px-10 py-6 border-b-2 border-gray-300 flex items-center justify-between">
+                        <div className="bg-card px-10 py-6 border-b-2 border-gray-300 flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 {company?.logoUrl && (
                                     <img 
@@ -1168,7 +1168,7 @@ const InvoiceManagement: React.FC = () => {
                                     />
                                 )}
                             </div>
-                            <h1 className="text-5xl font-bold text-gray-900 tracking-wider uppercase" style={{ letterSpacing: '0.1em' }}>INVOICE</h1>
+                            <h1 className="text-5xl font-bold text-primary tracking-wider uppercase" style={{ letterSpacing: '0.1em' }}>INVOICE</h1>
                         </div>
 
                         {/* Body */}
@@ -1178,35 +1178,35 @@ const InvoiceManagement: React.FC = () => {
                                 {/* Left Column - Company Details */}
                                 {company && (
                                     <div className="space-y-1.5">
-                                        <h3 className="font-bold text-gray-900 text-base leading-tight mb-3">{company.companyName || 'Company Name'}</h3>
+                                        <h3 className="font-bold text-primary text-base leading-tight mb-3">{company.companyName || 'Company Name'}</h3>
                                         {company.address && (
-                                            <p className="text-sm text-gray-700 leading-relaxed">{company.address}</p>
+                                            <p className="text-sm text-primary leading-relaxed">{company.address}</p>
                                         )}
                                         {company.contactPhone && (
-                                            <p className="text-sm text-gray-700">Phone: {company.contactPhone}</p>
+                                            <p className="text-sm text-primary">Phone: {company.contactPhone}</p>
                                         )}
                                         {company.contactEmail && (
-                                            <p className="text-sm text-gray-700">Email: {company.contactEmail}</p>
+                                            <p className="text-sm text-primary">Email: {company.contactEmail}</p>
                                         )}
                                         {company.taxNumber && (
-                                            <p className="text-sm text-gray-700">GST No: {company.taxNumber}</p>
+                                            <p className="text-sm text-primary">GST No: {company.taxNumber}</p>
                                         )}
                                     </div>
                                 )}
 
                                 {/* Right Column - Bill To Section */}
                                 <div>
-                                    <h3 className="font-bold text-gray-900 mb-3 text-base">Bill To:</h3>
+                                    <h3 className="font-bold text-primary mb-3 text-base">Bill To:</h3>
                                     <div className="space-y-1.5">
-                                        <p className="text-sm font-semibold text-gray-900">{selectedInvoice.clientName}</p>
+                                        <p className="text-sm font-semibold text-primary">{selectedInvoice.clientName}</p>
                                         {selectedInvoice.clientAddress && (
-                                            <p className="text-sm text-gray-700 leading-relaxed">{selectedInvoice.clientAddress}</p>
+                                            <p className="text-sm text-primary leading-relaxed">{selectedInvoice.clientAddress}</p>
                                         )}
                                         {selectedInvoice.clientEmail && (
-                                            <p className="text-sm text-gray-700">{selectedInvoice.clientEmail}</p>
+                                            <p className="text-sm text-primary">{selectedInvoice.clientEmail}</p>
                                         )}
                                         {selectedInvoice.clientPhone && (
-                                            <p className="text-sm text-gray-700">Phone: {selectedInvoice.clientPhone}</p>
+                                            <p className="text-sm text-primary">Phone: {selectedInvoice.clientPhone}</p>
                                         )}
                                     </div>
                                 </div>
@@ -1214,14 +1214,14 @@ const InvoiceManagement: React.FC = () => {
 
                             {/* Load/Trip Details Section */}
                             {(trip || order) && (
-                                <div className="mt-8 p-5 border border-gray-200">
-                                    <h3 className="font-bold text-gray-900 mb-4 text-base">Load Details:</h3>
+                                <div className="mt-8 p-5 border border-theme">
+                                    <h3 className="font-bold text-primary mb-4 text-base">Load Details:</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* Trip/Order Number */}
                                         {(trip?.tripNumber || order?.orderNumber) && (
                                             <div>
-                                                <p className="text-xs text-gray-600 mb-1">Trip/Order Number</p>
-                                                <p className="text-sm font-semibold text-gray-900">
+                                                <p className="text-xs text-secondary mb-1">Trip/Order Number</p>
+                                                <p className="text-sm font-semibold text-primary">
                                                     {trip?.tripNumber || order?.orderNumber}
                                                 </p>
                                             </div>
@@ -1230,16 +1230,16 @@ const InvoiceManagement: React.FC = () => {
                                         {/* Customer Order Number */}
                                         {order?.customerOrderNo && (
                                             <div>
-                                                <p className="text-xs text-gray-600 mb-1">Customer PO Number</p>
-                                                <p className="text-sm font-semibold text-gray-900">{order.customerOrderNo}</p>
+                                                <p className="text-xs text-secondary mb-1">Customer PO Number</p>
+                                                <p className="text-sm font-semibold text-primary">{order.customerOrderNo}</p>
                                             </div>
                                         )}
 
                                         {/* Pickup Location */}
                                         {(trip?.startLocation?.place || trip?.orders?.[0]?.pickupLocation?.place || order?.pickupLocation?.place) && (
                                             <div>
-                                                <p className="text-xs text-gray-600 mb-1">Pickup Location</p>
-                                                <p className="text-sm text-gray-900">
+                                                <p className="text-xs text-secondary mb-1">Pickup Location</p>
+                                                <p className="text-sm text-primary">
                                                     {trip?.startLocation?.place || trip?.orders?.[0]?.pickupLocation?.place || order?.pickupLocation?.place}
                                                 </p>
                                             </div>
@@ -1248,8 +1248,8 @@ const InvoiceManagement: React.FC = () => {
                                         {/* Dropoff Location */}
                                         {(trip?.endLocation?.place || trip?.orders?.[trip?.orders?.length - 1]?.deliveryLocation?.place || order?.deliveryLocation?.place) && (
                                             <div>
-                                                <p className="text-xs text-gray-600 mb-1">Dropoff Location</p>
-                                                <p className="text-sm text-gray-900">
+                                                <p className="text-xs text-secondary mb-1">Dropoff Location</p>
+                                                <p className="text-sm text-primary">
                                                     {trip?.endLocation?.place || trip?.orders?.[trip?.orders?.length - 1]?.deliveryLocation?.place || order?.deliveryLocation?.place}
                                                 </p>
                                             </div>
@@ -1271,50 +1271,50 @@ const InvoiceManagement: React.FC = () => {
                                         // Show section if truck object exists (even if empty)
                                         return truckInfo ? (
                                             <div className="mt-6 pt-6 border-t border-gray-300">
-                                                <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">
+                                                <h4 className="font-semibold text-primary mb-4 text-sm uppercase tracking-wide">
                                                     Truck Details
                                                 </h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                                     <div>
-                                                        <p className="text-xs text-gray-600 mb-1">Unit/Plate Number</p>
-                                                        <p className="text-sm font-semibold text-gray-900">
+                                                        <p className="text-xs text-secondary mb-1">Unit/Plate Number</p>
+                                                        <p className="text-sm font-semibold text-primary">
                                                             {truckInfo.plateNumber || truckInfo.licensePlate || truckInfo.unitNumber || truckInfo.internalId || (truckInfo._id ? truckInfo._id.slice(-8) : 'N/A')}
                                                         </p>
                                                     </div>
                                                     {truckInfo.make && (
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">Make</p>
-                                                            <p className="text-sm text-gray-900">{truckInfo.make}</p>
+                                                            <p className="text-xs text-secondary mb-1">Make</p>
+                                                            <p className="text-sm text-primary">{truckInfo.make}</p>
                                                         </div>
                                                     )}
                                                     {truckInfo.model && (
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">Model</p>
-                                                            <p className="text-sm text-gray-900">{truckInfo.model}</p>
+                                                            <p className="text-xs text-secondary mb-1">Model</p>
+                                                            <p className="text-sm text-primary">{truckInfo.model}</p>
                                                         </div>
                                                     )}
                                                     {truckInfo.makeModel && !truckInfo.make && (
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">Make/Model</p>
-                                                            <p className="text-sm text-gray-900">{truckInfo.makeModel}</p>
+                                                            <p className="text-xs text-secondary mb-1">Make/Model</p>
+                                                            <p className="text-sm text-primary">{truckInfo.makeModel}</p>
                                                         </div>
                                                     )}
                                                     {(truckInfo.type || truckInfo.unitType) && (
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">Type</p>
-                                                            <p className="text-sm text-gray-900">{truckInfo.type || truckInfo.unitType}</p>
+                                                            <p className="text-xs text-secondary mb-1">Type</p>
+                                                            <p className="text-sm text-primary">{truckInfo.type || truckInfo.unitType}</p>
                                                         </div>
                                                     )}
                                                     {truckInfo.year && (
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">Year</p>
-                                                            <p className="text-sm text-gray-900">{truckInfo.year}</p>
+                                                            <p className="text-xs text-secondary mb-1">Year</p>
+                                                            <p className="text-sm text-primary">{truckInfo.year}</p>
                                                         </div>
                                                     )}
                                                     {truckInfo.vin && (
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">VIN</p>
-                                                            <p className="text-sm text-gray-900 font-mono">{truckInfo.vin}</p>
+                                                            <p className="text-xs text-secondary mb-1">VIN</p>
+                                                            <p className="text-sm text-primary font-mono">{truckInfo.vin}</p>
                                                         </div>
                                                     )}
                                                 </div>
@@ -1336,56 +1336,56 @@ const InvoiceManagement: React.FC = () => {
                                         // Show section if trailer object exists (even if empty)
                                         return trailerInfo ? (
                                             <div className="mt-6 pt-6 border-t border-gray-300">
-                                                <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">
+                                                <h4 className="font-semibold text-primary mb-4 text-sm uppercase tracking-wide">
                                                     Trailer Details
                                                 </h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                                     <div>
-                                                        <p className="text-xs text-gray-600 mb-1">Unit/Plate Number</p>
-                                                        <p className="text-sm font-semibold text-gray-900">
+                                                        <p className="text-xs text-secondary mb-1">Unit/Plate Number</p>
+                                                        <p className="text-sm font-semibold text-primary">
                                                             {trailerInfo.plateNumber || trailerInfo.licensePlate || trailerInfo.unitNumber || trailerInfo.internalId || (trailerInfo._id ? trailerInfo._id.slice(-8) : 'N/A')}
                                                         </p>
                                                     </div>
                                                     {trailerInfo.make && (
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">Make</p>
-                                                            <p className="text-sm text-gray-900">{trailerInfo.make}</p>
+                                                            <p className="text-xs text-secondary mb-1">Make</p>
+                                                            <p className="text-sm text-primary">{trailerInfo.make}</p>
                                                         </div>
                                                     )}
                                                     {trailerInfo.model && (
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">Model</p>
-                                                            <p className="text-sm text-gray-900">{trailerInfo.model}</p>
+                                                            <p className="text-xs text-secondary mb-1">Model</p>
+                                                            <p className="text-sm text-primary">{trailerInfo.model}</p>
                                                         </div>
                                                     )}
                                                     {trailerInfo.makeModel && !trailerInfo.make && (
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">Make/Model</p>
-                                                            <p className="text-sm text-gray-900">{trailerInfo.makeModel}</p>
+                                                            <p className="text-xs text-secondary mb-1">Make/Model</p>
+                                                            <p className="text-sm text-primary">{trailerInfo.makeModel}</p>
                                                         </div>
                                                     )}
                                                     {trailerInfo.type && (
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">Type</p>
-                                                            <p className="text-sm text-gray-900">{trailerInfo.type}</p>
+                                                            <p className="text-xs text-secondary mb-1">Type</p>
+                                                            <p className="text-sm text-primary">{trailerInfo.type}</p>
                                                         </div>
                                                     )}
                                                     {trailerInfo.capacity && (
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">Capacity</p>
-                                                            <p className="text-sm text-gray-900">{trailerInfo.capacity}</p>
+                                                            <p className="text-xs text-secondary mb-1">Capacity</p>
+                                                            <p className="text-sm text-primary">{trailerInfo.capacity}</p>
                                                         </div>
                                                     )}
                                                     {trailerInfo.year && (
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">Year</p>
-                                                            <p className="text-sm text-gray-900">{trailerInfo.year}</p>
+                                                            <p className="text-xs text-secondary mb-1">Year</p>
+                                                            <p className="text-sm text-primary">{trailerInfo.year}</p>
                                                         </div>
                                                     )}
                                                     {trailerInfo.vin && (
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">VIN</p>
-                                                            <p className="text-sm text-gray-900 font-mono">{trailerInfo.vin}</p>
+                                                            <p className="text-xs text-secondary mb-1">VIN</p>
+                                                            <p className="text-sm text-primary font-mono">{trailerInfo.vin}</p>
                                                         </div>
                                                     )}
                                                 </div>
@@ -1415,24 +1415,24 @@ const InvoiceManagement: React.FC = () => {
                                         // Show section if driver or coDriver exists
                                         return (driverInfo || coDriverInfo) ? (
                                             <div className="mt-6 pt-6 border-t border-gray-300">
-                                                <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">
+                                                <h4 className="font-semibold text-primary mb-4 text-sm uppercase tracking-wide">
                                                     Driver Information
                                                 </h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                     {/* Driver */}
                                                     {driverInfo && (
-                                                        <div className="bg-white rounded-md p-4 border border-gray-200">
-                                                            <p className="text-xs text-gray-600 mb-3 font-semibold uppercase">Driver</p>
+                                                        <div className="bg-card rounded-md p-4 border border-theme">
+                                                            <p className="text-xs text-secondary mb-3 font-semibold uppercase">Driver</p>
                                                             <div className="space-y-2">
                                                                 <div>
-                                                                    <p className="text-xs text-gray-600 mb-1">Name</p>
-                                                                    <p className="text-sm font-semibold text-gray-900">
+                                                                    <p className="text-xs text-secondary mb-1">Name</p>
+                                                                    <p className="text-sm font-semibold text-primary">
                                                                         {typeof driverInfo === 'object' ? (driverInfo?.name || 'N/A') : (driverInfo || 'N/A')}
                                                                     </p>
                                                                 </div>
                                                                 <div>
-                                                                    <p className="text-xs text-gray-600 mb-1">Driver ID</p>
-                                                                    <p className="text-sm text-gray-900 font-mono">
+                                                                    <p className="text-xs text-secondary mb-1">Driver ID</p>
+                                                                    <p className="text-sm text-primary font-mono">
                                                                         {(() => {
                                                                             if (typeof driverInfo === 'string') {
                                                                                 return driverInfo.slice(-8) || 'N/A';
@@ -1449,18 +1449,18 @@ const InvoiceManagement: React.FC = () => {
 
                                                     {/* Co-Driver */}
                                                     {coDriverInfo && (
-                                                        <div className="bg-white rounded-md p-4 border border-gray-200">
-                                                            <p className="text-xs text-gray-600 mb-3 font-semibold uppercase">Co-Driver</p>
+                                                        <div className="bg-card rounded-md p-4 border border-theme">
+                                                            <p className="text-xs text-secondary mb-3 font-semibold uppercase">Co-Driver</p>
                                                             <div className="space-y-2">
                                                                 <div>
-                                                                    <p className="text-xs text-gray-600 mb-1">Name</p>
-                                                                    <p className="text-sm font-semibold text-gray-900">
+                                                                    <p className="text-xs text-secondary mb-1">Name</p>
+                                                                    <p className="text-sm font-semibold text-primary">
                                                                         {coDriverInfo.name || 'N/A'}
                                                                     </p>
                                                                 </div>
                                                                 <div>
-                                                                    <p className="text-xs text-gray-600 mb-1">Driver ID</p>
-                                                                    <p className="text-sm text-gray-900 font-mono">
+                                                                    <p className="text-xs text-secondary mb-1">Driver ID</p>
+                                                                    <p className="text-sm text-primary font-mono">
                                                                         {(() => {
                                                                             const coDriverId = coDriverInfo._id;
                                                                             const coDriverInternalId = (coDriverInfo as any)?.internalId;
@@ -1479,45 +1479,45 @@ const InvoiceManagement: React.FC = () => {
                                     {/* Additional Trip Information */}
                                     {(trip?.route?.totalDistance || trip?.plannedStartDate || trip?.actualStartDate) && (
                                         <div className="mt-6 pt-6 border-t border-gray-300">
-                                                <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">
+                                                <h4 className="font-semibold text-primary mb-4 text-sm uppercase tracking-wide">
                                                     Trip Information
                                                 </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                                 {trip?.route?.totalDistance && (
                                                     <div>
-                                                        <p className="text-xs text-gray-600 mb-1">Total Distance</p>
-                                                        <p className="text-sm text-gray-900">
+                                                        <p className="text-xs text-secondary mb-1">Total Distance</p>
+                                                        <p className="text-sm text-primary">
                                                             {trip.route.totalDistance.toFixed(2)} km ({(trip.route.totalDistance * 0.621371).toFixed(2)} miles)
                                                         </p>
                                                     </div>
                                                 )}
                                                 {trip?.plannedStartDate && (
                                                     <div>
-                                                        <p className="text-xs text-gray-600 mb-1">Planned Start Date</p>
-                                                        <p className="text-sm text-gray-900">{formatDate(trip.plannedStartDate)}</p>
+                                                        <p className="text-xs text-secondary mb-1">Planned Start Date</p>
+                                                        <p className="text-sm text-primary">{formatDate(trip.plannedStartDate)}</p>
                                                     </div>
                                                 )}
                                                 {trip?.actualStartDate && (
                                                     <div>
-                                                        <p className="text-xs text-gray-600 mb-1">Actual Start Date</p>
-                                                        <p className="text-sm text-gray-900">{formatDate(trip.actualStartDate)}</p>
+                                                        <p className="text-xs text-secondary mb-1">Actual Start Date</p>
+                                                        <p className="text-sm text-primary">{formatDate(trip.actualStartDate)}</p>
                                                     </div>
                                                 )}
                                                 {trip?.plannedEndDate && (
                                                     <div>
-                                                        <p className="text-xs text-gray-600 mb-1">Planned End Date</p>
-                                                        <p className="text-sm text-gray-900">{formatDate(trip.plannedEndDate)}</p>
+                                                        <p className="text-xs text-secondary mb-1">Planned End Date</p>
+                                                        <p className="text-sm text-primary">{formatDate(trip.plannedEndDate)}</p>
                                                     </div>
                                                 )}
                                                 {trip?.actualEndDate && (
                                                     <div>
-                                                        <p className="text-xs text-gray-600 mb-1">Actual End Date</p>
-                                                        <p className="text-sm text-gray-900">{formatDate(trip.actualEndDate)}</p>
+                                                        <p className="text-xs text-secondary mb-1">Actual End Date</p>
+                                                        <p className="text-sm text-primary">{formatDate(trip.actualEndDate)}</p>
                                                     </div>
                                                 )}
                                                 {trip?.status && (
                                                     <div>
-                                                        <p className="text-xs text-gray-600 mb-1">Trip Status</p>
+                                                        <p className="text-xs text-secondary mb-1">Trip Status</p>
                                                         <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
                                                             trip.status === 'completed' ? 'bg-green-100 text-green-800' :
                                                             trip.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
@@ -1538,34 +1538,34 @@ const InvoiceManagement: React.FC = () => {
                                 <table className="w-full border-collapse">
                                     <thead>
                                         <tr className="border-b-2 border-gray-300">
-                                            <th className="text-left py-4 px-5 font-bold text-gray-900 text-sm uppercase tracking-wide">Description</th>
-                                            <th className="text-center py-4 px-5 font-bold text-gray-900 text-sm uppercase tracking-wide">Qty</th>
-                                            <th className="text-right py-4 px-5 font-bold text-gray-900 text-sm uppercase tracking-wide">Unit Price</th>
-                                            <th className="text-right py-4 px-5 font-bold text-gray-900 text-sm uppercase tracking-wide">Amount</th>
+                                            <th className="text-left py-4 px-5 font-bold text-primary text-sm uppercase tracking-wide">Description</th>
+                                            <th className="text-center py-4 px-5 font-bold text-primary text-sm uppercase tracking-wide">Qty</th>
+                                            <th className="text-right py-4 px-5 font-bold text-primary text-sm uppercase tracking-wide">Unit Price</th>
+                                            <th className="text-right py-4 px-5 font-bold text-primary text-sm uppercase tracking-wide">Amount</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {selectedInvoice.serviceBreakdown && selectedInvoice.serviceBreakdown.length > 0 ? (
                                             selectedInvoice.serviceBreakdown.map((item, index) => (
-                                                <tr key={index} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                                                    <td className="py-4 px-5 text-sm text-gray-800">{item.description || 'Service'}</td>
-                                                    <td className="py-4 px-5 text-sm text-gray-800 text-center">{item.quantity || 1}</td>
-                                                    <td className="py-4 px-5 text-sm text-gray-800 text-right font-mono">
+                                                <tr key={index} className="border-b border-theme hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                                    <td className="py-4 px-5 text-sm text-primary">{item.description || 'Service'}</td>
+                                                    <td className="py-4 px-5 text-sm text-primary text-center">{item.quantity || 1}</td>
+                                                    <td className="py-4 px-5 text-sm text-primary text-right font-mono">
                                                         {selectedInvoice.currency} {item.unitPrice.toFixed(2)}
                                                     </td>
-                                                    <td className="py-4 px-5 text-sm text-gray-800 text-right font-semibold font-mono">
+                                                    <td className="py-4 px-5 text-sm text-primary text-right font-semibold font-mono">
                                                         {selectedInvoice.currency} {(item.amount || item.unitPrice * (item.quantity || 1)).toFixed(2)}
                                                     </td>
                                                 </tr>
                                             ))
                                         ) : (
-                                            <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                                                <td className="py-4 px-5 text-sm text-gray-800">{description}</td>
-                                                <td className="py-4 px-5 text-sm text-gray-800 text-center">1</td>
-                                                <td className="py-4 px-5 text-sm text-gray-800 text-right font-mono">
+                                            <tr className="border-b border-theme hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                                <td className="py-4 px-5 text-sm text-primary">{description}</td>
+                                                <td className="py-4 px-5 text-sm text-primary text-center">1</td>
+                                                <td className="py-4 px-5 text-sm text-primary text-right font-mono">
                                                     {selectedInvoice.currency} {subtotal.toFixed(2)}
                                                 </td>
-                                                <td className="py-4 px-5 text-sm text-gray-800 text-right font-semibold font-mono">
+                                                <td className="py-4 px-5 text-sm text-primary text-right font-semibold font-mono">
                                                     {selectedInvoice.currency} {subtotal.toFixed(2)}
                                                 </td>
                                             </tr>
@@ -1578,25 +1578,25 @@ const InvoiceManagement: React.FC = () => {
                             <div className="mt-8 flex justify-end">
                                 <div className="w-72 space-y-3">
                                     <div className="flex justify-between text-sm py-1">
-                                        <span className="font-semibold text-gray-800">Subtotal:</span>
-                                        <span className="text-gray-800 font-mono">{selectedInvoice.currency} {subtotal.toFixed(2)}</span>
+                                        <span className="font-semibold text-primary">Subtotal:</span>
+                                        <span className="text-primary font-mono">{selectedInvoice.currency} {subtotal.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm py-1">
-                                        <span className="font-semibold text-gray-800">GST ({gstRate > 0 ? `${gstRate}%` : '0%'}):</span>
-                                        <span className="text-gray-800 font-mono">{selectedInvoice.currency} {gstAmount.toFixed(2)}</span>
+                                        <span className="font-semibold text-primary">GST ({gstRate > 0 ? `${gstRate}%` : '0%'}):</span>
+                                        <span className="text-primary font-mono">{selectedInvoice.currency} {gstAmount.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm py-1">
-                                        <span className="font-semibold text-gray-800">PST ({pstRate > 0 ? `${pstRate}%` : '0%'}):</span>
-                                        <span className="text-gray-800 font-mono">{selectedInvoice.currency} {pstAmount.toFixed(2)}</span>
+                                        <span className="font-semibold text-primary">PST ({pstRate > 0 ? `${pstRate}%` : '0%'}):</span>
+                                        <span className="text-primary font-mono">{selectedInvoice.currency} {pstAmount.toFixed(2)}</span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Total Amount Box */}
-                            <div className="mt-6 border-2 border-gray-900 rounded-sm p-5 bg-white">
+                            <div className="mt-6 border-2 border-gray-900 rounded-sm p-5 bg-card">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-900 font-bold text-lg uppercase tracking-wide">Total Amount Due</span>
-                                    <span className="text-gray-900 font-bold text-2xl font-mono">
+                                    <span className="text-primary font-bold text-lg uppercase tracking-wide">Total Amount Due</span>
+                                    <span className="text-primary font-bold text-2xl font-mono">
                                         {selectedInvoice.currency} {totalAmount.toFixed(2)}
                                     </span>
                                 </div>
@@ -1605,35 +1605,35 @@ const InvoiceManagement: React.FC = () => {
                             {/* GST Details Section */}
                             {company && (company.taxNumber || gstRate > 0 || pstRate > 0) && (
                                 <div className="mt-8 pt-6 border-t border-gray-300">
-                                    <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">
+                                    <h4 className="font-semibold text-primary mb-4 text-sm uppercase tracking-wide">
                                         Tax Information
                                     </h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {company.taxNumber && (
                                             <div>
-                                                <p className="text-xs text-gray-600 mb-1">GST/HST Number</p>
-                                                <p className="text-sm font-semibold text-gray-900">{company.taxNumber}</p>
+                                                <p className="text-xs text-secondary mb-1">GST/HST Number</p>
+                                                <p className="text-sm font-semibold text-primary">{company.taxNumber}</p>
                                             </div>
                                         )}
                                         {gstRate > 0 && (
                                             <div>
-                                                <p className="text-xs text-gray-600 mb-1">GST Rate</p>
-                                                <p className="text-sm font-semibold text-gray-900">{gstRate}%</p>
+                                                <p className="text-xs text-secondary mb-1">GST Rate</p>
+                                                <p className="text-sm font-semibold text-primary">{gstRate}%</p>
                                             </div>
                                         )}
                                         {pstRate > 0 && (
                                             <div>
-                                                <p className="text-xs text-gray-600 mb-1">PST Rate</p>
-                                                <p className="text-sm font-semibold text-gray-900">{pstRate}%</p>
+                                                <p className="text-xs text-secondary mb-1">PST Rate</p>
+                                                <p className="text-sm font-semibold text-primary">{pstRate}%</p>
                                             </div>
                                         )}
                                         <div>
-                                            <p className="text-xs text-gray-600 mb-1">GST Amount</p>
-                                            <p className="text-sm font-semibold text-gray-900">{selectedInvoice.currency} {gstAmount.toFixed(2)}</p>
+                                            <p className="text-xs text-secondary mb-1">GST Amount</p>
+                                            <p className="text-sm font-semibold text-primary">{selectedInvoice.currency} {gstAmount.toFixed(2)}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-600 mb-1">PST Amount</p>
-                                            <p className="text-sm font-semibold text-gray-900">{selectedInvoice.currency} {pstAmount.toFixed(2)}</p>
+                                            <p className="text-xs text-secondary mb-1">PST Amount</p>
+                                            <p className="text-sm font-semibold text-primary">{selectedInvoice.currency} {pstAmount.toFixed(2)}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1642,19 +1642,19 @@ const InvoiceManagement: React.FC = () => {
                             {/* Invoice Metadata */}
                             <div className="mt-10 pt-6 border-t-2 border-gray-300 grid grid-cols-2 gap-6 text-sm">
                                 <div>
-                                    <span className="font-semibold text-gray-700">Invoice Date:</span>
-                                    <span className="ml-2 text-gray-800">{formatDate(selectedInvoice.invoiceDate)}</span>
+                                    <span className="font-semibold text-primary">Invoice Date:</span>
+                                    <span className="ml-2 text-primary">{formatDate(selectedInvoice.invoiceDate)}</span>
                                 </div>
                                 <div>
-                                    <span className="font-semibold text-gray-700">Due Date:</span>
-                                    <span className="ml-2 text-gray-800">{formatDate(selectedInvoice.dueDate)}</span>
+                                    <span className="font-semibold text-primary">Due Date:</span>
+                                    <span className="ml-2 text-primary">{formatDate(selectedInvoice.dueDate)}</span>
                                 </div>
                                 <div>
-                                    <span className="font-semibold text-gray-700">Invoice ID:</span>
-                                    <span className="ml-2 text-gray-800 font-mono">{selectedInvoice._id.slice(-8)}</span>
+                                    <span className="font-semibold text-primary">Invoice ID:</span>
+                                    <span className="ml-2 text-primary font-mono">{selectedInvoice._id.slice(-8)}</span>
                                 </div>
                                 <div>
-                                    <span className="font-semibold text-gray-700">Status:</span>{' '}
+                                    <span className="font-semibold text-primary">Status:</span>{' '}
                                     <span className={`ml-2 px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedInvoice.status)}`}>
                                         {selectedInvoice.status.charAt(0).toUpperCase() + selectedInvoice.status.slice(1)}
                                     </span>
@@ -1664,8 +1664,8 @@ const InvoiceManagement: React.FC = () => {
                             {/* Notes */}
                             {selectedInvoice.notes && (
                                 <div className="mt-8 pt-6 border-t-2 border-gray-300">
-                                    <h4 className="font-semibold text-gray-900 mb-3 text-sm uppercase tracking-wide">Notes:</h4>
-                                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedInvoice.notes}</p>
+                                    <h4 className="font-semibold text-primary mb-3 text-sm uppercase tracking-wide">Notes:</h4>
+                                    <p className="text-sm text-primary leading-relaxed whitespace-pre-wrap">{selectedInvoice.notes}</p>
                                 </div>
                             )}
                         </div>
@@ -1673,23 +1673,23 @@ const InvoiceManagement: React.FC = () => {
 
                     {/* Additional Details Section (Collapsible) */}
                     {(selectedInvoice.tripId || selectedInvoice.orderId) && (
-                        <div className="max-w-4xl mx-auto mt-6 bg-white rounded-lg shadow-lg p-6">
+                        <div className="max-w-4xl mx-auto mt-6 bg-card rounded-lg shadow-lg p-6">
                             <details className="group">
-                                <summary className="cursor-pointer flex items-center justify-between text-lg font-semibold text-gray-900 hover:text-gray-700 transition-colors">
+                                <summary className="cursor-pointer flex items-center justify-between text-lg font-semibold text-primary hover:text-primary transition-colors">
                                     <span>{selectedInvoice.orderId ? 'Order Details' : 'Trip Details'}</span>
-                                    <span className="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+                                    <span className="text-secondary group-open:rotate-180 transition-transform">▼</span>
                                 </summary>
                                 <div className="mt-4 space-y-4">
                                     {selectedInvoice.orderId ? (
                                         <div className="space-y-4">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="text-sm font-medium text-gray-500">Order Number</label>
+                                                    <label className="text-sm font-medium text-secondary">Order Number</label>
                                                     <p className="text-sm font-medium">{selectedInvoice.orderId.orderNumber}</p>
                                                 </div>
                                                 {selectedInvoice.orderId.customerOrderNo && (
                                                     <div>
-                                                        <label className="text-sm font-medium text-gray-500">Customer Ref</label>
+                                                        <label className="text-sm font-medium text-secondary">Customer Ref</label>
                                                         <p className="text-sm">{selectedInvoice.orderId.customerOrderNo}</p>
                                                     </div>
                                                 )}
@@ -1697,13 +1697,13 @@ const InvoiceManagement: React.FC = () => {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {selectedInvoice.orderId.pickupLocation?.place && (
                                                     <div>
-                                                        <label className="text-sm font-medium text-gray-500">Pickup Location</label>
+                                                        <label className="text-sm font-medium text-secondary">Pickup Location</label>
                                                         <p className="text-sm">{selectedInvoice.orderId.pickupLocation.place}</p>
                                                     </div>
                                                 )}
                                                 {selectedInvoice.orderId.deliveryLocation?.place && (
                                                     <div>
-                                                        <label className="text-sm font-medium text-gray-500">Delivery Location</label>
+                                                        <label className="text-sm font-medium text-secondary">Delivery Location</label>
                                                         <p className="text-sm">{selectedInvoice.orderId.deliveryLocation.place}</p>
                                                     </div>
                                                 )}
@@ -1714,13 +1714,13 @@ const InvoiceManagement: React.FC = () => {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {selectedInvoice.tripId.tripNumber && (
                                                     <div>
-                                                        <label className="text-sm font-medium text-gray-500">Trip Number</label>
+                                                        <label className="text-sm font-medium text-secondary">Trip Number</label>
                                                         <p className="text-sm font-medium">{selectedInvoice.tripId.tripNumber}</p>
                                                     </div>
                                                 )}
                                                 {selectedInvoice.tripId.status && (
                                                     <div>
-                                                        <label className="text-sm font-medium text-gray-500">Trip Status</label>
+                                                        <label className="text-sm font-medium text-secondary">Trip Status</label>
                                                         <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${selectedInvoice.tripId.status === 'completed' ? 'bg-green-100 text-green-800' :
                                                             selectedInvoice.tripId.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
                                                                 'bg-blue-100 text-blue-800'
@@ -1733,7 +1733,7 @@ const InvoiceManagement: React.FC = () => {
 
                                             {selectedInvoice.tripId.truck && (
                                                 <div>
-                                                    <label className="text-sm font-medium text-gray-500">Truck</label>
+                                                    <label className="text-sm font-medium text-secondary">Truck</label>
                                                     <p className="text-sm">
                                                         {selectedInvoice.tripId.truck.plateNumber || selectedInvoice.tripId.truck.licensePlate || selectedInvoice.tripId.truck.unitNumber || selectedInvoice.tripId.truck.internalId || 'N/A'}
                                                         {(() => {
@@ -1749,7 +1749,7 @@ const InvoiceManagement: React.FC = () => {
 
                                             {selectedInvoice.tripId.trailer && (
                                                 <div>
-                                                    <label className="text-sm font-medium text-gray-500">Trailer</label>
+                                                    <label className="text-sm font-medium text-secondary">Trailer</label>
                                                     <p className="text-sm">
                                                         {selectedInvoice.tripId.trailer.plateNumber || selectedInvoice.tripId.trailer.licensePlate || selectedInvoice.tripId.trailer.unitNumber || 'N/A'}
                                                         {(() => {
@@ -1766,21 +1766,21 @@ const InvoiceManagement: React.FC = () => {
 
                                             {selectedInvoice.tripId.startLocation?.place && (
                                                 <div>
-                                                    <label className="text-sm font-medium text-gray-500">Pickup Location</label>
+                                                    <label className="text-sm font-medium text-secondary">Pickup Location</label>
                                                     <p className="text-sm">{selectedInvoice.tripId.startLocation.place}</p>
                                                 </div>
                                             )}
 
                                             {selectedInvoice.tripId.endLocation?.place && (
                                                 <div>
-                                                    <label className="text-sm font-medium text-gray-500">Delivery Location</label>
+                                                    <label className="text-sm font-medium text-secondary">Delivery Location</label>
                                                     <p className="text-sm">{selectedInvoice.tripId.endLocation.place}</p>
                                                 </div>
                                             )}
 
                                             {selectedInvoice.tripId.route?.totalDistance && (
                                                 <div>
-                                                    <label className="text-sm font-medium text-gray-500">Distance</label>
+                                                    <label className="text-sm font-medium text-secondary">Distance</label>
                                                     <p className="text-sm">
                                                         {selectedInvoice.tripId.route.totalDistance.toFixed(2)} km
                                                         ({(selectedInvoice.tripId.route.totalDistance * 0.621371).toFixed(2)} miles)
@@ -1790,29 +1790,29 @@ const InvoiceManagement: React.FC = () => {
 
                                             {selectedInvoice.tripId.orders && selectedInvoice.tripId.orders.length > 0 && (
                                                 <div>
-                                                    <label className="text-sm font-medium text-gray-500 mb-2 block">Orders ({selectedInvoice.tripId.orders.length})</label>
+                                                    <label className="text-sm font-medium text-secondary mb-2 block">Orders ({selectedInvoice.tripId.orders.length})</label>
                                                     <div className="space-y-2">
                                                         {selectedInvoice.tripId.orders.map((order: any, index: number) => (
-                                                            <div key={order._id || index} className="p-3 bg-gray-50 rounded-md">
+                                                            <div key={order._id || index} className="p-3 bg-card rounded-md">
                                                                 <div className="flex items-center justify-between mb-2">
                                                                     <span className="font-medium text-sm">{order.orderNumber || `Order ${index + 1}`}</span>
                                                                     {order.customerOrderNo && (
-                                                                        <span className="text-xs text-gray-500">PO: {order.customerOrderNo}</span>
+                                                                        <span className="text-xs text-secondary">PO: {order.customerOrderNo}</span>
                                                                     )}
                                                                 </div>
                                                                 {order.commodity && (
-                                                                    <p className="text-xs text-gray-600">Commodity: {order.commodity}</p>
+                                                                    <p className="text-xs text-secondary">Commodity: {order.commodity}</p>
                                                                 )}
                                                                 {order.weight && (
-                                                                    <p className="text-xs text-gray-600">
+                                                                    <p className="text-xs text-secondary">
                                                                         Weight: {order.weight} {order.weightUnit || 'lbs'}
                                                                     </p>
                                                                 )}
                                                                 {order.pickupLocation?.place && (
-                                                                    <p className="text-xs text-gray-600">Pickup: {order.pickupLocation.place}</p>
+                                                                    <p className="text-xs text-secondary">Pickup: {order.pickupLocation.place}</p>
                                                                 )}
                                                                 {order.deliveryLocation?.place && (
-                                                                    <p className="text-xs text-gray-600">Delivery: {order.deliveryLocation.place}</p>
+                                                                    <p className="text-xs text-secondary">Delivery: {order.deliveryLocation.place}</p>
                                                                 )}
                                                             </div>
                                                         ))}
@@ -1824,25 +1824,25 @@ const InvoiceManagement: React.FC = () => {
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     {selectedInvoice.tripId.plannedStartDate && (
                                                         <div>
-                                                            <label className="text-sm font-medium text-gray-500">Planned Start Date</label>
+                                                            <label className="text-sm font-medium text-secondary">Planned Start Date</label>
                                                             <p className="text-sm">{formatDate(selectedInvoice.tripId.plannedStartDate)}</p>
                                                         </div>
                                                     )}
                                                     {selectedInvoice.tripId.actualStartDate && (
                                                         <div>
-                                                            <label className="text-sm font-medium text-gray-500">Actual Start Date</label>
+                                                            <label className="text-sm font-medium text-secondary">Actual Start Date</label>
                                                             <p className="text-sm">{formatDate(selectedInvoice.tripId.actualStartDate)}</p>
                                                         </div>
                                                     )}
                                                     {selectedInvoice.tripId.plannedEndDate && (
                                                         <div>
-                                                            <label className="text-sm font-medium text-gray-500">Planned End Date</label>
+                                                            <label className="text-sm font-medium text-secondary">Planned End Date</label>
                                                             <p className="text-sm">{formatDate(selectedInvoice.tripId.plannedEndDate)}</p>
                                                         </div>
                                                     )}
                                                     {selectedInvoice.tripId.actualEndDate && (
                                                         <div>
-                                                            <label className="text-sm font-medium text-gray-500">Actual End Date</label>
+                                                            <label className="text-sm font-medium text-secondary">Actual End Date</label>
                                                             <p className="text-sm">{formatDate(selectedInvoice.tripId.actualEndDate)}</p>
                                                         </div>
                                                     )}
@@ -1851,13 +1851,13 @@ const InvoiceManagement: React.FC = () => {
                                         </div>
                                     ) : selectedInvoice.tripId ? (
                                         <div>
-                                            <p className="text-sm text-gray-500">Trip ID: {typeof selectedInvoice.tripId === 'string' ? selectedInvoice.tripId : String(selectedInvoice.tripId)}</p>
-                                            <p className="text-xs text-gray-400 mt-1">Trip details not loaded. Please refresh the invoice.</p>
+                                            <p className="text-sm text-secondary">Trip ID: {typeof selectedInvoice.tripId === 'string' ? selectedInvoice.tripId : String(selectedInvoice.tripId)}</p>
+                                            <p className="text-xs text-secondary mt-1">Trip details not loaded. Please refresh the invoice.</p>
                                         </div>
                                     ) : selectedInvoice.notes && selectedInvoice.notes.includes('Auto-generated invoice for trip') ? (
                                         <div className="space-y-3">
                                             <div>
-                                                <label className="text-sm font-medium text-gray-500">Trip Number</label>
+                                                <label className="text-sm font-medium text-secondary">Trip Number</label>
                                                 <p className="text-sm font-medium">
                                                     {(() => {
                                                         const match = selectedInvoice.notes.match(/trip\s+([A-Z0-9]+)/i);
@@ -1866,10 +1866,10 @@ const InvoiceManagement: React.FC = () => {
                                                 </p>
                                             </div>
                                             <div>
-                                                <p className="text-xs text-gray-500 italic">
+                                                <p className="text-xs text-secondary italic">
                                                     Trip details are not available. This invoice was auto-generated when the trip was completed.
                                                 </p>
-                                                <p className="text-xs text-gray-400 mt-1">
+                                                <p className="text-xs text-secondary mt-1">
                                                     {selectedInvoice.notes}
                                                 </p>
                                             </div>
@@ -1941,14 +1941,14 @@ const InvoiceManagement: React.FC = () => {
         };
 
         return (
-            <div className="bg-white rounded-lg" >
-                <div className="p-6 border-b border-gray-200">
+            <div className="bg-card rounded-lg" >
+                <div className="p-6 border-b border-theme">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-semibold text-gray-900">Edit Invoice</h2>
+                        <h2 className="text-xl font-semibold text-primary">Edit Invoice</h2>
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setActiveTab('view')}
-                                className="text-gray-500 hover:text-gray-700 transition-colors"
+                                className="text-secondary hover:text-primary transition-colors"
                             >
                                 Cancel
                             </button>
@@ -1968,7 +1968,7 @@ const InvoiceManagement: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Client Name</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Client Name</label>
                                 <input
                                     type="text"
                                     value={editForm.clientName}
@@ -1978,7 +1978,7 @@ const InvoiceManagement: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Client Email</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Client Email</label>
                                 <input
                                     type="email"
                                     value={editForm.clientEmail}
@@ -1989,7 +1989,7 @@ const InvoiceManagement: React.FC = () => {
 
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Amount</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -2000,7 +2000,7 @@ const InvoiceManagement: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">GST Rate (%)</label>
+                                <label className="block text-sm font-medium text-primary mb-1">GST Rate (%)</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -2014,7 +2014,7 @@ const InvoiceManagement: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">PST Rate (%)</label>
+                                <label className="block text-sm font-medium text-primary mb-1">PST Rate (%)</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -2030,7 +2030,7 @@ const InvoiceManagement: React.FC = () => {
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Status</label>
                                 <select
                                     value={editForm.status}
                                     onChange={(e) => handleInputChange('status', e.target.value)}
@@ -2042,7 +2042,7 @@ const InvoiceManagement: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Due Date</label>
                                 <input
                                     type="date"
                                     value={editForm.dueDate.split('T')[0]}
@@ -2053,7 +2053,7 @@ const InvoiceManagement: React.FC = () => {
 
                             {editForm.status === 'paid' && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Payment Date</label>
                                     <input
                                         type="date"
                                         value={editForm.paymentDate ? editForm.paymentDate.split('T')[0] : ''}
@@ -2067,7 +2067,7 @@ const InvoiceManagement: React.FC = () => {
                     </div>
 
                     <div className="mt-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Notes</label>
                         <textarea
                             value={editForm.notes}
                             onChange={(e) => handleInputChange('notes', e.target.value)}
@@ -2202,14 +2202,14 @@ const InvoiceManagement: React.FC = () => {
         };
 
         return (
-            <div className="bg-white rounded-lg">
-                <div className="p-6 border-b border-gray-200">
+            <div className="bg-card rounded-lg">
+                <div className="p-6 border-b border-theme">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-semibold text-gray-900">Create New Invoice</h2>
+                        <h2 className="text-xl font-semibold text-primary">Create New Invoice</h2>
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setActiveTab('list')}
-                                className="text-gray-500 hover:text-gray-700 transition-colors"
+                                className="text-secondary hover:text-primary transition-colors"
                             >
                                 Cancel
                             </button>
@@ -2230,7 +2230,7 @@ const InvoiceManagement: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-primary mb-1">
                                     Select Order (Optional)
                                 </label>
                                 <select
@@ -2263,7 +2263,7 @@ const InvoiceManagement: React.FC = () => {
                                 </select>
 
                                 <div className="flex items-center justify-between mt-1">
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-secondary">
                                         Selecting an order will auto-fill customer details if available
                                         {orders.length > 0 && ` (${orders.length} completed orders available)`}
                                     </p>
@@ -2281,7 +2281,7 @@ const InvoiceManagement: React.FC = () => {
                                                     clientPhone: ''
                                                 }));
                                             }}
-                                            className="text-xs text-red-600 hover:text-red-800 underline"
+                                            className="text-xs text-[#A855F7] hover:text-red-800 underline"
                                         >
                                             Clear Selection
                                         </button>
@@ -2293,14 +2293,14 @@ const InvoiceManagement: React.FC = () => {
                                     </p>
                                 )}
                                 {newInvoice.tripId && newInvoice.clientName && !newInvoice.clientEmail && (
-                                    <p className="text-xs text-blue-600 mt-1">
+                                    <p className="text-xs text-[#00D1FF] mt-1">
                                         ℹ️ Customer name found, but no email available - please add email manually if needed
                                     </p>
                                 )}
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-primary mb-1">
                                     Client Name *
                                     {newInvoice.tripId && newInvoice.clientName && (
                                         <span className="text-xs text-green-600 ml-2">✓ Auto-filled from order</span>
@@ -2320,7 +2320,7 @@ const InvoiceManagement: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-primary mb-1">
                                     Client Email
                                     {newInvoice.tripId && newInvoice.clientEmail && (
                                         <span className="text-xs text-green-600 ml-2">✓ Auto-filled from order</span>
@@ -2340,7 +2340,7 @@ const InvoiceManagement: React.FC = () => {
 
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Amount *</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -2354,7 +2354,7 @@ const InvoiceManagement: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">GST Rate (%)</label>
+                                <label className="block text-sm font-medium text-primary mb-1">GST Rate (%)</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -2368,7 +2368,7 @@ const InvoiceManagement: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">PST Rate (%)</label>
+                                <label className="block text-sm font-medium text-primary mb-1">PST Rate (%)</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -2384,7 +2384,7 @@ const InvoiceManagement: React.FC = () => {
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Currency</label>
                                 <select
                                     value={newInvoice.currency}
                                     onChange={(e) => handleInputChange('currency', e.target.value)}
@@ -2400,7 +2400,7 @@ const InvoiceManagement: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Due Date *</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Due Date *</label>
                                 <input
                                     type="date"
                                     value={newInvoice.dueDate}
@@ -2412,7 +2412,7 @@ const InvoiceManagement: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Notes</label>
                                 <textarea
                                     value={newInvoice.notes}
                                     onChange={(e) => handleInputChange('notes', e.target.value)}
@@ -2450,10 +2450,10 @@ const InvoiceManagement: React.FC = () => {
         return (
             <div className="min-h-screen p-6 flex flex-col items-center justify-center text-center space-y-5" style={pageBackgroundStyle}>
                 <NotificationContainer />
-                <Building2 className="h-16 w-16 text-gray-400" />
+                <Building2 className="h-16 w-16 text-secondary" />
                 <div className="space-y-3 max-w-md">
-                    <h2 className="text-2xl font-semibold text-gray-800">No invoice data available</h2>
-                    <p className="text-gray-500">{emptyStateMessage}</p>
+                    <h2 className="text-2xl font-semibold text-primary">No invoice data available</h2>
+                    <p className="text-secondary">{emptyStateMessage}</p>
                 </div>
                 <button
                     onClick={fetchInvoices}
@@ -2467,7 +2467,7 @@ const InvoiceManagement: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen p-6 bg-[#EDF8FF]" >
+        <div className="min-h-screen p-6 bg-main" >
             <NotificationContainer />
             <DeleteConfirmationModal />
             <div className="w-full mx-auto">
@@ -2475,7 +2475,7 @@ const InvoiceManagement: React.FC = () => {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Invoice Management</h1>
-                            <p className="mt-2 text-gray-600">Manage invoices, track payments, and monitor revenue</p>
+                            <p className="mt-2 text-secondary">Manage invoices, track payments, and monitor revenue</p>
                         </div>
                         {activeTab === 'list' && (
                             <div className="mt-4 sm:mt-0">

@@ -24,8 +24,8 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    warning: 'bg-yellow-50 border-yellow-200',
+    error: 'bg-card border-red-200',
+    warning: 'bg-card border-yellow-200',
   };
 
   useEffect(() => {
@@ -40,10 +40,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -626,9 +626,9 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
   const getManifestStatusColor = (status: string) => {
     switch (status) {
       case 'Accepted': return 'text-green-600 bg-green-50 border-green-200';
-      case 'Rejected': return 'text-red-600 bg-red-50 border-red-200';
-      case 'Pending': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      case 'Rejected': return 'text-[#A855F7] bg-card border-red-200';
+      case 'Pending': return 'text-[#00FFA3] bg-card border-yellow-200';
+      default: return 'text-secondary bg-card border-theme';
     }
   };
 
@@ -1168,17 +1168,17 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
   };
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-card">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
+        <h2 className="text-lg font-semibold text-primary">
           {trip ? "Edit Trip" : "New Trip"}
         </h2>
         <button
           onClick={onClose}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
         >
-          <X className="w-5 h-5 text-gray-500" />
+          <X className="w-5 h-5 text-secondary" />
         </button>
       </div>
 
@@ -1187,7 +1187,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
         <div className="max-w-4xl mx-auto space-y-6 min-w-0">
           {/* Orders Selection */}
           <div className="relative" ref={orderDropdownRef}>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-primary mb-1.5">
               Assign Orders
             </label>
             <div className="relative">
@@ -1200,13 +1200,13 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                     setOrderSearch("");
                   }
                 }}
-                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
+                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer transition-colors"
                 style={{
                   borderColor: orderDropdownOpen ? FLEET_COLORS.primary : undefined,
                   boxShadow: orderDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
                 }}
               >
-                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${orderDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${orderDropdownOpen ? 'rotate-180' : ''}`} />
                 <input
                   type="text"
                   value={selectedOrders.length > 0 && !orderDropdownOpen ? `${selectedOrders.length} order(s) selected` : orderSearch}
@@ -1235,15 +1235,15 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                     }}
                     className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                   >
-                    <X className="w-4 h-4 text-gray-400" />
+                    <X className="w-4 h-4 text-secondary" />
                   </button>
                 )}
               </div>
               {orderDropdownOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg" style={{ maxHeight: '600px', display: 'flex', flexDirection: 'column' }}>
-                  <div className="p-2 border-b border-gray-200 flex-shrink-0">
+                <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg" style={{ maxHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+                  <div className="p-2 border-b border-theme flex-shrink-0">
                     <div className="relative">
-                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                       <input
                         type="text"
                         value={orderSearch}
@@ -1259,10 +1259,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                   </div>
                   <div className="overflow-y-auto flex-1" style={{ maxHeight: '500px', minHeight: '200px' }}>
                     {orders.length === 0 ? (
-                      <div className="px-3 py-2 text-sm text-gray-500">No orders available. Please create orders first.</div>
+                      <div className="px-3 py-2 text-sm text-secondary">No orders available. Please create orders first.</div>
                     ) : filteredOrders.length > 0 ? (
                       <>
-                        <div className="px-3 py-2 text-xs text-gray-500 bg-gray-50 border-b sticky top-0 z-10 bg-gray-50">
+                        <div className="px-3 py-2 text-xs text-secondary bg-card border-b sticky top-0 z-10 bg-card">
                           Showing {filteredOrders.length} of {orders.length} available orders
                           {orderSearch && (
                             <button
@@ -1299,7 +1299,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                                   toggleOrderSelection(order._id);
                                 }
                               }}
-                              className={`px-3 py-3 cursor-pointer text-sm border-b border-gray-100 transition-colors ${isSelected ? '' : ''
+                              className={`px-3 py-3 cursor-pointer text-sm border-b border-theme transition-colors ${isSelected ? '' : ''
                                 } ${!isAssignable ? 'opacity-50 cursor-not-allowed' : ''}`}
                               style={{
                                 backgroundColor: isSelected ? `${FLEET_COLORS.primary}15` : undefined,
@@ -1326,9 +1326,9 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                                 <div className="flex-1 min-w-0">
                                   <div className="font-semibold mb-1" style={{ color: FLEET_COLORS.primary }}>{order.orderNumber || order._id}</div>
                                   {order.customerOrderNo && (
-                                    <div className="text-xs text-gray-600 mb-1">Customer Order: {order.customerOrderNo}</div>
+                                    <div className="text-xs text-secondary mb-1">Customer Order: {order.customerOrderNo}</div>
                                   )}
-                                  <div className="text-xs text-gray-700 space-y-0.5">
+                                  <div className="text-xs text-primary space-y-0.5">
                                     <div><span className="font-medium">Customer:</span> {customerName}</div>
                                     <div><span className="font-medium">Pickup:</span> {pickupLocation}</div>
                                     <div><span className="font-medium">Delivery:</span> {deliveryLocation}</div>
@@ -1356,7 +1356,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                                       >{order.status}</span></div>
                                     )}
                                     {!isAssignable && order.status && (
-                                      <div className="text-xs text-red-600 font-medium mt-1">
+                                      <div className="text-xs text-[#A855F7] font-medium mt-1">
                                         Cannot assign - Order is {order.status}
                                       </div>
                                     )}
@@ -1368,9 +1368,9 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         })}
                       </>
                     ) : orders.length === 0 ? (
-                      <div className="px-3 py-2 text-sm text-gray-500">No orders available. Please create orders first.</div>
+                      <div className="px-3 py-2 text-sm text-secondary">No orders available. Please create orders first.</div>
                     ) : (
-                      <div className="px-3 py-2 text-sm text-gray-500">
+                      <div className="px-3 py-2 text-sm text-secondary">
                         No orders match your search. Try clearing the search field or check if orders are already assigned to trips.
                       </div>
                     )}
@@ -1380,7 +1380,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
             </div>
             {selectedOrders.length > 0 && (
               <div className="mt-3 space-y-2">
-                <div className="text-xs font-medium text-gray-600 mb-1">
+                <div className="text-xs font-medium text-secondary mb-1">
                   Selected Orders ({selectedOrders.length}):
                 </div>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -1399,18 +1399,18 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                     // If still not found, it might be just an ID from the trip
                     if (!order) {
                       return (
-                        <div key={orderId} className="p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                        <div key={orderId} className="p-2 bg-card border border-blue-200 rounded text-xs">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
                               <div className="font-semibold mb-1" style={{ color: FLEET_COLORS.dark }}>Order ID: {orderId}</div>
-                              <div className="text-gray-500 text-xs">Loading order details...</div>
+                              <div className="text-secondary text-xs">Loading order details...</div>
                             </div>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 toggleOrderSelection(orderId);
                               }}
-                              className="p-1 hover:bg-red-100 rounded flex-shrink-0 text-red-600"
+                              className="p-1 hover:bg-red-100 rounded flex-shrink-0 text-[#A855F7]"
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -1430,7 +1430,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold mb-1" style={{ color: FLEET_COLORS.dark }}>{order.orderNumber || order._id}</div>
-                            <div className="text-gray-700 space-y-0.5">
+                            <div className="text-primary space-y-0.5">
                               {order.customerOrderNo && <div>Customer Order: {order.customerOrderNo}</div>}
                               <div><span className="font-medium">Customer:</span> {customerName}</div>
                               <div><span className="font-medium">Pickup:</span> {pickupLocation}</div>
@@ -1463,7 +1463,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                               e.stopPropagation();
                               toggleOrderSelection(orderId);
                             }}
-                            className="p-1 hover:bg-red-100 rounded flex-shrink-0 text-red-600"
+                            className="p-1 hover:bg-red-100 rounded flex-shrink-0 text-[#A855F7]"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -1479,19 +1479,19 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
           {/* Driver Selection */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative" ref={driverDropdownRef}>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-primary mb-1.5">
                 Driver <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <div
                   onClick={() => setDriverDropdownOpen(!driverDropdownOpen)}
-                  className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
+                  className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer transition-colors"
                   style={{
                     borderColor: driverDropdownOpen ? FLEET_COLORS.primary : undefined,
                     boxShadow: driverDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
                   }}
                 >
-                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${driverDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${driverDropdownOpen ? 'rotate-180' : ''}`} />
                   <input
                     type="text"
                     value={selectedDriver ? (selectedDriver.name || `${selectedDriver.firstName || ''} ${selectedDriver.lastName || ''}`.trim()) : driverSearch}
@@ -1513,15 +1513,15 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                       }}
                       className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                     >
-                      <X className="w-4 h-4 text-gray-400" />
+                      <X className="w-4 h-4 text-secondary" />
                     </button>
                   )}
                 </div>
                 {driverDropdownOpen && (
-                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                    <div className="p-2 border-b border-gray-200">
+                  <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                    <div className="p-2 border-b border-theme">
                       <div className="relative">
-                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                         <input
                           type="text"
                           value={driverSearch}
@@ -1565,12 +1565,12 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                                 <div className="font-medium" style={{ color: FLEET_COLORS.dark }}>
                                   {driver.name || `${driver.firstName || ''} ${driver.lastName || ''}`.trim() || 'Unnamed Driver'}
                                 </div>
-                                <div className="text-xs text-gray-600 mt-0.5">
+                                <div className="text-xs text-secondary mt-0.5">
                                   ID: {driver.internalId || driver.empId || 'N/A'}
                                 </div>
                               </div>
                               <div className="text-right">
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-secondary">
                                   {driver.phone || 'No Phone'}
                                 </div>
                               </div>
@@ -1578,7 +1578,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                           </div>
                         ))
                       ) : (
-                        <div className="px-3 py-2 text-sm text-gray-500">No active drivers found</div>
+                        <div className="px-3 py-2 text-sm text-secondary">No active drivers found</div>
                       )}
                     </div>
                   </div>
@@ -1587,19 +1587,19 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
             </div>
 
             <div className="relative" ref={coDriverDropdownRef}>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-primary mb-1.5">
                 Co-Driver (Optional)
               </label>
               <div className="relative">
                 <div
                   onClick={() => setCoDriverDropdownOpen(!coDriverDropdownOpen)}
-                  className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
+                  className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer transition-colors"
                   style={{
                     borderColor: coDriverDropdownOpen ? FLEET_COLORS.primary : undefined,
                     boxShadow: coDriverDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
                   }}
                 >
-                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${coDriverDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${coDriverDropdownOpen ? 'rotate-180' : ''}`} />
                   <input
                     type="text"
                     value={selectedCoDriver ? (selectedCoDriver.name || `${selectedCoDriver.firstName || ''} ${selectedCoDriver.lastName || ''}`.trim()) : coDriverSearch}
@@ -1621,15 +1621,15 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                       }}
                       className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                     >
-                      <X className="w-4 h-4 text-gray-400" />
+                      <X className="w-4 h-4 text-secondary" />
                     </button>
                   )}
                 </div>
                 {coDriverDropdownOpen && (
-                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                    <div className="p-2 border-b border-gray-200">
+                  <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                    <div className="p-2 border-b border-theme">
                       <div className="relative">
-                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                         <input
                           type="text"
                           value={coDriverSearch}
@@ -1649,7 +1649,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                           setCoDriverSearch("");
                           setCoDriverDropdownOpen(false);
                         }}
-                        className={`px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm text-gray-600 ${selectedCoDriver === null ? 'bg-gray-50' : ''
+                        className={`px-3 py-2 cursor-pointer hover:bg-[rgba(255,255,255,0.03)] text-sm text-secondary ${selectedCoDriver === null ? 'bg-card' : ''
                           }`}
                       >
                         No Co-Driver
@@ -1684,12 +1684,12 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                                 <div className="font-medium" style={{ color: FLEET_COLORS.dark }}>
                                   {driver.name || `${driver.firstName || ''} ${driver.lastName || ''}`.trim() || 'Unnamed Driver'}
                                 </div>
-                                <div className="text-xs text-gray-600 mt-0.5">
+                                <div className="text-xs text-secondary mt-0.5">
                                   ID: {driver.internalId || driver.empId || 'N/A'}
                                 </div>
                               </div>
                               <div className="text-right">
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-secondary">
                                   {driver.phone || 'No Phone'}
                                 </div>
                               </div>
@@ -1697,7 +1697,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                           </div>
                         ))
                       ) : (
-                        <div className="px-3 py-2 text-sm text-gray-500">No available drivers found</div>
+                        <div className="px-3 py-2 text-sm text-secondary">No available drivers found</div>
                       )}
                     </div>
                   </div>
@@ -1708,19 +1708,19 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
 
           {/* Truck Selection */}
           <div className="relative" ref={truckDropdownRef}>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-primary mb-1.5">
               Truck <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <div
                 onClick={() => setTruckDropdownOpen(!truckDropdownOpen)}
-                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
+                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer transition-colors"
                 style={{
                   borderColor: truckDropdownOpen ? FLEET_COLORS.primary : undefined,
                   boxShadow: truckDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
                 }}
               >
-                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${truckDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${truckDropdownOpen ? 'rotate-180' : ''}`} />
                 <input
                   type="text"
                   value={
@@ -1746,15 +1746,15 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                     }}
                     className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                   >
-                    <X className="w-4 h-4 text-gray-400" />
+                    <X className="w-4 h-4 text-secondary" />
                   </button>
                 )}
               </div>
               {truckDropdownOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                  <div className="p-2 border-b border-gray-200">
+                <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                  <div className="p-2 border-b border-theme">
                     <div className="relative">
-                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                       <input
                         type="text"
                         value={truckSearch}
@@ -1798,12 +1798,12 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                               <div className="font-medium" style={{ color: FLEET_COLORS.dark }}>
                                 {truck.unitNo || truck.licensePlate || 'Unknown Unit'}
                               </div>
-                              <div className="text-xs text-gray-600 mt-0.5">
+                              <div className="text-xs text-secondary mt-0.5">
                                 ID: {truck.internalId || 'N/A'} • {truck.licensePlate || 'No Plate'}
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-xs font-medium text-gray-700">
+                              <div className="text-xs font-medium text-primary">
                                 {truck.makeModel || `${truck.make || ''} ${truck.model || ''}`.trim() || 'No Model'}
                               </div>
                             </div>
@@ -1811,7 +1811,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         </div>
                       ))
                     ) : (
-                      <div className="px-3 py-2 text-sm text-gray-500">No available trucks found</div>
+                      <div className="px-3 py-2 text-sm text-secondary">No available trucks found</div>
                     )}
                   </div>
                 </div>
@@ -1821,19 +1821,19 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
 
           {/* Trailer Selection (Optional) */}
           <div className="relative" ref={trailerDropdownRef}>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-primary mb-1.5">
               Trailer (Optional)
             </label>
             <div className="relative">
               <div
                 onClick={() => setTrailerDropdownOpen(!trailerDropdownOpen)}
-                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer transition-colors"
+                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer transition-colors"
                 style={{
                   borderColor: trailerDropdownOpen ? FLEET_COLORS.primary : undefined,
                   boxShadow: trailerDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
                 }}
               >
-                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${trailerDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${trailerDropdownOpen ? 'rotate-180' : ''}`} />
                 <input
                   type="text"
                   value={
@@ -1859,15 +1859,15 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                     }}
                     className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                   >
-                    <X className="w-4 h-4 text-gray-400" />
+                    <X className="w-4 h-4 text-secondary" />
                   </button>
                 )}
               </div>
               {trailerDropdownOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                  <div className="p-2 border-b border-gray-200">
+                <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                  <div className="p-2 border-b border-theme">
                     <div className="relative">
-                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                       <input
                         type="text"
                         value={trailerSearch}
@@ -1887,7 +1887,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         setTrailerSearch("");
                         setTrailerDropdownOpen(false);
                       }}
-                      className={`px-3 py-2 cursor-pointer hover:bg-gray-50 text-sm text-gray-600 ${selectedTrailer === null ? 'bg-gray-50' : ''
+                      className={`px-3 py-2 cursor-pointer hover:bg-[rgba(255,255,255,0.03)] text-sm text-secondary ${selectedTrailer === null ? 'bg-card' : ''
                         }`}
                     >
                       No Trailer
@@ -1922,12 +1922,12 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                               <div className="font-medium" style={{ color: FLEET_COLORS.dark }}>
                                 {trailer.unitNo || trailer.licensePlate || 'Unknown Trailer'}
                               </div>
-                              <div className="text-xs text-gray-600 mt-0.5">
+                              <div className="text-xs text-secondary mt-0.5">
                                 ID: {trailer.internalId || 'N/A'} • {trailer.trailerType || 'Unknown Type'}
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-xs font-medium text-gray-700">
+                              <div className="text-xs font-medium text-primary">
                                 {trailer.capacity ? `${trailer.capacity}` : 'N/A'}
                               </div>
                             </div>
@@ -1935,7 +1935,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         </div>
                       ))
                     ) : (
-                      <div className="px-3 py-2 text-sm text-gray-500">No available trailers found</div>
+                      <div className="px-3 py-2 text-sm text-secondary">No available trailers found</div>
                     )}
                   </div>
                 </div>
@@ -1946,8 +1946,8 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
           {/* Border Compliance (CORE SECTION) */}
           {borderRequired && (
             <div className="border-2 border-orange-200 rounded-lg overflow-hidden mt-6 mb-6">
-              <div className="bg-orange-50 px-4 py-3 border-b border-orange-200 flex justify-between items-center">
-                <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+              <div className="bg-card px-4 py-3 border-b border-orange-200 flex justify-between items-center">
+                <h3 className="text-sm font-bold text-primary flex items-center gap-2">
                   Border Compliance
                   <span className="bg-orange-200 text-orange-800 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">
                     Required: {borderType}
@@ -1958,16 +1958,16 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                 </div>
               </div>
 
-              <div className="p-4 space-y-6 bg-white">
+              <div className="p-4 space-y-6 bg-card">
                 {/* A. Filing Summary */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Provider</label>
-                    <div className="text-sm font-medium text-gray-800">{borderProvider}</div>
+                    <label className="block text-xs font-medium text-secondary mb-1">Provider</label>
+                    <div className="text-sm font-medium text-primary">{borderProvider}</div>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Last Updated</label>
-                    <div className="text-sm text-gray-600">{lastUpdated ? new Date(lastUpdated).toLocaleString() : '-'}</div>
+                    <label className="block text-xs font-medium text-secondary mb-1">Last Updated</label>
+                    <div className="text-sm text-secondary">{lastUpdated ? new Date(lastUpdated).toLocaleString() : '-'}</div>
                   </div>
                   <div className="col-span-2">
                     {/* B. Filing Action */}
@@ -2003,26 +2003,26 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                 </div>
 
                 {/* C. Returned From Provider */}
-                <div className="bg-gray-50 rounded p-3 border border-gray-200">
-                  <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Bureau Response</label>
+                <div className="bg-card rounded p-3 border border-theme">
+                  <label className="block text-xs font-bold text-secondary mb-2 uppercase tracking-wide">Bureau Response</label>
 
                   {manifestStatus === 'Accepted' && (
                     <div className="grid grid-cols-2 gap-4">
                       {borderType === 'ACE' && (
                         <div>
-                          <label className="block text-[10px] font-medium text-gray-500 uppercase">PAPS Number</label>
-                          <div className="text-sm font-mono font-bold text-gray-800">{papsNumber}</div>
+                          <label className="block text-[10px] font-medium text-secondary uppercase">PAPS Number</label>
+                          <div className="text-sm font-mono font-bold text-primary">{papsNumber}</div>
                         </div>
                       )}
                       {borderType === 'ACI' && (
                         <div>
-                          <label className="block text-[10px] font-medium text-gray-500 uppercase">PARS / CCN</label>
-                          <div className="text-sm font-mono font-bold text-gray-800">{parsNumber}</div>
+                          <label className="block text-[10px] font-medium text-secondary uppercase">PARS / CCN</label>
+                          <div className="text-sm font-mono font-bold text-primary">{parsNumber}</div>
                         </div>
                       )}
                       <div>
-                        <label className="block text-[10px] font-medium text-gray-500 uppercase">Acceptance Time</label>
-                        <div className="text-sm text-gray-800">{new Date(acceptanceTime).toLocaleString()}</div>
+                        <label className="block text-[10px] font-medium text-secondary uppercase">Acceptance Time</label>
+                        <div className="text-sm text-primary">{new Date(acceptanceTime).toLocaleString()}</div>
                       </div>
                       <div className="col-span-2 flex items-center gap-2 text-green-700 text-sm">
                         <FaCheckCircle className="w-4 h-4" /> Broker Confirmed Entry
@@ -2031,14 +2031,14 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                   )}
 
                   {manifestStatus === 'Rejected' && (
-                    <div className="bg-red-50 p-2 rounded border border-red-100">
+                    <div className="bg-card p-2 rounded border border-red-100">
                       <label className="block text-[10px] font-medium text-red-500 uppercase">Rejection Reason</label>
                       <div className="text-sm text-red-700 font-medium mt-1">{rejectionReason}</div>
                     </div>
                   )}
 
                   {(manifestStatus === 'Not Filed' || manifestStatus === 'Pending') && (
-                    <div className="text-xs text-gray-400 italic">
+                    <div className="text-xs text-secondary italic">
                       Waiting for filing submission...
                     </div>
                   )}
@@ -2050,21 +2050,21 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
           {/* Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-primary mb-1.5">
                 Planned Start Date <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
                 value={plannedStartDate}
                 onChange={(e) => setPlannedStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-card"
 
                 onFocus={focusHandlers.onFocus}
                 onBlur={focusHandlers.onBlur}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-primary mb-1.5">
                 Planned End Date
               </label>
               <input
@@ -2072,7 +2072,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                 value={plannedEndDate}
                 onChange={(e) => setPlannedEndDate(e.target.value)}
                 min={plannedStartDate}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-card"
 
                 onFocus={focusHandlers.onFocus}
                 onBlur={focusHandlers.onBlur}
@@ -2082,13 +2082,13 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
 
           {/* Status */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-primary mb-1.5">
               Status
             </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-card"
 
               onFocus={focusHandlers.onFocus}
               onBlur={focusHandlers.onBlur}
@@ -2104,7 +2104,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-primary mb-1.5">
               Notes
             </label>
             <textarea
@@ -2112,7 +2112,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
               placeholder="Add any notes about this trip..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-card"
 
               onFocus={focusHandlers.onFocus}
               onBlur={focusHandlers.onBlur}
@@ -2121,20 +2121,20 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
 
           {/* Documents */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-sm font-medium text-primary mb-3">
               Documents
             </label>
             <div className="space-y-4">
               {/* Upload BOL */}
-              <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+              <div className="border-2 border-theme rounded-lg p-4 hover:border-blue-300 transition-colors">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${hasDocumentType('bol') || bolFile ? 'bg-green-100' : 'bg-blue-100'}`}>
-                      <FaFileAlt className={`${hasDocumentType('bol') || bolFile ? 'text-green-600' : 'text-blue-600'}`} size={24} />
+                      <FaFileAlt className={`${hasDocumentType('bol') || bolFile ? 'text-green-600' : 'text-[#00D1FF]'}`} size={24} />
                     </div>
                     <div>
-                      <h5 className="font-semibold text-gray-800">Bill of Lading (BOL)</h5>
-                      <p className="text-sm text-gray-500">Required document for shipment</p>
+                      <h5 className="font-semibold text-primary">Bill of Lading (BOL)</h5>
+                      <p className="text-sm text-secondary">Required document for shipment</p>
                     </div>
                   </div>
                   {hasDocumentType('bol') || bolFile ? (
@@ -2142,13 +2142,13 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                       <FaCheckIcon /> Uploaded
                     </span>
                   ) : (
-                    <span className="text-gray-500 text-sm font-medium">Optional</span>
+                    <span className="text-secondary text-sm font-medium">Optional</span>
                   )}
                 </div>
                 <label className="block">
-                  <div className={`flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded-lg cursor-pointer transition-colors ${(uploadingDocType === 'bol' || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                    <FaUploadIcon className="text-blue-600" />
-                    <span className="text-blue-600 font-medium">{uploadingDocType === 'bol' ? 'Uploading...' : 'Choose File'}</span>
+                  <div className={`flex items-center gap-2 px-4 py-2 bg-card hover:bg-blue-100 rounded-lg cursor-pointer transition-colors ${(uploadingDocType === 'bol' || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <FaUploadIcon className="text-[#00D1FF]" />
+                    <span className="text-[#00D1FF] font-medium">{uploadingDocType === 'bol' ? 'Uploading...' : 'Choose File'}</span>
                   </div>
                   <input
                     type="file"
@@ -2170,7 +2170,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                     </div>
                     <button
                       onClick={() => removeDocumentFile('bol')}
-                      className="text-gray-800 hover:text-gray-900 transition-colors"
+                      className="text-primary hover:text-primary transition-colors"
                       disabled={uploadingDocType === 'bol'}
                     >
                       <X className="w-4 h-4" />
@@ -2190,7 +2190,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         const bolDoc = documents.find(d => d.type === 'bol');
                         if (bolDoc?._id) handleDeleteDocument(bolDoc._id);
                       }}
-                      className="text-gray-800 hover:text-gray-900 transition-colors"
+                      className="text-primary hover:text-primary transition-colors"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -2199,15 +2199,15 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               </div>
 
               {/* Upload POD */}
-              <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+              <div className="border-2 border-theme rounded-lg p-4 hover:border-purple-300 transition-colors">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${hasDocumentType('pod') || podFile ? 'bg-green-100' : 'bg-purple-100'}`}>
                       <FaFileAlt className={`${hasDocumentType('pod') || podFile ? 'text-green-600' : 'text-purple-600'}`} size={24} />
                     </div>
                     <div>
-                      <h5 className="font-semibold text-gray-800">Proof of Delivery (POD)</h5>
-                      <p className="text-sm text-gray-500">Delivery confirmation document</p>
+                      <h5 className="font-semibold text-primary">Proof of Delivery (POD)</h5>
+                      <p className="text-sm text-secondary">Delivery confirmation document</p>
                     </div>
                   </div>
                   {hasDocumentType('pod') || podFile ? (
@@ -2215,11 +2215,11 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                       <FaCheckIcon /> Uploaded
                     </span>
                   ) : (
-                    <span className="text-gray-500 text-sm font-medium">Optional</span>
+                    <span className="text-secondary text-sm font-medium">Optional</span>
                   )}
                 </div>
                 <label className="block">
-                  <div className={`flex items-center gap-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 rounded-lg cursor-pointer transition-colors ${(uploadingDocType === 'pod' || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  <div className={`flex items-center gap-2 px-4 py-2 bg-card hover:bg-purple-100 rounded-lg cursor-pointer transition-colors ${(uploadingDocType === 'pod' || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}>
                     <FaUploadIcon className="text-purple-600" />
                     <span className="text-purple-600 font-medium">{uploadingDocType === 'pod' ? 'Uploading...' : 'Choose File'}</span>
                   </div>
@@ -2243,7 +2243,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                     </div>
                     <button
                       onClick={() => removeDocumentFile('pod')}
-                      className="text-gray-800 hover:text-gray-900 transition-colors"
+                      className="text-primary hover:text-primary transition-colors"
                       disabled={uploadingDocType === 'pod'}
                     >
                       <X className="w-4 h-4" />
@@ -2263,7 +2263,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         const podDoc = documents.find(d => d.type === 'pod');
                         if (podDoc?._id) handleDeleteDocument(podDoc._id);
                       }}
-                      className="text-gray-800 hover:text-gray-900 transition-colors"
+                      className="text-primary hover:text-primary transition-colors"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -2272,15 +2272,15 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               </div>
 
               {/* Upload Stamped Manifest */}
-              <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors">
+              <div className="border-2 border-theme rounded-lg p-4 hover:border-green-300 transition-colors">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${hasDocumentType('stamped_manifest') || stampedManifestFile ? 'bg-green-100' : 'bg-green-100'}`}>
                       <FaFileAlt className={`${hasDocumentType('stamped_manifest') || stampedManifestFile ? 'text-green-600' : 'text-green-600'}`} size={24} />
                     </div>
                     <div>
-                      <h5 className="font-semibold text-gray-800">Stamped Manifest</h5>
-                      <p className="text-sm text-gray-500">Stamped manifest document</p>
+                      <h5 className="font-semibold text-primary">Stamped Manifest</h5>
+                      <p className="text-sm text-secondary">Stamped manifest document</p>
                     </div>
                   </div>
                   {hasDocumentType('stamped_manifest') || stampedManifestFile ? (
@@ -2288,7 +2288,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                       <FaCheckIcon /> Uploaded
                     </span>
                   ) : (
-                    <span className="text-gray-500 text-sm font-medium">Optional</span>
+                    <span className="text-secondary text-sm font-medium">Optional</span>
                   )}
                 </div>
                 <label className="block">
@@ -2316,7 +2316,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                     </div>
                     <button
                       onClick={() => removeDocumentFile('stamped_manifest')}
-                      className="text-gray-800 hover:text-gray-900 transition-colors"
+                      className="text-primary hover:text-primary transition-colors"
                       disabled={uploadingDocType === 'stamped_manifest'}
                     >
                       <X className="w-4 h-4" />
@@ -2336,7 +2336,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         const manifestDoc = documents.find(d => d.type === 'stamped_manifest');
                         if (manifestDoc?._id) handleDeleteDocument(manifestDoc._id);
                       }}
-                      className="text-gray-800 hover:text-gray-900 transition-colors"
+                      className="text-primary hover:text-primary transition-colors"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -2346,29 +2346,29 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
 
               {/* Pending Files (before trip creation) */}
               {pendingFiles.length > 0 && !trip?._id && (
-                <div className="space-y-2 border border-blue-200 rounded-lg p-3 bg-blue-50 max-h-48 overflow-y-auto">
+                <div className="space-y-2 border border-blue-200 rounded-lg p-3 bg-card max-h-48 overflow-y-auto">
                   <div className="text-xs font-medium mb-2" style={{ color: FLEET_COLORS.dark }}>
                     Files will be uploaded after trip creation:
                   </div>
                   {pendingFiles.map((file, index) => (
                     <div
                       key={index}
-                      className="flex items-start justify-between gap-3 p-3 bg-white border border-blue-200 rounded-lg"
+                      className="flex items-start justify-between gap-3 p-3 bg-card border border-blue-200 rounded-lg"
                     >
                       <div className="flex items-start gap-3 flex-1 min-w-0">
                         <File className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: FLEET_COLORS.primary }} />
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-gray-900 truncate">
+                          <div className="font-medium text-sm text-primary truncate">
                             {file.name}
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-secondary mt-1">
                             {(file.size / 1024 / 1024).toFixed(2)} MB
                           </div>
                         </div>
                       </div>
                       <button
                         onClick={() => removePendingFile(index)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                        className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
                         title="Remove File"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -2380,22 +2380,22 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
 
               {/* Document List */}
               {documents.length > 0 && (
-                <div className="space-y-2 border border-gray-200 rounded-lg p-3 bg-gray-50 max-h-64 overflow-y-auto">
+                <div className="space-y-2 border border-theme rounded-lg p-3 bg-card max-h-64 overflow-y-auto">
                   {documents.map((doc) => (
                     <div
                       key={doc._id || doc.fileUrl}
-                      className="flex items-start justify-between gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                      className="flex items-start justify-between gap-3 p-3 bg-card border border-theme rounded-lg hover:shadow-sm transition-shadow"
                     >
                       <div className="flex items-start gap-3 flex-1 min-w-0">
                         <File className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: FLEET_COLORS.primary }} />
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-gray-900 truncate">
+                          <div className="font-medium text-sm text-primary truncate">
                             {doc.fileName}
                           </div>
                           {doc.description && (
-                            <div className="text-xs text-gray-600 mt-1">{doc.description}</div>
+                            <div className="text-xs text-secondary mt-1">{doc.description}</div>
                           )}
-                          <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                          <div className="flex items-center gap-3 mt-1 text-xs text-secondary">
                             <span>{formatFileSize(doc.fileSize)}</span>
                             {doc.uploadedAt && (
                               <span>
@@ -2436,7 +2436,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         </button>
                         <button
                           onClick={() => handleDeleteDocument(doc._id || '')}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
                           title="Delete Document"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -2448,13 +2448,13 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               )}
 
               {documents.length === 0 && trip?._id && pendingFiles.length === 0 && (
-                <div className="text-sm text-gray-500 text-center py-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="text-sm text-secondary text-center py-4 border border-theme rounded-lg bg-card">
                   No documents uploaded yet. Click "Upload Document(s)" to add files.
                 </div>
               )}
 
               {!trip?._id && pendingFiles.length === 0 && documents.length === 0 && (
-                <div className="text-sm text-gray-500 text-center py-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="text-sm text-secondary text-center py-4 border border-theme rounded-lg bg-card">
                   You can select files now. They will be uploaded automatically after trip creation.
                 </div>
               )}
@@ -2470,7 +2470,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
           {/* Clear validation results button */}
           <button
             onClick={() => setValidationResults(null)}
-            className="mt-3 text-sm text-gray-600 hover:text-gray-800 underline flex items-center gap-1"
+            className="mt-3 text-sm text-secondary hover:text-primary underline flex items-center gap-1"
           >
             <span>Dismiss validation results</span>
           </button>
@@ -2478,10 +2478,10 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+      <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-theme bg-card">
         <button
           onClick={onClose}
-          className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          className="px-6 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
         >
           Cancel
         </button>
@@ -2527,14 +2527,14 @@ const ValidationDisplay = ({ validationResults }: { validationResults: any }) =>
   }
 
   return (
-    <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-      <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+    <div className="space-y-4 p-4 bg-card rounded-lg border border-theme">
+      <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
         <FaExclamationCircle className={valid ? "text-yellow-500" : "text-red-500"} />
         Document Validation Summary
       </h3>
 
       {!valid && errors?.length > 0 && (
-        <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-lg">
+        <div className="bg-card border border-red-200 text-red-800 p-3 rounded-lg">
           <p className="font-medium mb-2">Critical Errors Found:</p>
           <ul className="list-disc list-inside space-y-1">
             {errors.map((err: any, i: number) => (
@@ -2554,7 +2554,7 @@ const ValidationDisplay = ({ validationResults }: { validationResults: any }) =>
       )}
 
       {warnings?.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded-lg">
+        <div className="bg-card border border-yellow-200 text-yellow-800 p-3 rounded-lg">
           <p className="font-medium mb-2">Warnings:</p>
           <ul className="list-disc list-inside space-y-1">
             {warnings.map((warn: any, i: number) => (
@@ -2567,7 +2567,7 @@ const ValidationDisplay = ({ validationResults }: { validationResults: any }) =>
       )}
 
       {missing?.length > 0 && (
-        <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-lg">
+        <div className="bg-card border border-red-200 text-red-800 p-3 rounded-lg">
           <p className="font-medium mb-2">Missing Required Documents:</p>
           <ul className="list-disc list-inside space-y-1">
             {missing.map((m: any, i: number) => (
@@ -2581,27 +2581,27 @@ const ValidationDisplay = ({ validationResults }: { validationResults: any }) =>
 
       {documentDetails?.length > 0 && (
         <div className="space-y-3">
-          <p className="font-medium text-gray-700">Document Details:</p>
+          <p className="font-medium text-primary">Document Details:</p>
           {documentDetails.map((doc: any, i: number) => (
-            <div key={`doc-detail-${i}`} className="border border-gray-200 rounded-lg p-3 bg-white">
+            <div key={`doc-detail-${i}`} className="border border-theme rounded-lg p-3 bg-card">
               <div className="flex items-center gap-2 mb-1">
                 {doc.status === 'valid' && <FaCheckCircle className="text-green-500" size={16} />}
                 {doc.status === 'error' && <FaExclamationCircle className="text-red-500" size={16} />}
                 {doc.status === 'warning' && <FaExclamationCircle className="text-yellow-500" size={16} />}
-                <p className="font-semibold text-gray-800">{doc.document} ({doc.type})</p>
+                <p className="font-semibold text-primary">{doc.document} ({doc.type})</p>
                 {doc.actualType && doc.actualType !== doc.type && (
-                  <span className="text-xs text-red-600 font-medium">(Detected as: {doc.actualType})</span>
+                  <span className="text-xs text-[#A855F7] font-medium">(Detected as: {doc.actualType})</span>
                 )}
               </div>
               {doc.status !== 'valid' && doc.issues && doc.issues.length > 0 && (
-                <ul className="list-disc list-inside ml-4 text-sm text-gray-600">
+                <ul className="list-disc list-inside ml-4 text-sm text-secondary">
                   {doc.issues.map((issue: string, j: number) => (
                     <li key={`doc-issue-${i}-${j}`}>{issue}</li>
                   ))}
                 </ul>
               )}
               {doc.expirationDate && (
-                <p className="text-sm text-gray-600 mt-1">Expires: {new Date(doc.expirationDate).toLocaleDateString()}</p>
+                <p className="text-sm text-secondary mt-1">Expires: {new Date(doc.expirationDate).toLocaleDateString()}</p>
               )}
             </div>
           ))}

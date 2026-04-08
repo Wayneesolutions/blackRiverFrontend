@@ -214,14 +214,14 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-xl z-10">
+        <div className="sticky top-0 bg-card border-b px-6 py-4 flex items-center justify-between rounded-t-xl z-10">
           <div>
-            <h3 className="text-xl font-bold text-gray-800">
+            <h3 className="text-xl font-bold text-primary">
               {isReadOnly ? 'Load Details (View Only)' : 'Assign Driver & Truck'}
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-secondary mt-1">
               Load: {load.loadNumber || load._id} | Order: {load.orderNumber || 'N/A'}
             </p>
           </div>
@@ -229,7 +229,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <FaTimes className="text-gray-500" size={20} />
+            <FaTimes className="text-secondary" size={20} />
           </button>
         </div>
 
@@ -237,42 +237,42 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
          
           {/* Step Tracker */}
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
+            <label className="block text-sm font-semibold text-primary mb-3">
               Workflow Progress
             </label>
             <StepTracker currentStep={load.status === 'planned' ? 'planned' : load.status || 'planned'} />
           </div>
 
           {/* Load Details Summary */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-800 mb-3">Load Details</h4>
+          <div className="bg-card rounded-lg p-4">
+            <h4 className="font-semibold text-primary mb-3">Load Details</h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-gray-600">Customer:</span>
+                <span className="text-secondary">Customer:</span>
                 <span className="ml-2 font-medium">{load.customer || load.customerName || 'N/A'}</span>
               </div>
               <div>
-                <span className="text-gray-600">Status:</span>
-                <span className="ml-2 font-medium text-gray-800">
+                <span className="text-secondary">Status:</span>
+                <span className="ml-2 font-medium text-primary">
                   {getStatusLabel(load.status)}
                 </span>
               </div>
               <div>
-                <span className="text-gray-600">Load Amount:</span>
+                <span className="text-secondary">Load Amount:</span>
                 <span className="ml-2 font-bold text-green-600">
                   {formatCurrency(load.amount || load.rate || load.details?.amount || 0)}
                 </span>
               </div>
               {load.details?.rate && load.details.rate > 0 && (
                 <div>
-                  <span className="text-gray-600">Rate:</span>
-                  <span className="ml-2 font-medium text-blue-600">
+                  <span className="text-secondary">Rate:</span>
+                  <span className="ml-2 font-medium text-[#00D1FF]">
                     {formatCurrency(load.details.rate)}
                   </span>
                 </div>
               )}
               <div className="col-span-2">
-                <span className="text-gray-600">Route:</span>
+                <span className="text-secondary">Route:</span>
                 <div className="mt-2">
                   {load.route?.multipleDropOffs ? (
                     // Multiple Dropoffs - Show Waypoints
@@ -291,7 +291,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
                           </div>
                         ))
                       ) : (
-                        <span className="text-xs text-gray-500">Multiple waypoints configured</span>
+                        <span className="text-xs text-secondary">Multiple waypoints configured</span>
                       )}
                       {load.route.selectReturn && (
                         <div className="text-xs bg-yellow-100 p-2 rounded mt-1">
@@ -305,7 +305,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
                     <div className="text-sm space-y-1">
                       {load.route?.selectPickup && (
                         <div>
-                          <span className="font-medium text-blue-600">📦 Pickup:</span>
+                          <span className="font-medium text-[#00D1FF]">📦 Pickup:</span>
                           <span className="ml-2">{load.route.selectPickup.place || 'N/A'}</span>
                         </div>
                       )}
@@ -317,12 +317,12 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
                       )}
                       {load.route?.selectReturn && (
                         <div>
-                          <span className="font-medium text-yellow-600">🔄 Return:</span>
+                          <span className="font-medium text-[#00FFA3]">🔄 Return:</span>
                           <span className="ml-2">{load.route.selectReturn}</span>
                         </div>
                       )}
                       {!load.route?.selectPickup && !load.route?.selectDropOff && (
-                        <span className="text-gray-500">No route information</span>
+                        <span className="text-secondary">No route information</span>
                       )}
                     </div>
                   )}
@@ -330,43 +330,43 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
               </div>
               {/* Receiver Details */}
               {(load.details?.receiver || load.receiver) && (
-                <div className="col-span-2 mt-3 pt-3 border-t border-gray-200">
-                  <h5 className="font-semibold text-gray-700 mb-2">Receiver Information</h5>
+                <div className="col-span-2 mt-3 pt-3 border-t border-theme">
+                  <h5 className="font-semibold text-primary mb-2">Receiver Information</h5>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     {(load.details?.receiver?.name || load.receiver?.name) && (
                       <div>
-                        <span className="text-gray-600">Name:</span>
+                        <span className="text-secondary">Name:</span>
                         <span className="ml-2 font-medium">{load.details?.receiver?.name || load.receiver?.name}</span>
                       </div>
                     )}
                     {(load.details?.receiver?.contactPerson || load.receiver?.contactPerson) && (
                       <div>
-                        <span className="text-gray-600">Contact Person:</span>
+                        <span className="text-secondary">Contact Person:</span>
                         <span className="ml-2 font-medium">{load.details?.receiver?.contactPerson || load.receiver?.contactPerson}</span>
                       </div>
                     )}
                     {(load.details?.receiver?.phone || load.receiver?.phone) && (
                       <div>
-                        <span className="text-gray-600">Phone:</span>
+                        <span className="text-secondary">Phone:</span>
                         <span className="ml-2 font-medium">{load.details?.receiver?.phone || load.receiver?.phone}</span>
                       </div>
                     )}
                     {(load.details?.receiver?.email || load.receiver?.email) && (
                       <div>
-                        <span className="text-gray-600">Email:</span>
+                        <span className="text-secondary">Email:</span>
                         <span className="ml-2 font-medium">{load.details?.receiver?.email || load.receiver?.email}</span>
                       </div>
                     )}
                     {(load.details?.receiver?.address || load.receiver?.address) && (
                       <div className="col-span-2">
-                        <span className="text-gray-600">Address:</span>
+                        <span className="text-secondary">Address:</span>
                         <span className="ml-2 font-medium">{load.details?.receiver?.address || load.receiver?.address}</span>
                       </div>
                     )}
                     {(load.details?.receiver?.notes || load.receiver?.notes) && (
                       <div className="col-span-2">
-                        <span className="text-gray-600">Notes:</span>
-                        <span className="ml-2 text-gray-700">{load.details?.receiver?.notes || load.receiver?.notes}</span>
+                        <span className="text-secondary">Notes:</span>
+                        <span className="ml-2 text-primary">{load.details?.receiver?.notes || load.receiver?.notes}</span>
                       </div>
                     )}
                   </div>
@@ -377,30 +377,30 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
 
           {/* Current Assignment (shown in read-only mode) */}
           {isReadOnly && (load.assignedDriver || load.assignedTruck) && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-card border border-blue-200 rounded-lg p-4">
               <h5 className="font-semibold text-blue-800 mb-3">Current Assignment</h5>
               <div className="space-y-2 text-sm">
                 {load.assignedDriver && (
                   <div className="flex items-center gap-2">
-                    <FaUser className="text-blue-600" />
+                    <FaUser className="text-[#00D1FF]" />
                     <span>Driver: <strong>{load.assignedDriver}</strong></span>
                   </div>
                 )}
                 {load.assignedTruck && (
                   <div className="flex items-center gap-2">
-                    <FaTruck className="text-blue-600" />
+                    <FaTruck className="text-[#00D1FF]" />
                     <span>Truck: <strong>{load.assignedTruck}</strong></span>
                   </div>
                 )}
                 {load.assignedTrailer && (
                   <div className="flex items-center gap-2">
-                    <FaTrailer className="text-blue-600" />
+                    <FaTrailer className="text-[#00D1FF]" />
                     <span>Trailer: <strong>{load.assignedTrailer}</strong></span>
                   </div>
                 )}
                 {load.plannedDate && (
                   <div className="flex items-center gap-2">
-                    <FaCalendarAlt className="text-blue-600" />
+                    <FaCalendarAlt className="text-[#00D1FF]" />
                     <span>Planned Date: <strong>{load.plannedDate}</strong></span>
                   </div>
                 )}
@@ -418,8 +418,8 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
               ) : (
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <FaUser className="inline mr-2 text-blue-600" />
+                    <label className="block text-sm font-semibold text-primary mb-2">
+                      <FaUser className="inline mr-2 text-[#00D1FF]" />
                       Select Driver <span className="text-red-500">*</span>
                     </label>
                     <select
@@ -437,7 +437,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-primary mb-2">
                       <FaTruck className="inline mr-2 text-purple-600" />
                       Select Truck <span className="text-red-500">*</span>
                     </label>
@@ -460,7 +460,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-primary mb-2">
                       <FaTrailer className="inline mr-2 text-green-600" />
                       Select Trailer (Optional)
                     </label>
@@ -478,8 +478,8 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <FaCalendarAlt className="inline mr-2 text-orange-600" />
+                    <label className="block text-sm font-semibold text-primary mb-2">
+                      <FaCalendarAlt className="inline mr-2 text-[#F59E0B]" />
                       Plan Date
                     </label>
                     <input
@@ -523,7 +523,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-xl">
+        <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-xl">
           {isReadOnly ? (
             <button
               onClick={onClose}
@@ -535,7 +535,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
             <>
               <button
                 onClick={onClose}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
               >
                 Cancel
               </button>

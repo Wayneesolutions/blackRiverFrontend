@@ -125,16 +125,16 @@ function Dashboard() {
     return (
       <div
         onClick={onClick}
-        className={`${cardBg || 'bg-white'} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-gray-200 hover:border-[#42aeec]/40 hover:scale-[1.02] active:scale-[0.98]`}
+        className={`${cardBg || 'bg-card'} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-theme hover:border-[#42aeec]/40 hover:scale-[1.02] active:scale-[0.98]`}
       >
         <div className="flex items-start justify-between mb-2">
           {/* Left side content */}
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-gray-900 mb-1">{title}</h3>
+            <h3 className="text-sm font-bold text-primary mb-1">{title}</h3>
             <div className="flex items-baseline gap-2 mb-0.5">
-              <span className="text-xl font-bold text-gray-900">{value}</span>
+              <span className="text-xl font-bold text-primary">{value}</span>
             </div>
-            <p className="text-xs text-gray-400">{subtitle}</p>
+            <p className="text-xs text-secondary">{subtitle}</p>
           </div>
 
           {/* Right side icon */}
@@ -148,18 +148,18 @@ function Dashboard() {
   };
 
   const DetailSection = ({ title, icon: Icon, children, onClickHeader }: { title: string, icon: any, children: React.ReactNode, onClickHeader?: () => void }) => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
+    <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden mb-6">
       <div
-        className={`px-6 py-4 border-b border-gray-200 flex justify-between items-center ${onClickHeader ? 'cursor-pointer hover:bg-gray-50 transition-colors' : ''}`}
+        className={`px-6 py-4 border-b border-theme flex justify-between items-center ${onClickHeader ? 'cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors' : ''}`}
         onClick={onClickHeader}
       >
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg bg-blue-50`}>
-            <Icon className="text-blue-600" size={18} />
+          <div className={`p-2 rounded-lg bg-card`}>
+            <Icon className="text-[#00D1FF]" size={18} />
           </div>
-          <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+          <h3 className="text-lg font-bold text-primary">{title}</h3>
         </div>
-        {onClickHeader && <ChevronRight className="text-gray-400" size={20} />}
+        {onClickHeader && <ChevronRight className="text-secondary" size={20} />}
       </div>
       <div className="p-6">
         {children}
@@ -171,10 +171,10 @@ function Dashboard() {
   const InnerGridCard = ({ label, value, colorClass, onClick, icon: Icon }: { label: string, value: string | number, colorClass: string, onClick?: () => void, icon: any }) => (
     <div
       onClick={onClick}
-      className={`bg-white border rounded-lg p-4 flex items-center justify-between shadow-sm hover:shadow transition-all ${onClick ? 'cursor-pointer hover:border-blue-200' : 'border-gray-100'}`}
+      className={`bg-card border rounded-lg p-4 flex items-center justify-between shadow-sm hover:shadow transition-all ${onClick ? 'cursor-pointer hover:border-blue-200' : 'border-theme'}`}
     >
       <div>
-        <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{label}</p>
+        <p className="text-xs text-secondary font-medium uppercase tracking-wider">{label}</p>
         <p className={`text-2xl font-bold mt-1 ${colorClass}`}>{value}</p>
       </div>
       <div className={`p-2 rounded-full ${colorClass.replace('text-', 'bg-').replace('600', '50').replace('500', '50')}`}>
@@ -185,11 +185,11 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#EDF8FF' }}>
+      <div className="min-h-screen flex items-center justify-center" >
         <div className="text-center">
           {/* Using simple loading text matching dispatch style */}
           <div className="w-12 h-12 border-4 border-[#42aeec] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+          <p className="text-secondary">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -197,7 +197,7 @@ function Dashboard() {
 
   return (
     <>
-    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
+    <div className="min-h-screen pb-10" >
       <div className="relative w-full mx-auto p-2">
         {/* Gradient band - Matching Dispatch */}
         <div
@@ -230,7 +230,7 @@ function Dashboard() {
               subtitle={`Pass: ${cvsaStats.pass} | Fail: ${cvsaStats.fail}`}
               icon={FaClipboardCheck}
               bgColor="bg-blue-100"
-              iconColor="text-blue-600"
+              iconColor="text-[#00D1FF]"
               cardBg="bg-gradient-to-br from-blue-50 to-blue-100"
               onClick={() => navigate("/admin/compliance/cvsa-inspection")}
             />
@@ -250,7 +250,7 @@ function Dashboard() {
               subtitle={`Open: ${incidentStats.open} | Closed: ${incidentStats.closed}`}
               icon={FaCarCrash}
               bgColor="bg-orange-100"
-              iconColor="text-orange-600"
+              iconColor="text-[#F59E0B]"
               cardBg="bg-gradient-to-br from-orange-50 to-orange-100"
               onClick={() => navigate("/admin/compliance/incidents")}
             />
@@ -276,14 +276,14 @@ function Dashboard() {
                 <InnerGridCard
                   label="Fail"
                   value={cvsaStats.fail}
-                  colorClass="text-red-600"
+                  colorClass="text-[#A855F7]"
                   icon={FaTimesCircle}
                   onClick={() => navigate("/admin/compliance/cvsa-inspection?status=fail")}
                 />
                 <InnerGridCard
                   label="Warning"
                   value={cvsaStats.warning}
-                  colorClass="text-yellow-600"
+                  colorClass="text-[#00FFA3]"
                   icon={FaExclamationTriangle}
                   onClick={() => navigate("/admin/compliance/cvsa-inspection?status=warning")}
                 />
@@ -314,24 +314,24 @@ function Dashboard() {
                 <InnerGridCard
                   label="Unpaid"
                   value={ticketStats.unpaid}
-                  colorClass="text-red-600"
+                  colorClass="text-[#A855F7]"
                   icon={FaExclamationTriangle}
                   onClick={() => navigate("/admin/compliance/tickets?status=unpaid")}
                 />
                 <InnerGridCard
                   label="Fighting"
                   value={ticketStats.fight}
-                  colorClass="text-orange-600"
+                  colorClass="text-[#F59E0B]"
                   icon={FaShieldAlt}
                   onClick={() => navigate("/admin/compliance/tickets?status=fight")}
                 />
-                <div className="bg-gray-50 border border-gray-100 rounded-lg p-4 flex items-center justify-between">
+                <div className="bg-card border border-theme rounded-lg p-4 flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Amount</p>
-                    <p className="text-xl font-bold mt-1 text-gray-800">${ticketStats.totalAmount.toLocaleString()}</p>
+                    <p className="text-xs text-secondary font-medium uppercase tracking-wider">Total Amount</p>
+                    <p className="text-xl font-bold mt-1 text-primary">${ticketStats.totalAmount.toLocaleString()}</p>
                   </div>
                   <div className="p-2 bg-gray-200 rounded-full">
-                    <FaFileInvoiceDollar className="text-gray-600" size={16} />
+                    <FaFileInvoiceDollar className="text-secondary" size={16} />
                   </div>
                 </div>
               </div>
@@ -347,14 +347,14 @@ function Dashboard() {
                 <InnerGridCard
                   label="Open Cases"
                   value={incidentStats.open}
-                  colorClass="text-red-600"
+                  colorClass="text-[#A855F7]"
                   icon={FaExclamationTriangle}
                   onClick={() => navigate("/admin/compliance/incidents?status=open")}
                 />
                 <InnerGridCard
                   label="Under Review"
                   value={incidentStats.underReview}
-                  colorClass="text-yellow-600"
+                  colorClass="text-[#00FFA3]"
                   icon={FaClipboardCheck}
                   onClick={() => navigate("/admin/compliance/incidents?status=under-review")}
                 />
@@ -370,19 +370,19 @@ function Dashboard() {
 
             {/* Monthly Report Quick Link */}
             <div
-              className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+              className="bg-card rounded-lg p-4 shadow-sm border border-theme flex items-center justify-between cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               onClick={() => navigate("/admin/compliance/monthly-report")}
             >
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <FaChartLine className="text-blue-600" size={20} />
+                <div className="p-3 bg-card rounded-lg">
+                  <FaChartLine className="text-[#00D1FF]" size={20} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-800">Monthly Compliance Report</h3>
-                  <p className="text-sm text-gray-500">View detailed reports and analytics</p>
+                  <h3 className="font-bold text-primary">Monthly Compliance Report</h3>
+                  <p className="text-sm text-secondary">View detailed reports and analytics</p>
                 </div>
               </div>
-              <ChevronRight className="text-gray-400" />
+              <ChevronRight className="text-secondary" />
             </div>
 
           </div>
