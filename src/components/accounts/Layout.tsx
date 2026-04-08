@@ -15,8 +15,9 @@ function Layout() {
     };
 
     return (
-        <div className="flex h-screen bg-[#eeeeee]">
-            {/* Sidebar with independent scroll */}
+        <div className="flex h-screen bg-main text-primary">
+
+            {/* Sidebar */}
             <div className="flex-shrink-0 h-screen overflow-hidden">
                 <Sidebar
                     isCollapsed={isSidebarCollapsed}
@@ -24,20 +25,22 @@ function Layout() {
                 />
             </div>
 
-            {/* Main content area with independent scroll */}
+            {/* Main content */}
             <div className="flex flex-col flex-1 h-full overflow-hidden">
-                {/* Header - fixed at top */}
+
+                {/* Header */}
                 <div className="flex-shrink-0">
                     <Header onToggleSidebar={toggleSidebar} />
                 </div>
 
-                {/* Main content with scroll */}
-                <main className="flex-1 overflow-y-auto">
+                {/* Content */}
+                <main className="flex-1 overflow-y-auto bg-main">
                     <Outlet />
                 </main>
+
             </div>
 
-            {/* Global Expiring Documents Popup */}
+            {/* Global Popup */}
             <ExpiringDocumentsPopup
                 isOpen={showExpiringToast}
                 onClose={handleCloseToast}
@@ -45,9 +48,10 @@ function Layout() {
                 daysThreshold={30}
                 showOnlyOnce={false}
             />
-            
-            {/* AI Chat Assistant */}
+
+            {/* AI Assistant */}
             <AIChatAssistant />
+
         </div>
     );
 }

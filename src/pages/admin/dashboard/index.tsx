@@ -104,11 +104,10 @@ interface FeatureCard {
     trend: string;
     subtitle: string;
     icon: React.ComponentType<any>;
-    bgColor: string;
-    iconColor: string;
-    accentColor: string;
     percentage: number;
     route: string;
+
+    color: "blue" | "green" | "purple" | "orange";
 }
 
 const Index = () => {
@@ -263,11 +262,10 @@ const Index = () => {
 
     // Build features cards with real data
     const features: FeatureCard[] = useMemo(() => {
-        if (!dashboardData) {
-            return [];
-        }
+        if (!dashboardData) return [];
 
         const stats = dashboardData.stats;
+
         return [
             {
                 id: "dispatch",
@@ -277,11 +275,9 @@ const Index = () => {
                 trend: "up",
                 subtitle: "Active Trips",
                 icon: TruckIcon,
-                bgColor: "bg-blue-50",
-                iconColor: "text-[#42aeec]",
-                accentColor: "bg-[#42aeec]",
-                percentage: Math.min(100, (stats.activeLoads / 50) * 100), // Assuming 50 is max for 100%
+                percentage: Math.min(100, (stats.activeLoads / 50) * 100),
                 route: "/admin/dispatch",
+                color: "blue" // ✅
             },
             {
                 id: "gps",
@@ -291,11 +287,9 @@ const Index = () => {
                 trend: "up",
                 subtitle: "Vehicles Online",
                 icon: MapPin,
-                bgColor: "bg-cyan-50",
-                iconColor: "text-cyan-500",
-                accentColor: "bg-cyan-500",
                 percentage: stats.vehiclesOnline > 0 ? Math.min(100, (stats.vehiclesOnline / 20) * 100) : 0,
                 route: "/admin/gpsvehicle",
+                color: "green" // ✅
             },
             {
                 id: "driver",
@@ -305,11 +299,9 @@ const Index = () => {
                 trend: "up",
                 subtitle: "Active Drivers",
                 icon: Users,
-                bgColor: "bg-purple-50",
-                iconColor: "text-purple-500",
-                accentColor: "bg-purple-500",
                 percentage: stats.activeDrivers > 0 ? Math.min(100, (stats.activeDrivers / 30) * 100) : 0,
                 route: "/admin/Management",
+                color: "purple" // ✅
             },
             {
                 id: "maintenance",
@@ -319,11 +311,9 @@ const Index = () => {
                 trend: "down",
                 subtitle: "Pending Tasks",
                 icon: Wrench,
-                bgColor: "bg-orange-50",
-                iconColor: "text-orange-500",
-                accentColor: "bg-orange-500",
                 percentage: stats.pendingTasks > 0 ? Math.min(100, (stats.pendingTasks / 30) * 100) : 0,
                 route: "/admin/fleetmaintenance",
+                color: "orange" // ✅
             },
             {
                 id: "mechanics",
@@ -333,11 +323,9 @@ const Index = () => {
                 trend: "up",
                 subtitle: "Maintenance Orders",
                 icon: Settings,
-                bgColor: "bg-slate-50",
-                iconColor: "text-slate-600",
-                accentColor: "bg-slate-600",
                 percentage: (stats.maintenanceOrdersCount ?? 0) > 0 ? Math.min(100, ((stats.maintenanceOrdersCount ?? 0) / 50) * 100) : 0,
                 route: "/admin/mechanics/dashboard",
+                color: "blue" // 🔁 reuse
             },
             {
                 id: "compliance",
@@ -347,11 +335,9 @@ const Index = () => {
                 trend: "up",
                 subtitle: "Compliance Rate",
                 icon: ShieldCheck,
-                bgColor: "bg-green-50",
-                iconColor: "text-green-500",
-                accentColor: "bg-green-500",
                 percentage: stats.complianceRate,
                 route: "/admin/compliance",
+                color: "green" // 🔁 reuse
             },
             {
                 id: "billing",
@@ -361,11 +347,9 @@ const Index = () => {
                 trend: "up",
                 subtitle: "This Month",
                 icon: DollarSign,
-                bgColor: "bg-yellow-50",
-                iconColor: "text-yellow-600",
-                accentColor: "bg-yellow-500",
                 percentage: stats.monthlyRevenue > 0 ? Math.min(100, (stats.monthlyRevenue / 100000) * 100) : 0,
                 route: "/admin/accounts",
+                color: "orange" // 🔁
             },
             {
                 id: "health",
@@ -375,11 +359,9 @@ const Index = () => {
                 trend: "down",
                 subtitle: "Open Incidents",
                 icon: Heart,
-                bgColor: "bg-red-50",
-                iconColor: "text-red-500",
-                accentColor: "bg-red-500",
                 percentage: stats.openIncidents > 0 ? Math.min(100, (stats.openIncidents / 20) * 100) : 0,
                 route: "/admin/healthandsafety",
+                color: "purple" // 🔁
             },
             {
                 id: "manifest",
@@ -389,11 +371,9 @@ const Index = () => {
                 trend: "up",
                 subtitle: "Active Trips",
                 icon: FileText,
-                bgColor: "bg-teal-50",
-                iconColor: "text-teal-600",
-                accentColor: "bg-teal-500",
                 percentage: stats.activeLoads > 0 ? Math.min(100, (stats.activeLoads / 50) * 100) : 0,
                 route: "/admin/manifest",
+                color: "blue" // 🔁
             }
         ];
     }, [dashboardData]);
@@ -429,13 +409,37 @@ const Index = () => {
         );
     }
 
+    // ✅ OUTSIDE JSX (top of component)
+    const colorStyles = {
+        blue: {
+            bg: "bg-gradient-to-br from-[#0B3B5C] to-[#0F6EA8]",
+            text: "text-[var(--accent-blue)]",
+            glow: "shadow-[0_0_25px_rgba(0,209,255,0.2)]"
+        },
+        green: {
+            bg: "bg-gradient-to-br from-[#0B3B2A] to-[#0FA86E]",
+            text: "text-[var(--accent-green)]",
+            glow: "shadow-[0_0_25px_rgba(0,255,163,0.2)]"
+        },
+        purple: {
+            bg: "bg-gradient-to-br from-[#2A0B3B] to-[#7C3AED]",
+            text: "text-[var(--accent-purple)]",
+            glow: "shadow-[0_0_25px_rgba(168,85,247,0.2)]"
+        },
+        orange: {
+            bg: "bg-gradient-to-br from-[#3B2A0B] to-[#F59E0B]",
+            text: "text-[var(--accent-orange)]",
+            glow: "shadow-[0_0_25px_rgba(245,158,11,0.2)]"
+        }
+    };
+
     return (
         <>
-            <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+            <div className="min-h-screen border-2 border-green-700 bg-[var(--bg-main)]">
                 <div className="relative w-full mx-auto">
                     {/* Gradient band */}
                     <div
-                        className="absolute inset-x-0 top-0"
+                        className="absolute inset-x-0 top-0 border-2 border-green-700"
                         style={{
                             background: `linear-gradient(
                           90deg,
@@ -449,9 +453,9 @@ const Index = () => {
                     />
 
                     {/* Main content */}
-                    <div className="relative z-10 px-4.5 pt-3.5 pb-1">
+                    <div className="relative z-10 px-4.5 pt-3.5 pb-1 border-2 border-red-700">
                         {/* Header Section */}
-                        <div className="mb-4.5 relative z-10">
+                        <div className="mb-4.5 relative z-10 border-2 border-red-700">
                             <div className="flex items-center justify-between">
                                 <h1 className="text-xl font-bold text-white" style={{ fontSize: '1.25rem' }}>Overview</h1>
                                 <div className="flex items-center gap-2 text-white/90">
@@ -461,396 +465,378 @@ const Index = () => {
                         </div>
 
                         {/* Features Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 -mt-2 mb-4.5">
+                        <div className="grid grid-cols-4 gap-4 -mt-2 mb-4.5">
+
                             {features.map((feature) => {
+                                const styles = colorStyles[feature.color] || colorStyles.blue;
                                 const Icon = feature.icon;
 
                                 return (
                                     <div
                                         key={feature.id}
                                         onClick={() => handleCardClick(feature.route)}
-                                        className="bg-white rounded-lg p-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+                                        className="card-premium cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
                                     >
-                                        <div className="flex items-start justify-between mb-2.5">
-                                            {/* Left side content */}
+                                        <div className="flex items-start gap-4">
+
+                                            {/* ICON */}
+                                            <div className={`flex-shrink-0 rounded-xl p-3 ${styles.bg} ${styles.glow}`}>
+                                                <Icon className={styles.text} size={20} strokeWidth={2} />
+                                            </div>
+
+                                            {/* CONTENT */}
                                             <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#42aeec]/10 text-[#42aeec] uppercase tracking-wide">
-                                                        Portal
-                                                    </span>
-                                                </div>
-                                                <h3 className="text-sm font-bold text-gray-900 mb-1.5" style={{ fontSize: '0.875rem', fontWeight: 700 }}>
+                                                <h3 className="text-sm font-semibold text-primary">
                                                     {feature.title}
                                                 </h3>
 
-                                                <div className="flex items-baseline gap-2 mb-0.5">
-                                                    <span className="text-xl font-bold text-gray-900" style={{ fontSize: '1.25rem' }}>{feature.value}</span>
+                                                <div className="text-2xl font-bold text-primary mt-1">
+                                                    {feature.value}
                                                 </div>
 
-                                                <p className="text-[10px] text-gray-400" style={{ fontSize: '0.625rem' }}>{feature.subtitle}</p>
+                                                <p className="text-xs text-secondary mt-1">
+                                                    {feature.subtitle}
+                                                </p>
                                             </div>
 
-                                            {/* Right side icon */}
-                                            <div className={`${feature.bgColor} rounded-lg p-2.5 shadow-sm`}>
-                                                <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                                            {/* % */}
+                                            <div className="text-xs font-semibold text-secondary flex items-center gap-1 mt-1">
+                                                <span className="text-[var(--accent-green)]">↗</span>
+                                                {Math.round(feature.percentage)}%
                                             </div>
+
                                         </div>
 
-                                        {/* Progress Bar */}
-                                        <div className="flex items-center gap-2 mt-2.5">
-                                            <div className="flex-1 bg-gray-100 rounded-full h-0.5 overflow-hidden">
-                                                <div
-                                                    className={`h-full rounded-full ${feature.accentColor} transition-all`}
-                                                    style={{ width: `${feature.percentage}%` }}
-                                                />
-                                            </div>
-                                            <span className="text-[10px] font-semibold text-gray-500 min-w-[28px] text-right" style={{ fontSize: '0.625rem' }}>
-                                                {Math.round(feature.percentage)}%
-                                            </span>
+                                        {/* PROGRESS */}
+                                        <div className="mt-4 h-[3px] bg-[rgba(255,255,255,0.05)] rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full progress-glow ${styles.text}`}
+                                                style={{ width: `${feature.percentage}%` }}
+                                            />
                                         </div>
                                     </div>
                                 );
                             })}
+
                         </div>
 
                         {/* Active Trips Section */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-4.5">
-                            {/* Section Header */}
-                            <div className="px-4.5 py-3 border-b border-gray-100 bg-gradient-to-r from-[#42aeec]/5 to-transparent">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="bg-[#42aeec]/10 rounded-md p-2">
-                                            <Navigation className="text-[#42aeec]" size={17} />
-                                        </div>
-                                        <div>
-                                            <h2 className="text-sm font-bold text-gray-900" style={{ fontSize: '0.875rem' }}>Active Trips</h2>
-                                            <p className="text-xs text-gray-500" style={{ fontSize: '0.75rem' }}>Real-time tracking of ongoing deliveries</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => navigate('/admin/dispatch')}
-                                        className="px-3.5 py-1.5 text-xs font-medium text-[#42aeec] hover:bg-[#42aeec]/10 rounded-md transition-colors"
-                                        style={{ fontSize: '0.75rem' }}
-                                    >
-                                        View All
+                        {/* Active Trips Section */}
+                        <div className="grid grid-cols-12 gap-6">
+
+                            {/* ================= LEFT: MAP ================= */}
+                            <div className="col-span-7 bg-card border border-theme rounded-2xl shadow-[0_0_40px_rgba(0,209,255,0.08)] overflow-hidden">
+
+                                {/* HEADER */}
+                                <div className="flex items-center justify-between px-5 py-4 border-b border-theme
+    bg-gradient-to-r from-[rgba(0,209,255,0.1)] to-transparent">
+
+                                    <h2 className="text-sm font-semibold text-primary">Live Fleet Map</h2>
+
+                                    <button className="px-3 py-1 text-xs rounded-md 
+      bg-[rgba(0,209,255,0.1)] text-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.2)]">
+                                        View Full Map
                                     </button>
+                                </div>
+
+                                {/* MAP */}
+                                <div className="relative h-[300px] m-4 rounded-xl overflow-hidden border border-theme">
+
+                                    <MapContainer
+                                        center={[54.5, -110]}
+                                        zoom={4}
+                                        style={{ height: "100%", width: "100%" }}
+                                    >
+                                        <TileLayer
+                                            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                                        />
+
+                                        {/* MARKERS */}
+                                        {[
+                                            { lat: 49.2, lng: -123.1, color: "#00D1FF" },
+                                            { lat: 53.5, lng: -113.5, color: "#00FFA3" },
+                                            { lat: 45.5, lng: -73.5, color: "#00FFA3" },
+                                            { lat: 43.6, lng: -79.3, color: "#F59E0B" },
+                                            { lat: 29.7, lng: -95.3, color: "#FF4D4F" }
+                                        ].map((m, i) => (
+                                            <Marker
+                                                key={i}
+                                                position={[m.lat, m.lng]}
+                                                icon={L.divIcon({
+                                                    html: `<div class="pulse-marker" style="background:${m.color}"></div>`
+                                                })}
+                                            />
+                                        ))}
+                                    </MapContainer>
+
+                                    {/* OVERLAY */}
+                                    <div className="absolute inset-0 bg-[rgba(0,0,0,0.3)] pointer-events-none" />
+
+                                    {/* LEGEND */}
+                                    <div className="absolute bottom-3 left-4 flex gap-4 text-xs 
+      bg-[rgba(10,20,40,0.8)] px-4 py-2 rounded-lg border border-theme backdrop-blur-md">
+
+                                        <span className="flex items-center gap-2 text-secondary">
+                                            <span className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_6px_#00FFA3]" />
+                                            Active (2)
+                                        </span>
+
+                                        <span className="flex items-center gap-2 text-secondary">
+                                            <span className="w-2 h-2 bg-yellow-400 rounded-full shadow-[0_0_6px_#F59E0B]" />
+                                            Idle (0)
+                                        </span>
+
+                                        <span className="flex items-center gap-2 text-secondary">
+                                            <span className="w-2 h-2 bg-red-400 rounded-full shadow-[0_0_6px_red]" />
+                                            Maintenance (0)
+                                        </span>
+
+                                        <span className="flex items-center gap-2 text-secondary">
+                                            <span className="w-2 h-2 bg-gray-500 rounded-full" />
+                                            Offline (3)
+                                        </span>
+                                    </div>
+
                                 </div>
                             </div>
 
-                            {/* OpenStreetMap */}
-                            <div className="relative h-52">
-                                <MapContainer
-                                    center={mapCenter}
-                                    zoom={mapZoom}
-                                    style={{ height: '100%', width: '100%' }}
-                                    scrollWheelZoom={false}
-                                >
-                                    <TileLayer
-                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                    />
-                                    <MapController center={mapCenter} zoom={mapZoom} />
+                            {/* ================= MIDDLE: DISPATCH ================= */}
+                            <div className="col-span-3 bg-card border border-theme rounded-2xl p-4 shadow-[0_0_30px_rgba(0,209,255,0.05)]">
 
-                                    {/* Markers for active orders with tracking keys */}
-                                    {activeOrders.map((orderGroup) => {
-                                        if (!orderGroup.currentLocation) {
-                                            return null;
-                                        }
+                                <div className="flex justify-between mb-4">
+                                    <h2 className="text-sm font-semibold text-primary">Dispatch Center</h2>
+                                    <button className="text-xs text-accent">View All</button>
+                                </div>
 
-                                        const lat = orderGroup.currentLocation.lat;
-                                        const lng = orderGroup.currentLocation.lng;
+                                {[{
+                                    id: "TRIP-001",
+                                    route: "Calgary, AB → Winnipeg, MB",
+                                    name: "John D.",
+                                    status: "In Progress",
+                                    color: "blue"
+                                },
+                                {
+                                    id: "TRIP-002",
+                                    route: "Edmonton → Regina",
+                                    name: "Sarah M.",
+                                    status: "Scheduled",
+                                    color: "green"
+                                },
+                                {
+                                    id: "TRIP-003",
+                                    route: "Vancouver → Seattle",
+                                    name: "Mike T.",
+                                    status: "Pending",
+                                    color: "orange"
+                                }].map((trip, i) => (
 
-                                        if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
-                                            return null;
-                                        }
+                                    <div key={i} className="mb-3 p-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-theme">
 
-                                        return (
-                                            <Marker
-                                                key={`order-${orderGroup._id}`}
-                                                position={[lat, lng]}
-                                                icon={createTruckIcon('#ef4444')}
-                                            >
-                                                <Popup>
-                                                    <div className="p-2 min-w-[200px]">
-                                                        <h3 className="font-bold text-sm mb-2">
-                                                            {orderGroup.truck?.plateNumber || orderGroup.truck?.unitNumber || 'Truck'}
-                                                        </h3>
-                                                        <div className="space-y-1 text-xs">
-                                                            <div className="flex items-center justify-between">
-                                                                <span className="text-gray-600">Driver:</span>
-                                                                <span className="font-medium">{orderGroup.driver.name}</span>
-                                                            </div>
-                                                            <div className="flex items-center justify-between">
-                                                                <span className="text-gray-600">Orders:</span>
-                                                                <span className="font-medium">{orderGroup.orderCount}</span>
-                                                            </div>
-                                                            {orderGroup.currentLocation.address && (
-                                                                <div className="mt-2 pt-2 border-t">
-                                                                    <p className="text-gray-600 text-xs">
-                                                                        {orderGroup.currentLocation.address}
-                                                                    </p>
-                                                                </div>
-                                                            )}
-                                                            {orderGroup.speed > 0 && (
-                                                                <div className="flex items-center justify-between mt-1">
-                                                                    <span className="text-gray-600">Speed:</span>
-                                                                    <span className="font-medium">{Math.round(orderGroup.speed)} mph</span>
-                                                                </div>
-                                                            )}
-                                                            <div className="flex items-center justify-between mt-1">
-                                                                <span className="text-gray-600">Engine:</span>
-                                                                <span className={`font-medium ${orderGroup.engineOn ? 'text-green-600' : 'text-gray-400'}`}>
-                                                                    {orderGroup.engineOn ? 'On' : 'Off'}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </Popup>
-                                            </Marker>
-                                        );
-                                    })}
+                                        <div className="flex justify-between text-xs mb-1">
+                                            <span className="text-[var(--accent-blue)] font-semibold">{trip.id}</span>
+                                            <span className={`
+  px-2 py-0.5 rounded-full text-xs
+  ${trip.color === "blue" && "bg-[rgba(0,209,255,0.1)] text-[var(--accent-blue)]"}
+  ${trip.color === "green" && "bg-[rgba(0,255,163,0.1)] text-[var(--accent-green)]"}
+  ${trip.color === "orange" && "bg-[rgba(245,158,11,0.1)] text-[var(--accent-orange)]"}
+`}>
+                                                {trip.status}
+                                            </span>
+                                        </div>
 
-                                    {/* Markers for trips/orders with trucks that have current locations or yard locations (from dashboard data) */}
-                                    {dashboardData?.trips
-                                        .filter(trip => {
-                                            if (!trip.truckInfo) return false;
+                                        <div className="text-sm text-primary">{trip.route}</div>
+                                        <div className="text-xs text-secondary mt-1">{trip.name}</div>
 
-                                            // Check if already shown in activeOrders
-                                            const alreadyShown = activeOrders.some(order =>
-                                                order.truck?.plateNumber === trip.truckInfo?.licensePlate ||
-                                                order.truck?.unitNumber === trip.truckInfo?.unitNo
-                                            );
-                                            if (alreadyShown) return false;
-
-                                            // Check if has current location
-                                            const hasCurrentLocation = trip.currentLat &&
-                                                trip.currentLng &&
-                                                trip.currentLat !== 0 &&
-                                                trip.currentLng !== 0;
-
-                                            // Check if has yard location as fallback
-                                            const hasYardLocation = trip.truckInfo.yard?.coordinates?.latitude &&
-                                                trip.truckInfo.yard?.coordinates?.longitude &&
-                                                trip.truckInfo.yard.coordinates.latitude !== 0 &&
-                                                trip.truckInfo.yard.coordinates.longitude !== 0;
-
-                                            return hasCurrentLocation || hasYardLocation;
-                                        })
-                                        .map((trip) => {
-                                            // Prefer current location, fallback to yard location
-                                            const hasCurrentLocation = trip.currentLat &&
-                                                trip.currentLng &&
-                                                trip.currentLat !== 0 &&
-                                                trip.currentLng !== 0;
-
-                                            const useYardLocation = !hasCurrentLocation &&
-                                                trip.truckInfo?.yard?.coordinates?.latitude &&
-                                                trip.truckInfo?.yard?.coordinates?.longitude;
-
-                                            const lat = hasCurrentLocation ? trip.currentLat! :
-                                                (useYardLocation ? trip.truckInfo!.yard!.coordinates!.latitude! : 0);
-                                            const lng = hasCurrentLocation ? trip.currentLng! :
-                                                (useYardLocation ? trip.truckInfo!.yard!.coordinates!.longitude! : 0);
-
-                                            if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
-                                                return null;
-                                            }
-
-                                            const truckDisplay = trip.truckInfo?.licensePlate || trip.truckInfo?.unitNo || 'Truck';
-                                            const driverDisplay = typeof trip.driver === 'string' 
-                                                ? trip.driver 
-                                                : (typeof trip.driver === 'object' ? trip.driver?.name : trip.driverInfo?.name) || 'Unassigned';
-                                            const locationAddress = hasCurrentLocation
-                                                ? (trip.truckInfo?.currentLocation?.address || '')
-                                                : (useYardLocation
-                                                    ? `${trip.truckInfo?.yard?.yardName || 'Yard'} - ${trip.truckInfo?.yard?.address || ''}, ${trip.truckInfo?.yard?.city || ''}, ${trip.truckInfo?.yard?.stateProvince || ''}`
-                                                    : ''
-                                                );
-
-                                            return (
-                                                <Marker
-                                                    key={`trip-${trip.id}`}
-                                                    position={[lat, lng]}
-                                                    icon={createTruckIcon(useYardLocation ? '#f59e0b' : '#6366f1')}
-                                                >
-                                                    <Popup>
-                                                        <div className="p-2 min-w-[200px]">
-                                                            <h3 className="font-bold text-sm mb-2">{truckDisplay}</h3>
-                                                            {useYardLocation && (
-                                                                <div className="mb-2 px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
-                                                                    📍 Yard Location
-                                                                </div>
-                                                            )}
-                                                            <div className="space-y-1 text-xs">
-                                                                <div className="flex items-center justify-between">
-                                                                    <span className="text-gray-600">Driver:</span>
-                                                                    <span className="font-medium">{driverDisplay}</span>
-                                                                </div>
-                                                                <div className="flex items-center justify-between">
-                                                                    <span className="text-gray-600">Trip:</span>
-                                                                    <span className="font-medium">{trip.tripNumber}</span>
-                                                                </div>
-                                                                {locationAddress && (
-                                                                    <div className="mt-2 pt-2 border-t">
-                                                                        <p className="text-gray-600 text-xs">
-                                                                            {locationAddress}
-                                                                        </p>
-                                                                    </div>
-                                                                )}
-                                                                <div className="flex items-center justify-between mt-1">
-                                                                    <span className="text-gray-600">Status:</span>
-                                                                    <span className="font-medium capitalize">{trip.status}</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </Popup>
-                                                </Marker>
-                                            );
-                                        })}
-
-                                    {/* Markers for standalone trucks with yard locations */}
-                                    {dashboardData?.trucks
-                                        .filter(truck =>
-                                            truck.isYardLocation &&
-                                            truck.latitude &&
-                                            truck.longitude &&
-                                            truck.latitude !== 0 &&
-                                            truck.longitude !== 0
-                                        )
-                                        .map((truck) => {
-                                            return (
-                                                <Marker
-                                                    key={`truck-yard-${truck.id}`}
-                                                    position={[truck.latitude, truck.longitude]}
-                                                    icon={createTruckIcon('#f59e0b')}
-                                                >
-                                                    <Popup>
-                                                        <div className="p-2 min-w-[200px]">
-                                                            <h3 className="font-bold text-sm mb-2">
-                                                                {truck.licensePlate || truck.unitNo || 'Truck'}
-                                                            </h3>
-                                                            <div className="mb-2 px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
-                                                                📍 Yard Location
-                                                            </div>
-                                                            <div className="space-y-1 text-xs">
-                                                                {truck.yard && (
-                                                                    <div className="flex items-center justify-between">
-                                                                        <span className="text-gray-600">Yard:</span>
-                                                                        <span className="font-medium">{truck.yard.yardName}</span>
-                                                                    </div>
-                                                                )}
-                                                                {truck.address && (
-                                                                    <div className="mt-2 pt-2 border-t">
-                                                                        <p className="text-gray-600 text-xs">
-                                                                            {truck.address}
-                                                                        </p>
-                                                                    </div>
-                                                                )}
-                                                                <div className="flex items-center justify-between mt-1">
-                                                                    <span className="text-gray-600">Status:</span>
-                                                                    <span className="font-medium capitalize">{truck.operationStatus}</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </Popup>
-                                                </Marker>
-                                            );
-                                        })}
-                                </MapContainer>
+                                    </div>
+                                ))}
                             </div>
 
-                            {/* Trips List */}
-                            <div className="divide-y divide-gray-100">
-                                {dashboardData && dashboardData.trips.length > 0 ? (
-                                    dashboardData.trips.slice(0, 10).map((trip) => (
-                                        <div key={trip.id} className="px-4.5 py-3 hover:bg-gray-50 transition-colors">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3.5 flex-1">
-                                                    {/* Trip Icon */}
-                                                    <div className={`rounded-md p-2 ${trip.status === "completed" ? "bg-green-100" :
-                                                        trip.status === "in-progress" || trip.status === "started" ? "bg-blue-100" :
-                                                            "bg-yellow-100"
-                                                        }`}>
-                                                        <Package className={
-                                                            trip.status === "completed" ? "text-green-600" :
-                                                                trip.status === "in-progress" || trip.status === "started" ? "text-[#42aeec]" :
-                                                                    "text-yellow-600"
-                                                        } size={17} />
-                                                    </div>
+                            {/* ================= RIGHT: ALERTS ================= */}
+                            <div className="col-span-2 bg-card border border-theme rounded-2xl p-4 shadow-[0_0_30px_rgba(0,209,255,0.05)]">
 
-                                                    {/* Trip Details */}
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                                                            {trip.route?.summary ? (
-                                                                // Show route summary if available (new format)
-                                                                <span className="font-semibold text-gray-900 text-xs" style={{ fontSize: '0.75rem' }}>
-                                                                    {trip.route.summary}
-                                                                </span>
-                                                            ) : (
-                                                                // Fallback to origin → destination (old format)
-                                                                <>
-                                                                    <span className="font-semibold text-gray-900 text-xs" style={{ fontSize: '0.75rem' }}>
-                                                                        {trip.origin}
-                                                                    </span>
-                                                                    <span className="text-gray-400 text-xs" style={{ fontSize: '0.75rem' }}>→</span>
-                                                                    <span className="font-semibold text-gray-900 text-xs" style={{ fontSize: '0.75rem' }}>
-                                                                        {trip.destination}
-                                                                    </span>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                        {trip.route?.waypoints && trip.route.waypoints.length > 2 && (
-                                                            <div className="text-[10px] text-gray-400 mb-0.5" style={{ fontSize: '0.625rem' }}>
-                                                                {trip.route.waypoints.length} stops
-                                                            </div>
-                                                        )}
-                                                        <div className="flex items-center gap-2.5 text-[10px] text-gray-500" style={{ fontSize: '0.625rem' }}>
-                                                            <span className="flex items-center gap-1">
-                                                                <Users size={11} />
-                                                                {typeof trip.driver === 'string' 
-                                                                    ? trip.driver 
-                                                                    : (typeof trip.driver === 'object' ? trip.driver?.name : trip.driverInfo?.name) || 'Unassigned'}
-                                                            </span>
-                                                            {(trip.truck && typeof trip.truck === 'object') || trip.truckInfo ? (
-                                                                <span className="flex items-center gap-1">
-                                                                    <TruckIcon size={11} />
-                                                                    {trip.truck && typeof trip.truck === 'object'
-                                                                        ? (trip.truck.plateNumber || trip.truck.licensePlate || trip.truck.unitNumber || trip.truck.internalId || 'Truck')
-                                                                        : trip.truckInfo?.licensePlate || trip.truckInfo?.unitNo || 'Truck Assigned'}
-                                                                </span>
-                                                            ) : null}
-                                                            {trip.route?.totalDistance && trip.route.totalDistance > 0 && (
-                                                                <span className="flex items-center gap-1">
-                                                                    <Navigation size={11} />
-                                                                    {Math.round(trip.route.totalDistance)} mi
-                                                                </span>
-                                                            )}
-                                                            <span className="flex items-center gap-1">
-                                                                <MapPin size={11} />
-                                                                ETA: {trip.eta}
-                                                            </span>
-                                                        </div>
-                                                    </div>
+                                <div className="flex justify-between mb-4">
+                                    <h2 className="text-sm font-semibold text-primary">Alerts</h2>
+                                    <button className="text-xs text-accent">View All</button>
+                                </div>
 
-                                                    {/* Status Badge */}
-                                                    <div className={`px-2.5 py-1 rounded-full text-[10px] font-medium ${trip.status === "completed" ? "bg-green-100 text-green-700" :
-                                                        trip.status === "in-progress" || trip.status === "started" ? "bg-blue-100 text-[#42aeec]" :
-                                                            "bg-yellow-100 text-yellow-700"
-                                                        }`} style={{ fontSize: '0.625rem' }}>
-                                                        {trip.status === 'in-progress' || trip.status === 'started' ? 'In Transit' :
-                                                            trip.status === 'completed' ? 'Completed' : trip.status}
-                                                    </div>
+                                {[
+                                    {
+                                        title: "Vehicle Maintenance",
+                                        desc: "2 vehicles need attention",
+                                        color: "orange"
+                                    },
+                                    {
+                                        title: "Compliance",
+                                        desc: "3 documents expiring soon",
+                                        color: "red"
+                                    },
+                                    {
+                                        title: "Driver Hours",
+                                        desc: "1 driver near HOS limit",
+                                        color: "blue"
+                                    },
+                                    {
+                                        title: "Safety",
+                                        desc: "All systems operational",
+                                        color: "green"
+                                    }
+                                ].map((alert, i) => (
+
+                                    <div key={i} className="flex gap-3 mb-4 items-start">
+
+                                        <div className={`
+          p-2 rounded-lg
+          ${alert.color === "orange" && "bg-yellow-500/20 text-yellow-400"}
+          ${alert.color === "red" && "bg-red-500/20 text-red-400"}
+          ${alert.color === "blue" && "bg-blue-500/20 text-blue-400"}
+          ${alert.color === "green" && "bg-green-500/20 text-green-400"}
+        `}>
+                                            ⚠
+                                        </div>
+
+                                        <div>
+                                            <p className="text-sm text-primary">{alert.title}</p>
+                                            <p className="text-xs text-secondary">{alert.desc}</p>
+                                        </div>
+
+                                    </div>
+                                ))}
+                            </div>
+
+                        </div>
+
+                        {/* ================= RECENT TRIPS + DRIVER STATUS ================= */}
+                        <div className="grid grid-cols-12 gap-6 mt-6">
+
+                            {/* ================= LEFT: RECENT TRIPS ================= */}
+                            <div className="col-span-8 bg-card border border-theme rounded-2xl shadow-[0_0_40px_rgba(0,209,255,0.08)] overflow-hidden">
+
+                                <div className="flex items-center justify-between px-5 py-4 border-b border-theme
+    bg-gradient-to-r from-[rgba(0,209,255,0.08)] to-transparent">
+                                    <h2 className="text-sm font-semibold text-primary">Recent Trips</h2>
+                                    <button className="text-xs text-[var(--accent-blue)]">View All</button>
+                                </div>
+
+                                <table className="w-full text-sm">
+                                    <thead className="text-xs text-secondary uppercase border-b border-theme">
+                                        <tr>
+                                            <th className="px-5 py-3 text-left">Trip ID</th>
+                                            <th className="px-5 py-3 text-left">Route</th>
+                                            <th className="px-5 py-3 text-left">Driver</th>
+                                            <th className="px-5 py-3 text-left">Status</th>
+                                            <th className="px-5 py-3 text-left">Departed</th>
+                                            <th className="px-5 py-3 text-left">ETA</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {[
+                                            {
+                                                id: "TRIP-001",
+                                                route: "Calgary → Winnipeg",
+                                                driver: "John D.",
+                                                status: "In Progress",
+                                                time: "2h ago",
+                                                eta: "4h"
+                                            },
+                                            {
+                                                id: "TRIP-002",
+                                                route: "Edmonton → Regina",
+                                                driver: "Sarah M.",
+                                                status: "Scheduled",
+                                                time: "5h ago",
+                                                eta: "8h"
+                                            },
+                                            {
+                                                id: "TRIP-003",
+                                                route: "Vancouver → Seattle",
+                                                driver: "Mike T.",
+                                                status: "Pending",
+                                                time: "1d ago",
+                                                eta: "12h"
+                                            },
+                                            {
+                                                id: "TRIP-004",
+                                                route: "Dallas → Houston",
+                                                driver: "Alex R.",
+                                                status: "Completed",
+                                                time: "2d ago",
+                                                eta: "6h"
+                                            }
+                                        ].map((trip, i) => {
+
+                                            const statusStyles: Record<string, string> = {
+                                                "In Progress": "bg-blue-500/20 text-blue-400",
+                                                "Scheduled": "bg-green-500/20 text-green-400",
+                                                "Pending": "bg-yellow-500/20 text-yellow-400",
+                                                "Completed": "bg-gray-500/20 text-gray-300"
+                                            };
+
+                                            return (
+                                                <tr key={i} className="border-b border-theme hover:bg-[rgba(0,209,255,0.04)]">
+                                                    <td className="px-5 py-4 text-primary">{trip.id}</td>
+                                                    <td className="px-5 py-4 text-secondary">{trip.route}</td>
+                                                    <td className="px-5 py-4 text-primary">{trip.driver}</td>
+
+                                                    <td className="px-5 py-4">
+                                                        <span className={`px-2 py-1 rounded-full text-xs ${statusStyles[trip.status]}`}>
+                                                            {trip.status}
+                                                        </span>
+                                                    </td>
+
+                                                    <td className="px-5 py-4 text-secondary">{trip.time}</td>
+                                                    <td className="px-5 py-4 text-secondary">{trip.eta}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* ================= RIGHT: DRIVER STATUS ================= */}
+                            <div className="col-span-4 bg-card border border-theme rounded-2xl p-4 shadow-[0_0_40px_rgba(0,209,255,0.08)]">
+
+                                <div className="flex justify-between mb-4">
+                                    <h2 className="text-sm font-semibold text-primary">Driver Status</h2>
+                                    <button className="text-xs text-[var(--accent-blue)]">View All</button>
+                                </div>
+
+                                {[
+                                    { name: "John D.", status: "Driving", time: "4h 30m left", color: "green" },
+                                    { name: "Sarah M.", status: "On Break", time: "1h 15m left", color: "yellow" },
+                                    { name: "Mike T.", status: "Off Duty", time: "10h 00m", color: "gray" },
+                                    { name: "Alex R.", status: "Driving", time: "3h 45m left", color: "green" },
+                                    { name: "David L.", status: "Violation", time: "HOS Alert", color: "red" }
+                                ].map((driver, i) => (
+
+                                    <div key={i} className="flex items-center justify-between mb-4">
+
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.1)] flex items-center justify-center text-xs text-primary">
+                                                {driver.name[0]}
+                                            </div>
+
+                                            <div>
+                                                <p className="text-sm text-primary">{driver.name}</p>
+                                                <div className="flex items-center gap-2 text-xs text-secondary">
+                                                    <span className={`w-2 h-2 rounded-full
+                ${driver.color === "green" && "bg-green-400"}
+                ${driver.color === "yellow" && "bg-yellow-400"}
+                ${driver.color === "gray" && "bg-gray-500"}
+                ${driver.color === "red" && "bg-red-500"}
+              `} />
+                                                    {driver.status}
                                                 </div>
                                             </div>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="px-4.5 py-8 text-center text-gray-500">
-                                        <Package className="mx-auto mb-2 text-gray-400" size={24} />
-                                        <p className="text-xs">No active trips found</p>
+
+                                        <span className="text-xs text-secondary">{driver.time}</span>
+
                                     </div>
-                                )}
+                                ))}
+
                             </div>
+
                         </div>
                     </div>
                 </div>

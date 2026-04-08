@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { FaUser, FaSignOutAlt, FaBars, FaChevronDown } from "react-icons/fa";
-import { Search, X, LogOut, AlertCircle,ArrowLeft , ArrowRight } from "lucide-react";
+import { Search, X, LogOut, AlertCircle, ArrowLeft, ArrowRight } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -142,95 +142,112 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
 
   return (
     <>
-      <header
-        className="flex items-center justify-between px-6 py-3 shadow-sm relative z-20"
-        style={{
-          background: "linear-gradient(135deg, #42aeec 0%, #31a2d4 100%)"
-        }}
-      >
-        {/* LEFT: Sidebar toggle */}
+      <header className="flex items-center justify-between px-6 py-3 bg-main border-b border-theme text-primary relative z-20">
+
+        {/* LEFT */}
         <div className="flex items-center gap-4">
           <button
             onClick={onToggleSidebar}
-            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            className="header-btn"
           >
             <FaBars size={20} />
           </button>
+
           <button
             onClick={() => navigate(-1)}
-            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            className="header-btn"
             title="Previous"
           >
-            <ArrowLeft  size={22} />
+            <ArrowLeft size={22} />
           </button>
+
           <button
             onClick={() => navigate(1)}
-            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            className="header-btn"
             title="Next"
           >
             <ArrowRight size={22} />
           </button>
         </div>
 
-        {/* MIDDLE: Page Title */}
+        {/* MIDDLE */}
         <div className="flex items-center flex-1 justify-center gap-10 max-w-3xl">
-          <span className="text-white font-semibold text-lg tracking-wide">
-            {pageTitle || 'Accounts & Finance'}
+          <span className="text-primary font-semibold text-lg tracking-wide">
+            {pageTitle || "Accounts & Finance"}
           </span>
         </div>
 
-
-        {/* RIGHT: Search + Profile Dropdown */}
+        {/* RIGHT */}
         <div className="flex items-center gap-4">
-          {/* Search Button */}
+
+          {/* Search */}
           <button
             onClick={() => setIsSearchOpen(true)}
-            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            className="header-btn"
           >
             <Search size={20} />
           </button>
 
-          {/* Profile Dropdown */}
+          {/* Profile */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-secondary hover-accent hover:text-accent transition"
             >
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.08)] flex items-center justify-center">
                 <FaUser size={14} />
               </div>
-              <span className="hidden sm:block text-sm font-medium">
+
+              <span className="hidden sm:block text-sm font-medium text-primary">
                 {userInfo?.userData?.name?.split(" ")[0] || "User"}
               </span>
-              <FaChevronDown size={12} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+
+              <FaChevronDown
+                size={12}
+                className={`transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
+              />
             </button>
 
+            {/* DROPDOWN */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-50">
-                <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                  <p className="text-sm font-medium text-gray-900 truncate">{userInfo?.userData?.name || "User"}</p>
-                  <p className="text-xs text-gray-500 truncate">{userInfo?.userData?.email || "user@example.com"}</p>
+              <div className="absolute right-0 mt-2 w-48 bg-card border border-theme rounded-lg shadow-xl overflow-hidden z-50">
+
+                {/* User Info */}
+                <div className="px-4 py-3 border-b border-theme">
+                  <p className="text-sm font-medium text-primary truncate">
+                    {userInfo?.userData?.name || "User"}
+                  </p>
+                  <p className="text-xs text-secondary truncate">
+                    {userInfo?.userData?.email || "user@example.com"}
+                  </p>
                 </div>
+
+                {/* Actions */}
                 <div className="py-1">
+
                   <button
                     onClick={handleProfileClick}
-                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-secondary hover-accent hover:text-accent transition"
                   >
-                    <FaUser size={14} className="text-gray-400" />
+                    <FaUser size={14} />
                     Profile
                   </button>
-                  <div className="border-t border-gray-100 my-1"></div>
+
+                  <div className="border-t border-theme my-1"></div>
+
                   <button
                     onClick={handleLogoutClick}
-                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-[var(--accent-red)] hover:bg-[rgba(255,77,79,0.1)] transition"
                   >
                     <FaSignOutAlt size={14} />
                     Logout
                   </button>
+
                 </div>
               </div>
             )}
           </div>
+
         </div>
       </header>
 
