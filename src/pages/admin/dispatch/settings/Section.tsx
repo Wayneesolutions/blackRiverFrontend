@@ -5,7 +5,7 @@ export const Section: React.FC<{ title: string; children: React.ReactNode }> = (
 }) => {
     const [open, setOpen] = useState(true);
     return (
-        <div className="border border-gray-300 rounded-lg overflow-hidden">
+        <div className="border border-theme rounded-lg overflow-hidden">
             {/* Section Header */}
             <button
                 onClick={() => setOpen(!open)}

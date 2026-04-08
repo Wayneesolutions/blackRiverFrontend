@@ -420,7 +420,7 @@ const ComplianceInvoices = () => {
               <button
                 onClick={handleExport}
                 disabled={exporting}
-                className="flex items-center gap-2 px-4 py-2 bg-card text-[#0ea3d8] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
+                className="flex items-center gap-2 px-4 py-2 bg-card text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
               >
                 <Download className="w-4 h-4" />
                 {exporting ? "Exporting..." : "Export to Excel"}
@@ -557,7 +557,7 @@ const ComplianceInvoices = () => {
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
-              <table className="w-full divide-y divide-gray-200" style={{ minWidth: '1400px' }}>
+              <table className="w-full divide-y divide-theme" style={{ minWidth: '1400px' }}>
                 <thead className="bg-card">
                   <tr>
                     {[
@@ -584,7 +584,7 @@ const ComplianceInvoices = () => {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-theme">
                   {filteredInvoices.map((invoice) => (
                     <tr
                       key={invoice.id}
@@ -752,7 +752,7 @@ const ComplianceInvoices = () => {
                         setShowInvoiceDetails(false);
                         setTimeout(() => setSelectedInvoice(null), 300);
                       }}
-                      className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
+                      className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                     >
                       <X size={24} />
                     </button>
@@ -977,7 +977,7 @@ const ComplianceInvoices = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1 || loading}
-                  className="px-3 py-1.5 text-xs font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1.5 text-xs font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
@@ -987,7 +987,7 @@ const ComplianceInvoices = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages || loading}
-                  className="px-3 py-1.5 text-xs font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1.5 text-xs font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>

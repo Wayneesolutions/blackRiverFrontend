@@ -15,8 +15,8 @@ import { FLEET_COLORS } from "../colorUtils";
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
 const ACCENT_GRADIENT = FLEET_COLORS.gradient;
-const CUSTOM_GRADIENT = 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)';
-const CUSTOM_BLUE = '#0ea3d8';
+const CUSTOM_GRADIENT = 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)';
+const CUSTOM_BLUE = 'rgba(0,209,255,0.15)';
 
 const focusRingStyle = {
   "--tw-ring-color": ACCENT_PRIMARY
@@ -1135,7 +1135,7 @@ function VehicleDocument() {
             </div>
             <button
               onClick={() => setShowDocModal(false)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+              className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors flex-shrink-0"
               disabled={submitting}
             >
               <FaTimes className="text-secondary" size={20} />
@@ -1211,7 +1211,7 @@ function VehicleDocument() {
                 )}
               </label>
               <select
-                className="w-full border border-gray-300 rounded-lg p-3 bg-card focus:ring-2 focus:border-transparent transition-all"
+                className="w-full border border-theme rounded-lg p-3 bg-card focus:ring-2 focus:border-transparent transition-all"
                 style={focusRingStyle}
                 value={selectedAssetId || ""}
                 onChange={handleAssetSelectChange}
@@ -1296,7 +1296,7 @@ function VehicleDocument() {
               </label>
               <select
                 name="documentType"
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
+                className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
                 style={focusRingStyle}
                 value={formData.documentType}
                 onChange={handleInputChange}
@@ -1340,7 +1340,7 @@ function VehicleDocument() {
               <input
                 type="text"
                 name="documentNumber"
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
+                className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
                 style={focusRingStyle}
                 value={formData.documentNumber}
                 onChange={handleInputChange}
@@ -1370,7 +1370,7 @@ function VehicleDocument() {
                 <input
                   type="date"
                   name="issuedAt"
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
+                  className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
                   style={focusRingStyle}
                   value={formData.issuedAt}
                   onChange={handleInputChange}
@@ -1397,7 +1397,7 @@ function VehicleDocument() {
                 <input
                   type="date"
                   name="expiryDate"
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
+                  className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
                   style={focusRingStyle}
                   value={formData.expiryDate}
                   onChange={handleInputChange}
@@ -1426,7 +1426,7 @@ function VehicleDocument() {
               <div className="relative">
                 <input
                   type="file"
-                  className="w-full border border-gray-300 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#016ab2]/10 file:text-[#016ab2] hover:file:bg-[#016ab2]/20 transition-all"
+                  className="w-full border border-theme rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#016ab2]/10 file:text-[#016ab2] hover:file:bg-[#016ab2]/20 transition-all"
                   style={focusRingStyle}
                   onChange={handleFileChange}
                   onFocus={(e) => e.stopPropagation()}
@@ -1445,7 +1445,7 @@ function VehicleDocument() {
           <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl flex-shrink-0">
             <button
               type="button"
-              className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+              className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
               onClick={() => setShowDocModal(false)}
               disabled={submitting}
             >
@@ -1480,7 +1480,7 @@ function VehicleDocument() {
               setViewingFile(null);
               setSignedFileUrl(null);
             }}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
           >
             <FaTimes className="text-secondary" size={20} />
           </button>
@@ -1731,7 +1731,7 @@ function VehicleDocument() {
                       <p className="text-secondary">Loading file...</p>
                     </div>
                   ) : !signedFileUrl ? (
-                    <div className="flex flex-col items-center justify-center h-[60vh] bg-card rounded-lg border-2 border-dashed border-gray-300">
+                    <div className="flex flex-col items-center justify-center h-[60vh] bg-card rounded-lg border-2 border-dashed border-theme">
                       <FaFileAlt className="text-secondary mb-4" size={48} />
                       <p className="text-sm text-secondary mb-4">No file URL available.</p>
                       <button
@@ -1762,7 +1762,7 @@ function VehicleDocument() {
                       // Ensure we have a valid URL
                       if (!signedFileUrl) {
                         return (
-                          <div className="flex flex-col items-center justify-center h-[60vh] bg-card rounded-lg border-2 border-dashed border-gray-300">
+                          <div className="flex flex-col items-center justify-center h-[60vh] bg-card rounded-lg border-2 border-dashed border-theme">
                             <FaFileAlt className="text-secondary mb-4" size={48} />
                             <p className="text-sm text-secondary mb-4">No file URL available.</p>
                           </div>
@@ -1873,7 +1873,7 @@ function VehicleDocument() {
                       );
                     } else {
                       return (
-                        <div className="flex flex-col items-center justify-center h-[60vh] bg-card rounded-lg border-2 border-dashed border-gray-300">
+                        <div className="flex flex-col items-center justify-center h-[60vh] bg-card rounded-lg border-2 border-dashed border-theme">
                           <FaFileAlt className="text-secondary mb-4" size={48} />
                           <p className="text-sm text-secondary mb-4">This file type cannot be previewed in the browser.</p>
                           <button
@@ -1913,7 +1913,7 @@ function VehicleDocument() {
         <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl flex-shrink-0">
           <button
             type="button"
-            className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+            className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
             onClick={() => {
               setShowViewModal(false);
               setViewingFile(null);
@@ -1949,7 +1949,7 @@ function VehicleDocument() {
         <div className="bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
           <button
             type="button"
-            className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+            className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
             onClick={cancelDelete}
           >
             Cancel

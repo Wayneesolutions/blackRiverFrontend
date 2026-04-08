@@ -500,7 +500,7 @@ const InsuranceClaims: React.FC = () => {
 
   const getSortIcon = (field: string) => {
     if (sortField !== field) return <FaSort className="text-secondary" size={12} />;
-    return sortDirection === 'asc' ? <FaSortUp className="text-[#42aeec]" size={12} /> : <FaSortDown className="text-[#42aeec]" size={12} />;
+    return sortDirection === 'asc' ? <FaSortUp className="text-[var(--accent-blue)]" size={12} /> : <FaSortDown className="text-[var(--accent-blue)]" size={12} />;
   };
 
   // Sync scrollbars
@@ -545,14 +545,14 @@ const InsuranceClaims: React.FC = () => {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
-              <FaShieldAlt className="text-[#42aeec]" size={32} />
+              <FaShieldAlt className="text-[var(--accent-blue)]" size={32} />
               Insurance Claims
             </h1>
             <p className="text-secondary mt-2">Manage and track all insurance claims</p>
           </div>
           <button
             onClick={handleAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#0ea3d8] transition-colors font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-blue)] !text-white rounded-lg hover:bg-[rgba(0,209,255,0.15)] transition-colors font-medium"
           >
             <FaPlus size={16} />
             Add Claim
@@ -567,7 +567,7 @@ const InsuranceClaims: React.FC = () => {
                 <p className="text-sm text-secondary">Total Claims</p>
                 <p className="text-2xl font-bold text-primary">{claims.length}</p>
               </div>
-              <FaShieldAlt className="text-[#42aeec]" size={24} />
+              <FaShieldAlt className="text-[var(--accent-blue)]" size={24} />
             </div>
           </div>
           <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
@@ -616,14 +616,14 @@ const InsuranceClaims: React.FC = () => {
                   placeholder="Search by claim number, driver, vehicle, policy..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                  className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                 />
               </div>
             </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+              className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
@@ -636,7 +636,7 @@ const InsuranceClaims: React.FC = () => {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+              className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
             >
               <option value="all">All Types</option>
               <option value="accident">Accident</option>
@@ -652,7 +652,7 @@ const InsuranceClaims: React.FC = () => {
         <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
           {loading ? (
             <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#42aeec]"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-blue)]"></div>
             </div>
           ) : filteredClaims.length === 0 ? (
             <div className="text-center py-12 text-secondary">
@@ -668,7 +668,7 @@ const InsuranceClaims: React.FC = () => {
                   <thead className="bg-card border-b border-theme">
                     <tr>
                       <th
-                        className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-[rgba(255,255,255,0.03)]"
                         onClick={() => handleSort('claimNumber')}
                       >
                         <div className="flex items-center gap-2">
@@ -680,7 +680,7 @@ const InsuranceClaims: React.FC = () => {
                         Accident Number
                       </th>
                       <th
-                        className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-[rgba(255,255,255,0.03)]"
                         onClick={() => handleSort('incidentDate')}
                       >
                         <div className="flex items-center gap-2">
@@ -701,7 +701,7 @@ const InsuranceClaims: React.FC = () => {
                         Insurance Company
                       </th>
                       <th
-                        className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-[rgba(255,255,255,0.03)]"
                         onClick={() => handleSort('amount')}
                       >
                         <div className="flex items-center gap-2">
@@ -723,7 +723,7 @@ const InsuranceClaims: React.FC = () => {
               {/* Scrollable Body */}
               <div ref={bottomScrollRef} className="overflow-x-auto max-h-[600px] scrollbar-thin scrollbar-thumb-gray-300">
                 <table className="w-full min-w-[1200px]">
-                  <tbody className="bg-card divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-theme">
                     {filteredClaims.map((claim) => (
                       <tr key={claim._id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                         <td className="px-6 py-4">
@@ -848,7 +848,7 @@ const InsuranceClaims: React.FC = () => {
                     <button
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
-                      className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <FaChevronLeft size={16} />
                     </button>
@@ -858,7 +858,7 @@ const InsuranceClaims: React.FC = () => {
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
-                      className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <FaChevronRight size={16} />
                     </button>
@@ -899,7 +899,7 @@ const InsuranceClaims: React.FC = () => {
                     type="text"
                     value={claimForm.claimNumber || ''}
                     onChange={(e) => setClaimForm({ ...claimForm, claimNumber: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     placeholder="Auto-generated or enter manually"
                   />
                 </div>
@@ -911,7 +911,7 @@ const InsuranceClaims: React.FC = () => {
                     type="text"
                     value={claimForm.accidentNumber || ''}
                     onChange={(e) => setClaimForm({ ...claimForm, accidentNumber: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     placeholder="Enter accident number"
                   />
                 </div>
@@ -922,7 +922,7 @@ const InsuranceClaims: React.FC = () => {
                   <select
                     value={claimForm.claimType}
                     onChange={(e) => setClaimForm({ ...claimForm, claimType: e.target.value as any })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                   >
                     <option value="accident">Accident</option>
                     <option value="theft">Theft</option>
@@ -939,7 +939,7 @@ const InsuranceClaims: React.FC = () => {
                     type="date"
                     value={claimForm.incidentDate}
                     onChange={(e) => setClaimForm({ ...claimForm, incidentDate: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     required
                   />
                 </div>
@@ -951,7 +951,7 @@ const InsuranceClaims: React.FC = () => {
                     type="date"
                     value={claimForm.claimDate}
                     onChange={(e) => setClaimForm({ ...claimForm, claimDate: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     required
                   />
                 </div>
@@ -962,7 +962,7 @@ const InsuranceClaims: React.FC = () => {
                   <select
                     value={claimForm.status}
                     onChange={(e) => setClaimForm({ ...claimForm, status: e.target.value as any })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                   >
                     <option value="pending">Pending</option>
                     <option value="submitted">Submitted</option>
@@ -979,7 +979,7 @@ const InsuranceClaims: React.FC = () => {
                   <select
                     value={claimForm.driver}
                     onChange={(e) => setClaimForm({ ...claimForm, driver: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     required
                   >
                     <option value="">Select Driver</option>
@@ -997,7 +997,7 @@ const InsuranceClaims: React.FC = () => {
                   <select
                     value={claimForm.vehicle}
                     onChange={(e) => setClaimForm({ ...claimForm, vehicle: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     required
                   >
                     <option value="">Select Vehicle</option>
@@ -1016,7 +1016,7 @@ const InsuranceClaims: React.FC = () => {
                     type="text"
                     value={claimForm.insuranceCompany}
                     onChange={(e) => setClaimForm({ ...claimForm, insuranceCompany: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     placeholder="Insurance company name"
                     required
                   />
@@ -1029,7 +1029,7 @@ const InsuranceClaims: React.FC = () => {
                     type="text"
                     value={claimForm.policyNumber}
                     onChange={(e) => setClaimForm({ ...claimForm, policyNumber: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     placeholder="Policy number"
                     required
                   />
@@ -1044,7 +1044,7 @@ const InsuranceClaims: React.FC = () => {
                     min="0"
                     value={claimForm.amount}
                     onChange={(e) => setClaimForm({ ...claimForm, amount: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     placeholder="0.00"
                     required
                   />
@@ -1059,7 +1059,7 @@ const InsuranceClaims: React.FC = () => {
                     min="0"
                     value={claimForm.deductible}
                     onChange={(e) => setClaimForm({ ...claimForm, deductible: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     placeholder="0.00"
                   />
                 </div>
@@ -1071,7 +1071,7 @@ const InsuranceClaims: React.FC = () => {
                     type="text"
                     value={claimForm.adjusterName}
                     onChange={(e) => setClaimForm({ ...claimForm, adjusterName: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     placeholder="Adjuster name"
                   />
                 </div>
@@ -1083,7 +1083,7 @@ const InsuranceClaims: React.FC = () => {
                     type="text"
                     value={claimForm.adjusterContact}
                     onChange={(e) => setClaimForm({ ...claimForm, adjusterContact: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     placeholder="Phone or email"
                   />
                 </div>
@@ -1095,7 +1095,7 @@ const InsuranceClaims: React.FC = () => {
                     type="text"
                     value={claimForm.location}
                     onChange={(e) => setClaimForm({ ...claimForm, location: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     placeholder="Incident location"
                   />
                 </div>
@@ -1106,7 +1106,7 @@ const InsuranceClaims: React.FC = () => {
                   <textarea
                     value={claimForm.description}
                     onChange={(e) => setClaimForm({ ...claimForm, description: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     rows={4}
                     placeholder="Describe the incident and claim details..."
                     required
@@ -1119,7 +1119,7 @@ const InsuranceClaims: React.FC = () => {
                   <textarea
                     value={claimForm.notes}
                     onChange={(e) => setClaimForm({ ...claimForm, notes: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     rows={3}
                     placeholder="Additional notes..."
                   />
@@ -1133,14 +1133,14 @@ const InsuranceClaims: React.FC = () => {
                     setShowEditModal(false);
                     setSelectedClaim(null);
                   }}
-                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                  className="px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#0ea3d8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-[var(--accent-blue)] !text-white rounded-lg hover:bg-[rgba(0,209,255,0.15)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Saving...' : (showEditModal ? 'Update' : 'Create')} Claim
                 </button>
@@ -1266,7 +1266,7 @@ const InsuranceClaims: React.FC = () => {
                     setShowViewModal(false);
                     setSelectedClaim(null);
                   }}
-                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                  className="px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Close
                 </button>
@@ -1275,7 +1275,7 @@ const InsuranceClaims: React.FC = () => {
                     setShowViewModal(false);
                     handleEdit(selectedClaim);
                   }}
-                  className="px-6 py-2 bg-[#42aeec] text-white rounded-lg hover:bg-[#0ea3d8] transition-colors"
+                  className="px-6 py-2 bg-[var(--accent-blue)] text-white rounded-lg hover:bg-[rgba(0,209,255,0.15)] transition-colors"
                 >
                   Edit Claim
                 </button>
@@ -1308,7 +1308,7 @@ const InsuranceClaims: React.FC = () => {
                     setShowDeleteModal(false);
                     setClaimToDelete(null);
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                  className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Cancel
                 </button>

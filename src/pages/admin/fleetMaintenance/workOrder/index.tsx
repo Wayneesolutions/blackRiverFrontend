@@ -619,7 +619,7 @@ function WorkOrdersPage() {
                             placeholder="Search by issue, vehicle, or plate number..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 pr-4 py-2.5 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                            className="pl-10 pr-4 py-2.5 w-full border border-theme rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                         />
                     </div>
                     <div className="relative">
@@ -627,7 +627,7 @@ function WorkOrdersPage() {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent appearance-none bg-card transition-all"
+                            className="pl-10 pr-8 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent appearance-none bg-card transition-all"
                         >
                             <option value="all">All Status</option>
                             <option value="open">Open</option>
@@ -684,7 +684,7 @@ function WorkOrdersPage() {
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="divide-y divide-theme">
                                 {filteredWorkOrders.map((order) => (
                                     <tr key={order._id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                                         <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-primary">
@@ -795,7 +795,7 @@ function WorkOrdersPage() {
                                 <h2 className="text-xl font-bold text-primary">Create Work Order</h2>
                                 <button
                                     onClick={() => setShowCreateModal(false)}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                                     disabled={submitting}
                                 >
                                     <FaTimes className="text-secondary" size={20} />
@@ -812,7 +812,7 @@ function WorkOrdersPage() {
                                     <select
                                         defaultValue={createFormRef.current.vehicleId}
                                         onChange={(e) => createFormRef.current.vehicleId = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         required
                                     >
                                         <option value="">Select Vehicle</option>
@@ -832,7 +832,7 @@ function WorkOrdersPage() {
                                         type="text"
                                         defaultValue={createFormRef.current.issue}
                                         onChange={(e) => createFormRef.current.issue = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., Oil Change, Brake Inspection"
                                         required
                                     />
@@ -846,7 +846,7 @@ function WorkOrdersPage() {
                                         defaultValue={createFormRef.current.description}
                                         onChange={(e) => createFormRef.current.description = e.target.value}
                                         rows={3}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="Detailed description of the issue..."
                                     />
                                 </div>
@@ -859,7 +859,7 @@ function WorkOrdersPage() {
                                         type="text"
                                         defaultValue={createFormRef.current.unitNumber}
                                         onChange={(e) => createFormRef.current.unitNumber = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., 1001, 1002"
                                     />
                                 </div>
@@ -872,7 +872,7 @@ function WorkOrdersPage() {
                                         type="date"
                                         defaultValue={createFormRef.current.completionDate}
                                         onChange={(e) => createFormRef.current.completionDate = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     />
                                 </div>
 
@@ -884,7 +884,7 @@ function WorkOrdersPage() {
                                         type="number"
                                         defaultValue={createFormRef.current.odometerReading}
                                         onChange={(e) => createFormRef.current.odometerReading = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., 150000"
                                         min="0"
                                         step="1"
@@ -899,7 +899,7 @@ function WorkOrdersPage() {
                                         type="text"
                                         defaultValue={createFormRef.current.partsUsed}
                                         onChange={(e) => createFormRef.current.partsUsed = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., Oil Filter, Brake Pads, Air Filter"
                                     />
                                     <p className="text-xs text-secondary mt-1">Parts will be updated in Spare Parts Inventory</p>
@@ -908,7 +908,7 @@ function WorkOrdersPage() {
                                 <div>
                                     <label className="block text-sm font-semibold text-primary mb-2">Assigned Mechanic</label>
                                     {/* Toggle */}
-                                    <div className="flex rounded-lg border border-gray-300 overflow-hidden mb-3 w-fit">
+                                    <div className="flex rounded-lg border border-theme overflow-hidden mb-3 w-fit">
                                         <button
                                             type="button"
                                             onClick={() => setCreateMechanicType('internal')}
@@ -919,7 +919,7 @@ function WorkOrdersPage() {
                                         <button
                                             type="button"
                                             onClick={() => setCreateMechanicType('external')}
-                                            className={`px-4 py-2 text-sm font-medium border-l border-gray-300 transition-colors ${createMechanicType === 'external' ? 'bg-[#9793E4] !text-white' : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
+                                            className={`px-4 py-2 text-sm font-medium border-l border-theme transition-colors ${createMechanicType === 'external' ? 'bg-[#9793E4] !text-white' : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
                                         >
                                             External Mechanic
                                         </button>
@@ -929,7 +929,7 @@ function WorkOrdersPage() {
                                         <select
                                             defaultValue={createFormRef.current.assignedMechanic}
                                             onChange={(e) => createFormRef.current.assignedMechanic = e.target.value}
-                                            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                            className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                             disabled={loadingMechanics}
                                         >
                                             <option value="">{loadingMechanics ? 'Loading mechanics...' : 'Select Mechanic'}</option>
@@ -947,7 +947,7 @@ function WorkOrdersPage() {
                                                     type="text"
                                                     defaultValue={createFormRef.current.externalMechanicName}
                                                     onChange={(e) => createFormRef.current.externalMechanicName = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="Mechanic / Shop name"
                                                 />
                                             </div>
@@ -957,7 +957,7 @@ function WorkOrdersPage() {
                                                     type="text"
                                                     defaultValue={createFormRef.current.externalMechanicCompany}
                                                     onChange={(e) => createFormRef.current.externalMechanicCompany = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="Company / Shop"
                                                 />
                                             </div>
@@ -967,7 +967,7 @@ function WorkOrdersPage() {
                                                     type="tel"
                                                     defaultValue={createFormRef.current.externalMechanicPhone}
                                                     onChange={(e) => createFormRef.current.externalMechanicPhone = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="+1 (555) 000-0000"
                                                 />
                                             </div>
@@ -977,7 +977,7 @@ function WorkOrdersPage() {
                                                     type="email"
                                                     defaultValue={createFormRef.current.externalMechanicEmail}
                                                     onChange={(e) => createFormRef.current.externalMechanicEmail = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="email@shop.com"
                                                 />
                                             </div>
@@ -993,7 +993,7 @@ function WorkOrdersPage() {
                                         type="text"
                                         defaultValue={createFormRef.current.invoiceReference}
                                         onChange={(e) => createFormRef.current.invoiceReference = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., INV-2024-001"
                                     />
                                 </div>
@@ -1007,7 +1007,7 @@ function WorkOrdersPage() {
                                         step="0.01"
                                         defaultValue={createFormRef.current.estimatedCost}
                                         onChange={(e) => createFormRef.current.estimatedCost = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="0.00"
                                     />
                                 </div>
@@ -1021,7 +1021,7 @@ function WorkOrdersPage() {
                                         placeholder="e.g., 2 hours, 1 day"
                                         defaultValue={createFormRef.current.estimatedTime}
                                         onChange={(e) => createFormRef.current.estimatedTime = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     />
                                 </div>
 
@@ -1029,7 +1029,7 @@ function WorkOrdersPage() {
                                     <button
                                         type="button"
                                         onClick={() => setShowCreateModal(false)}
-                                        className="flex-1 bg-card border border-gray-300 text-primary py-2.5 px-4 rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+                                        className="flex-1 bg-card border border-theme text-primary py-2.5 px-4 rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                                         disabled={submitting}
                                     >
                                         Cancel
@@ -1057,7 +1057,7 @@ function WorkOrdersPage() {
                                 <h2 className="text-xl font-bold text-primary">Update Work Order</h2>
                                 <button
                                     onClick={() => setShowUpdateModal(false)}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                                     disabled={submitting}
                                 >
                                     <FaTimes className="text-secondary" size={20} />
@@ -1071,7 +1071,7 @@ function WorkOrdersPage() {
                                     <label className="block text-sm font-semibold text-primary mb-2">Vehicle</label>
                                     <select
                                         value={selectedWorkOrder?.vehicleId?._id || ''}
-                                        className="w-full border border-gray-300 rounded-lg p-3 bg-card cursor-not-allowed"
+                                        className="w-full border border-theme rounded-lg p-3 bg-card cursor-not-allowed"
                                         disabled
                                     >
                                         <option value={selectedWorkOrder?.vehicleId?._id}>
@@ -1086,7 +1086,7 @@ function WorkOrdersPage() {
                                     <input
                                         type="text"
                                         value={selectedWorkOrder?.issue || ''}
-                                        className="w-full border border-gray-300 rounded-lg p-3 bg-card cursor-not-allowed"
+                                        className="w-full border border-theme rounded-lg p-3 bg-card cursor-not-allowed"
                                         disabled
                                     />
                                     <p className="text-xs text-secondary mt-1">Issue cannot be changed after creation</p>
@@ -1097,7 +1097,7 @@ function WorkOrdersPage() {
                                     <select
                                         defaultValue={updateFormRef.current.status}
                                         onChange={(e) => updateFormRef.current.status = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     >
                                         <option value="">Keep current status</option>
                                         <option value="open">Open</option>
@@ -1112,14 +1112,14 @@ function WorkOrdersPage() {
                                         defaultValue={updateFormRef.current.description}
                                         onChange={(e) => updateFormRef.current.description = e.target.value}
                                         rows={3}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-semibold text-primary mb-2">Assigned Mechanic</label>
                                     {/* Toggle */}
-                                    <div className="flex rounded-lg border border-gray-300 overflow-hidden mb-3 w-fit">
+                                    <div className="flex rounded-lg border border-theme overflow-hidden mb-3 w-fit">
                                         <button
                                             type="button"
                                             onClick={() => setUpdateMechanicType('internal')}
@@ -1130,7 +1130,7 @@ function WorkOrdersPage() {
                                         <button
                                             type="button"
                                             onClick={() => setUpdateMechanicType('external')}
-                                            className={`px-4 py-2 text-sm font-medium border-l border-gray-300 transition-colors ${updateMechanicType === 'external' ? 'bg-[#9793E4] !text-white' : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
+                                            className={`px-4 py-2 text-sm font-medium border-l border-theme transition-colors ${updateMechanicType === 'external' ? 'bg-[#9793E4] !text-white' : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
                                         >
                                             External Mechanic
                                         </button>
@@ -1140,7 +1140,7 @@ function WorkOrdersPage() {
                                         <select
                                             defaultValue={updateFormRef.current.assignedMechanic}
                                             onChange={(e) => updateFormRef.current.assignedMechanic = e.target.value}
-                                            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                            className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                             disabled={loadingMechanics}
                                         >
                                             <option value="">Keep current mechanic</option>
@@ -1158,7 +1158,7 @@ function WorkOrdersPage() {
                                                     type="text"
                                                     defaultValue={updateFormRef.current.externalMechanicName}
                                                     onChange={(e) => updateFormRef.current.externalMechanicName = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="Mechanic / Shop name"
                                                 />
                                             </div>
@@ -1168,7 +1168,7 @@ function WorkOrdersPage() {
                                                     type="text"
                                                     defaultValue={updateFormRef.current.externalMechanicCompany}
                                                     onChange={(e) => updateFormRef.current.externalMechanicCompany = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="Company / Shop"
                                                 />
                                             </div>
@@ -1178,7 +1178,7 @@ function WorkOrdersPage() {
                                                     type="tel"
                                                     defaultValue={updateFormRef.current.externalMechanicPhone}
                                                     onChange={(e) => updateFormRef.current.externalMechanicPhone = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="+1 (555) 000-0000"
                                                 />
                                             </div>
@@ -1188,7 +1188,7 @@ function WorkOrdersPage() {
                                                     type="email"
                                                     defaultValue={updateFormRef.current.externalMechanicEmail}
                                                     onChange={(e) => updateFormRef.current.externalMechanicEmail = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="email@shop.com"
                                                 />
                                             </div>
@@ -1203,7 +1203,7 @@ function WorkOrdersPage() {
                                         step="0.01"
                                         defaultValue={updateFormRef.current.estimatedCost}
                                         onChange={(e) => updateFormRef.current.estimatedCost = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     />
                                 </div>
 
@@ -1213,7 +1213,7 @@ function WorkOrdersPage() {
                                         type="text"
                                         defaultValue={updateFormRef.current.estimatedTime}
                                         onChange={(e) => updateFormRef.current.estimatedTime = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     />
                                 </div>
 
@@ -1223,7 +1223,7 @@ function WorkOrdersPage() {
                                         type="text"
                                         defaultValue={updateFormRef.current.unitNumber}
                                         onChange={(e) => updateFormRef.current.unitNumber = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., 1001, 1002"
                                     />
                                 </div>
@@ -1234,7 +1234,7 @@ function WorkOrdersPage() {
                                         type="date"
                                         defaultValue={updateFormRef.current.completionDate}
                                         onChange={(e) => updateFormRef.current.completionDate = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     />
                                 </div>
 
@@ -1244,7 +1244,7 @@ function WorkOrdersPage() {
                                         type="number"
                                         defaultValue={updateFormRef.current.odometerReading}
                                         onChange={(e) => updateFormRef.current.odometerReading = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., 150000"
                                         min="0"
                                         step="1"
@@ -1257,7 +1257,7 @@ function WorkOrdersPage() {
                                         type="text"
                                         defaultValue={updateFormRef.current.partsUsed}
                                         onChange={(e) => updateFormRef.current.partsUsed = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., Oil Filter, Brake Pads, Air Filter"
                                     />
                                 </div>
@@ -1268,7 +1268,7 @@ function WorkOrdersPage() {
                                         type="text"
                                         defaultValue={updateFormRef.current.serviceProvider}
                                         onChange={(e) => updateFormRef.current.serviceProvider = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., ABC Auto Shop, Internal Shop"
                                     />
                                 </div>
@@ -1279,7 +1279,7 @@ function WorkOrdersPage() {
                                         type="text"
                                         defaultValue={updateFormRef.current.invoiceReference}
                                         onChange={(e) => updateFormRef.current.invoiceReference = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., INV-2024-001"
                                     />
                                 </div>
@@ -1291,7 +1291,7 @@ function WorkOrdersPage() {
                                         onChange={(e) => updateFormRef.current.repairUpdate = e.target.value}
                                         placeholder="Add a note about the repair progress..."
                                         rows={2}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     />
                                 </div>
 
@@ -1299,7 +1299,7 @@ function WorkOrdersPage() {
                                     <button
                                         type="button"
                                         onClick={() => setShowUpdateModal(false)}
-                                        className="flex-1 bg-card border border-gray-300 text-primary py-2.5 px-4 rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+                                        className="flex-1 bg-card border border-theme text-primary py-2.5 px-4 rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                                         disabled={submitting}
                                     >
                                         Cancel
@@ -1327,7 +1327,7 @@ function WorkOrdersPage() {
                                 <h2 className="text-xl font-bold text-primary">Work Order Details</h2>
                                 <button
                                     onClick={() => setShowDetailsModal(false)}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                                 >
                                     <FaTimes className="text-secondary" size={20} />
                                 </button>
@@ -1501,7 +1501,7 @@ function WorkOrdersPage() {
                                 <div className="flex justify-end pt-2">
                                     <button
                                         onClick={() => setShowDetailsModal(false)}
-                                        className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+                                        className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                                     >
                                         Close
                                     </button>
@@ -1532,7 +1532,7 @@ function WorkOrdersPage() {
                         <div className="bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
                             <button
                                 type="button"
-                                className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+                                className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                                 onClick={cancelDelete}
                             >
                                 Cancel

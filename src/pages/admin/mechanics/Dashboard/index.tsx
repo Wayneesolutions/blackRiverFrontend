@@ -96,7 +96,7 @@ const Dashboard: React.FC = () => {
     return (
       <div className="p-6 min-h-screen bg-main">
         <div className="flex items-center justify-center py-16">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#42aeec]" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--accent-blue)]" />
         </div>
       </div>
     );
@@ -118,7 +118,7 @@ const Dashboard: React.FC = () => {
         <div className="relative">
           <button
             onClick={() => setMonthDropdownOpen(!monthDropdownOpen)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] hover:border-gray-400 transition"
+            className="flex items-center gap-2 px-4 py-2.5 bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] hover:border-gray-400 transition"
           >
             <Calendar className="text-secondary" size={18} />
             <span className="text-sm font-medium text-primary">
@@ -141,7 +141,7 @@ const Dashboard: React.FC = () => {
                       setMonthDropdownOpen(false);
                     }}
                     className={`w-full px-4 py-2 text-left text-sm hover:bg-[rgba(255,255,255,0.03)] ${
-                      selectedMonth === i ? "bg-[#42aeec]/10 text-[#42aeec] font-medium" : "text-primary"
+                      selectedMonth === i ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] font-medium" : "text-primary"
                     }`}
                   >
                     {MONTHS[i]} {selectedYear}
@@ -155,9 +155,9 @@ const Dashboard: React.FC = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="p-4 rounded-lg border-2 border-theme bg-card hover:border-[#42aeec]/40 transition">
+        <div className="p-4 rounded-lg border-2 border-theme bg-card hover:border-[var(--accent-blue)]/40 transition">
           <div className="flex items-center gap-2">
-            <LayoutGrid className="text-[#42aeec]" size={20} />
+            <LayoutGrid className="text-[var(--accent-blue)]" size={20} />
             <span className="text-sm font-medium text-secondary">Total Orders</span>
           </div>
           <p className="text-2xl font-bold text-primary mt-1">{stats.total}</p>
@@ -182,9 +182,9 @@ const Dashboard: React.FC = () => {
           <p className="text-xs text-secondary mt-0.5">This month</p>
         </div>
 
-        <div className="p-4 rounded-lg border-2 border-theme bg-card hover:border-[#42aeec]/40 transition">
+        <div className="p-4 rounded-lg border-2 border-theme bg-card hover:border-[var(--accent-blue)]/40 transition">
           <div className="flex items-center gap-2">
-            <TrendingUp className="text-[#42aeec]" size={20} />
+            <TrendingUp className="text-[var(--accent-blue)]" size={20} />
             <span className="text-sm font-medium text-secondary">Completion Rate</span>
           </div>
           <p className="text-2xl font-bold text-primary mt-1">{stats.completionRate}%</p>
@@ -196,7 +196,7 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="p-5 rounded-lg border border-theme bg-card">
           <h2 className="text-sm font-bold text-primary mb-4 flex items-center gap-2">
-            <Wrench className="text-[#42aeec]" size={18} />
+            <Wrench className="text-[var(--accent-blue)]" size={18} />
             {userRole === "Maintenance Crew (Mechanics)" ? "My Workload" : "Workload Overview"}
           </h2>
           <div className="grid grid-cols-3 gap-4">
@@ -217,7 +217,7 @@ const Dashboard: React.FC = () => {
 
         <div className="p-5 rounded-lg border border-theme bg-card">
           <h2 className="text-sm font-bold text-primary mb-4 flex items-center gap-2">
-            <DollarSign className="text-[#42aeec]" size={18} />
+            <DollarSign className="text-[var(--accent-blue)]" size={18} />
             Repair Summary
           </h2>
           <div className="grid grid-cols-2 gap-4">
@@ -235,17 +235,17 @@ const Dashboard: React.FC = () => {
 
       {/* Recent Orders */}
       <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
-        <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[#42aeec]/5 to-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-sm font-bold text-primary flex items-center gap-2">
-              <Package className="text-[#42aeec]" size={18} />
+              <Package className="text-[var(--accent-blue)]" size={18} />
               Recent Orders
             </h2>
             <p className="text-xs text-secondary mt-0.5">Last 5 orders</p>
           </div>
           <button
             onClick={() => navigate(`${basePath}/orders`)}
-            className="flex items-center gap-2 text-sm font-medium text-[#42aeec] hover:text-[#3598c4] transition"
+            className="flex items-center gap-2 text-sm font-medium text-[var(--accent-blue)] hover:text-[#3598c4] transition"
           >
             View all orders
             <ArrowRight size={16} />
@@ -262,7 +262,7 @@ const Dashboard: React.FC = () => {
                 <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {recentOrders.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-secondary">
@@ -294,7 +294,7 @@ const Dashboard: React.FC = () => {
                         e.stopPropagation();
                         navigate(`${basePath}/orders`);
                       }}
-                      className="text-sm font-medium text-[#42aeec] hover:text-[#3598c4]"
+                      className="text-sm font-medium text-[var(--accent-blue)] hover:text-[#3598c4]"
                     >
                       View
                     </button>

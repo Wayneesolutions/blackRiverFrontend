@@ -51,7 +51,7 @@ import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
 const ACCENT_DARK = FLEET_COLORS.dark;
-const ACCENT_GRADIENT = 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)';
+const ACCENT_GRADIENT = 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)';
 const ACCENT_VARS = {
   '--accent-color': ACCENT_PRIMARY,
   '--accent-dark': ACCENT_DARK
@@ -1239,14 +1239,14 @@ const EmployeesPage = () => {
                   placeholder="Search by name, ID, role, or department..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent bg-card focus:bg-card transition-colors"
+                  className="w-full pl-12 pr-4 py-3 border border-theme rounded-xl focus:outline-none focus:ring-2 focus:border-transparent bg-card focus:bg-card transition-colors"
                   style={focusRingStyle}
                 />
               </div>
               <div className="relative">
                 <button
                   onClick={() => setShowFilterPanel(!showFilterPanel)}
-                  className="px-5 py-3 border border-gray-300 rounded-xl hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 bg-card transition-all"
+                  className="px-5 py-3 border border-theme rounded-xl hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 bg-card transition-all"
                   style={
                     showFilterPanel
                       ? { backgroundColor: "rgba(66, 174, 236, 0.1)", borderColor: ACCENT_PRIMARY, boxShadow: `0 0 0 3px rgba(66, 174, 236, 0.1)` }
@@ -1296,7 +1296,7 @@ const EmployeesPage = () => {
                           <select
                             value={selectedStatus}
                             onChange={(e) => setSelectedStatus(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm"
                             style={focusRingStyle}
                           >
                             <option value="">All Status</option>
@@ -1312,7 +1312,7 @@ const EmployeesPage = () => {
                               setShowFilterPanel(false);
                               setCurrentPage(1); // Reset to first page when clearing filters
                             }}
-                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-primary"
+                            className="flex-1 px-3 py-2 text-sm border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-primary"
                           >
                             Clear Status Filter
                           </button>
@@ -1396,7 +1396,7 @@ const EmployeesPage = () => {
                 overflowX: 'auto'
               }}
             >
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-theme">
                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-theme">
                   <tr>
                     <th className="px-4 py-2.5 text-left text-xs font-bold text-primary uppercase tracking-wider">User</th>
@@ -1580,7 +1580,7 @@ const EmployeesPage = () => {
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1 || loading}
-                    className="px-4 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                    className="px-4 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
                   >
                     <ChevronLeft className="w-4 h-4" />
                     Previous
@@ -1606,7 +1606,7 @@ const EmployeesPage = () => {
                           className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                             currentPage === pageNum
                               ? 'bg-blue-600 text-white'
-                              : 'bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                              : 'bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]'
                           } disabled:opacity-50 disabled:cursor-not-allowed`}
                           style={
                             currentPage === pageNum
@@ -1622,7 +1622,7 @@ const EmployeesPage = () => {
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages || loading}
-                    className="px-4 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                    className="px-4 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
                   >
                     Next
                     <ChevronRight className="w-4 h-4" />
@@ -1679,7 +1679,7 @@ const EmployeesPage = () => {
                     <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-[#00D1FF]' : 'text-secondary'}`}>
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 1
                         ? 'border-blue-600 bg-card'
-                        : 'border-gray-300 bg-card'
+                        : 'border-theme bg-card'
                         }`}>
                         {currentStep > 1 ? <CheckCircle size={16} className="text-[#00D1FF]" /> : '1'}
                       </div>
@@ -1694,7 +1694,7 @@ const EmployeesPage = () => {
                     <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-[#00D1FF]' : 'text-secondary'}`}>
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 2
                         ? 'border-blue-600 bg-card'
-                        : 'border-gray-300 bg-card'
+                        : 'border-theme bg-card'
                         }`}>
                         2
                       </div>
@@ -1717,7 +1717,7 @@ const EmployeesPage = () => {
                     }
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentStep === 1
                       ? '!text-white shadow-sm'
-                      : 'bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                      : 'bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]'
                       }`}
                   >
                     Information
@@ -1734,7 +1734,7 @@ const EmployeesPage = () => {
                     }
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentStep === 2
                       ? '!text-white shadow-sm'
-                      : 'bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                      : 'bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]'
                       }`}
                   >
                     Documents ({employeeDocuments.length})
@@ -1763,7 +1763,7 @@ const EmployeesPage = () => {
                   </div>
 
                   {employeeDocuments.length === 0 ? (
-                    <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                    <div className="text-center py-8 border-2 border-dashed border-theme rounded-lg">
                       <FileText className="w-12 h-12 text-secondary mx-auto mb-3" />
                       <p className="text-secondary mb-2">No documents added yet</p>
                       <p className="text-sm text-secondary mb-4">Click "Add Document" to upload employee documents</p>
@@ -1802,7 +1802,7 @@ const EmployeesPage = () => {
                               <select
                                 value={doc.documentType}
                                 onChange={(e) => updateDocument(index, 'documentType', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                               >
                                 <option value="">Select Document Type</option>
                                 {EMPLOYEE_DOCUMENT_TYPES.map((type) => (
@@ -1819,7 +1819,7 @@ const EmployeesPage = () => {
                                   value={doc.documentNumber}
                                   onChange={(e) => updateDocument(index, 'documentNumber', e.target.value)}
                                   placeholder="e.g., DOC-123456"
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                               </div>
                               <div>
@@ -1827,7 +1827,7 @@ const EmployeesPage = () => {
                                 <select
                                   value={doc.status}
                                   onChange={(e) => updateDocument(index, 'status', e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                   <option value="valid">Valid</option>
                                   <option value="pending">Pending</option>
@@ -1844,7 +1844,7 @@ const EmployeesPage = () => {
                                   type="date"
                                   value={doc.issueDate}
                                   onChange={(e) => updateDocument(index, 'issueDate', e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                               </div>
                               <div>
@@ -1853,7 +1853,7 @@ const EmployeesPage = () => {
                                   type="date"
                                   value={doc.expiryDate}
                                   onChange={(e) => updateDocument(index, 'expiryDate', e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                               </div>
                             </div>
@@ -1865,7 +1865,7 @@ const EmployeesPage = () => {
                                 onChange={(e) => updateDocument(index, 'description', e.target.value)}
                                 rows={2}
                                 placeholder="Enter document description or notes..."
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                               />
                             </div>
 
@@ -1877,7 +1877,7 @@ const EmployeesPage = () => {
                                 type="file"
                                 multiple
                                 onChange={(e) => handleDocumentFileChange(index, e.target.files)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
                               />
                               {doc.file && (
@@ -1918,7 +1918,7 @@ const EmployeesPage = () => {
                           value={formData.name}
                           onChange={handleInputChange}
                           placeholder="Enter full name"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
 
@@ -1930,7 +1930,7 @@ const EmployeesPage = () => {
                           name="role"
                           value={formData.role}
                           onChange={handleRoleChange}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                           <option value="">Select role</option>
                           <optgroup label="Employee Roles">
@@ -1956,7 +1956,7 @@ const EmployeesPage = () => {
                           onChange={handleInputChange}
                           required={rolesWithLoginAccess.includes(formData.role)}
                           placeholder="EMP-001"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                         {!rolesWithLoginAccess.includes(formData.role) && (
                           <p className="text-xs text-secondary mt-1">Not required for this role</p>
@@ -1973,7 +1973,7 @@ const EmployeesPage = () => {
                           value={formData.country}
                           onChange={handleInputChange}
                           placeholder="United States"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
 
@@ -1986,7 +1986,7 @@ const EmployeesPage = () => {
                           name="joinDate"
                           value={formData.joinDate}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
 
@@ -2003,7 +2003,7 @@ const EmployeesPage = () => {
                               onChange={handleInputChange}
                               required={!editingEmployee && rolesWithLoginAccess.includes(formData.role)}
                               placeholder={editingEmployee ? "Leave empty to keep current password" : rolesWithLoginAccess.includes(formData.role) ? "Leave empty for default password" : "Not required for this role"}
-                              className="w-full px-4 py-2.5 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-4 py-2.5 pr-12 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                             <button
                               type="button"
@@ -2042,7 +2042,7 @@ const EmployeesPage = () => {
                           value={formData.email}
                           onChange={handleInputChange}
                           placeholder="employee@company.com"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
 
@@ -2056,7 +2056,7 @@ const EmployeesPage = () => {
                           value={formData.phone}
                           onChange={handleInputChange}
                           placeholder="+1 234-567-8900"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
 
@@ -2070,7 +2070,7 @@ const EmployeesPage = () => {
                           value={formData.state}
                           onChange={handleInputChange}
                           placeholder="California"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
 
@@ -2084,7 +2084,7 @@ const EmployeesPage = () => {
                           value={formData.city}
                           onChange={handleInputChange}
                           placeholder="Los Angeles"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
 
@@ -2098,7 +2098,7 @@ const EmployeesPage = () => {
                           onChange={handleInputChange}
                           placeholder="Enter complete address"
                           rows={2}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                          className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                         />
                       </div>
                     </div>
@@ -2120,7 +2120,7 @@ const EmployeesPage = () => {
                           onChange={handleInputChange}
                           placeholder="Enter company policies or additional notes"
                           rows={3}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                          className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                         />
                       </div>
                     </div>
@@ -2135,7 +2135,7 @@ const EmployeesPage = () => {
                 <>
                   <button
                     onClick={() => setCurrentStep(1)}
-                    className="flex-1 bg-card border border-gray-300 hover:bg-[rgba(255,255,255,0.03)] text-primary px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
+                    className="flex-1 bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)] text-primary px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
                   >
                     <ChevronLeft size={18} />
                     Back
@@ -2157,7 +2157,7 @@ const EmployeesPage = () => {
                       setShowAddModal(false);
                       resetForm();
                     }}
-                    className="px-6 py-2.5 border border-gray-300 !mr-2 text-primary rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                    className="px-6 py-2.5 border border-theme !mr-2 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                   >
                     Cancel
                   </button>
@@ -2186,7 +2186,7 @@ const EmployeesPage = () => {
                         <>
                           <button
                             onClick={() => setCurrentStep(1)}
-                            className="px-6 py-2.5 border border-gray-300 !mr-2 text-primary rounded-lg hover:bg-gray-100 transition-colors font-medium flex items-center gap-2"
+                            className="px-6 py-2.5 border border-theme !mr-2 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium flex items-center gap-2"
                           >
                             <ChevronLeft size={18} />
                             Back
@@ -2302,7 +2302,7 @@ const EmployeesPage = () => {
                   <span>Documents ({selectedEmployeeDetails.documents?.length || 0})</span>
                 </h3>
                 {!selectedEmployeeDetails.documents || selectedEmployeeDetails.documents.length === 0 ? (
-                  <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                  <div className="text-center py-8 border-2 border-dashed border-theme rounded-lg">
                     <FileText className="w-12 h-12 text-secondary mx-auto mb-3" />
                     <p className="text-secondary">No documents uploaded for this employee</p>
                   </div>
@@ -2320,7 +2320,7 @@ const EmployeesPage = () => {
                           <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
+                      <tbody className="divide-y divide-theme">
                         {selectedEmployeeDetails.documents.map((doc: EmployeeDocument, index: number) => (
                           <tr key={doc._id || index} className="hover:bg-[rgba(255,255,255,0.03)]">
                             <td className="px-4 py-2.5">
@@ -2446,7 +2446,7 @@ const EmployeesPage = () => {
                   setShowEmployeeDetails(false);
                   setSelectedEmployeeDetails(null);
                 }}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                className="px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
               >
                 Close
               </button>

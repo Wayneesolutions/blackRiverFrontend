@@ -70,7 +70,7 @@ const ManifestSidebar: React.FC<ManifestSidebarProps> = ({
         {/* Portal label */}
         {!isCollapsed && (
           <div className="px-4 pt-4 pb-1">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#42aeec]">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--accent-blue)]">
               Manifest Portal
             </span>
           </div>
@@ -89,8 +89,8 @@ const ManifestSidebar: React.FC<ManifestSidebarProps> = ({
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-2.5 transition-colors cursor-pointer select-none ${
                       isActive
-                        ? "bg-[#42aeec]/10 text-[#42aeec] border-r-2 border-[#42aeec]"
-                        : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[#42aeec]"
+                        ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] border-r-2 border-[var(--accent-blue)]"
+                        : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[var(--accent-blue)]"
                     }`
                   }
                 >

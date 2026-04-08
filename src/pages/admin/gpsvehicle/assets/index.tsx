@@ -199,11 +199,11 @@ const VehicleManagementTable = () => {
                 {/* Table */}
                 <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
+                        <table className="min-w-full divide-y divide-theme">
                             <thead className="bg-card">
                                 <tr>
                                     <th className="px-4 py-3 text-left">
-                                        <input type="checkbox" className="rounded border-gray-300" />
+                                        <input type="checkbox" className="rounded border-theme" />
                                     </th>
                                     <SortableHeader column="name">Name</SortableHeader>
                                     <SortableHeader column="vin">VIN</SortableHeader>
@@ -218,11 +218,11 @@ const VehicleManagementTable = () => {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-theme">
                                 {filteredAndSortedVehicles.map((vehicle) => (
                                     <tr key={vehicle.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                                         <td className="px-4 py-4">
-                                            <input type="checkbox" className="rounded border-gray-300" />
+                                            <input type="checkbox" className="rounded border-theme" />
                                         </td>
                                         <td className="px-4 py-4">
                                             <div className="flex items-center">
@@ -293,11 +293,11 @@ const VehicleManagementTable = () => {
                             <span className="font-medium">{vehicles.length}</span> results
                         </div>
                         <div className="flex items-center space-x-2">
-                            <button className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50">
+                            <button className="px-3 py-1 text-sm border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50">
                                 Previous
                             </button>
                             <button className="px-3 py-1 text-sm bg-blue-600 !text-white rounded-md">1</button>
-                            <button className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50">
+                            <button className="px-3 py-1 text-sm border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50">
                                 Next
                             </button>
                         </div>

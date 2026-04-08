@@ -1294,7 +1294,7 @@ const OrderList = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-gray-200">
+            <tbody className="bg-card divide-y divide-theme">
               {loading ? (
                 <tr>
                   <td colSpan={25} className="px-6 py-12 text-center text-secondary">
@@ -1646,7 +1646,7 @@ const OrderList = () => {
                   setShowDocumentsModal(false);
                   setSelectedOrderForDocuments(null);
                 }}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-secondary" />
               </button>
@@ -1927,7 +1927,7 @@ const OrderList = () => {
                     setShowOrderDetails(false);
                     setTimeout(() => setSelectedOrder(null), 300);
                   }}
-                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
+                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                 >
                   <X size={24} />
                 </button>

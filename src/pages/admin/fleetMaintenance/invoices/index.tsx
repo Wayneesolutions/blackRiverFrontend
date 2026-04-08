@@ -1532,7 +1532,7 @@ const FleetInvoicesPage = () => {
                   <p className="text-sm font-semibold text-primary">Email Sent Successfully</p>
                   <button
                     onClick={() => setEmailToast(null)}
-                    className="flex-shrink-0 p-1 rounded-full hover:bg-gray-100 text-secondary transition-colors"
+                    className="flex-shrink-0 p-1 rounded-full hover:bg-[rgba(255,255,255,0.03)] text-secondary transition-colors"
                   >
                     <FaTimes size={11} />
                   </button>
@@ -1578,7 +1578,7 @@ const FleetInvoicesPage = () => {
             <button
               type="button"
               onClick={() => { setUploadFile(null); setUploadError(null); setUploadModalOpen(true); }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:border-blue-400 hover:text-[#00D1FF] font-medium shadow-sm transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-card border border-theme text-primary rounded-lg hover:border-blue-400 hover:text-[#00D1FF] font-medium shadow-sm transition-colors"
             >
               <FaUpload size={13} /> Upload Invoice
             </button>
@@ -1821,7 +1821,7 @@ const FleetInvoicesPage = () => {
                               type="button"
                               onClick={() => handleDownloadInvoicePDF(row._id)}
                               disabled={printingPdfId === row._id}
-                              className="p-2 text-secondary hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                              className="p-2 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors disabled:opacity-50"
                               title={printingPdfId === row._id ? 'Generating PDF…' : 'Download PDF'}
                             >
                               <FaPrint size={14} />
@@ -1845,7 +1845,7 @@ const FleetInvoicesPage = () => {
           <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-card shadow-xl z-50 flex flex-col">
             <div className="flex-shrink-0 px-8 py-5 border-b border-theme flex items-center justify-between bg-card">
               <h2 className="text-xl font-semibold text-primary">{editingInvoiceId ? 'Edit Invoice' : 'New Invoice'}</h2>
-              <button type="button" onClick={() => setSidebarOpen(false)} className="p-2 text-secondary hover:bg-gray-100 rounded-lg transition-colors" aria-label="Close">
+              <button type="button" onClick={() => setSidebarOpen(false)} className="p-2 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors" aria-label="Close">
                 <FaTimes size={20} />
               </button>
             </div>
@@ -1906,7 +1906,7 @@ const FleetInvoicesPage = () => {
                       <select
                         value={customerId}
                         onChange={(e) => handleCustomerChange(e.target.value)}
-                        className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-primary ${extractedVendorName && !customerId ? 'border-amber-400 bg-amber-50' : 'border-gray-300'}`}
+                        className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-primary ${extractedVendorName && !customerId ? 'border-amber-400 bg-amber-50' : 'border-theme'}`}
                       >
                         <option value="">{extractedVendorName ? `— Using: ${extractedVendorName} —` : 'Select client...'}</option>
                         {customers.map((c) => (
@@ -1955,7 +1955,7 @@ const FleetInvoicesPage = () => {
                                 placeholder="e.g. Acme Corp"
                                 value={newCustomerName}
                                 onChange={(e) => setNewCustomerName(e.target.value)}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                                className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
                               />
                             </div>
                             <div className="grid grid-cols-2 gap-2">
@@ -1966,7 +1966,7 @@ const FleetInvoicesPage = () => {
                                   placeholder="email@example.com"
                                   value={newCustomerEmail}
                                   onChange={(e) => setNewCustomerEmail(e.target.value)}
-                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                                  className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
                                 />
                               </div>
                               <div>
@@ -1976,7 +1976,7 @@ const FleetInvoicesPage = () => {
                                   placeholder="+1 (555) 000-0000"
                                   value={newCustomerPhone}
                                   onChange={(e) => setNewCustomerPhone(e.target.value)}
-                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                                  className="w-full px-3 py-2 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
                                 />
                               </div>
                             </div>
@@ -1991,7 +1991,7 @@ const FleetInvoicesPage = () => {
                             <button
                               type="button"
                               onClick={() => { setShowAddCustomer(false); setAddCustomerError(null); setNewCustomerName(''); setNewCustomerEmail(''); setNewCustomerPhone(''); }}
-                              className="px-3 py-1.5 text-xs font-medium text-secondary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                              className="px-3 py-1.5 text-xs font-medium text-secondary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                             >
                               Cancel
                             </button>
@@ -2018,7 +2018,7 @@ const FleetInvoicesPage = () => {
                         type="email"
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="e.g. Accounting@blackriverlogistics.com"
                       />
                     </div>
@@ -2029,7 +2029,7 @@ const FleetInvoicesPage = () => {
                       value={billingAddress}
                       onChange={(e) => setBillingAddress(e.target.value)}
                       rows={2}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                      className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                       placeholder="From customer profile"
                     />
                   </div>
@@ -2039,7 +2039,7 @@ const FleetInvoicesPage = () => {
                       <select
                         value={terms}
                         onChange={(e) => handleTermsChange(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="">Payment window...</option>
                         {TERMS_OPTIONS.map((o) => (
@@ -2053,7 +2053,7 @@ const FleetInvoicesPage = () => {
                         type="date"
                         value={invoiceDate}
                         onChange={(e) => handleInvoiceDateChange(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
                     <div>
@@ -2072,7 +2072,7 @@ const FleetInvoicesPage = () => {
                         type="text"
                         value={invoiceNo}
                         onChange={(e) => setInvoiceNo(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="e.g. RTTR777"
                       />
                     </div>
@@ -2093,7 +2093,7 @@ const FleetInvoicesPage = () => {
                             type="date"
                             value={item.serviceDate}
                             onChange={(e) => updateLineItem(item.id, { serviceDate: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                           />
                         </div>
                       <div>
@@ -2160,7 +2160,7 @@ const FleetInvoicesPage = () => {
                               }
                             }
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                         >
                           <option value="">Select...</option>
                           {productOptions.map((opt) => (
@@ -2178,7 +2178,7 @@ const FleetInvoicesPage = () => {
                           value={item.description}
                           onChange={(e) => updateLineItem(item.id, { description: e.target.value })}
                           rows={2}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm resize-none"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm resize-none"
                           placeholder="e.g. Checked lights, brakes, steering..."
                         />
                       </div>
@@ -2190,7 +2190,7 @@ const FleetInvoicesPage = () => {
                             min={1}
                             value={item.qty}
                             onChange={(e) => updateLineItem(item.id, { qty: Number(e.target.value) || 1 })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                           />
                         </div>
                         <div>
@@ -2201,7 +2201,7 @@ const FleetInvoicesPage = () => {
                             step={0.01}
                             value={item.rate || ''}
                             onChange={(e) => updateLineItem(item.id, { rate: Number(e.target.value) || 0 })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                             placeholder="0"
                           />
                         </div>
@@ -2218,7 +2218,7 @@ const FleetInvoicesPage = () => {
                               if (v === '__add__') setAddingTaxForLineId(item.id);
                               else updateLineItem(item.id, { salesTax: v });
                             }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                           >
                             {allTaxes.map((t) => (
                               <option key={t.id} value={t.id}>{t.name} ({t.percent}%)</option>
@@ -2254,7 +2254,7 @@ const FleetInvoicesPage = () => {
                           value={newTaxName}
                           onChange={(e) => setNewTaxName(e.target.value)}
                           placeholder="e.g. VAT"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div className="w-24">
@@ -2266,7 +2266,7 @@ const FleetInvoicesPage = () => {
                           step={0.01}
                           value={newTaxPercent}
                           onChange={(e) => setNewTaxPercent(Number(e.target.value) || 0)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <button
@@ -2279,7 +2279,7 @@ const FleetInvoicesPage = () => {
                       <button
                         type="button"
                         onClick={() => { setAddingTaxForLineId(null); setNewTaxName(''); setNewTaxPercent(5); }}
-                        className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                        className="px-4 py-2 border border-theme text-sm font-medium rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                       >
                         Cancel
                       </button>
@@ -2322,7 +2322,7 @@ const FleetInvoicesPage = () => {
                       step="0.5"
                       value={labourHours || ''}
                       onChange={(e) => setLabourHours(Number(e.target.value) || 0)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="0.0"
                     />
                   </div>
@@ -2336,7 +2336,7 @@ const FleetInvoicesPage = () => {
                       step="0.01"
                       value={labourRate || ''}
                       onChange={(e) => setLabourRate(Number(e.target.value) || 0)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="0.00"
                     />
                   </div>
@@ -2345,7 +2345,7 @@ const FleetInvoicesPage = () => {
                     <select
                       value={labourTax}
                       onChange={(e) => setLabourTax(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       {allTaxes.map((tax) => (
                         <option key={tax.id} value={tax.id}>
@@ -2385,7 +2385,7 @@ const FleetInvoicesPage = () => {
                       value={messageOnInvoice}
                       onChange={(e) => setMessageOnInvoice(e.target.value)}
                       rows={3}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                      className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                       placeholder="e.g. UNIT, VIN NO, CURRENT KM/HOURS"
                     />
                   </div>
@@ -2437,7 +2437,7 @@ const FleetInvoicesPage = () => {
                   setSidebarOpen(false);
                   resetForm();
                 }} 
-                className="px-5 py-2.5 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                className="px-5 py-2.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 Cancel
               </button>
@@ -2466,7 +2466,7 @@ const FleetInvoicesPage = () => {
               </div>
               <button
                 onClick={() => { setUploadModalOpen(false); setUploadFile(null); setUploadError(null); }}
-                className="p-1.5 hover:bg-gray-100 rounded-lg text-secondary"
+                className="p-1.5 hover:bg-[rgba(255,255,255,0.03)] rounded-lg text-secondary"
               >
                 <FaTimes size={16} />
               </button>

@@ -122,7 +122,7 @@ const SlidePanel = ({ trailer: t, onClose }: { trailer: TrailerData; onClose: ()
       >
         <div
           className="flex items-center justify-between px-5 py-4 flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, #42aeec 0%, #0ea3d8 100%)" }}
+          style={{ background: "linear-gradient(135deg, var(--accent-blue) 0%, rgba(0,209,255,0.15) 100%)" }}
         >
           <div>
             <div className="flex items-center gap-2">
@@ -216,14 +216,14 @@ const TrailersPage = () => {
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-xl font-bold text-primary flex items-center gap-2">
-            <Package size={20} className="text-[#42aeec]" /> Trailers
+            <Package size={20} className="text-[var(--accent-blue)]" /> Trailers
           </h1>
           <p className="text-sm text-secondary mt-0.5">{trailers.length} trailers in fleet</p>
         </div>
         <button
           onClick={async () => { setExporting(true); try { await exportToExcel(trailers); } finally { setExporting(false); } }}
           disabled={exporting || !trailers.length}
-          className="flex items-center gap-2 px-4 py-2 bg-[#42aeec] hover:bg-[#1db5f5] disabled:opacity-50 !text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] disabled:opacity-50 !text-white text-sm font-medium rounded-lg transition-colors"
         >
           {exporting ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />} Export 
         </button>
@@ -234,16 +234,16 @@ const TrailersPage = () => {
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
           <input type="text" placeholder="Search unit, plate, VIN…" value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-8 pr-3 py-2 text-sm border border-theme rounded-lg outline-none focus:border-[#42aeec] focus:ring-1 focus:ring-[#42aeec]/20" />
+            className="w-full pl-8 pr-3 py-2 text-sm border border-theme rounded-lg outline-none focus:border-[var(--accent-blue)] focus:ring-1 focus:ring-[var(--accent-blue)]/20" />
         </div>
         <div className="flex items-center gap-2">
           <Filter size={14} className="text-secondary" />
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-sm border border-theme rounded-lg px-3 py-2 outline-none focus:border-[#42aeec] bg-card">
+            className="text-sm border border-theme rounded-lg px-3 py-2 outline-none focus:border-[var(--accent-blue)] bg-card">
             {statusOptions.map((s) => <option key={s} value={s}>{s || "All Statuses"}</option>)}
           </select>
         </div>
-        <button onClick={load} className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-secondary hover:text-[#42aeec] border border-theme">
+        <button onClick={load} className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-secondary hover:text-[var(--accent-blue)] border border-theme">
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
         </button>
       </div>
@@ -256,7 +256,7 @@ const TrailersPage = () => {
 
       {loading ? (
         <div className="flex items-center justify-center py-24">
-          <div className="w-10 h-10 border-2 border-[#42aeec] border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-2 border-[var(--accent-blue)] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : trailers.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-3 text-secondary">
@@ -275,9 +275,9 @@ const TrailersPage = () => {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {trailers.map((t) => (
-                  <tr key={t._id} onClick={() => setSelected(t)} className="hover:bg-[#42aeec]/5 cursor-pointer group transition-colors">
+                  <tr key={t._id} onClick={() => setSelected(t)} className="hover:bg-[var(--accent-blue)]/5 cursor-pointer group transition-colors">
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="text-sm font-semibold text-[#42aeec]">{t.unitNumber || t.trailer || "—"}</span>
+                      <span className="text-sm font-semibold text-[var(--accent-blue)]">{t.unitNumber || t.trailer || "—"}</span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-primary">{t.plateNumber || "—"}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
@@ -294,7 +294,7 @@ const TrailersPage = () => {
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary">{fmt(t.safetyExpiryDate)}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-right pr-4">
-                      <ChevronRight size={15} className="text-gray-300 group-hover:text-[#42aeec] transition-colors inline-block" />
+                      <ChevronRight size={15} className="text-gray-300 group-hover:text-[var(--accent-blue)] transition-colors inline-block" />
                     </td>
                   </tr>
                 ))}

@@ -274,7 +274,7 @@ const Issues: React.FC = () => {
             </div>
             <button
               onClick={() => setShowNewIssueSidebar(true)}
-              style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+              style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
               className="flex items-center gap-2 !text-white px-4 py-2 rounded-lg transition-colors shadow-sm hover:shadow-md"
             >
               <MdAdd className="text-xl" />
@@ -293,7 +293,7 @@ const Issues: React.FC = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <button
@@ -404,7 +404,7 @@ const Issues: React.FC = () => {
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
-              <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: '1000px' }}>
+              <table className="min-w-full divide-y divide-theme" style={{ minWidth: '1000px' }}>
                 <thead className="bg-card">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
@@ -427,7 +427,7 @@ const Issues: React.FC = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {loading ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-4 text-center text-secondary">
@@ -534,14 +534,14 @@ const Issues: React.FC = () => {
                   <button
                     onClick={() => fetchIssues(pagination.current - 1)}
                     disabled={pagination.current === 1}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
+                    className="relative inline-flex items-center px-4 py-2 border border-theme text-sm font-medium rounded-md text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => fetchIssues(pagination.current + 1)}
                     disabled={pagination.current === pagination.pages}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-theme text-sm font-medium rounded-md text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
                   >
                     Next
                   </button>
@@ -565,7 +565,7 @@ const Issues: React.FC = () => {
                       <button
                         onClick={() => fetchIssues(pagination.current - 1)}
                         disabled={pagination.current === 1}
-                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-card text-sm font-medium text-secondary hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
+                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-theme bg-card text-sm font-medium text-secondary hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
                       >
                         Previous
                       </button>
@@ -575,7 +575,7 @@ const Issues: React.FC = () => {
                           onClick={() => fetchIssues(page)}
                           className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${page === pagination.current
                             ? 'z-10 bg-card border-blue-500 text-[#00D1FF]'
-                            : 'bg-card border-gray-300 text-secondary hover:bg-[rgba(255,255,255,0.03)]'
+                            : 'bg-card border-theme text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                             }`}
                         >
                           {page}
@@ -584,7 +584,7 @@ const Issues: React.FC = () => {
                       <button
                         onClick={() => fetchIssues(pagination.current + 1)}
                         disabled={pagination.current === pagination.pages}
-                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-card text-sm font-medium text-secondary hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
+                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-theme bg-card text-sm font-medium text-secondary hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
                       >
                         Next
                       </button>
@@ -650,7 +650,7 @@ const Issues: React.FC = () => {
                     setShowIssueDetails(false);
                     setTimeout(() => setSelectedIssue(null), 300);
                   }}
-                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
+                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                 >
                   <MdClose size={24} />
                 </button>

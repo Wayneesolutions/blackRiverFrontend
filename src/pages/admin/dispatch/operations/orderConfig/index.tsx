@@ -17,7 +17,7 @@ const TabButton: React.FC<TabButtonProps> = ({ label, icon: Icon, isActive, onCl
         className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors
       ${isActive
                 ? "bg-blue-100 text-blue-700 border border-blue-200"
-                : "text-secondary hover:text-primary hover:bg-gray-100"
+                : "text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)]"
             }`}
     >
         <Icon className="w-4 h-4" />
@@ -62,7 +62,7 @@ const OrdersConfiguration = () => {
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-primary">Orders Configuration</h1>
                     <div className="flex items-center space-x-3">
-                        <select className="px-3 py-2 border !mr-2 border-gray-300 rounded-md text-sm bg-card">
+                        <select className="px-3 py-2 border !mr-2 border-theme rounded-md text-sm bg-card">
                             <option>Transport</option>
                             <option>Pickup</option>
                             <option>Delivery</option>
@@ -125,7 +125,7 @@ const OrdersConfiguration = () => {
                                         <input
                                             type="text"
                                             value={configData.name}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-card"
+                                            className="w-full px-3 py-2 border border-theme rounded-md bg-card"
 
                                         />
                                     </div>
@@ -134,7 +134,7 @@ const OrdersConfiguration = () => {
                                         <input
                                             type="text"
                                             value={configData.key}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-card"
+                                            className="w-full px-3 py-2 border border-theme rounded-md bg-card"
 
                                         />
                                     </div>
@@ -143,7 +143,7 @@ const OrdersConfiguration = () => {
                                         <textarea
                                             value={configData.description}
                                             rows={3}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-card"
+                                            className="w-full px-3 py-2 border border-theme rounded-md bg-card"
 
                                         />
                                     </div>
@@ -165,7 +165,7 @@ const OrdersConfiguration = () => {
                                         <input
                                             type="text"
                                             value={configData.version}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-card"
+                                            className="w-full px-3 py-2 border border-theme rounded-md bg-card"
 
                                         />
                                     </div>
@@ -174,7 +174,7 @@ const OrdersConfiguration = () => {
                                         <input
                                             type="text"
                                             value={configData.namespace}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-card"
+                                            className="w-full px-3 py-2 border border-theme rounded-md bg-card"
 
                                         />
                                     </div>
@@ -252,7 +252,7 @@ const OrdersConfiguration = () => {
                                     value={configName}
                                     onChange={(e) => setConfigName(e.target.value)}
                                     placeholder="Config Name"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
 
@@ -265,7 +265,7 @@ const OrdersConfiguration = () => {
                                     onChange={(e) => setConfigDescription(e.target.value)}
                                     placeholder="Config Description"
                                     rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
 
@@ -278,7 +278,7 @@ const OrdersConfiguration = () => {
                                     value={configTags}
                                     onChange={(e) => setConfigTags(e.target.value)}
                                     placeholder="Add tags"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                             </div>
                         </div>

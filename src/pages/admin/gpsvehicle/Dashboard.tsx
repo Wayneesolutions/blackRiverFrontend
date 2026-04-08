@@ -235,7 +235,7 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen flex items-center justify-center" >
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-[#42aeec] mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 animate-spin text-[var(--accent-blue)] mx-auto mb-4" />
           <p className="text-secondary">Loading dashboard...</p>
         </div>
       </div>
@@ -250,7 +250,7 @@ const Dashboard = () => {
         <div
           className="absolute inset-x-0 top-0"
           style={{
-            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+            background: `linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)`,
             height: '101px'
           }}
           aria-hidden="true"
@@ -273,7 +273,7 @@ const Dashboard = () => {
             {/* Deliveries Today */}
             <div
               onClick={scrollToDeliveries}
-              className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+              className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
@@ -292,7 +292,7 @@ const Dashboard = () => {
             {/* Pickups Today */}
             <div
               onClick={scrollToPickups}
-              className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+              className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
@@ -345,7 +345,7 @@ const Dashboard = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {deliveriesLoading ? (
                     <tr>
                       <td colSpan={8} className="px-4 py-8 text-center">
@@ -454,7 +454,7 @@ const Dashboard = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {pickupsLoading ? (
                     <tr>
                       <td colSpan={8} className="px-4 py-8 text-center">

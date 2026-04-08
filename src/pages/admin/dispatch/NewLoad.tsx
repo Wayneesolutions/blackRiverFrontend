@@ -316,7 +316,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                 <h2 className="text-lg font-semibold text-primary">New Load</h2>
                 <button
                     onClick={onClose}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                 >
                     <X className="w-5 h-5 text-secondary" />
                 </button>
@@ -337,7 +337,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                 <div className="relative">
                                     <div
                                         onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
-                                        className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+                                        className="flex items-center gap-1 p-2 border border-theme rounded bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
                                     >
                                         <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${customerDropdownOpen ? 'rotate-180' : ''}`} />
                                         <input
@@ -360,7 +360,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                         setSelectedCustomer(null);
                                                         setCustomerSearch("");
                                                     }}
-                                                    className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                    className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                                                 >
                                                     <X className="w-4 h-4 text-secondary" />
                                                 </button>
@@ -369,7 +369,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                         e.stopPropagation();
                                                         // Edit functionality
                                                     }}
-                                                    className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                    className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                                                 >
                                                     <Pencil className="w-4 h-4 text-secondary" />
                                                 </button>
@@ -379,7 +379,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     </div>
                                     
                                     {customerDropdownOpen && (
-                                        <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                        <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                                             <div className="p-2 border-b border-theme">
                                                 <div className="relative">
                                                     <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -388,7 +388,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                         value={customerSearch}
                                                         onChange={(e) => setCustomerSearch(e.target.value)}
                                                         placeholder="Search..."
-                                                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                        className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                                         autoFocus
                                                     />
                                                 </div>
@@ -428,14 +428,14 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     type="text"
                                     value={customerOrderNo}
                                     onChange={(e) => setCustomerOrderNo(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                                    className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
                                 />
                             </div>
 
                             {/* Load Type Toggle */}
                             <div>
                                 <label className="block text-xs font-medium text-primary mb-1">Load Type</label>
-                                <div className="flex border border-gray-300 rounded overflow-hidden">
+                                <div className="flex border border-theme rounded overflow-hidden">
                                     <button
                                         onClick={() => setLoadType("FTL")}
                                         className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
@@ -462,7 +462,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                             {/* Freight on Toggle */}
                             <div>
                                 <label className="block text-xs font-medium text-primary mb-1">Freight on</label>
-                                <div className="flex border border-gray-300 rounded overflow-hidden">
+                                <div className="flex border border-theme rounded overflow-hidden">
                                     <button
                                         onClick={() => setFreightOn("Order")}
                                         className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
@@ -493,7 +493,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     <select
                                         value={selectedSalesman}
                                         onChange={(e) => setSelectedSalesman(e.target.value)}
-                                        className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                                        className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
                                     >
                                         <option value="">Select</option>
                                         <option value="john">John Doe</option>
@@ -510,7 +510,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                 rows={2}
                                 value={orderNotes}
                                 onChange={(e) => setOrderNotes(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
                             />
                         </div>
                         
@@ -538,7 +538,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     type="text"
                                     value={commodity}
                                     onChange={(e) => setCommodity(e.target.value)}
-                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                    className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                     placeholder="Enter commodity"
                                 />
                             </div>
@@ -554,12 +554,12 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                         value={valueOfGoods}
                                         onChange={(e) => setValueOfGoods(e.target.value)}
                                         placeholder="Enter value"
-                                        className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                        className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                     />
                                     <select
                                         value={valueOfGoodsCurrency}
                                         onChange={(e) => setValueOfGoodsCurrency(e.target.value)}
-                                        className="w-48 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-card"
+                                        className="w-48 p-2 border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-card"
                                     >
                                         <option value="">Select</option>
                                         {currencyOptions.map(currency => (
@@ -578,7 +578,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     <div className="flex gap-2">
                                         <div
                                             onClick={() => setEquipmentDropdownOpen(!equipmentDropdownOpen)}
-                                            className="flex-1 p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500 flex items-center justify-between"
+                                            className="flex-1 p-2 border border-theme rounded bg-card cursor-pointer hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500 flex items-center justify-between"
                                         >
                                             <span className="text-sm text-secondary">
                                                 {selectedEquipment.length > 0 
@@ -597,7 +597,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     </div>
                                     
                                     {equipmentDropdownOpen && (
-                                        <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                                        <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-y-auto">
                                             {equipmentTypes.map((equipment) => (
                                                 <label
                                                     key={equipment}
@@ -628,12 +628,12 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                         value={noOfPackages}
                                         onChange={(e) => setNoOfPackages(e.target.value)}
                                         placeholder="Enter number"
-                                        className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                        className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                     />
                                     <div className="relative w-48">
                                         <div
                                             onClick={() => setNoOfPackagesDropdownOpen(!noOfPackagesDropdownOpen)}
-                                            className="flex items-center justify-between p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500"
+                                            className="flex items-center justify-between p-2 border border-theme rounded bg-card cursor-pointer hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500"
                                         >
                                             <span className="text-sm text-secondary truncate">
                                                 {noOfPackagesType || "Select"}
@@ -644,7 +644,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                         e.stopPropagation();
                                                         setNoOfPackagesType("");
                                                     }}
-                                                    className="p-0.5 hover:bg-gray-100 rounded mr-1 flex-shrink-0"
+                                                    className="p-0.5 hover:bg-[rgba(255,255,255,0.03)] rounded mr-1 flex-shrink-0"
                                                 >
                                                     <X className="w-3 h-3 text-secondary" />
                                                 </button>
@@ -653,7 +653,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                         </div>
                                         
                                         {noOfPackagesDropdownOpen && (
-                                            <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                            <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                                                 <div className="p-2 border-b border-theme">
                                                     <div className="relative">
                                                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -662,7 +662,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                             value={noOfPackagesSearch}
                                                             onChange={(e) => setNoOfPackagesSearch(e.target.value)}
                                                             placeholder="Searching..."
-                                                            className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                             autoFocus
                                                         />
                                                     </div>
@@ -699,12 +699,12 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                         value={weight}
                                         onChange={(e) => setWeight(e.target.value)}
                                         placeholder="Enter weight"
-                                        className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                        className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                     />
                                     <select
                                         value={weightUnit}
                                         onChange={(e) => setWeightUnit(e.target.value)}
-                                        className="w-24 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-card"
+                                        className="w-24 p-2 border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-card"
                                     >
                                         <option value="">Unit</option>
                                         {weightUnits.map(unit => (
@@ -725,12 +725,12 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                         value={temperature}
                                         onChange={(e) => setTemperature(e.target.value)}
                                         placeholder="Enter temperature"
-                                        className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                        className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                     />
                                     <select
                                         value={temperatureUnit}
                                         onChange={(e) => setTemperatureUnit(e.target.value)}
-                                        className="w-32 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-card"
+                                        className="w-32 p-2 border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-card"
                                     >
                                         <option value="Celsius">Celsius</option>
                                         <option value="Fahrenheit">Fahrenheit</option>
@@ -748,7 +748,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     value={dimensionL}
                                     onChange={(e) => setDimensionL(e.target.value)}
                                     placeholder="L"
-                                    className="w-20 p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                                    className="w-20 p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
                                 />
                                 <span className="text-secondary text-sm">×</span>
                                 <input
@@ -756,7 +756,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     value={dimensionB}
                                     onChange={(e) => setDimensionB(e.target.value)}
                                     placeholder="B"
-                                    className="w-20 p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                                    className="w-20 p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
                                 />
                                 <span className="text-secondary text-sm">×</span>
                                 <input
@@ -764,12 +764,12 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     value={dimensionH}
                                     onChange={(e) => setDimensionH(e.target.value)}
                                     placeholder="H"
-                                    className="w-20 p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                                    className="w-20 p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
                                 />
                                 <select
                                     value={dimensionUnit}
                                     onChange={(e) => setDimensionUnit(e.target.value)}
-                                    className="p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm min-w-[100px]"
+                                    className="p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm min-w-[100px]"
                                 >
                                     <option value="">Select</option>
                                     {dimensionUnits.map(unit => (
@@ -800,7 +800,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                         <div className="relative">
                                             <div
                                                 onClick={() => setPickupDropdownOpen(!pickupDropdownOpen)}
-                                                className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+                                                className="flex items-center gap-1 p-2 border border-theme rounded bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
                                             >
                                                 <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${pickupDropdownOpen ? 'rotate-180' : ''}`} />
                                                 <input
@@ -823,7 +823,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                                 setSelectedPickupPlace(null);
                                                                 setPickupSearch("");
                                                             }}
-                                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                            className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                                                         >
                                                             <X className="w-4 h-4 text-secondary" />
                                                         </button>
@@ -832,7 +832,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                             </div>
                                             
                                             {pickupDropdownOpen && (
-                                                <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                                                     <div className="p-2 border-b border-theme">
                                                         <div className="relative">
                                                             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -841,7 +841,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                                 value={pickupSearch}
                                                                 onChange={(e) => setPickupSearch(e.target.value)}
                                                                 placeholder="Search places..."
-                                                                className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                                className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                                                 autoFocus
                                                             />
                                                         </div>
@@ -879,7 +879,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                             placeholder="Ref No"
                                             value={pickupRefNo}
                                             onChange={(e) => setPickupRefNo(e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
+                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                         />
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
@@ -889,7 +889,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                 type="date"
                                                 value={pickupDate}
                                                 onChange={(e) => setPickupDate(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
+                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                             />
                                         </div>
                                         <div>
@@ -898,7 +898,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                 type="time"
                                                 value={pickupTime}
                                                 onChange={(e) => setPickupTime(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
+                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                             />
                                         </div>
                                     </div>
@@ -935,7 +935,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                             rows={3}
                                             value={pickupNote}
                                             onChange={(e) => setPickupNote(e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
+                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                         />
                                     </div>
                                 </div>
@@ -956,7 +956,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                         <div className="relative">
                                             <div
                                                 onClick={() => setDeliveryDropdownOpen(!deliveryDropdownOpen)}
-                                                className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+                                                className="flex items-center gap-1 p-2 border border-theme rounded bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
                                             >
                                                 <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${deliveryDropdownOpen ? 'rotate-180' : ''}`} />
                                                 <input
@@ -979,7 +979,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                                 setSelectedDeliveryPlace(null);
                                                                 setDeliverySearch("");
                                                             }}
-                                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                            className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                                                         >
                                                             <X className="w-4 h-4 text-secondary" />
                                                         </button>
@@ -988,7 +988,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                             </div>
                                             
                                             {deliveryDropdownOpen && (
-                                                <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                                                     <div className="p-2 border-b border-theme">
                                                         <div className="relative">
                                                             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -997,7 +997,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                                 value={deliverySearch}
                                                                 onChange={(e) => setDeliverySearch(e.target.value)}
                                                                 placeholder="Search places..."
-                                                                className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                                className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                                                 autoFocus
                                                             />
                                                         </div>
@@ -1035,7 +1035,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                             placeholder="Ref No"
                                             value={deliveryRefNo}
                                             onChange={(e) => setDeliveryRefNo(e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
+                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                         />
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
@@ -1045,7 +1045,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                 type="date"
                                                 value={deliveryDate}
                                                 onChange={(e) => setDeliveryDate(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
+                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                             />
                                         </div>
                                         <div>
@@ -1054,7 +1054,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                 type="time"
                                                 value={deliveryTime}
                                                 onChange={(e) => setDeliveryTime(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
+                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                             />
                                         </div>
                                     </div>
@@ -1091,7 +1091,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                             rows={3}
                                             value={deliveryNote}
                                             onChange={(e) => setDeliveryNote(e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
+                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                         />
                                     </div>
                                 </div>
@@ -1108,7 +1108,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                         placeholder="Distance"
                                         value={distance}
                                         onChange={(e) => setDistance(e.target.value)}
-                                        className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                                        className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
                                     />
                                     <button className="px-4 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 flex-shrink-0">
                                         Calculate

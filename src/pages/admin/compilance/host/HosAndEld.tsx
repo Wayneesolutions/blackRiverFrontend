@@ -762,7 +762,7 @@ const VehicleEldMonitor = () => {
                                       onClick={handleSyncHOS}
                                       disabled={syncing}
                                       style={{
-                                          background: syncing ? '#9CA3AF' : 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                          background: syncing ? '#9CA3AF' : 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                                       }}
                                       className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
                                       <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} /> 
@@ -770,7 +770,7 @@ const VehicleEldMonitor = () => {
                                   </button>
                                   <button 
                                      style={{
-                                      background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                      background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                                     }}
                                   className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                                       <Download size={16} /> Export HOS Report
@@ -958,7 +958,7 @@ const VehicleEldMonitor = () => {
                                       <button
                                           type="button"
                                           onClick={() => setViewLogModalOpen(false)}
-                                          className="px-4 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                                          className="px-4 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                                       >
                                           Close
                                       </button>
@@ -995,7 +995,7 @@ const VehicleEldMonitor = () => {
                                               driverIdDisplay: selectedDriver ? (selectedDriver.internalId || selectedDriver._id) : ''
                                           });
                                       }}
-                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                       required
                                   >
                                       <option value="">Select a driver</option>
@@ -1014,7 +1014,7 @@ const VehicleEldMonitor = () => {
                                       type="text"
                                       value={auditFormData.driverIdDisplay}
                                       onChange={(e) => setAuditFormData({ ...auditFormData, driverIdDisplay: e.target.value })}
-                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                       placeholder="e.g. DRV-001"
                                   />
                               </div>
@@ -1026,7 +1026,7 @@ const VehicleEldMonitor = () => {
                                       type="text"
                                       value={auditFormData.reportingTo}
                                       onChange={(e) => setAuditFormData({ ...auditFormData, reportingTo: e.target.value })}
-                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                       placeholder="Name or role of person reported to"
                                   />
                               </div>
@@ -1040,7 +1040,7 @@ const VehicleEldMonitor = () => {
                                       type="date"
                                       value={auditFormData.auditDate}
                                       onChange={(e) => setAuditFormData({ ...auditFormData, auditDate: e.target.value })}
-                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                       required
                                   />
                               </div>
@@ -1052,7 +1052,7 @@ const VehicleEldMonitor = () => {
                                       type="date"
                                       value={auditFormData.incidentDate}
                                       onChange={(e) => setAuditFormData({ ...auditFormData, incidentDate: e.target.value })}
-                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                       placeholder="Date when incident occurred"
                                   />
                                   <p className="text-xs text-secondary mt-1">Date the incident occurred (may differ from audit date)</p>
@@ -1065,7 +1065,7 @@ const VehicleEldMonitor = () => {
                                       type="time"
                                       value={auditFormData.incidentTime}
                                       onChange={(e) => setAuditFormData({ ...auditFormData, incidentTime: e.target.value })}
-                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   />
                               </div>
 
@@ -1076,7 +1076,7 @@ const VehicleEldMonitor = () => {
                                       type="text"
                                       value={auditFormData.incidentLocation}
                                       onChange={(e) => setAuditFormData({ ...auditFormData, incidentLocation: e.target.value })}
-                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                       placeholder="Location where incident occurred"
                                   />
                               </div>
@@ -1097,7 +1097,7 @@ const VehicleEldMonitor = () => {
                                                           setAuditFormData({ ...auditFormData, incidentTypes: auditFormData.incidentTypes.filter(t => t !== option) });
                                                       }
                                                   }}
-                                                  className="w-4 h-4 text-[#00D1FF] border-gray-300 rounded focus:ring-blue-500"
+                                                  className="w-4 h-4 text-[#00D1FF] border-theme rounded focus:ring-blue-500"
                                               />
                                               <span className="text-sm text-primary">{option}</span>
                                           </label>
@@ -1109,7 +1109,7 @@ const VehicleEldMonitor = () => {
                                           value={newIncidentTypeOption}
                                           onChange={(e) => setNewIncidentTypeOption(e.target.value)}
                                           placeholder="Add custom option"
-                                          className="flex-1 max-w-xs px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                          className="flex-1 max-w-xs px-3 py-1.5 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                           onKeyDown={(e) => {
                                               if (e.key === 'Enter') {
                                                   e.preventDefault();
@@ -1153,7 +1153,7 @@ const VehicleEldMonitor = () => {
                                               name="priorCounseling"
                                               checked={auditFormData.priorCounseling === 'yes'}
                                               onChange={() => setAuditFormData({ ...auditFormData, priorCounseling: 'yes' })}
-                                              className="w-4 h-4 text-[#00D1FF] border-gray-300 focus:ring-blue-500"
+                                              className="w-4 h-4 text-[#00D1FF] border-theme focus:ring-blue-500"
                                           />
                                           <span className="text-sm text-primary">Yes</span>
                                       </label>
@@ -1163,7 +1163,7 @@ const VehicleEldMonitor = () => {
                                               name="priorCounseling"
                                               checked={auditFormData.priorCounseling === 'no'}
                                               onChange={() => setAuditFormData({ ...auditFormData, priorCounseling: 'no' })}
-                                              className="w-4 h-4 text-[#00D1FF] border-gray-300 focus:ring-blue-500"
+                                              className="w-4 h-4 text-[#00D1FF] border-theme focus:ring-blue-500"
                                           />
                                           <span className="text-sm text-primary">No</span>
                                       </label>
@@ -1177,7 +1177,7 @@ const VehicleEldMonitor = () => {
                                       <select
                                           value={auditFormData.correctiveActionType}
                                           onChange={(e) => setAuditFormData({ ...auditFormData, correctiveActionType: e.target.value })}
-                                          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+                                          className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
                                       >
                                           <option value="">Select corrective action</option>
                                           {[...defaultCorrectiveActionOptions, ...auditFormData.correctiveActionCustomOptions].map((opt) => (
@@ -1189,7 +1189,7 @@ const VehicleEldMonitor = () => {
                                           value={newCorrectiveActionOption}
                                           onChange={(e) => setNewCorrectiveActionOption(e.target.value)}
                                           placeholder="Add new action type"
-                                          className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[180px]"
+                                          className="px-3 py-1.5 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[180px]"
                                           onKeyDown={(e) => {
                                               if (e.key === 'Enter') {
                                                   e.preventDefault();
@@ -1249,7 +1249,7 @@ const VehicleEldMonitor = () => {
                                                           });
                                                       }
                                                   }}
-                                                  className="w-4 h-4 text-[#00D1FF] border-gray-300 rounded focus:ring-blue-500"
+                                                  className="w-4 h-4 text-[#00D1FF] border-theme rounded focus:ring-blue-500"
                                               />
                                               <span className="text-sm text-primary">{violation}</span>
                                           </label>
@@ -1266,7 +1266,7 @@ const VehicleEldMonitor = () => {
                                       type="text"
                                       value={auditFormData.auditorName}
                                       onChange={(e) => setAuditFormData({ ...auditFormData, auditorName: e.target.value })}
-                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                       placeholder="Enter auditor name"
                                   />
                               </div>
@@ -1280,7 +1280,7 @@ const VehicleEldMonitor = () => {
                                       value={auditFormData.notes}
                                       onChange={(e) => setAuditFormData({ ...auditFormData, notes: e.target.value })}
                                       rows={4}
-                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                       placeholder="Enter any additional notes or observations..."
                                   />
                               </div>
@@ -1292,7 +1292,7 @@ const VehicleEldMonitor = () => {
                                   </label>
                                   <div className="space-y-2">
                                       <label className="flex flex-col gap-2 cursor-pointer">
-                                          <div className="px-4 py-3 border border-gray-300 rounded-lg border-dashed hover:bg-[rgba(255,255,255,0.03)] text-center">
+                                          <div className="px-4 py-3 border border-theme rounded-lg border-dashed hover:bg-[rgba(255,255,255,0.03)] text-center">
                                               <input
                                                   type="file"
                                                   multiple
@@ -1379,7 +1379,7 @@ const VehicleEldMonitor = () => {
                                           });
                                           setAuditFormDocuments([]);
                                       }}
-                                      className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
+                                      className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
                                   >
                                       Reset
                                   </button>
@@ -1387,7 +1387,7 @@ const VehicleEldMonitor = () => {
                                       type="submit"
                                       disabled={submittingAudit}
                                       style={{
-                                          background: submittingAudit ? '#9CA3AF' : 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                          background: submittingAudit ? '#9CA3AF' : 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                                       }}
                                       className="px-6 py-2 !text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                   >
@@ -1706,7 +1706,7 @@ const VehicleEldMonitor = () => {
                                               <button
                                                   type="button"
                                                   onClick={downloadHosFormPdf}
-                                                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                                                  style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                                                   className="px-4 py-2 text-sm font-semibold !text-white rounded-lg hover:opacity-90"
                                               >
                                                   <Download size={16} className="inline-block mr-1 align-middle" /> Download PDF
@@ -1723,7 +1723,7 @@ const VehicleEldMonitor = () => {
                                       </div>
                                       <div ref={hosFormPrintRef} className="p-6 space-y-6 text-sm print:block">
                                           {/* Form title */}
-                                          <h2 className="text-center text-lg font-bold text-primary border-b border-gray-300 pb-2">
+                                          <h2 className="text-center text-lg font-bold text-primary border-b border-theme pb-2">
                                               HOS PROGRESSIVE DISCIPLINARY ACTION FORM
                                           </h2>
 
@@ -1806,7 +1806,7 @@ const VehicleEldMonitor = () => {
                                                       value={editableFormState.managerSignature}
                                                       onChange={(e) => setEditableFormState(prev => ({ ...prev, managerSignature: e.target.value }))}
                                                       placeholder="Manager name or signature"
-                                                      className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                      className="flex-1 min-w-[200px] px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                   />
                                                   <label className="flex items-center gap-2">
                                                       <span className="font-semibold text-secondary">Date:</span>
@@ -1814,7 +1814,7 @@ const VehicleEldMonitor = () => {
                                                           type="date"
                                                           value={editableFormState.managerDate}
                                                           onChange={(e) => setEditableFormState(prev => ({ ...prev, managerDate: e.target.value }))}
-                                                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                          className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                       />
                                                   </label>
                                               </div>
@@ -1827,7 +1827,7 @@ const VehicleEldMonitor = () => {
                                                   value={editableFormState.noticeToEmployee}
                                                   onChange={(e) => setEditableFormState(prev => ({ ...prev, noticeToEmployee: e.target.value }))}
                                                   rows={4}
-                                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
+                                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
                                               />
                                           </div>
 
@@ -1838,7 +1838,7 @@ const VehicleEldMonitor = () => {
                                                   value={editableFormState.employeeComments}
                                                   onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeComments: e.target.value }))}
                                                   rows={4}
-                                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
+                                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
                                               />
                                           </div>
 
@@ -1851,7 +1851,7 @@ const VehicleEldMonitor = () => {
                                                       value={editableFormState.employeeSignature}
                                                       onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeSignature: e.target.value }))}
                                                       placeholder="Employee name or signature"
-                                                      className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                      className="flex-1 min-w-[200px] px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                   />
                                                   <label className="flex items-center gap-2">
                                                       <span className="font-semibold text-secondary">Date:</span>
@@ -1859,7 +1859,7 @@ const VehicleEldMonitor = () => {
                                                           type="date"
                                                           value={editableFormState.employeeDate}
                                                           onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeDate: e.target.value }))}
-                                                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                          className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                       />
                                                   </label>
                                               </div>
@@ -1891,7 +1891,7 @@ const VehicleEldMonitor = () => {
                                   <select
                                       value={selectedDriverForLog}
                                       onChange={(e) => setSelectedDriverForLog(e.target.value)}
-                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   >
                                       <option value="">All Drivers</option>
                                       {drivers.map((driver) => (
@@ -1915,7 +1915,7 @@ const VehicleEldMonitor = () => {
                                               onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                                               className="hidden"
                                           />
-                                          <div className="px-4 py-3 border border-gray-300 rounded-lg border-dashed hover:bg-[rgba(255,255,255,0.03)] text-center">
+                                          <div className="px-4 py-3 border border-theme rounded-lg border-dashed hover:bg-[rgba(255,255,255,0.03)] text-center">
                                               {selectedFile ? (
                                                   <div className="flex items-center justify-center gap-2 text-[#00D1FF]">
                                                       <FileText size={20} />
@@ -1948,7 +1948,7 @@ const VehicleEldMonitor = () => {
                                       onClick={handleFileUpload}
                                       disabled={!selectedFile || uploadingFile}
                                       style={{
-                                          background: (!selectedFile || uploadingFile) ? '#9CA3AF' : 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                          background: (!selectedFile || uploadingFile) ? '#9CA3AF' : 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                                       }}
                                       className="px-6 py-2 !text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                   >
@@ -2011,7 +2011,7 @@ const VehicleEldMonitor = () => {
                                                                       if (e.key === 'Enter') saveRenameELog(log._id);
                                                                       if (e.key === 'Escape') cancelRenameELog();
                                                                   }}
-                                                                  className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                  className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                                   autoFocus
                                                               />
                                                               <button
@@ -2025,7 +2025,7 @@ const VehicleEldMonitor = () => {
                                                               <button
                                                                   type="button"
                                                                   onClick={cancelRenameELog}
-                                                                  className="p-1.5 text-secondary hover:bg-gray-100 rounded"
+                                                                  className="p-1.5 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded"
                                                                   title="Cancel"
                                                               >
                                                                   <X size={16} />

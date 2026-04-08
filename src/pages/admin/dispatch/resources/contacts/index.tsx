@@ -677,7 +677,7 @@ const Index = () => {
             <input
               type="text"
               placeholder={`Search ${activeTab}`}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="pl-10 pr-4 py-2 border border-theme rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               value={searchQuery}
               onChange={handleSearch}
             />
@@ -689,7 +689,7 @@ const Index = () => {
             <button
               onClick={() => setIsSidebarOpen(true)}
               style={{
-                background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
               }}
               className="!text-white px-4 py-2 rounded-md hover:opacity-90 transition-opacity flex items-center space-x-2 text-sm font-medium"
             >
@@ -784,7 +784,7 @@ const Index = () => {
             
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-theme">
                 {tableData.length > 0 ? (
                   tableData.map((item) => {
                     if (activeTab === "places") {
@@ -843,7 +843,7 @@ const Index = () => {
                               <button
                                 onClick={() => handleEdit(place)}
                                 style={{
-                                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                                 }}
                                 className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium !text-white hover:opacity-90 transition-opacity"
                               >
@@ -884,7 +884,7 @@ const Index = () => {
                               <button
                                 onClick={() => handleEdit(contactOrCustomer)}
                                 style={{
-                                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                                 }}
                                 className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium !text-white hover:opacity-90 transition-opacity"
                               >
@@ -983,7 +983,7 @@ const Index = () => {
                     setShowDetailsSidebar(false);
                     setTimeout(() => setSelectedItem(null), 300);
                   }}
-                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
+                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                 >
                   <X size={24} />
                 </button>
@@ -1189,7 +1189,7 @@ const Index = () => {
                     name="internalId"
                     value={editForm.internalId}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                   />
                 </div>
               )}
@@ -1201,7 +1201,7 @@ const Index = () => {
                   name="name"
                   value={editForm.name}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 />
               </div>
 
@@ -1213,7 +1213,7 @@ const Index = () => {
                     name="email"
                     value={editForm.email}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                   />
                 </div>
               )}
@@ -1225,7 +1225,7 @@ const Index = () => {
                   name="phone"
                   value={editForm.phone}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 />
               </div>
 
@@ -1238,7 +1238,7 @@ const Index = () => {
                       name="street1"
                       value={editForm.street1}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                     />
                   </div>
                   <div>
@@ -1248,7 +1248,7 @@ const Index = () => {
                       name="street2"
                       value={editForm.street2}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -1259,7 +1259,7 @@ const Index = () => {
                         name="neighbourHood"
                         value={editForm.neighbourHood}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                       />
                     </div>
                     <div>
@@ -1269,7 +1269,7 @@ const Index = () => {
                         name="building"
                         value={editForm.building}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                       />
                     </div>
                   </div>
@@ -1281,7 +1281,7 @@ const Index = () => {
                         name="city"
                         value={editForm.city}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                       />
                     </div>
                     <div>
@@ -1291,7 +1291,7 @@ const Index = () => {
                         name="state"
                         value={editForm.state}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                       />
                     </div>
                   </div>
@@ -1308,7 +1308,7 @@ const Index = () => {
                           securityAccessCodepostalCode: e.target.value
                         });
                       }}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                     />
                   </div>
                 </>
@@ -1321,7 +1321,7 @@ const Index = () => {
                   name="country"
                   value={editForm.country}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 />
               </div>
             </div>
@@ -1336,7 +1336,7 @@ const Index = () => {
               </button>
               <button
                 style={{
-                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                 }}
                 className="px-4 py-2 !text-white rounded-lg hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
                 onClick={handleUpdate}

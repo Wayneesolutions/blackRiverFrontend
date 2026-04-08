@@ -80,7 +80,7 @@ const DrugTestUploadModal: React.FC<{
                     </h2>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -94,7 +94,7 @@ const DrugTestUploadModal: React.FC<{
                             type="text"
                             value={driverName}
                             disabled
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-card text-secondary"
+                            className="w-full px-4 py-2 border border-theme rounded-lg bg-card text-secondary"
                         />
                     </div>
                     <div>
@@ -106,7 +106,7 @@ const DrugTestUploadModal: React.FC<{
                             value={testDate}
                             onChange={(e) => setTestDate(e.target.value)}
                             required
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
                     <div>
@@ -117,7 +117,7 @@ const DrugTestUploadModal: React.FC<{
                             type="date"
                             value={expiryDate}
                             onChange={(e) => setExpiryDate(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
                     <div>
@@ -128,7 +128,7 @@ const DrugTestUploadModal: React.FC<{
                             type="file"
                             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                             onChange={(e) => setConsentFormFile(e.target.files?.[0] || null)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
                     <div>
@@ -139,7 +139,7 @@ const DrugTestUploadModal: React.FC<{
                             type="file"
                             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                             onChange={(e) => setResultDocumentFile(e.target.files?.[0] || null)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
                     {error && (
@@ -832,7 +832,7 @@ const DriverPortfolio: React.FC = () => {
                                 placeholder="Search by name or email..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                                className="pl-10 pr-4 py-2 w-full border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                                 style={focusRingStyle}
                             />
                         </div>
@@ -922,7 +922,7 @@ const DriverPortfolio: React.FC = () => {
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="divide-y divide-theme">
                                 {loading ? (
                                     <tr>
                                         <td colSpan={11} className="px-6 py-12 text-center text-secondary">
@@ -1141,7 +1141,7 @@ const DriverPortfolio: React.FC = () => {
                             {/* Header */}
                             <div className="sticky top-0  text-white p-6 z-10"
                                 style={{
-                                    background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)"
+                                    background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)"
                                 }}>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">

@@ -31,6 +31,12 @@ const replacements = [
     { regex: /\btext-orange-600\b/g, replacement: 'text-[#F59E0B]' },
     { regex: /bg-\[#1976D2\]/g, replacement: 'bg-accent' },
     { regex: /text-\[#1976D2\]/g, replacement: 'text-accent' },
+    { regex: /#42aeec/g, replacement: 'var(--accent-blue)' },
+    { regex: /#1db5f5/g, replacement: 'var(--accent-blue)' },
+    { regex: /#0ea3d8/g, replacement: 'rgba(0,209,255,0.15)' },
+    { regex: /\bborder-gray-300\b/g, replacement: 'border-theme' },
+    { regex: /\bhover:bg-gray-100\b/g, replacement: 'hover:bg-[rgba(255,255,255,0.03)]' },
+    { regex: /\bdivide-gray-200\b/g, replacement: 'divide-theme' },
 
     // Match: style={{ backgroundColor: '#EDF8FF' }} and its variations correctly
     { regex: /style=\{\{\s*backgroundColor:\s*['"]#(EDF8FF|edf8ff)['"]\s*\}\}/g, replacement: '' }

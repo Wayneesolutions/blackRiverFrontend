@@ -150,14 +150,14 @@ const UtilizationPage = () => {
   const getServiceStatusBadge = (status: string) => {
     if (status.toLowerCase() === "in service") {
       return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-green)]/10 text-[var(--accent-green)]">
           <CheckCircle className="w-3 h-3 mr-1" />
           In Service
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-purple)]/10 text-[var(--accent-purple)]">
         <XCircle className="w-3 h-3 mr-1" />
         Out of Service
       </span>
@@ -167,13 +167,13 @@ const UtilizationPage = () => {
   const getTrailerStatusBadge = (status: string) => {
     if (status.toLowerCase() === "loaded") {
       return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">
           Loaded
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-primary">
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-card border border-theme text-primary">
         Empty
       </span>
     );
@@ -182,7 +182,7 @@ const UtilizationPage = () => {
   return (
     <div className="min-h-screen" >
       <div className="relative w-full mx-auto">
-   
+
 
         {/* Main content */}
         <div className="relative z-10 px-4 pt-3 pb-6">
@@ -190,8 +190,8 @@ const UtilizationPage = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-             
-                <h1 className="text-xl font-bold text-black">Truck & Trailer Utilization</h1>
+
+                <h1 className="text-xl font-bold text-primary">Truck & Trailer Utilization</h1>
               </div>
             </div>
           </div>
@@ -202,11 +202,10 @@ const UtilizationPage = () => {
               <nav className="flex -mb-px">
                 <button
                   onClick={() => setActiveTab("trucks")}
-                  className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === "trucks"
-                      ? "border-[#42aeec] text-[#42aeec]"
-                      : "border-transparent text-secondary hover:text-primary hover:border-gray-300"
-                  }`}
+                  className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "trucks"
+                    ? "border-accent text-accent"
+                    : "border-transparent text-secondary hover:text-primary hover:border-theme"
+                    }`}
                 >
                   <div className="flex items-center gap-2">
                     <Truck className="w-4 h-4" />
@@ -215,11 +214,10 @@ const UtilizationPage = () => {
                 </button>
                 <button
                   onClick={() => setActiveTab("trailers")}
-                  className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === "trailers"
-                      ? "border-[#42aeec] text-[#42aeec]"
-                      : "border-transparent text-secondary hover:text-primary hover:border-gray-300"
-                  }`}
+                  className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "trailers"
+                    ? "border-accent text-accent"
+                    : "border-transparent text-secondary hover:text-primary hover:border-theme"
+                    }`}
                 >
                   <div className="flex items-center gap-2">
                     <Package className="w-4 h-4" />
@@ -237,7 +235,7 @@ const UtilizationPage = () => {
                   placeholder={`Search ${activeTab}...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-theme bg-card text-primary rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                 />
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
               </div>
@@ -293,7 +291,7 @@ const UtilizationPage = () => {
                     )}
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {loading ? (
                     <tr>
                       <td colSpan={activeTab === "trucks" ? 6 : 6} className="px-6 py-8 text-center text-secondary">
@@ -366,7 +364,7 @@ const UtilizationPage = () => {
                               <div>Capacity: {truck.capacity}</div>
                             )}
                             {truck.trailer && (
-                              <div className="text-xs text-[#00D1FF]">Trailer: {truck.trailer.unitNumber || truck.trailer.trailer || truck.trailer.plateNumber}</div>
+                              <div className="text-xs text-accent">Trailer: {truck.trailer.unitNumber || truck.trailer.trailer || truck.trailer.plateNumber}</div>
                             )}
                           </td>
                         </tr>
@@ -420,7 +418,7 @@ const UtilizationPage = () => {
                               <div className="text-sm text-secondary">Not attached</div>
                             )}
                             {trailer.isAttached && (
-                              <div className="text-xs text-green-600">Attached</div>
+                              <div className="text-xs text-[var(--accent-green)]">Attached</div>
                             )}
                           </td>
                           <td className="px-6 py-4">

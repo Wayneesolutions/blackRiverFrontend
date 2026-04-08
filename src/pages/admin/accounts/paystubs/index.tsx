@@ -1533,7 +1533,7 @@ const PaystubsList = () => {
                   placeholder="Search by name, employee ID, or email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -1541,7 +1541,7 @@ const PaystubsList = () => {
             {/* Date Filter Toggle */}
             <button
               onClick={() => setShowDateFilter(!showDateFilter)}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] flex items-center gap-2 transition-colors"
+              className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] flex items-center gap-2 transition-colors"
             >
               <Calendar size={18} />
               Date Filter
@@ -1572,7 +1572,7 @@ const PaystubsList = () => {
             {(searchQuery || startDate || endDate) && (
               <button
                 onClick={clearFilters}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] flex items-center gap-2 transition-colors text-[#A855F7]"
+                className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] flex items-center gap-2 transition-colors text-[#A855F7]"
               >
                 <X size={18} />
                 Clear
@@ -1590,7 +1590,7 @@ const PaystubsList = () => {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div className="flex-1 min-w-[200px]">
@@ -1599,7 +1599,7 @@ const PaystubsList = () => {
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <button
@@ -1644,7 +1644,7 @@ const PaystubsList = () => {
                     <th className="px-6 py-3 text-right text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {filteredPaystubs.map((paystub) => (
                     <tr key={paystub._id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">

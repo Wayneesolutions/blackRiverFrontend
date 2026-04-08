@@ -960,7 +960,7 @@ const Tickets: React.FC = () => {
     return (
       <div
         onClick={onClick}
-        className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+        className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
       >
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
@@ -1005,7 +1005,7 @@ const Tickets: React.FC = () => {
               </div>
               <button
                 onClick={handleAddTicket}
-                className="flex items-center gap-2 px-4 py-2 bg-card text-[#0ea3d8] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
+                className="flex items-center gap-2 px-4 py-2 bg-card text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
               >
                 <FaPlus /> Add Ticket
               </button>
@@ -1108,7 +1108,7 @@ const Tickets: React.FC = () => {
                     placeholder="Search tickets..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                   />
                 </div>
               </div>
@@ -1117,7 +1117,7 @@ const Tickets: React.FC = () => {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                  className="px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                 >
                   <option value="all">All Status</option>
                   <option value="paid">Paid</option>
@@ -1137,7 +1137,7 @@ const Tickets: React.FC = () => {
                   setPageSize(newSize);
                   setCurrentPage(1);
                 }}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -1290,7 +1290,7 @@ const Tickets: React.FC = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-theme">
                     {filteredTickets.map((ticket) => (
                       <tr 
                         key={ticket._id} 
@@ -1463,7 +1463,7 @@ const Tickets: React.FC = () => {
                       disabled={currentPage === 1}
                       className={`px-3 py-2 rounded-lg border ${currentPage === 1
                         ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
-                        : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-gray-300'
+                        : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                         }`}
                     >
                       <FaChevronLeft size={14} />
@@ -1488,7 +1488,7 @@ const Tickets: React.FC = () => {
                             onClick={() => setCurrentPage(pageNum)}
                             className={`px-3 py-2 rounded-lg text-sm font-medium ${currentPage === pageNum
                               ? 'bg-[var(--accent-color)] text-white'
-                              : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-gray-300'
+                              : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                               }`}
                           >
                             {pageNum}
@@ -1502,7 +1502,7 @@ const Tickets: React.FC = () => {
                       disabled={currentPage === totalPages}
                       className={`px-3 py-2 rounded-lg border ${currentPage === totalPages
                         ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
-                        : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-gray-300'
+                        : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                         }`}
                     >
                       <FaChevronRight size={14} />
@@ -1521,7 +1521,7 @@ const Tickets: React.FC = () => {
               <div className="sticky top-0 bg-card border-b px-6 py-4 rounded-t-2xl z-10">
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-bold text-primary">Add New Ticket</h3>
-                  <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                  <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors">
                     <FaTimesCircle className="text-secondary" size={20} />
                   </button>
                 </div>
@@ -1534,7 +1534,7 @@ const Tickets: React.FC = () => {
                     <select
                       value={ticketForm.country || 'usa'}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, country: e.target.value as 'usa' | 'canada' }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="usa">USA</option>
                       <option value="canada">Canada</option>
@@ -1547,7 +1547,7 @@ const Tickets: React.FC = () => {
                       placeholder="e.g., Speeding, Improper Lane Change"
                       value={ticketForm.violationType || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, violationType: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -1559,7 +1559,7 @@ const Tickets: React.FC = () => {
                       placeholder="0.00"
                       value={ticketForm.amount || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div className="col-span-2">
@@ -1568,7 +1568,7 @@ const Tickets: React.FC = () => {
                       placeholder="Detailed description of the violation"
                       value={ticketForm.violationDescription || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, violationDescription: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       rows={3}
                     />
                   </div>
@@ -1578,7 +1578,7 @@ const Tickets: React.FC = () => {
                       type="date"
                       value={ticketForm.dateIssued || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, dateIssued: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -1587,7 +1587,7 @@ const Tickets: React.FC = () => {
                       type="date"
                       value={ticketForm.dueDate || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, dueDate: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div className="col-span-2">
@@ -1599,7 +1599,7 @@ const Tickets: React.FC = () => {
                       placeholder={ticketForm.country === 'canada' ? 'Province (e.g., MB, AB, ON, BC, QC)' : 'State (e.g., California, Texas, New York)'}
                       value={ticketForm.location || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, location: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -1607,7 +1607,7 @@ const Tickets: React.FC = () => {
                     <select
                       value={typeof ticketForm.driver === 'string' ? ticketForm.driver : ticketForm.driver?._id || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, driver: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="">Select Driver</option>
                       {drivers.map((driver) => (
@@ -1620,7 +1620,7 @@ const Tickets: React.FC = () => {
                     <select
                       value={typeof ticketForm.vehicle === 'string' ? ticketForm.vehicle : ticketForm.vehicle?._id || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, vehicle: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="">Select Vehicle</option>
                       {vehicles.map((vehicle) => (
@@ -1641,7 +1641,7 @@ const Tickets: React.FC = () => {
                       placeholder="Unit number (e.g., 1001, 1002)"
                       value={ticketForm.unitNumber || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, unitNumber: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -1649,7 +1649,7 @@ const Tickets: React.FC = () => {
                     <select
                       value={ticketForm.trailerNumber || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, trailerNumber: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="">Select Trailer</option>
                       {trailers.map((trailer) => (
@@ -1666,7 +1666,7 @@ const Tickets: React.FC = () => {
                       placeholder="Issuing officer name"
                       value={ticketForm.officerName || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, officerName: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -1674,7 +1674,7 @@ const Tickets: React.FC = () => {
                     <select
                       value={ticketForm.status}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, status: e.target.value as 'paid' | 'unpaid' | 'fight' | 'dismissed' | 'reduced' }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="unpaid">Unpaid</option>
                       <option value="paid">Paid</option>
@@ -1688,7 +1688,7 @@ const Tickets: React.FC = () => {
                     <select
                       value={ticketForm.outcome || 'unpaid'}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, outcome: e.target.value as 'paid' | 'reduced' | 'dismissed' | 'on fight' | 'unpaid' }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="unpaid">Unpaid</option>
                       <option value="paid">Paid</option>
@@ -1703,7 +1703,7 @@ const Tickets: React.FC = () => {
                       type="date"
                       value={ticketForm.courtDate || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, courtDate: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -1711,7 +1711,7 @@ const Tickets: React.FC = () => {
                     <select
                       value={ticketForm.fightingBy || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, fightingBy: e.target.value as 'company' | 'lawyer' | undefined }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="">Select Option</option>
                       <option value="company">Company</option>
@@ -1728,7 +1728,7 @@ const Tickets: React.FC = () => {
                         placeholder="Final amount after reduction"
                         value={ticketForm.finalAmount || ''}
                         onChange={(e) => setTicketForm(prev => ({ ...prev, finalAmount: parseFloat(e.target.value) || undefined }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                   )}
@@ -1738,7 +1738,7 @@ const Tickets: React.FC = () => {
                       placeholder="Additional notes"
                       value={ticketForm.notes || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, notes: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       rows={3}
                     />
                   </div>
@@ -1758,7 +1758,7 @@ const Tickets: React.FC = () => {
                           type="date"
                           value={ticketForm.paidDate || ''}
                           onChange={(e) => setTicketForm(prev => ({ ...prev, paidDate: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -1766,7 +1766,7 @@ const Tickets: React.FC = () => {
                         <select
                           value={ticketForm.paymentMethod || ''}
                           onChange={(e) => setTicketForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         >
                           <option value="">Select Payment Method</option>
                           <option value="cash">Cash</option>
@@ -1783,7 +1783,7 @@ const Tickets: React.FC = () => {
                           placeholder="Transaction ID, check number, or reference number"
                           value={ticketForm.paymentReference || ''}
                           onChange={(e) => setTicketForm(prev => ({ ...prev, paymentReference: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -1816,7 +1816,7 @@ const Tickets: React.FC = () => {
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -1837,7 +1837,7 @@ const Tickets: React.FC = () => {
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -1858,7 +1858,7 @@ const Tickets: React.FC = () => {
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -1879,7 +1879,7 @@ const Tickets: React.FC = () => {
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                       <div className="col-span-2">
@@ -1899,7 +1899,7 @@ const Tickets: React.FC = () => {
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                           rows={2}
                         />
                       </div>
@@ -1922,7 +1922,7 @@ const Tickets: React.FC = () => {
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -1943,7 +1943,7 @@ const Tickets: React.FC = () => {
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -1952,7 +1952,7 @@ const Tickets: React.FC = () => {
               </div>
 
               <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
-                <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors" disabled={loading}>Cancel</button>
+                <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors" disabled={loading}>Cancel</button>
                 <button onClick={saveNewTicket} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                   {loading ? 'Saving...' : 'Save Ticket'}
                 </button>
@@ -1968,7 +1968,7 @@ const Tickets: React.FC = () => {
               <div className="sticky top-0 bg-card border-b px-6 py-4 rounded-t-2xl z-10">
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-bold text-primary">Edit Ticket: {selectedTicket.ticketNumber}</h3>
-                  <button onClick={() => { setShowEditModal(false); setSelectedTicket(null); resetForm(); }} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                  <button onClick={() => { setShowEditModal(false); setSelectedTicket(null); resetForm(); }} className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors">
                     <FaTimesCircle className="text-secondary" size={20} />
                   </button>
                 </div>
@@ -1981,7 +1981,7 @@ const Tickets: React.FC = () => {
                     <select
                       value={ticketForm.country || 'usa'}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, country: e.target.value as 'usa' | 'canada' }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="usa">USA</option>
                       <option value="canada">Canada</option>
@@ -1994,7 +1994,7 @@ const Tickets: React.FC = () => {
                       placeholder="e.g., Speeding, Improper Lane Change"
                       value={ticketForm.violationType || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, violationType: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -2006,7 +2006,7 @@ const Tickets: React.FC = () => {
                       placeholder="0.00"
                       value={ticketForm.amount || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div className="col-span-2">
@@ -2015,7 +2015,7 @@ const Tickets: React.FC = () => {
                       placeholder="Detailed description of the violation"
                       value={ticketForm.violationDescription || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, violationDescription: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       rows={3}
                     />
                   </div>
@@ -2025,7 +2025,7 @@ const Tickets: React.FC = () => {
                       type="date"
                       value={ticketForm.dateIssued || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, dateIssued: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -2034,7 +2034,7 @@ const Tickets: React.FC = () => {
                       type="date"
                       value={ticketForm.dueDate || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, dueDate: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div className="col-span-2">
@@ -2046,7 +2046,7 @@ const Tickets: React.FC = () => {
                       placeholder={ticketForm.country === 'canada' ? 'Province (e.g., MB, AB, ON, BC, QC)' : 'State (e.g., California, Texas, New York)'}
                       value={ticketForm.location || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, location: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -2054,7 +2054,7 @@ const Tickets: React.FC = () => {
                     <select
                       value={typeof ticketForm.driver === 'string' ? ticketForm.driver : ticketForm.driver?._id || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, driver: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="">Select Driver</option>
                       {drivers.map((driver) => (
@@ -2067,7 +2067,7 @@ const Tickets: React.FC = () => {
                     <select
                       value={typeof ticketForm.vehicle === 'string' ? ticketForm.vehicle : ticketForm.vehicle?._id || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, vehicle: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="">Select Vehicle</option>
                       {vehicles.map((vehicle) => (
@@ -2088,7 +2088,7 @@ const Tickets: React.FC = () => {
                       placeholder="Unit number (e.g., 1001, 1002)"
                       value={ticketForm.unitNumber || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, unitNumber: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -2096,7 +2096,7 @@ const Tickets: React.FC = () => {
                     <select
                       value={ticketForm.trailerNumber || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, trailerNumber: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="">Select Trailer</option>
                       {trailers.map((trailer) => (
@@ -2113,7 +2113,7 @@ const Tickets: React.FC = () => {
                       placeholder="Issuing officer name"
                       value={ticketForm.officerName || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, officerName: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -2121,7 +2121,7 @@ const Tickets: React.FC = () => {
                     <select
                       value={ticketForm.status}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, status: e.target.value as 'paid' | 'unpaid' | 'fight' | 'dismissed' | 'reduced' }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="unpaid">Unpaid</option>
                       <option value="paid">Paid</option>
@@ -2135,7 +2135,7 @@ const Tickets: React.FC = () => {
                     <select
                       value={ticketForm.outcome || 'unpaid'}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, outcome: e.target.value as 'paid' | 'reduced' | 'dismissed' | 'on fight' | 'unpaid' }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="unpaid">Unpaid</option>
                       <option value="paid">Paid</option>
@@ -2150,7 +2150,7 @@ const Tickets: React.FC = () => {
                       type="date"
                       value={ticketForm.courtDate || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, courtDate: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -2158,7 +2158,7 @@ const Tickets: React.FC = () => {
                     <select
                       value={ticketForm.fightingBy || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, fightingBy: e.target.value as 'company' | 'lawyer' | undefined }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
                       <option value="">Select Option</option>
                       <option value="company">Company</option>
@@ -2175,7 +2175,7 @@ const Tickets: React.FC = () => {
                         placeholder="Final amount after reduction"
                         value={ticketForm.finalAmount || ''}
                         onChange={(e) => setTicketForm(prev => ({ ...prev, finalAmount: parseFloat(e.target.value) || undefined }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                   )}
@@ -2185,7 +2185,7 @@ const Tickets: React.FC = () => {
                       placeholder="Additional notes"
                       value={ticketForm.notes || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, notes: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       rows={3}
                     />
                   </div>
@@ -2205,7 +2205,7 @@ const Tickets: React.FC = () => {
                           type="date"
                           value={ticketForm.paidDate || ''}
                           onChange={(e) => setTicketForm(prev => ({ ...prev, paidDate: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -2213,7 +2213,7 @@ const Tickets: React.FC = () => {
                         <select
                           value={ticketForm.paymentMethod || ''}
                           onChange={(e) => setTicketForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         >
                           <option value="">Select Payment Method</option>
                           <option value="cash">Cash</option>
@@ -2230,7 +2230,7 @@ const Tickets: React.FC = () => {
                           placeholder="Transaction ID, check number, or reference number"
                           value={ticketForm.paymentReference || ''}
                           onChange={(e) => setTicketForm(prev => ({ ...prev, paymentReference: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -2265,7 +2265,7 @@ const Tickets: React.FC = () => {
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -2288,7 +2288,7 @@ const Tickets: React.FC = () => {
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -2311,7 +2311,7 @@ const Tickets: React.FC = () => {
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -2334,7 +2334,7 @@ const Tickets: React.FC = () => {
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                       <div className="col-span-2">
@@ -2356,7 +2356,7 @@ const Tickets: React.FC = () => {
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                           rows={2}
                         />
                       </div>
@@ -2380,7 +2380,7 @@ const Tickets: React.FC = () => {
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -2402,7 +2402,7 @@ const Tickets: React.FC = () => {
                               status: prev.lawyerDetails?.status || 'active'
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -2411,7 +2411,7 @@ const Tickets: React.FC = () => {
               </div>
 
               <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
-                <button onClick={() => { setShowEditModal(false); setSelectedTicket(null); resetForm(); }} className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors" disabled={loading}>Cancel</button>
+                <button onClick={() => { setShowEditModal(false); setSelectedTicket(null); resetForm(); }} className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors" disabled={loading}>Cancel</button>
                 <button onClick={updateTicketData} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                   {loading ? 'Updating...' : 'Update Ticket'}
                 </button>
@@ -2430,7 +2430,7 @@ const Tickets: React.FC = () => {
                   <h3 className="text-base font-bold text-primary">
                     {selectedTicket.ticketNumber}
                   </h3>
-                  <button onClick={() => setShowViewModal(false)} className="p-1.5 hover:bg-gray-100 rounded transition-colors">
+                  <button onClick={() => setShowViewModal(false)} className="p-1.5 hover:bg-[rgba(255,255,255,0.03)] rounded transition-colors">
                     <FaTimesCircle className="text-secondary" size={18} />
                   </button>
                 </div>
@@ -2630,7 +2630,7 @@ const Tickets: React.FC = () => {
               </div>
 
               <div className="sticky bottom-0 bg-card px-3 py-2 flex justify-end gap-2 border-t">
-                <button onClick={() => setShowViewModal(false)} className="px-4 py-1.5 text-xs bg-card border border-gray-300 text-primary rounded hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors">Close</button>
+                <button onClick={() => setShowViewModal(false)} className="px-4 py-1.5 text-xs bg-card border border-theme text-primary rounded hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors">Close</button>
               </div>
             </div>
           </>

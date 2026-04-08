@@ -501,7 +501,7 @@ const DrugTest = () => {
                     <button
                         onClick={handleCreateRequestClick}
                         style={{
-                            background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                         }}
                         className="flex items-center gap-2 px-6 py-3 !text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
                     >
@@ -528,7 +528,7 @@ const DrugTest = () => {
                                         fetchDrugTestRequests();
                                     }
                                 }}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
                     </div>
@@ -537,7 +537,7 @@ const DrugTest = () => {
                         <select
                             value={selectedDriver}
                             onChange={(e) => setSelectedDriver(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">All Drivers</option>
                             {drivers.map(driver => (
@@ -552,7 +552,7 @@ const DrugTest = () => {
                         <select
                             value={selectedTestType}
                             onChange={(e) => setSelectedTestType(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">All Types</option>
                             {testTypes.map(type => (
@@ -565,7 +565,7 @@ const DrugTest = () => {
                         <select
                             value={selectedStatus}
                             onChange={(e) => setSelectedStatus(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">All Statuses</option>
                             <option value="pending">Pending</option>
@@ -628,7 +628,7 @@ const DrugTest = () => {
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-theme">
                                 {filteredRequests.map((request) => (
                                     <tr 
                                         key={request._id} 
@@ -744,7 +744,7 @@ const DrugTest = () => {
                                 <select
                                     value={formData.driverId}
                                     onChange={(e) => setFormData({ ...formData, driverId: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
                                 >
                                     <option value="">Select a driver</option>
@@ -765,7 +765,7 @@ const DrugTest = () => {
                                     <select
                                         value={formData.testType}
                                         onChange={(e) => setFormData({ ...formData, testType: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required
                                     >
                                         <option value="">Select test type</option>
@@ -781,7 +781,7 @@ const DrugTest = () => {
                                     <select
                                         value={formData.reason}
                                         onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required
                                     >
                                         <option value="">Select reason</option>
@@ -804,7 +804,7 @@ const DrugTest = () => {
                                             type="date"
                                             value={formData.scheduledDate}
                                             onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
-                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             required
                                         />
                                     </div>
@@ -817,7 +817,7 @@ const DrugTest = () => {
                                         type="time"
                                         value={formData.scheduledTime}
                                         onChange={(e) => setFormData({ ...formData, scheduledTime: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
                             </div>
@@ -831,7 +831,7 @@ const DrugTest = () => {
                                     type="text"
                                     value={formData.labName}
                                     onChange={(e) => setFormData({ ...formData, labName: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="e.g., Quest Diagnostics, LabCorp"
                                     required
                                 />
@@ -895,7 +895,7 @@ const DrugTest = () => {
                                             type="file"
                                             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                                             onChange={(e) => setConsentForm(e.target.files?.[0] || null)}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                         {consentForm && (
                                             <p className="text-xs text-secondary mt-1">New file selected: {consentForm.name}</p>
@@ -930,7 +930,7 @@ const DrugTest = () => {
                                             type="file"
                                             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                                             onChange={(e) => setDrugTestDocument(e.target.files?.[0] || null)}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                         {drugTestDocument && (
                                             <p className="text-xs text-secondary mt-1">New file selected: {drugTestDocument.name}</p>
@@ -947,7 +947,7 @@ const DrugTest = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowRequestModal(false)}
-                                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
+                                    className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
                                     disabled={saving}
                                 >
                                     Cancel
@@ -955,7 +955,7 @@ const DrugTest = () => {
                                 <button
                                     type="submit"
                                     style={{
-                                        background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                        background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                                     }}
                                     className="px-6 py-2 !text-white font-semibold rounded-lg hover:opacity-90 disabled:opacity-50"
                                     disabled={saving}
@@ -1108,7 +1108,7 @@ const DrugTest = () => {
                             <div className="flex justify-end gap-4 pt-4 border-t border-theme">
                                 <button
                                     onClick={() => setShowDetailsModal(false)}
-                                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
+                                    className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
                                 >
                                     Close
                                 </button>
@@ -1118,7 +1118,7 @@ const DrugTest = () => {
                                         handleEditClick(selectedRequest);
                                     }}
                                     style={{
-                                        background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                        background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                                     }}
                                     className="px-6 py-2 !text-white font-semibold rounded-lg hover:opacity-90"
                                 >
@@ -1150,7 +1150,7 @@ const DrugTest = () => {
                             <div className="flex items-center justify-end gap-3">
                                 <button
                                     onClick={() => setConfirmDelete({ open: false, id: null, name: null })}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                                    className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                                 >
                                     Cancel
                                 </button>

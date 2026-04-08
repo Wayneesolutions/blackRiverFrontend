@@ -191,7 +191,7 @@ const DR = ({ label, value }: { label: string; value: React.ReactNode }) => (
 
 const SecTitle = ({ icon, title }: { icon: React.ReactNode; title: string }) => (
   <div className="flex items-center gap-2 mb-3">
-    <div className="p-1.5 rounded-lg bg-[#42aeec]/10 text-[#42aeec]">{icon}</div>
+    <div className="p-1.5 rounded-lg bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">{icon}</div>
     <h3 className="text-sm font-bold text-primary">{title}</h3>
   </div>
 );
@@ -217,7 +217,7 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
         {/* Header */}
         <div
           className="flex items-center justify-between px-5 py-4 border-b border-white/10 flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, #42aeec 0%, #0ea3d8 100%)" }}
+          style={{ background: "linear-gradient(135deg, var(--accent-blue) 0%, rgba(0,209,255,0.15) 100%)" }}
         >
           <div>
             <div className="flex items-center gap-2">
@@ -420,14 +420,14 @@ const ManifestListPage = () => {
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-xl font-bold text-primary flex items-center gap-2">
-            <FileText size={20} className="text-[#42aeec]" /> Manifests
+            <FileText size={20} className="text-[var(--accent-blue)]" /> Manifests
           </h1>
           <p className="text-sm text-secondary mt-0.5">{total} total records</p>
         </div>
         <button
           onClick={handleExportAll}
           disabled={exporting || !manifests.length}
-          className="flex items-center gap-2 px-4 py-2 bg-[#42aeec] hover:bg-[#1db5f5] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
         >
           {exporting ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />}
           Export Excel
@@ -441,21 +441,21 @@ const ManifestListPage = () => {
           <input
             type="text" placeholder="Search trip number…" value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-8 pr-3 py-2 text-sm border border-theme rounded-lg outline-none focus:border-[#42aeec] focus:ring-1 focus:ring-[#42aeec]/20"
+            className="w-full pl-8 pr-3 py-2 text-sm border border-theme rounded-lg outline-none focus:border-[var(--accent-blue)] focus:ring-1 focus:ring-[var(--accent-blue)]/20"
           />
         </div>
         <div className="flex items-center gap-2">
           <Filter size={14} className="text-secondary" />
           <select
             value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-sm border border-theme rounded-lg px-3 py-2 outline-none focus:border-[#42aeec] bg-card"
+            className="text-sm border border-theme rounded-lg px-3 py-2 outline-none focus:border-[var(--accent-blue)] bg-card"
           >
             {STATUS_OPTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>
         <button
           onClick={fetch}
-          className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-secondary hover:text-[#42aeec] transition-colors border border-theme"
+          className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-secondary hover:text-[var(--accent-blue)] transition-colors border border-theme"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
         </button>
@@ -470,7 +470,7 @@ const ManifestListPage = () => {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 gap-3">
-          <div className="w-10 h-10 border-2 border-[#42aeec] border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-2 border-[var(--accent-blue)] border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-secondary">Loading manifests…</p>
         </div>
       ) : manifests.length === 0 ? (
@@ -496,10 +496,10 @@ const ManifestListPage = () => {
                   <tr
                     key={m.id}
                     onClick={() => setSelected(m)}
-                    className="hover:bg-[#42aeec]/5 cursor-pointer transition-colors group"
+                    className="hover:bg-[var(--accent-blue)]/5 cursor-pointer transition-colors group"
                   >
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="text-sm font-semibold text-[#42aeec]">{m.tripNumber}</span>
+                      <span className="text-sm font-semibold text-[var(--accent-blue)]">{m.tripNumber}</span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap"><StatusBadge status={m.status} /></td>
                     <td className="px-4 py-3 whitespace-nowrap">
@@ -521,7 +521,7 @@ const ManifestListPage = () => {
                     <td className="px-4 py-3 whitespace-nowrap">
                       {m.driver ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-[#42aeec]/10 text-[#42aeec] flex items-center justify-center text-[11px] font-bold flex-shrink-0">
+                          <div className="w-7 h-7 rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] flex items-center justify-center text-[11px] font-bold flex-shrink-0">
                             {m.driver.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
@@ -539,7 +539,7 @@ const ManifestListPage = () => {
                       </div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-center">
-                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${m.orderCount > 0 ? "bg-[#42aeec]/10 text-[#42aeec]" : "bg-gray-100 text-secondary"}`}>
+                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${m.orderCount > 0 ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]" : "bg-gray-100 text-secondary"}`}>
                         {m.orderCount}
                       </span>
                     </td>
@@ -554,7 +554,7 @@ const ManifestListPage = () => {
                         : <X size={15} className="text-gray-300" />}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-right pr-4">
-                      <ChevronRight size={15} className="text-gray-300 group-hover:text-[#42aeec] transition-colors inline-block" />
+                      <ChevronRight size={15} className="text-gray-300 group-hover:text-[var(--accent-blue)] transition-colors inline-block" />
                     </td>
                   </tr>
                 ))}

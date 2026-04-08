@@ -132,14 +132,14 @@ const Header = () => {
             <div className="flex items-center gap-2">
                 <button
                     onClick={() => navigate(-1)}
-                    className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                    className="p-2 rounded-full hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     title="Previous"
                 >
                     <ArrowLeft className="w-4 h-4 text-secondary" />
                 </button>
                 <button
                     onClick={() => navigate(1)}
-                    className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                    className="p-2 rounded-full hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     title="Next"
                 >
                     <ArrowRight className="w-4 h-4 text-secondary" />
@@ -158,7 +158,7 @@ const Header = () => {
                 {/* Search Button */}
                 <button
                     onClick={() => setIsSearchOpen(true)}
-                    className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                    className="p-2 rounded-full hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                     <Search className="w-5 h-5 text-secondary" />
                 </button>
@@ -166,7 +166,7 @@ const Header = () => {
                 <div className="relative" ref={dropdownRef}>
                     <button
                         onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                        className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        className="p-2 rounded-full hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                         aria-label="User menu"
                     >
                         <FaUserCircle className="w-6 h-6 text-secondary cursor-pointer" />
@@ -244,7 +244,7 @@ const Header = () => {
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     onKeyDown={handleKeyDown}
-                                    className="w-full pl-12 pr-12 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                    className="w-full pl-12 pr-12 py-3 text-lg border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                                 />
                                 <button
                                     type="button"
@@ -253,7 +253,7 @@ const Header = () => {
                                         setSearchQuery("");
                                         setSelectedIndex(0);
                                     }}
-                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                                 >
                                     <X className="text-secondary" size={20} />
                                 </button>

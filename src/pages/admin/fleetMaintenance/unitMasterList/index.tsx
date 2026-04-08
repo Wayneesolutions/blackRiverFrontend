@@ -317,7 +317,7 @@ const UnitMasterList: React.FC = () => {
                 placeholder="Search by unit number, make/model, license plate, or VIN..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                className="pl-10 pr-4 py-2 w-full border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                 onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                 onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -346,7 +346,7 @@ const UnitMasterList: React.FC = () => {
                   <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-theme">
                 {filteredUnits.length === 0 ? (
                   <tr>
                     <td colSpan={activeTab === 'inactive' ? 9 : 7} className="px-6 py-12 text-center text-secondary">
@@ -450,7 +450,7 @@ const UnitMasterList: React.FC = () => {
                       type="text"
                       value={formData.unitNo}
                       onChange={(e) => setFormData({ ...formData, unitNo: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -462,7 +462,7 @@ const UnitMasterList: React.FC = () => {
                     <select
                       value={formData.unitType}
                       onChange={(e) => setFormData({ ...formData, unitType: e.target.value as UnitType })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -480,7 +480,7 @@ const UnitMasterList: React.FC = () => {
                       type="text"
                       value={formData.makeModel}
                       onChange={(e) => setFormData({ ...formData, makeModel: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -493,7 +493,7 @@ const UnitMasterList: React.FC = () => {
                       type="text"
                       value={formData.vinNo}
                       onChange={(e) => setFormData({ ...formData, vinNo: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent font-mono"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent font-mono"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -506,7 +506,7 @@ const UnitMasterList: React.FC = () => {
                       type="text"
                       value={formData.licensePlate}
                       onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -519,7 +519,7 @@ const UnitMasterList: React.FC = () => {
                       type="number"
                       value={formData.initialOdometer}
                       onChange={(e) => setFormData({ ...formData, initialOdometer: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -534,7 +534,7 @@ const UnitMasterList: React.FC = () => {
                           type="date"
                           value={formData.lastDate}
                           onChange={(e) => setFormData({ ...formData, lastDate: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -546,7 +546,7 @@ const UnitMasterList: React.FC = () => {
                           type="text"
                           value={formData.reason}
                           onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -563,7 +563,7 @@ const UnitMasterList: React.FC = () => {
                         setShowEditModal(false);
                         setSelectedUnit(null);
                       }}
-                      className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                      className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     >
                       Cancel
                     </button>
@@ -602,7 +602,7 @@ const UnitMasterList: React.FC = () => {
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => setShowDeleteModal(false)}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                    className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     Cancel
                   </button>

@@ -820,8 +820,8 @@ const FinanceReport = () => {
                     key={tab.id}
                     onClick={() => setActiveView(tab.id as ViewType)}
                     className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 ${activeView === tab.id
-                        ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
-                        : 'text-primary hover:bg-gray-100'
+                        ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
+                        : 'text-primary hover:bg-[rgba(255,255,255,0.03)]'
                       }`}
                   >
                     <Icon size={16} />
@@ -847,7 +847,7 @@ const FinanceReport = () => {
                   return (
                     <div
                       key={index}
-                      className={`${stat.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-[#42aeec]/20`}
+                      className={`${stat.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-[var(--accent-blue)]/20`}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
@@ -876,7 +876,7 @@ const FinanceReport = () => {
               {/* Consolidated Financial Summary */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
                 <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                  <PieChart size={20} className="text-[#42aeec]" />
+                  <PieChart size={20} className="text-[var(--accent-blue)]" />
                   Consolidated Financial Summary
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -943,7 +943,7 @@ const FinanceReport = () => {
                 {/* Financial Health Analysis */}
                 <div className="mt-6 bg-card rounded-xl border border-theme p-5">
                   <h3 className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
-                    <PieChart size={15} className="text-[#42aeec]" />
+                    <PieChart size={15} className="text-[var(--accent-blue)]" />
                     Financial Health Analysis
                   </h3>
                   {(() => {
@@ -1058,7 +1058,7 @@ const FinanceReport = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
                   <h3 className="text-base font-bold text-primary mb-4 flex items-center gap-2">
-                    <FileText size={18} className="text-[#42aeec]" />
+                    <FileText size={18} className="text-[var(--accent-blue)]" />
                     Invoice Summary
                   </h3>
                   <div className="space-y-3">
@@ -1082,7 +1082,7 @@ const FinanceReport = () => {
 
                 <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
                   <h3 className="text-base font-bold text-primary mb-4 flex items-center gap-2">
-                    <Receipt size={18} className="text-[#42aeec]" />
+                    <Receipt size={18} className="text-[var(--accent-blue)]" />
                     Expense Breakdown
                   </h3>
                   <div className="space-y-3">
@@ -1133,7 +1133,7 @@ const FinanceReport = () => {
                           onClick={() => setTimePeriod(period)}
                           disabled={loading}
                           className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${timePeriod === period
-                              ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
+                              ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
                               : 'bg-gray-100 text-primary hover:bg-gray-200'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
@@ -1148,7 +1148,7 @@ const FinanceReport = () => {
               {/* Truck-wise Comparison Chart - Grouped by Time Period */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
                 <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                  <BarChart3 size={20} className="text-[#42aeec]" />
+                  <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                   Truck-wise Revenue vs Expenses vs Net Profit (Grouped by {(() => {
                     switch (timePeriod) {
                       case '2weeks': return '2 Weeks';
@@ -1295,7 +1295,7 @@ const FinanceReport = () => {
               <div className="bg-card rounded-xl shadow-sm border border-theme">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
                   <h2 className="text-base font-bold text-primary flex items-center gap-2">
-                    <Truck size={18} className="text-[#42aeec]" />
+                    <Truck size={18} className="text-[var(--accent-blue)]" />
                     Truck-wise Financial Performance
                   </h2>
                   <button className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-primary rounded-lg text-xs font-medium transition-all flex items-center gap-2">
@@ -1359,7 +1359,7 @@ const FinanceReport = () => {
                               </div>
                             </td>
                             <td className="px-4 py-3 text-sm text-center whitespace-nowrap">
-                              <span className={`inline-flex items-center justify-center min-w-[28px] h-6 px-2 rounded-full text-xs font-semibold ${truck.trips > 0 ? 'bg-[#42aeec]/10 text-[#42aeec]' : 'bg-gray-100 text-secondary'}`}>
+                              <span className={`inline-flex items-center justify-center min-w-[28px] h-6 px-2 rounded-full text-xs font-semibold ${truck.trips > 0 ? 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]' : 'bg-gray-100 text-secondary'}`}>
                                 {truck.trips}
                               </span>
                             </td>
@@ -1390,7 +1390,7 @@ const FinanceReport = () => {
                         const hasTotMiles = totMiles > 0;
                         const totMargin = totRev > 0 ? (totProfit / totRev) * 100 : 0;
                         return (
-                          <tr className="font-bold border-t-2 border-[#42aeec]/30 bg-[#42aeec]/5">
+                          <tr className="font-bold border-t-2 border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/5">
                             <td colSpan={2} className="px-4 py-3 text-sm text-primary font-bold">Fleet Total</td>
                             <td className="px-4 py-3 text-sm text-right text-green-700 font-bold whitespace-nowrap">{formatCurrency(totRev)}</td>
                             <td className="px-4 py-3 text-sm text-right text-[#A855F7] font-bold whitespace-nowrap">{formatCurrency(totExp)}</td>
@@ -1440,7 +1440,7 @@ const FinanceReport = () => {
                           onClick={() => setTimePeriod(period)}
                           disabled={loading}
                           className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${timePeriod === period
-                              ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
+                              ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
                               : 'bg-gray-100 text-primary hover:bg-gray-200'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
@@ -1455,7 +1455,7 @@ const FinanceReport = () => {
               {/* Trip-wise Comparison Chart - Grouped by Time Period */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
                 <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                  <BarChart3 size={20} className="text-[#42aeec]" />
+                  <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                   Trip-wise Revenue vs Expenses vs Net Profit (Grouped by {(() => {
                     switch (timePeriod) {
                       case '2weeks': return '2 Weeks';
@@ -1587,7 +1587,7 @@ const FinanceReport = () => {
               <div className="bg-card rounded-xl shadow-sm border border-theme">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
                   <h2 className="text-base font-bold text-primary flex items-center gap-2">
-                    <MapPin size={18} className="text-[#42aeec]" />
+                    <MapPin size={18} className="text-[var(--accent-blue)]" />
                     Trip-wise Financial Details
                   </h2>
                   <button className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-primary rounded-lg text-xs font-medium transition-all flex items-center gap-2">
@@ -1610,11 +1610,11 @@ const FinanceReport = () => {
                 border-radius: 5px;
               }
               .top-scrollbar-container::-webkit-scrollbar-thumb {
-                background: #42aeec;
+                background: var(--accent-blue);
                 border-radius: 5px;
               }
               .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                background: #0ea3d8;
+                background: rgba(0,209,255,0.15);
               }
               .table-container-with-scrollbar {
                 overflow-x: auto;
@@ -1628,11 +1628,11 @@ const FinanceReport = () => {
                 border-radius: 5px;
               }
               .table-container-with-scrollbar::-webkit-scrollbar-thumb {
-                background: #42aeec;
+                background: var(--accent-blue);
                 border-radius: 5px;
               }
               .table-container-with-scrollbar::-webkit-scrollbar-thumb:hover {
-                background: #0ea3d8;
+                background: rgba(0,209,255,0.15);
               }
             `}</style>
                   <div
@@ -1643,7 +1643,7 @@ const FinanceReport = () => {
                       marginBottom: '8px',
                       paddingTop: '8px',
                       scrollbarWidth: 'thin',
-                      scrollbarColor: '#42aeec #f7fafc' /* Firefox */
+                      scrollbarColor: 'var(--accent-blue) #f7fafc' /* Firefox */
                     }}
                   >
                     <div className="top-scroll-content" style={{ height: '1px', minWidth: '100%' }}></div>
@@ -1710,12 +1710,12 @@ const FinanceReport = () => {
                               <td className="px-4 py-3 text-sm text-secondary">
                                 <div className="relative group inline-flex items-center gap-1 min-w-0 cursor-default">
                                   <span className="text-primary font-medium truncate" style={{ maxWidth: '80px' }}>{trip.origin && trip.origin !== 'N/A' ? trip.origin : <span className="text-gray-300">—</span>}</span>
-                                  <ArrowUpRight size={12} className="text-[#42aeec] flex-shrink-0" />
+                                  <ArrowUpRight size={12} className="text-[var(--accent-blue)] flex-shrink-0" />
                                   <span className="text-primary font-medium truncate" style={{ maxWidth: '80px' }}>{trip.destination && trip.destination !== 'N/A' ? trip.destination : <span className="text-gray-300">—</span>}</span>
                                   {routeText !== '—' && (
                                     <div className="absolute z-50 bottom-full left-0 mb-1.5 px-2.5 py-1.5 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150">
                                       {trip.origin && trip.origin !== 'N/A' ? trip.origin : '—'}
-                                      <span className="mx-1.5 text-[#42aeec]">→</span>
+                                      <span className="mx-1.5 text-[var(--accent-blue)]">→</span>
                                       {trip.destination && trip.destination !== 'N/A' ? trip.destination : '—'}
                                     </div>
                                   )}
@@ -1772,7 +1772,7 @@ const FinanceReport = () => {
                           const totMargin = totRev > 0 ? (totProfit / totRev) * 100 : 0;
                           const dash = <span className="text-gray-300 font-light">—</span>;
                           return (
-                            <tr className="font-bold border-t-2 border-[#42aeec]/30 bg-[#42aeec]/5">
+                            <tr className="font-bold border-t-2 border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/5">
                               <td colSpan={4} className="px-4 py-3 text-sm text-primary font-bold whitespace-nowrap">All Trips Total</td>
                               <td className="px-4 py-3 whitespace-nowrap"></td>
                               <td className="px-4 py-3 text-sm text-right text-primary font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
@@ -1824,7 +1824,7 @@ const FinanceReport = () => {
                           }}
                           disabled={loading}
                           className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${timePeriod === period
-                              ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
+                              ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
                               : 'bg-gray-100 text-primary hover:bg-gray-200'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
@@ -1860,7 +1860,7 @@ const FinanceReport = () => {
                   {/* Time-based Comparison Chart */}
                   <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
                     <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                      <BarChart3 size={20} className="text-[#42aeec]" />
+                      <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                       {(() => {
                         switch (timePeriod) {
                           case '2weeks': return '2 Weeks';
@@ -1942,7 +1942,7 @@ const FinanceReport = () => {
                   {/* Time-based Comparison Bar Chart */}
                   <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
                     <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                      <BarChart3 size={20} className="text-[#42aeec]" />
+                      <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                       {(() => {
                         switch (timePeriod) {
                           case '2weeks': return '2 Weeks';
@@ -2143,7 +2143,7 @@ const FinanceReport = () => {
                     onClick={() => { setPayableLoaded(false); fetchPayableData(); }}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-secondary border border-theme bg-card rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition"
                   >
-                    <RefreshCw size={13} className={payableLoading ? 'animate-spin text-[#42aeec]' : ''} />
+                    <RefreshCw size={13} className={payableLoading ? 'animate-spin text-[var(--accent-blue)]' : ''} />
                     Refresh
                   </button>
                 </div>
@@ -2152,7 +2152,7 @@ const FinanceReport = () => {
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   <div className="bg-card rounded-xl border border-theme p-4">
                     <div className="flex items-center gap-2 mb-1">
-                      <CreditCard size={15} className="text-[#42aeec]" />
+                      <CreditCard size={15} className="text-[var(--accent-blue)]" />
                       <span className="text-xs text-secondary font-medium uppercase tracking-wide">Total Payables</span>
                     </div>
                     <div className="text-2xl font-bold text-primary">{fmtCur(totalPayable)}</div>
@@ -2193,13 +2193,13 @@ const FinanceReport = () => {
                       <button
                         key={cat}
                         onClick={() => { setPayableSubFilter(isActive ? 'all' : cat); setPayablePage(1); }}
-                        className={`rounded-xl p-3 text-left border transition ${isActive ? 'border-[#42aeec] bg-[#42aeec]/5 shadow-sm' : 'border-theme bg-card hover:border-[#42aeec]/40'}`}
+                        className={`rounded-xl p-3 text-left border transition ${isActive ? 'border-[var(--accent-blue)] bg-[var(--accent-blue)]/5 shadow-sm' : 'border-theme bg-card hover:border-[var(--accent-blue)]/40'}`}
                       >
                         <div className="flex items-center justify-between mb-1.5">
                           <span className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: meta.color + '20', color: meta.color }}>
                             {meta.icon}
                           </span>
-                          {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[#42aeec]" />}
+                          {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-blue)]" />}
                         </div>
                         <div className="text-sm font-bold text-primary truncate">{fmtCur(total)}</div>
                         <div className="text-xs text-secondary mt-0.5 truncate">{meta.label}</div>
@@ -2225,7 +2225,7 @@ const FinanceReport = () => {
                         placeholder="Search payables…"
                         value={payableSearch}
                         onChange={e => { setPayableSearch(e.target.value); setPayablePage(1); }}
-                        className="w-full pl-8 pr-3 py-1.5 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]/30 focus:border-[#42aeec]"
+                        className="w-full pl-8 pr-3 py-1.5 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)]"
                       />
                     </div>
 
@@ -2233,7 +2233,7 @@ const FinanceReport = () => {
                     <select
                       value={payableSubFilter}
                       onChange={e => { setPayableSubFilter(e.target.value as PayableSubCategory); setPayablePage(1); }}
-                      className="text-sm border border-theme rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#42aeec]/30 focus:border-[#42aeec] bg-card"
+                      className="text-sm border border-theme rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] bg-card"
                     >
                       <option value="all">All Categories</option>
                       {(Object.keys(PAYABLE_META) as Exclude<PayableSubCategory,'all'>[]).map(k => (
@@ -2245,7 +2245,7 @@ const FinanceReport = () => {
                     <select
                       value={payableStatusFilter}
                       onChange={e => { setPayableStatusFilter(e.target.value); setPayablePage(1); }}
-                      className="text-sm border border-theme rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#42aeec]/30 focus:border-[#42aeec] bg-card"
+                      className="text-sm border border-theme rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] bg-card"
                     >
                       <option value="all">All Statuses</option>
                       <option value="paid">Paid</option>
@@ -2258,7 +2258,7 @@ const FinanceReport = () => {
                     {(payableSubFilter !== 'all' || payableStatusFilter !== 'all' || payableSearch) && (
                       <button
                         onClick={() => { setPayableSubFilter('all'); setPayableStatusFilter('all'); setPayableSearch(''); setPayablePage(1); }}
-                        className="text-xs text-[#42aeec] hover:underline"
+                        className="text-xs text-[var(--accent-blue)] hover:underline"
                       >
                         Clear
                       </button>
@@ -2277,7 +2277,7 @@ const FinanceReport = () => {
 
                   {payableLoading ? (
                     <div className="flex items-center justify-center py-16 gap-3 text-secondary">
-                      <RefreshCw size={20} className="animate-spin text-[#42aeec]" />
+                      <RefreshCw size={20} className="animate-spin text-[var(--accent-blue)]" />
                       <span className="text-sm">Loading payables…</span>
                     </div>
                   ) : (
@@ -2351,7 +2351,7 @@ const FinanceReport = () => {
                         {/* Totals footer */}
                         {pageRows.length > 0 && (
                           <tfoot>
-                            <tr className="bg-[#42aeec]/5 border-t-2 border-[#42aeec]/20 font-semibold">
+                            <tr className="bg-[var(--accent-blue)]/5 border-t-2 border-[var(--accent-blue)]/20 font-semibold">
                               <td colSpan={3} className="px-4 py-2.5 text-sm text-primary">
                                 Filtered Total ({filtered.length} records)
                               </td>
@@ -2381,7 +2381,7 @@ const FinanceReport = () => {
                           const p = totalPgPages <= 5 ? i + 1 : Math.max(1, Math.min(payablePage - 2, totalPgPages - 4)) + i;
                           return (
                             <button key={p} onClick={() => setPayablePage(p)}
-                              className={`w-7 h-7 text-xs rounded transition ${p === payablePage ? 'bg-[#42aeec] text-white font-semibold' : 'border border-theme text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}>
+                              className={`w-7 h-7 text-xs rounded transition ${p === payablePage ? 'bg-[var(--accent-blue)] text-white font-semibold' : 'border border-theme text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}>
                               {p}
                             </button>
                           );

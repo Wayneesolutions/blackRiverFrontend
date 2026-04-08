@@ -306,7 +306,7 @@ export default function LoginPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={loading}
-                      className={`block w-full rounded-lg border pl-11 pr-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${errors.email ? "border-red-400 bg-card" : "border-theme hover:border-gray-300"
+                      className={`block w-full rounded-lg border pl-11 pr-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${errors.email ? "border-red-400 bg-card" : "border-theme hover:border-theme"
                         }`}
                       style={{ '--tw-ring-color': 'var(--accent-blue)' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = 'var(--accent-blue)'; e.target.style.boxShadow = '0 0 0 2px rgba(66, 174, 236, 0.2)'; }}
@@ -329,10 +329,10 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={loading}
-                      className={`block w-full rounded-lg border pl-11 pr-11 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${errors.password ? "border-red-400 bg-card" : "border-theme hover:border-gray-300"
+                      className={`block w-full rounded-lg border pl-11 pr-11 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${errors.password ? "border-red-400 bg-card" : "border-theme hover:border-theme"
                         }`}
-                      style={{ '--tw-ring-color': '#42aeec' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#42aeec'; e.target.style.boxShadow = '0 0 0 2px rgba(66, 174, 236, 0.2)'; }}
+                      style={{ '--tw-ring-color': 'var(--accent-blue)' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = 'var(--accent-blue)'; e.target.style.boxShadow = '0 0 0 2px rgba(66, 174, 236, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="Enter your password"
                       autoComplete="current-password"
@@ -359,7 +359,7 @@ export default function LoginPage() {
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
                       disabled={loading}
-                      className="h-4 w-4 rounded border-gray-300 disabled:opacity-50"
+                      className="h-4 w-4 rounded border-theme disabled:opacity-50"
                       style={{ accentColor: 'var(--accent-blue)' }}
                     />
                     <label htmlFor="remember" className="text-sm text-secondary">

@@ -841,7 +841,7 @@ const MaintenanceSchedule = () => {
                                 <p className="text-sm text-secondary capitalize">{alert.type} Priority</p>
                             </div>
                         </div>
-                        <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <button onClick={onClose} className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors">
                             <X size={20} />
                         </button>
                     </div>
@@ -1043,7 +1043,7 @@ const MaintenanceSchedule = () => {
                         <div className="p-6">
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-xl font-semibold text-primary">Schedule New Service</h2>
-                                <button onClick={() => setShowScheduleForm(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                                <button onClick={() => setShowScheduleForm(false)} className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors">
                                     <X size={20} />
                                 </button>
                             </div>
@@ -1079,7 +1079,7 @@ const MaintenanceSchedule = () => {
                                                 }
                                             }
                                         }}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required
                                     >
                                         <option value="">Select a vehicle</option>
@@ -1118,7 +1118,7 @@ const MaintenanceSchedule = () => {
                                                 }
                                             }
                                         }}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required
                                     >
                                         <option value="">Select service type</option>
@@ -1161,7 +1161,7 @@ const MaintenanceSchedule = () => {
                                                     }}
                                                     placeholder="e.g., 15000"
                                                     disabled={!scheduleForm.useMileageInterval}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                                                     min="0"
                                                 />
                                             </div>
@@ -1191,7 +1191,7 @@ const MaintenanceSchedule = () => {
                                                     }}
                                                     placeholder="e.g., 90"
                                                     disabled={!scheduleForm.useTimeInterval}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                                                     min="0"
                                                 />
                                             </div>
@@ -1220,7 +1220,7 @@ const MaintenanceSchedule = () => {
                                     <select
                                         value={scheduleForm.priority}
                                         onChange={(e) => handleFormChange('priority', e.target.value)}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="low">Low Priority</option>
                                         <option value="medium">Medium Priority</option>
@@ -1235,7 +1235,7 @@ const MaintenanceSchedule = () => {
                                         type="date"
                                         value={scheduleForm.dueDate}
                                         onChange={(e) => handleFormChange('dueDate', e.target.value)}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required />
                                 </div>
 
@@ -1246,7 +1246,7 @@ const MaintenanceSchedule = () => {
                                         value={scheduleForm.dueMileage}
                                         onChange={(e) => handleFormChange('dueMileage', e.target.value)}
                                         placeholder="e.g., 50000"
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                        className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                 </div>
 
                                 <div>
@@ -1254,7 +1254,7 @@ const MaintenanceSchedule = () => {
                                     <select
                                         value={scheduleForm.assignedMechanic}
                                         onChange={(e) => handleFormChange('assignedMechanic', e.target.value)}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         disabled={loadingMechanics}
                                     >
                                         <option value="">{loadingMechanics ? 'Loading mechanics...' : 'Select Mechanic'}</option>
@@ -1274,7 +1274,7 @@ const MaintenanceSchedule = () => {
                                         value={scheduleForm.estimatedCost}
                                         onChange={(e) => handleFormChange('estimatedCost', e.target.value)}
                                         placeholder="0.00"
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
 
@@ -1285,7 +1285,7 @@ const MaintenanceSchedule = () => {
                                         value={scheduleForm.estimatedTime}
                                         onChange={(e) => handleFormChange('estimatedTime', e.target.value)}
                                         placeholder="e.g., 2 hours, 1 day"
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
 
@@ -1300,7 +1300,7 @@ const MaintenanceSchedule = () => {
                                                 type="date"
                                                 value={scheduleForm.serviceDate}
                                                 onChange={(e) => handleFormChange('serviceDate', e.target.value)}
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
 
@@ -1311,7 +1311,7 @@ const MaintenanceSchedule = () => {
                                                 value={scheduleForm.unitNumber}
                                                 onChange={(e) => handleFormChange('unitNumber', e.target.value)}
                                                 placeholder="Unit Number"
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
 
@@ -1322,7 +1322,7 @@ const MaintenanceSchedule = () => {
                                                 value={scheduleForm.makeModel}
                                                 onChange={(e) => handleFormChange('makeModel', e.target.value)}
                                                 placeholder="Make/Model"
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
 
@@ -1333,7 +1333,7 @@ const MaintenanceSchedule = () => {
                                                 value={scheduleForm.vinLicensePlate}
                                                 onChange={(e) => handleFormChange('vinLicensePlate', e.target.value)}
                                                 placeholder="VIN or License Plate"
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
 
@@ -1344,7 +1344,7 @@ const MaintenanceSchedule = () => {
                                                 value={scheduleForm.odometer}
                                                 onChange={(e) => handleFormChange('odometer', e.target.value)}
                                                 placeholder="Current Odometer Reading"
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
 
@@ -1355,7 +1355,7 @@ const MaintenanceSchedule = () => {
                                                 value={scheduleForm.serviceProvider}
                                                 onChange={(e) => handleFormChange('serviceProvider', e.target.value)}
                                                 placeholder="Service Provider/Shop Name"
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
 
@@ -1366,7 +1366,7 @@ const MaintenanceSchedule = () => {
                                                 value={scheduleForm.invoiceNumber}
                                                 onChange={(e) => handleFormChange('invoiceNumber', e.target.value)}
                                                 placeholder="Invoice Number"
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
 
@@ -1377,7 +1377,7 @@ const MaintenanceSchedule = () => {
                                                 onChange={(e) => handleFormChange('parts', e.target.value)}
                                                 rows={3}
                                                 placeholder="List parts used or required..."
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                                className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                                             />
                                         </div>
 
@@ -1388,7 +1388,7 @@ const MaintenanceSchedule = () => {
                                                 onChange={(e) => handleFormChange('description', e.target.value)}
                                                 rows={3}
                                                 placeholder="Describe any specific requirements or issues..."
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                                                className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
                                         </div>
 
                                         <div>
@@ -1398,7 +1398,7 @@ const MaintenanceSchedule = () => {
                                                 onChange={(e) => handleFormChange('notes', e.target.value)}
                                                 rows={3}
                                                 placeholder="Additional notes..."
-                                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                                className="w-full p-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                                             />
                                         </div>
                                     </div>
@@ -1464,7 +1464,7 @@ const MaintenanceSchedule = () => {
                             <select
                                 value={serviceFilters.status || ''}
                                 onChange={(e) => setServiceFilters({ ...serviceFilters, status: e.target.value as any || undefined })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                                 <option value="">All Statuses</option>
                                 <option value="pending">Pending</option>
@@ -1478,7 +1478,7 @@ const MaintenanceSchedule = () => {
                             <select
                                 value={serviceFilters.priority || ''}
                                 onChange={(e) => setServiceFilters({ ...serviceFilters, priority: e.target.value as any || undefined })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                                 <option value="">All Priorities</option>
                                 <option value="low">Low</option>
@@ -1493,7 +1493,7 @@ const MaintenanceSchedule = () => {
                             <select
                                 value={serviceFilters.serviceType || ''}
                                 onChange={(e) => setServiceFilters({ ...serviceFilters, serviceType: e.target.value as any || undefined })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                                 <option value="">All Types</option>
                                 <option value="oil-change">Oil Change</option>
@@ -1509,7 +1509,7 @@ const MaintenanceSchedule = () => {
                             <select
                                 value={serviceFilters.vehicleId || ''}
                                 onChange={(e) => setServiceFilters({ ...serviceFilters, vehicleId: e.target.value || undefined })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                                 <option value="">All Vehicles</option>
                                 {vehicles.map((vehicle: Vehicle) => (
@@ -1525,7 +1525,7 @@ const MaintenanceSchedule = () => {
                             <select
                                 value={serviceFilters.mechanic || ''}
                                 onChange={(e) => setServiceFilters({ ...serviceFilters, mechanic: e.target.value || undefined })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                                 <option value="">All Mechanics</option>
                                 {mechanics.map((mechanic) => (
@@ -1574,7 +1574,7 @@ const MaintenanceSchedule = () => {
                             </div>
                         </div>
                     ) : (
-                        <table className="min-w-full divide-y divide-gray-200">
+                        <table className="min-w-full divide-y divide-theme">
                             <thead className="bg-card">
                                 <tr>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Unit/Vehicle</th>
@@ -1592,7 +1592,7 @@ const MaintenanceSchedule = () => {
                                     <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-theme">
                                 {vehicleServices.map((service: VehicleServiceResponse) => {
                                     const formatDate = (dateString: string | Date | null | undefined) => {
                                         if (!dateString) return 'N/A';
@@ -1646,7 +1646,7 @@ const MaintenanceSchedule = () => {
                                                     <select
                                                         value={service.status}
                                                         onChange={(e) => handleStatusChange(service._id, e.target.value as any)}
-                                                        className="text-xs border border-gray-300 rounded px-2 py-1"
+                                                        className="text-xs border border-theme rounded px-2 py-1"
                                                     >
                                                         <option value="pending">Pending</option>
                                                         <option value="in-progress">In Progress</option>

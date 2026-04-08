@@ -214,7 +214,7 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
                 e.stopPropagation();
                 onClose(notification.id);
               }}
-              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-secondary hover:text-secondary transition-all"
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-[rgba(255,255,255,0.03)] flex items-center justify-center text-secondary hover:text-secondary transition-all"
             >
               <X size={18} />
             </button>
@@ -272,7 +272,7 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
                 e.stopPropagation();
                 onClose(notification.id);
               }}
-              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-secondary hover:text-secondary transition-all"
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-[rgba(255,255,255,0.03)] flex items-center justify-center text-secondary hover:text-secondary transition-all"
             >
               <X size={18} />
             </button>
@@ -517,9 +517,9 @@ const Trips = () => {
   const primaryButtonStyle: React.CSSProperties = {
     background: `linear-gradient(
       90deg,
-      #42aeec 0%,
-      #1db5f5 40%,
-      #0ea3d8 100%
+      var(--accent-blue) 0%,
+      var(--accent-blue) 40%,
+      rgba(0,209,255,0.15) 100%
     )`,
     color: "#fff",
     boxShadow: `0 12px 24px ${FLEET_COLORS.focusRing}`,
@@ -1190,7 +1190,7 @@ const Trips = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by trip number..."
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
+              className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
               onFocus={focusHandlers.onFocus}
               onBlur={focusHandlers.onBlur}
             />
@@ -1202,7 +1202,7 @@ const Trips = () => {
               setStatusFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
+            className="px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
             onFocus={focusHandlers.onFocus}
             onBlur={focusHandlers.onBlur}
           >
@@ -1220,7 +1220,7 @@ const Trips = () => {
               setDriverFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
+            className="px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
             onFocus={focusHandlers.onFocus}
             onBlur={focusHandlers.onBlur}
           >
@@ -1238,7 +1238,7 @@ const Trips = () => {
               setTruckFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
+            className="px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-opacity-50 text-sm"
             onFocus={focusHandlers.onFocus}
             onBlur={focusHandlers.onBlur}
           >
@@ -1259,7 +1259,7 @@ const Trips = () => {
                 setSearchTerm("");
                 setCurrentPage(1);
               }}
-              className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm"
+              className="flex items-center justify-center gap-2 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm"
             >
               <X className="w-4 h-4" />
               Clear
@@ -1338,7 +1338,7 @@ const Trips = () => {
                     <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {trips.map((trip) => (
                     <tr key={trip._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                       <td className="px-4 py-3 whitespace-nowrap">
@@ -1419,7 +1419,7 @@ const Trips = () => {
                                   addNotification('error', 'Error loading documents');
                                 }
                               }}
-                              className="flex items-center gap-2 px-2 py-1.5 bg-card hover:bg-blue-50 border border-gray-300 rounded transition-colors w-full min-w-[140px] cursor-pointer"
+                              className="flex items-center gap-2 px-2 py-1.5 bg-card hover:bg-blue-50 border border-theme rounded transition-colors w-full min-w-[140px] cursor-pointer"
                               title="Click to view documents"
                             >
                               <div className="flex items-center gap-2 flex-1">
@@ -1616,7 +1616,7 @@ const Trips = () => {
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.03)]"
+                  className="px-3 py-1 border border-theme rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.03)]"
                 >
                   Previous
                 </button>
@@ -1626,7 +1626,7 @@ const Trips = () => {
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.03)]"
+                  className="px-3 py-1 border border-theme rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.03)]"
                 >
                   Next
                 </button>
@@ -1636,7 +1636,7 @@ const Trips = () => {
                     setItemsPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="px-2 py-1 border border-gray-300 rounded text-sm ml-2"
+                  className="px-2 py-1 border border-theme rounded text-sm ml-2"
                 >
                   <option value={10}>10 per page</option>
                   <option value={25}>25 per page</option>
@@ -1679,7 +1679,7 @@ const Trips = () => {
                     setViewingTrip(null);
                     setShowChat(false);
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
                 >
                   <X className="w-5 h-5 text-secondary" />
                 </button>

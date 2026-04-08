@@ -93,7 +93,7 @@ const RevenuePerMilePage = () => {
                 {/* Date Filter Toggle */}
                 <button
                   onClick={() => setShowDateFilter(!showDateFilter)}
-                  className="px-4 py-2 bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] flex items-center gap-2 transition-colors text-sm"
+                  className="px-4 py-2 bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] flex items-center gap-2 transition-colors text-sm"
                 >
                   <Calendar size={18} />
                   Date Filter
@@ -103,7 +103,7 @@ const RevenuePerMilePage = () => {
                 {(startDate || endDate || searchTerm) && (
                   <button
                     onClick={clearFilters}
-                    className="px-4 py-2 bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] flex items-center gap-2 transition-colors text-sm text-[#A855F7]"
+                    className="px-4 py-2 bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] flex items-center gap-2 transition-colors text-sm text-[#A855F7]"
                   >
                     <X size={18} />
                     Clear
@@ -122,7 +122,7 @@ const RevenuePerMilePage = () => {
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div className="flex-1 min-w-[200px]">
@@ -131,7 +131,7 @@ const RevenuePerMilePage = () => {
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <button
@@ -388,7 +388,7 @@ const RevenuePerMilePage = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {filteredData.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-8 text-center text-secondary">

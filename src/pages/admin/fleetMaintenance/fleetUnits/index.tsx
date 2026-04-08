@@ -959,7 +959,7 @@ const FleetUnits: React.FC = () => {
     iconColor: string;
   }) => {
     return (
-      <div className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-[#42aeec]/20">
+      <div className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all border border-transparent hover:border-[var(--accent-blue)]/20">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
             <h3 className="text-sm font-bold text-primary mb-1">{title}</h3>
@@ -1108,7 +1108,7 @@ const FleetUnits: React.FC = () => {
                     placeholder="Search by unit number, make/model, plate, or VIN..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                    className="pl-10 pr-4 py-2 w-full border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                     style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                     onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                     onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1119,7 +1119,7 @@ const FleetUnits: React.FC = () => {
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                    className="px-4 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                     style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                     onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                     onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1153,7 +1153,7 @@ const FleetUnits: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-theme">
                   {loading ? (
                     <tr>
                       <td colSpan={activeTab === 'trailers' ? 12 : 11} className="px-6 py-12 text-center text-secondary">
@@ -1338,7 +1338,7 @@ const FleetUnits: React.FC = () => {
                       <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-[#00D1FF]' : 'text-secondary'}`}>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 1
                           ? 'border-blue-600 bg-card'
-                          : 'border-gray-300 bg-card'
+                          : 'border-theme bg-card'
                           }`}>
                           {currentStep > 1 ? <CheckCircle size={16} className="text-[#00D1FF]" /> : '1'}
                         </div>
@@ -1353,7 +1353,7 @@ const FleetUnits: React.FC = () => {
                       <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-[#00D1FF]' : 'text-secondary'}`}>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 2
                           ? 'border-blue-600 bg-card'
-                          : 'border-gray-300 bg-card'
+                          : 'border-theme bg-card'
                           }`}>
                           2
                         </div>
@@ -1377,7 +1377,7 @@ const FleetUnits: React.FC = () => {
                       }
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentStep === 1
                         ? '!text-white shadow-sm'
-                        : 'bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                        : 'bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]'
                         }`}
                     >
                       Fleet Information
@@ -1394,7 +1394,7 @@ const FleetUnits: React.FC = () => {
                       }
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentStep === 2
                         ? '!text-white shadow-sm'
-                        : 'bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                        : 'bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]'
                         }`}
                     >
                       Fleet Documents ({fleetDocuments.length})
@@ -1428,7 +1428,7 @@ const FleetUnits: React.FC = () => {
                     </div>
 
                     {fleetDocuments.length === 0 ? (
-                      <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                      <div className="text-center py-8 border-2 border-dashed border-theme rounded-lg">
                         <FileText className="w-12 h-12 text-secondary mx-auto mb-3" />
                         <p className="text-secondary mb-2">No documents added yet</p>
                         <p className="text-sm text-secondary mb-4">Click "Add Document" to upload fleet documents</p>
@@ -1467,7 +1467,7 @@ const FleetUnits: React.FC = () => {
                                 <select
                                   value={doc.documentType}
                                   onChange={(e) => updateDocument(index, 'documentType', e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                   {VEHICLE_DOCUMENT_TYPES.map((type) => (
                                     <option key={type} value={type}>{type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
@@ -1483,7 +1483,7 @@ const FleetUnits: React.FC = () => {
                                     value={doc.documentNumber}
                                     onChange={(e) => updateDocument(index, 'documentNumber', e.target.value)}
                                     placeholder="e.g., DOC-123456"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   />
                                 </div>
                                
@@ -1496,7 +1496,7 @@ const FleetUnits: React.FC = () => {
                                     type="date"
                                     value={doc.issuedAt}
                                     onChange={(e) => updateDocument(index, 'issuedAt', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   />
                                 </div>
                                 <div>
@@ -1505,7 +1505,7 @@ const FleetUnits: React.FC = () => {
                                     type="date"
                                     value={doc.expiryDate}
                                     onChange={(e) => updateDocument(index, 'expiryDate', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   />
                                 </div>
                               </div>
@@ -1518,7 +1518,7 @@ const FleetUnits: React.FC = () => {
                                   type="file"
                                   multiple
                                   onChange={(e) => handleDocumentFileChange(index, e.target.files)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
                                 />
                                 {doc.files && doc.files.length > 0 && (
@@ -1552,7 +1552,7 @@ const FleetUnits: React.FC = () => {
                       type="text"
                       value={formData.unitNo}
                       onChange={(e) => setFormData({ ...formData, unitNo: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1565,7 +1565,7 @@ const FleetUnits: React.FC = () => {
                       type="text"
                       value={formData.internalId}
                       onChange={(e) => setFormData({ ...formData, internalId: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1578,7 +1578,7 @@ const FleetUnits: React.FC = () => {
                     <select
                       value={formData.unitType}
                       onChange={(e) => setFormData({ ...formData, unitType: e.target.value as UnitType })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1594,7 +1594,7 @@ const FleetUnits: React.FC = () => {
                       type="text"
                       value={formData.makeModel}
                       onChange={(e) => setFormData({ ...formData, makeModel: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1607,7 +1607,7 @@ const FleetUnits: React.FC = () => {
                       type="text"
                       value={formData.vinNo}
                       onChange={(e) => setFormData({ ...formData, vinNo: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent font-mono"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent font-mono"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1620,7 +1620,7 @@ const FleetUnits: React.FC = () => {
                       type="text"
                       value={formData.licensePlate}
                       onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1633,7 +1633,7 @@ const FleetUnits: React.FC = () => {
                       type="number"
                       value={formData.year}
                       onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1647,7 +1647,7 @@ const FleetUnits: React.FC = () => {
                       <select
                         value={formData.truckType}
                         onChange={(e) => setFormData({ ...formData, truckType: e.target.value as TruckType })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                         style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                         onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                         onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1665,7 +1665,7 @@ const FleetUnits: React.FC = () => {
                         <select
                           value={formData.trailerType}
                           onChange={(e) => setFormData({ ...formData, trailerType: e.target.value as TrailerType })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1681,7 +1681,7 @@ const FleetUnits: React.FC = () => {
                           type="text"
                           value={formData.capacity}
                           onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1693,7 +1693,7 @@ const FleetUnits: React.FC = () => {
                         <select
                           value={formData.operationStatus}
                           onChange={(e) => setFormData({ ...formData, operationStatus: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1713,7 +1713,7 @@ const FleetUnits: React.FC = () => {
                       type="number"
                       value={formData.initialOdometer}
                       onChange={(e) => setFormData({ ...formData, initialOdometer: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1726,7 +1726,7 @@ const FleetUnits: React.FC = () => {
                       type="number"
                       value={formData.currentOdometer}
                       onChange={(e) => setFormData({ ...formData, currentOdometer: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1746,7 +1746,7 @@ const FleetUnits: React.FC = () => {
                       type="number"
                       value={formData.serviceIntervalDays}
                       onChange={(e) => setFormData({ ...formData, serviceIntervalDays: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1761,7 +1761,7 @@ const FleetUnits: React.FC = () => {
                       type="number"
                       value={formData.serviceIntervalMileage}
                       onChange={(e) => setFormData({ ...formData, serviceIntervalMileage: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1779,7 +1779,7 @@ const FleetUnits: React.FC = () => {
                       type="date"
                       value={formData.safetyExpiryDate}
                       onChange={(e) => setFormData({ ...formData, safetyExpiryDate: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1791,7 +1791,7 @@ const FleetUnits: React.FC = () => {
                       type="text"
                       value={formData.safetyDecalNumber}
                       onChange={(e) => setFormData({ ...formData, safetyDecalNumber: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1804,7 +1804,7 @@ const FleetUnits: React.FC = () => {
                       type="text"
                       value={formData.safetyPaperNumber}
                       onChange={(e) => setFormData({ ...formData, safetyPaperNumber: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1817,7 +1817,7 @@ const FleetUnits: React.FC = () => {
                       type="text"
                       value={formData.lastInspectionShop}
                       onChange={(e) => setFormData({ ...formData, lastInspectionShop: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1830,7 +1830,7 @@ const FleetUnits: React.FC = () => {
                       type="text"
                       value={formData.lastInspectionInvoice}
                       onChange={(e) => setFormData({ ...formData, lastInspectionInvoice: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1842,7 +1842,7 @@ const FleetUnits: React.FC = () => {
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value as UnitStatus })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                       style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1863,7 +1863,7 @@ const FleetUnits: React.FC = () => {
                           type="text"
                           value={formData.address}
                           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                          className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="pl-10 w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1883,7 +1883,7 @@ const FleetUnits: React.FC = () => {
                           type="date"
                           value={formData.lastDate}
                           onChange={(e) => setFormData({ ...formData, lastDate: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1895,7 +1895,7 @@ const FleetUnits: React.FC = () => {
                           type="text"
                           value={formData.reason}
                           onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1914,7 +1914,7 @@ const FleetUnits: React.FC = () => {
                   {currentStep === 2 && (
                     <button
                       onClick={() => setCurrentStep(1)}
-                      className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                      className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     >
                       Back
                     </button>
@@ -1928,7 +1928,7 @@ const FleetUnits: React.FC = () => {
                       setSelectedUnit(null);
                       resetForm();
                     }}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                    className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     Cancel
                   </button>
@@ -2073,7 +2073,7 @@ const FleetUnits: React.FC = () => {
                     <span>Documents ({selectedUnitDetails.documents?.length || 0})</span>
                   </h3>
                   {!selectedUnitDetails.documents || selectedUnitDetails.documents.length === 0 ? (
-                    <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                    <div className="text-center py-8 border-2 border-dashed border-theme rounded-lg">
                       <FileText className="w-12 h-12 text-secondary mx-auto mb-3" />
                       <p className="text-secondary">No documents uploaded for this fleet unit</p>
                     </div>
@@ -2119,7 +2119,7 @@ const FleetUnits: React.FC = () => {
                               <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Actions</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-200">
+                          <tbody className="divide-y divide-theme">
                             {selectedUnitDetails.documents.map((doc: any, index: number) => {
                               const file = doc.files && doc.files.length > 0 ? doc.files[0] : null;
                               const formatFileSize = (bytes: number) => {
@@ -2270,7 +2270,7 @@ const FleetUnits: React.FC = () => {
                   setShowUnitDetails(false);
                   setSelectedUnitDetails(null);
                 }}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                className="px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
               >
                 Close
               </button>
@@ -2320,7 +2320,7 @@ const FleetUnits: React.FC = () => {
                     setShowDeleteModal(false);
                     setSelectedUnit(null);
                   }}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                  className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Cancel
                 </button>
@@ -2431,7 +2431,7 @@ const FleetUnits: React.FC = () => {
                       ...editDocumentForm,
                       documentType: e.target.value as any
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {VEHICLE_DOCUMENT_TYPES.map((type) => (
                       <option key={type} value={type}>
@@ -2453,7 +2453,7 @@ const FleetUnits: React.FC = () => {
                       documentNumber: e.target.value
                     })}
                     placeholder="e.g., DOC-123456 (optional)"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {editingDocument?.documentNumber && (
                     <p className="text-xs text-secondary mt-1">
@@ -2474,7 +2474,7 @@ const FleetUnits: React.FC = () => {
                         ...editDocumentForm,
                         issuedAt: e.target.value
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {editingDocument?.issuedAt && (
                       <p className="text-xs text-secondary mt-1">
@@ -2493,7 +2493,7 @@ const FleetUnits: React.FC = () => {
                         ...editDocumentForm,
                         expiryDate: e.target.value
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {editingDocument?.expiryDate && (
                       <p className="text-xs text-secondary mt-1">
@@ -2519,7 +2519,7 @@ const FleetUnits: React.FC = () => {
                         });
                       }
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
                   />
                   {editDocumentForm.files && editDocumentForm.files.length > 0 && (
@@ -2546,7 +2546,7 @@ const FleetUnits: React.FC = () => {
                   setEditingDocument(null);
                   setEditDocumentForm(null);
                 }}
-                className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 disabled={isSubmitting}
               >
                 Cancel
@@ -2596,7 +2596,7 @@ const FleetUnits: React.FC = () => {
             <div className="p-6 flex items-center justify-end gap-3">
               <button
                 onClick={() => setTruckLimitModal({ show: false, maxTrucks: 0, usedTrucks: 0 })}
-                className="px-5 py-2.5 border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+                className="px-5 py-2.5 border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
               >
                 Close
               </button>

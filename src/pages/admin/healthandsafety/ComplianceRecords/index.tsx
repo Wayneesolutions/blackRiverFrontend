@@ -15,7 +15,7 @@ const CUSTOM_COLORS = {
   primary: '#016ab2',
   dark: '#063f6f',
   light: '#398bc3',
-  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
   gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
 };
 
@@ -520,7 +520,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                 placeholder="Search by Record ID or Title..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -528,7 +528,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
@@ -540,7 +540,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               <select
                 value={filterCompliance}
                 onChange={(e) => setFilterCompliance(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="all">All Compliance</option>
                 <option value="compliant">Compliant</option>
@@ -720,7 +720,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setShowSidebar(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition"
+                  className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition"
                 >
                   <FaTimes size={24} className="text-secondary" />
                 </button>
@@ -827,7 +827,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                         <h4 className="font-semibold text-sm mb-2">Media Evidence</h4>
                         <div className="flex gap-2 overflow-x-auto">
                           {selectedRecord.photosVideos.map((url, idx) => (
-                            <a key={idx} href={url} target="_blank" rel="noreferrer" className="shrink-0 w-20 h-20 bg-gray-200 rounded-lg overflow-hidden border border-gray-300">
+                            <a key={idx} href={url} target="_blank" rel="noreferrer" className="shrink-0 w-20 h-20 bg-gray-200 rounded-lg overflow-hidden border border-theme">
                               {url.endsWith('.mp4') ? (
                                 <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-xs">Video</div>
                               ) : (
@@ -899,7 +899,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               <div className="p-6 border-t bg-card">
                 <button
                   onClick={() => setShowSidebar(false)}
-                  className="w-full py-3 bg-card border border-gray-300 rounded-lg text-primary font-semibold hover:bg-gray-100 transition"
+                  className="w-full py-3 bg-card border border-theme rounded-lg text-primary font-semibold hover:bg-[rgba(255,255,255,0.03)] transition"
                 >
                   Close Details
                 </button>

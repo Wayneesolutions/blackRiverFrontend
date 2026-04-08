@@ -196,7 +196,7 @@ const SystemSettings = () => {
                 type="text"
                 value={settings.name}
                 onChange={(e) => updateSetting('name', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="Enter your full name"
                 required
               />
@@ -212,7 +212,7 @@ const SystemSettings = () => {
                   type="email"
                   value={settings.email}
                   onChange={(e) => updateSetting('email', e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter your email"
                   required
                 />
@@ -229,7 +229,7 @@ const SystemSettings = () => {
                   type="tel"
                   value={settings.phone}
                   onChange={(e) => updateSetting('phone', e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter your phone number"
                 />
               </div>
@@ -257,7 +257,7 @@ const SystemSettings = () => {
                   type="text"
                   value={settings.country}
                   onChange={(e) => updateSetting('country', e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter country"
                 />
               </div>
@@ -272,7 +272,7 @@ const SystemSettings = () => {
                   type="text"
                   value={settings.state}
                   onChange={(e) => updateSetting('state', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter state"
                 />
               </div>
@@ -284,7 +284,7 @@ const SystemSettings = () => {
                   type="text"
                   value={settings.city}
                   onChange={(e) => updateSetting('city', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter city"
                 />
               </div>
@@ -298,7 +298,7 @@ const SystemSettings = () => {
                 value={settings.address}
                 onChange={(e) => updateSetting('address', e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="Enter full address"
               />
             </div>
@@ -322,7 +322,7 @@ const SystemSettings = () => {
               value={settings.policies}
               onChange={(e) => updateSetting('policies', e.target.value)}
               rows={5}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               placeholder="Enter policies or terms"
             />
           </div>
@@ -347,7 +347,7 @@ const SystemSettings = () => {
                   type={showCurrentPassword ? 'text' : 'password'}
                   value={settings.password}
                   onChange={(e) => updateSetting('password', e.target.value)}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 pr-10 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter current password"
                 />
                 <button
@@ -373,7 +373,7 @@ const SystemSettings = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={settings.newPassword}
                   onChange={(e) => updateSetting('newPassword', e.target.value)}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 pr-10 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter new password (min 6 characters)"
                 />
                 <button

@@ -61,7 +61,7 @@ const StatCard: React.FC<StatCardProps> = ({
     <div
       onClick={onClick}
       className="bg-card rounded-lg p-3 shadow-sm border border-theme
-                 hover:shadow-md hover:border-[#42aeec]/20
+                 hover:shadow-md hover:border-[var(--accent-blue)]/20
                  transition-all cursor-pointer
                  hover:scale-[1.02] active:scale-[0.98]"
     >
@@ -234,8 +234,8 @@ const Dashboard: React.FC = () => {
           />
           <defs>
             <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#42aeec" />
-              <stop offset="100%" stopColor="#1db5f5" />
+              <stop offset="0%" stopColor="var(--accent-blue)" />
+              <stop offset="100%" stopColor="var(--accent-blue)" />
             </linearGradient>
           </defs>
         </svg>
@@ -267,7 +267,7 @@ const Dashboard: React.FC = () => {
         <div
           className="absolute inset-x-0 top-0 h-[101px]"
           style={{
-            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+            background: `linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)`,
             height: '101px'
           }}
         />
@@ -372,8 +372,8 @@ const Dashboard: React.FC = () => {
                     />
                     <defs>
                       <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#42aeec" />
-                        <stop offset="100%" stopColor="#1db5f5" />
+                        <stop offset="0%" stopColor="var(--accent-blue)" />
+                        <stop offset="100%" stopColor="var(--accent-blue)" />
                       </linearGradient>
                     </defs>
                   </BarChart>
@@ -405,10 +405,10 @@ const Dashboard: React.FC = () => {
                     <Line 
                       type="monotone" 
                       dataKey="value" 
-                      stroke={hasUtilizationData ? "#42aeec" : "#BAE6FD"}
+                      stroke={hasUtilizationData ? "var(--accent-blue)" : "#BAE6FD"}
                       strokeWidth={3}
-                      dot={{ fill: hasUtilizationData ? '#42aeec' : '#BAE6FD', strokeWidth: 0, r: 4 }}
-                      activeDot={{ r: 6, fill: hasUtilizationData ? '#42aeec' : '#BAE6FD' }}
+                      dot={{ fill: hasUtilizationData ? 'var(--accent-blue)' : '#BAE6FD', strokeWidth: 0, r: 4 }}
+                      activeDot={{ r: 6, fill: hasUtilizationData ? 'var(--accent-blue)' : '#BAE6FD' }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -450,7 +450,7 @@ const Dashboard: React.FC = () => {
                       type="monotone"
                       dataKey="speeding"
                       stackId="1"
-                      stroke={hasSpeedingData ? "#42aeec" : "#E0F2FE"}
+                      stroke={hasSpeedingData ? "var(--accent-blue)" : "#E0F2FE"}
                       fill={hasSpeedingData ? "url(#speedingGradient)" : "#F0F9FF"}
                       strokeWidth={2}
                     />
@@ -458,18 +458,18 @@ const Dashboard: React.FC = () => {
                       type="monotone"
                       dataKey="events"
                       stackId="2"
-                      stroke={hasSpeedingData ? "#1db5f5" : "#BAE6FD"}
+                      stroke={hasSpeedingData ? "var(--accent-blue)" : "#BAE6FD"}
                       fill={hasSpeedingData ? "url(#eventsGradient)" : "#E0F2FE"}
                       strokeWidth={2}
                     />
                     <defs>
                       <linearGradient id="speedingGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#42aeec" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#42aeec" stopOpacity={0.1} />
+                        <stop offset="0%" stopColor="var(--accent-blue)" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="var(--accent-blue)" stopOpacity={0.1} />
                       </linearGradient>
                       <linearGradient id="eventsGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#1db5f5" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#1db5f5" stopOpacity={0.1} />
+                        <stop offset="0%" stopColor="var(--accent-blue)" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="var(--accent-blue)" stopOpacity={0.1} />
                       </linearGradient>
                     </defs>
                   </AreaChart>
@@ -479,7 +479,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <div 
                     className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: hasSpeedingData ? '#42aeec' : '#E0F2FE' }}
+                    style={{ backgroundColor: hasSpeedingData ? 'var(--accent-blue)' : '#E0F2FE' }}
                   ></div>
                   <span className={`text-sm ${hasSpeedingData ? 'text-secondary' : 'text-secondary'}`}>
                     Speeding %
@@ -488,7 +488,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <div 
                     className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: hasSpeedingData ? '#1db5f5' : '#BAE6FD' }}
+                    style={{ backgroundColor: hasSpeedingData ? 'var(--accent-blue)' : '#BAE6FD' }}
                   ></div>
                   <span className={`text-sm ${hasSpeedingData ? 'text-secondary' : 'text-secondary'}`}>
                     Speeding Events

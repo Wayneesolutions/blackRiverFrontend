@@ -191,7 +191,7 @@ const MechanicsProfile: React.FC = () => {
   if (fetchLoading) {
     return (
       <div className="p-6 flex items-center justify-center py-16 bg-main min-h-screen">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#42aeec]" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--accent-blue)]" />
       </div>
     );
   }
@@ -206,15 +206,15 @@ const MechanicsProfile: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Information */}
         <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
-          <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[#42aeec]/5 to-transparent flex items-center justify-between">
+          <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <User className="text-[#42aeec]" size={20} />
+              <User className="text-[var(--accent-blue)]" size={20} />
               <h2 className="text-sm font-bold text-primary">Personal Information</h2>
             </div>
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-3 py-1.5 text-sm font-medium text-[#42aeec] hover:bg-[#42aeec]/10 rounded-lg transition"
+                className="px-3 py-1.5 text-sm font-medium text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/10 rounded-lg transition"
               >
                 Edit Profile
               </button>
@@ -229,7 +229,7 @@ const MechanicsProfile: React.FC = () => {
                   name="name"
                   value={editForm.name || ""}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                   placeholder="Enter your full name"
                 />
               ) : (
@@ -244,7 +244,7 @@ const MechanicsProfile: React.FC = () => {
                   name="email"
                   value={editForm.email || ""}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                   placeholder="Enter your email"
                 />
               ) : (
@@ -259,7 +259,7 @@ const MechanicsProfile: React.FC = () => {
                   name="phone"
                   value={editForm.phone || ""}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                   placeholder="Enter your phone"
                 />
               ) : (
@@ -269,7 +269,7 @@ const MechanicsProfile: React.FC = () => {
             <div>
               <label className="block text-xs font-medium text-secondary mb-1">Role</label>
               <div className="px-3 py-2 bg-card rounded-lg">
-                <span className="px-2 py-0.5 bg-[#42aeec]/20 text-[#42aeec] rounded text-xs font-medium">
+                <span className="px-2 py-0.5 bg-[var(--accent-blue)]/20 text-[var(--accent-blue)] rounded text-xs font-medium">
                   {profile.role || "Not set"}
                 </span>
               </div>
@@ -279,8 +279,8 @@ const MechanicsProfile: React.FC = () => {
 
         {/* Location */}
         <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
-          <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[#42aeec]/5 to-transparent flex items-center gap-2">
-            <MapPin className="text-[#42aeec]" size={20} />
+          <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex items-center gap-2">
+            <MapPin className="text-[var(--accent-blue)]" size={20} />
             <h2 className="text-sm font-bold text-primary">Location</h2>
           </div>
           <div className="p-4 space-y-4">
@@ -292,7 +292,7 @@ const MechanicsProfile: React.FC = () => {
                   name="address"
                   value={editForm.location?.address || ""}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, location: { ...prev.location, address: e.target.value } }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                   placeholder="Enter address"
                 />
               ) : (
@@ -307,7 +307,7 @@ const MechanicsProfile: React.FC = () => {
                   name="city"
                   value={editForm.city || ""}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                   placeholder="Enter city"
                 />
               ) : (
@@ -322,7 +322,7 @@ const MechanicsProfile: React.FC = () => {
                   name="state"
                   value={editForm.state || ""}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                   placeholder="Enter state"
                 />
               ) : (
@@ -337,7 +337,7 @@ const MechanicsProfile: React.FC = () => {
                   name="country"
                   value={editForm.country || ""}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                   placeholder="Enter country"
                 />
               ) : (
@@ -352,7 +352,7 @@ const MechanicsProfile: React.FC = () => {
       {profile.company && (
         <div className="mt-6 bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
           <div className="px-4 py-3 border-b border-theme flex items-center gap-2">
-            <Building className="text-[#42aeec]" size={20} />
+            <Building className="text-[var(--accent-blue)]" size={20} />
             <h2 className="text-sm font-bold text-primary">Company</h2>
           </div>
           <div className="p-4">
@@ -367,13 +367,13 @@ const MechanicsProfile: React.FC = () => {
       <div className="mt-6 bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
         <div className="px-4 py-3 border-b border-theme flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Key className="text-[#42aeec]" size={20} />
+            <Key className="text-[var(--accent-blue)]" size={20} />
             <h2 className="text-sm font-bold text-primary">Password</h2>
           </div>
           {!showPasswordSection && (
             <button
               onClick={() => setShowPasswordSection(true)}
-              className="px-3 py-1.5 text-sm font-medium text-[#42aeec] hover:bg-[#42aeec]/10 rounded-lg transition"
+              className="px-3 py-1.5 text-sm font-medium text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/10 rounded-lg transition"
             >
               Change Password
             </button>
@@ -388,7 +388,7 @@ const MechanicsProfile: React.FC = () => {
                   type={showNewPassword ? "text" : "password"}
                   value={passwordForm.newPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg pr-10 text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg pr-10 text-sm"
                   placeholder="Enter new password"
                 />
                 <button
@@ -407,7 +407,7 @@ const MechanicsProfile: React.FC = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   value={passwordForm.confirmPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg pr-10 text-sm"
+                  className="w-full px-3 py-2 border border-theme rounded-lg pr-10 text-sm"
                   placeholder="Confirm new password"
                 />
                 <button
@@ -441,7 +441,7 @@ const MechanicsProfile: React.FC = () => {
               <button
                 onClick={handleChangePassword}
                 disabled={loading}
-                className="px-4 py-2 bg-[#42aeec] text-white hover:bg-[#3598c4] rounded-lg text-sm font-medium disabled:opacity-50"
+                className="px-4 py-2 bg-[var(--accent-blue)] text-white hover:bg-[#3598c4] rounded-lg text-sm font-medium disabled:opacity-50"
               >
                 {loading ? "Updating..." : "Update Password"}
               </button>
@@ -459,7 +459,7 @@ const MechanicsProfile: React.FC = () => {
           <button
             onClick={handleSaveProfile}
             disabled={loading}
-            className="px-4 py-2 bg-[#42aeec] text-white hover:bg-[#3598c4] rounded-lg text-sm font-medium disabled:opacity-50"
+            className="px-4 py-2 bg-[var(--accent-blue)] text-white hover:bg-[#3598c4] rounded-lg text-sm font-medium disabled:opacity-50"
           >
             {loading ? "Saving..." : "Save Changes"}
           </button>

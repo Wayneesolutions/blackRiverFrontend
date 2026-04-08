@@ -88,7 +88,7 @@ const ExpiringDocumentsToast: React.FC<ExpiringDocumentsToastProps> = ({
                 setVisible(false);
                 onClose();
               }}
-              className="p-1 hover:bg-gray-100 rounded transition-colors ml-2"
+              className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded transition-colors ml-2"
             >
               <X className="w-4 h-4 text-secondary" />
             </button>
@@ -105,7 +105,7 @@ const ExpiringDocumentsToast: React.FC<ExpiringDocumentsToastProps> = ({
                 className="flex items-center gap-1 px-3 py-1.5 text-white text-xs font-medium rounded transition-colors"
                 style={{
                   background:
-                    'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                    'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                 }}
               >
                 <ExternalLink className="w-3 h-3 text-white" />

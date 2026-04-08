@@ -283,7 +283,7 @@ const AllDispatch = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Status</option>
             <option value="planned">Planned</option>
@@ -343,7 +343,7 @@ const AllDispatch = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-gray-200">
+            <tbody className="bg-card divide-y divide-theme">
               {filteredLoads.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-6 py-12 text-center text-secondary">

@@ -268,7 +268,7 @@ const SuperAdminOverview = () => {
                             {customer.status}
                           </span>
                         </div>
-                        <button className="p-1 hover:bg-gray-100 rounded">
+                        <button className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded">
                           <MoreHorizontal className="w-4 h-4 text-secondary" />
                         </button>
                       </div>

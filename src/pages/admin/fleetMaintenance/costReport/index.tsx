@@ -246,7 +246,7 @@ const CostReports = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-card rounded-lg shadow-sm !border border-gray-300 p-6 mb-6">
+        <div className="bg-card rounded-lg shadow-sm !border border-theme p-6 mb-6">
           <div className="flex flex-wrap gap-4 items-center">
             <div className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-secondary" />
@@ -258,7 +258,7 @@ const CostReports = () => {
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="px-3 py-2 !border !border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[120px]"
+                className="px-3 py-2 !border !border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[120px]"
               >
                 <option value="2024">2024</option>
                 <option value="2023">2023</option>
@@ -271,7 +271,7 @@ const CostReports = () => {
               <select
                 value={selectedVehicle}
                 onChange={(e) => setSelectedVehicle(e.target.value)}
-                className="px-3 py-2 border !border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[140px]"
+                className="px-3 py-2 border !border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[140px]"
               >
                 {vehicles.map(vehicle => (
                   <option key={vehicle.id} value={vehicle.id}>
@@ -286,7 +286,7 @@ const CostReports = () => {
               <select
                 value={selectedDateRange}
                 onChange={(e) => setSelectedDateRange(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]"
+                className="px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]"
               >
                 <option value="12months">Last 12 Months</option>
                 <option value="6months">Last 6 Months</option>
@@ -303,7 +303,7 @@ const CostReports = () => {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-card rounded-lg shadow-sm border !border-gray-300 p-6">
+          <div className="bg-card rounded-lg shadow-sm border !border-theme p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-secondary">Total Cost</p>
@@ -317,7 +317,7 @@ const CostReports = () => {
             </div>
           </div>
 
-          <div className="bg-card rounded-lg shadow-sm border border-gray-300 p-6">
+          <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-secondary">Work Orders</p>
@@ -331,7 +331,7 @@ const CostReports = () => {
             </div>
           </div>
 
-          <div className="bg-card rounded-lg shadow-sm border-gray-300 border p-6">
+          <div className="bg-card rounded-lg shadow-sm border-theme border p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-secondary">Vehicles</p>
@@ -344,7 +344,7 @@ const CostReports = () => {
             </div>
           </div>
 
-          <div className="bg-card rounded-lg shadow-sm border-gray-300 border p-6">
+          <div className="bg-card rounded-lg shadow-sm border-theme border p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-secondary">Avg Cost/Order</p>
@@ -362,7 +362,7 @@ const CostReports = () => {
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Monthly Cost and Work Orders Trend */}
-          <div className="bg-card rounded-lg shadow-sm border-gray-300 border p-6">
+          <div className="bg-card rounded-lg shadow-sm border-theme border p-6">
             <h3 className="text-lg font-semibold text-primary mb-4">Monthly Cost & Work Orders Analysis</h3>
             <ResponsiveContainer width="100%" height={350}>
               <LineChart data={monthlyChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -421,7 +421,7 @@ const CostReports = () => {
           </div>
 
           {/* Vehicle Cost Distribution */}
-          <div className="bg-card rounded-lg shadow-sm border-gray-300 border p-6">
+          <div className="bg-card rounded-lg shadow-sm border-theme border p-6">
             <h3 className="text-lg font-semibold text-primary mb-4">Cost Distribution by Vehicle</h3>
             <div className="flex items-center justify-center">
               <div style={{ width: '70%', height: '350px' }}>
@@ -556,7 +556,7 @@ const CostReports = () => {
           <h3 className="text-lg font-semibold text-primary mb-4">Vehicle Summary</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {vehicleBreakdown.map((vehicle, index) => (
-              <div key={vehicle.plateNumber} className="bg-card rounded-lg shadow-sm border-gray-300 border p-4">
+              <div key={vehicle.plateNumber} className="bg-card rounded-lg shadow-sm border-theme border p-4">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-medium text-primary">{vehicle.plateNumber}</h4>
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>

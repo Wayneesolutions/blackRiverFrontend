@@ -400,7 +400,7 @@ const Delivery = () => {
             <select
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Payments</option>
               <option value="due">Due</option>
@@ -442,7 +442,7 @@ const Delivery = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-gray-200">
+            <tbody className="bg-card divide-y divide-theme">
               {filteredLoads.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center text-secondary">
@@ -535,7 +535,7 @@ const Delivery = () => {
                   setShowDocumentModal(false);
                   setSelectedLoad(null);
                 }}
-                className="p-2 hover:bg-gray-100 rounded-lg"
+                className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
               >
                 <FaTimes className="text-secondary" size={20} />
               </button>
@@ -729,7 +729,7 @@ const Delivery = () => {
                     Payment Method
                   </label>
                   <select 
-                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    className="w-full p-3 border border-theme rounded-lg"
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value)}
                   >
@@ -747,7 +747,7 @@ const Delivery = () => {
                   <input
                     type="text"
                     placeholder="Transaction ID or reference number"
-                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    className="w-full p-3 border border-theme rounded-lg"
                     value={paymentReference}
                     onChange={(e) => setPaymentReference(e.target.value)}
                   />
@@ -760,7 +760,7 @@ const Delivery = () => {
                     type="date"
                     value={paymentDate}
                     onChange={(e) => setPaymentDate(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    className="w-full p-3 border border-theme rounded-lg"
                   />
                 </div>
                 <div>
@@ -769,7 +769,7 @@ const Delivery = () => {
                   </label>
                   <textarea
                     placeholder="Additional notes about the payment"
-                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    className="w-full p-3 border border-theme rounded-lg"
                     rows={3}
                     value={paymentNotes}
                     onChange={(e) => setPaymentNotes(e.target.value)}
@@ -787,7 +787,7 @@ const Delivery = () => {
                   setPaymentDate(new Date().toISOString().split('T')[0]);
                   setPaymentNotes('');
                 }}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                className="px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
               >
                 Cancel
               </button>

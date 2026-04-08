@@ -147,7 +147,7 @@ const CUSTOM_COLORS = {
   primary: '#016ab2',
   dark: '#063f6f',
   light: '#398bc3',
-  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
   gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
 };
 
@@ -336,7 +336,7 @@ const TrainingCertificates = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-theme">
             <thead className="bg-card">
               <tr>
                 <th className="sticky left-0 bg-card px-4 py-3 text-left text-xs font-medium text-primary uppercase z-10">
@@ -352,7 +352,7 @@ const TrainingCertificates = () => {
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-gray-200">
+            <tbody className="bg-card divide-y divide-theme">
               {employees.map(employee => {
                 const employeeData = trainingData.find(t => t.employeeName === employee);
                 return (
@@ -573,7 +573,7 @@ const TrainingCertificates = () => {
                       setEmployeeId('');
                     }
                   }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="">Select Employee...</option>
                   {employees.length === 0 ? (
@@ -596,7 +596,7 @@ const TrainingCertificates = () => {
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="">Select Training...</option>
                   {REQUIRED_TRAININGS.map(t => (
@@ -611,7 +611,7 @@ const TrainingCertificates = () => {
                   type="date"
                   value={issueDate}
                   onChange={(e) => setIssueDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -621,7 +621,7 @@ const TrainingCertificates = () => {
                   type="date"
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -632,7 +632,7 @@ const TrainingCertificates = () => {
                   value={issuingAuthority}
                   onChange={(e) => setIssuingAuthority(e.target.value)}
                   placeholder="e.g., Red Cross, OSHA"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -643,14 +643,14 @@ const TrainingCertificates = () => {
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   placeholder="Additional notes..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold mb-2 text-primary">Certificate File (PDF/JPG)</label>
                 <div
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-500 transition cursor-pointer"
+                  className="border-2 border-dashed border-theme rounded-lg p-8 text-center hover:border-indigo-500 transition cursor-pointer"
                   onClick={() => document.getElementById('certificate-file-input')?.click()}
                 >
                   <FaUpload size={32} className="mx-auto mb-3 text-secondary" />
@@ -1237,7 +1237,7 @@ const TrainingCertificates = () => {
                   value={moduleName}
                   onChange={(e) => setModuleName(e.target.value)}
                   placeholder="e.g., Advanced Load Securement"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -1248,7 +1248,7 @@ const TrainingCertificates = () => {
                   value={moduleCode}
                   onChange={(e) => setModuleCode(e.target.value)}
                   placeholder="e.g., ALS-2024"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -1259,7 +1259,7 @@ const TrainingCertificates = () => {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe the training content and objectives..."
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -1271,7 +1271,7 @@ const TrainingCertificates = () => {
                   onChange={(e) => setDuration(e.target.value)}
                   placeholder="30"
                   min="1"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -1280,7 +1280,7 @@ const TrainingCertificates = () => {
                 <select
                   value={contentType}
                   onChange={(e) => setContentType(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="Video">Video</option>
                   <option value="Document">Document</option>
@@ -1309,7 +1309,7 @@ const TrainingCertificates = () => {
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold mb-2 text-primary">Upload Training Content *</label>
                 <div
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-500 transition cursor-pointer"
+                  className="border-2 border-dashed border-theme rounded-lg p-8 text-center hover:border-indigo-500 transition cursor-pointer"
                   onClick={() => document.getElementById('training-file-input')?.click()}
                 >
                   <FaUpload size={32} className="mx-auto mb-3 text-secondary" />
@@ -1415,7 +1415,7 @@ const TrainingCertificates = () => {
       <div className="flex gap-2 mb-6 overflow-x-auto">
         <button
           onClick={() => setActiveTab('matrix')}
-          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'matrix' ? '!text-white' : 'bg-card text-primary hover:bg-gray-100'
+          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'matrix' ? '!text-white' : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)]'
             }`}
           style={activeTab === 'matrix' ? { background: CUSTOM_COLORS.primary } : {}}
         >
@@ -1423,7 +1423,7 @@ const TrainingCertificates = () => {
         </button>
         <button
           onClick={() => setActiveTab('management')}
-          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'management' ? '!text-white' : 'bg-card text-primary hover:bg-gray-100'
+          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'management' ? '!text-white' : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)]'
             }`}
           style={activeTab === 'management' ? { background: CUSTOM_COLORS.primary } : {}}
         >
@@ -1431,7 +1431,7 @@ const TrainingCertificates = () => {
         </button>
         <button
           onClick={() => setActiveTab('modules')}
-          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'modules' ? '!text-white' : 'bg-card text-primary hover:bg-gray-100'
+          className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition ${activeTab === 'modules' ? '!text-white' : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)]'
             }`}
           style={activeTab === 'modules' ? { background: CUSTOM_COLORS.primary } : {}}
         >

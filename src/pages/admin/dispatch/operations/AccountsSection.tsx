@@ -198,7 +198,7 @@ const AccountsSection = () => {
             <select
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Payments</option>
               <option value="due">Due</option>
@@ -221,7 +221,7 @@ const AccountsSection = () => {
                 <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {filteredLoads.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center text-secondary">

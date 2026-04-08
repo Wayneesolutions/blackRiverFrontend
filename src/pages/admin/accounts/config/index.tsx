@@ -445,7 +445,7 @@ export default function AccountsSetup() {
                       type="text"
                       value={formData.number || ''}
                       onChange={(e) => setFormData({ ...formData, number: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -455,7 +455,7 @@ export default function AccountsSetup() {
                       type="text"
                       value={formData.name || ''}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -464,7 +464,7 @@ export default function AccountsSetup() {
                     <select
                       value={formData.type || ''}
                       onChange={(e) => setFormData({ ...formData, type: e.target.value as 'Asset' | 'Liability' | 'Equity' | 'Revenue' | 'Expense' })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
                       <option value="">Select Type</option>
@@ -481,7 +481,7 @@ export default function AccountsSetup() {
                       type="number"
                       value={formData.balance || ''}
                       onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -496,7 +496,7 @@ export default function AccountsSetup() {
                       type="text"
                       value={formData.code || ''}
                       onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -506,7 +506,7 @@ export default function AccountsSetup() {
                       type="text"
                       value={formData.description || ''}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -517,7 +517,7 @@ export default function AccountsSetup() {
                       step="0.001"
                       value={formData.rate || ''}
                       onChange={(e) => setFormData({ ...formData, rate: parseFloat(e.target.value) })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -526,7 +526,7 @@ export default function AccountsSetup() {
                     <select
                       value={formData.category || ''}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value as 'Sales Tax' | 'IFTA' | 'Payroll' })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
                       <option value="">Select Category</option>
@@ -546,7 +546,7 @@ export default function AccountsSetup() {
                       type="text"
                       value={formData.method || ''}
                       onChange={(e) => setFormData({ ...formData, method: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -555,7 +555,7 @@ export default function AccountsSetup() {
                     <textarea
                       value={formData.description || ''}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={3}
                       required
                     />
@@ -565,7 +565,7 @@ export default function AccountsSetup() {
                     <select
                       value={formData.preferred || ''}
                       onChange={(e) => setFormData({ ...formData, preferred: e.target.value as 'Driver' | 'Vendor' | 'Carrier' })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
                       <option value="">Select Type</option>
@@ -581,14 +581,14 @@ export default function AccountsSetup() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                  className="flex-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   className="flex-1 !text-white px-4 py-2 rounded-lg transition-all flex items-center justify-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
-                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                  style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                 >
                   <Save className="w-4 h-4" />
                   Save
@@ -650,7 +650,7 @@ export default function AccountsSetup() {
       <div className='p-5'>
         <div className="bg-card border-b border-theme">
           <div className="px-6 py-4">
-            <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Accounts & Setup</h1>
+            <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Accounts & Setup</h1>
             <p className="text-sm text-secondary mt-1">Backend control panel for the entire accounting system</p>
           </div>
 
@@ -662,8 +662,8 @@ export default function AccountsSetup() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
-                    ? 'border-[#42aeec] text-[#016ab2]'
-                    : 'border-transparent text-secondary hover:text-primary hover:border-gray-300'
+                    ? 'border-[var(--accent-blue)] text-[#016ab2]'
+                    : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                     }`}
                 >
                   {tab.label}
@@ -686,20 +686,20 @@ export default function AccountsSetup() {
                   placeholder="Search..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-64"
+                  className="pl-10 pr-4 py-2 border border-theme rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-64"
                 />
               </div>
-              <button className="p-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+              <button className="p-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                 <Filter className="w-4 h-4 text-secondary" />
               </button>
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <button onClick={handleExport} className="flex-1 sm:flex-none px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center justify-center gap-2">
+              <button onClick={handleExport} className="flex-1 sm:flex-none px-4 py-2 text-sm border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center justify-center gap-2">
                 <Download className="w-4 h-4" />
                 Export
               </button>
               {activeTab !== 'sms-billing' && (
-                <button onClick={handleAdd} className="flex-1 sm:flex-none px-4 py-2 text-sm !text-white rounded-lg transition-all flex items-center justify-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
+                <button onClick={handleAdd} className="flex-1 sm:flex-none px-4 py-2 text-sm !text-white rounded-lg transition-all flex items-center justify-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}>
                   <Plus className="w-4 h-4" />
                   Add New
                 </button>
@@ -720,7 +720,7 @@ export default function AccountsSetup() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {loading ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-8 text-center text-secondary">Loading...</td>
@@ -784,7 +784,7 @@ export default function AccountsSetup() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {loading ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-8 text-center text-secondary">Loading...</td>
@@ -843,7 +843,7 @@ export default function AccountsSetup() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {loading ? (
                     <tr>
                       <td colSpan={4} className="px-6 py-8 text-center text-secondary">Loading...</td>

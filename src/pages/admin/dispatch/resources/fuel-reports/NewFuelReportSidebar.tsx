@@ -498,7 +498,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                             type="button"
                                             onClick={() => extractInputRef.current?.click()}
                                             disabled={extracting}
-                                            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-60"
+                                            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-theme text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-60"
                                         >
                                             <Upload className="w-4 h-4" />
                                             {extracting ? 'Extracting...' : 'Choose file'}
@@ -555,7 +555,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         value={formData.state}
                                         onChange={handleInputChange}
                                         placeholder="e.g., Ontario, BC, Manitoba"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                     />
                                 </div>
@@ -568,7 +568,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         value={formData.city}
                                         onChange={handleInputChange}
                                         placeholder="e.g., Mississauga, Hope"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                     />
                                 </div>
@@ -581,7 +581,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         value={formData.transactionNumber}
                                         onChange={handleInputChange}
                                         placeholder="Unique ID (auto-generated if empty)"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                     />
                                 </div>
@@ -592,7 +592,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         name="unit"
                                         value={formData.unit}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                     >
                                         <option value="">Select Unit</option>
@@ -618,7 +618,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                                 const v = e.target.value;
                                                 setFormData(prev => ({ ...prev, product: v, type: v }));
                                             }}
-                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                            className="flex-1 px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                             style={focusRingStyle}
                                         >
                                             <option value="">Select Product</option>
@@ -652,7 +652,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         value={formData.transactionAmount}
                                         onChange={handleInputChange}
                                         placeholder="0.00"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                     />
                                 </div>
@@ -665,7 +665,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         value={formData.currentOdometer}
                                         onChange={handleInputChange}
                                         placeholder="Enter odometer reading"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                     />
                                 </div>
@@ -677,7 +677,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                             name="measurementUnit"
                                             value={formData.measurementUnit}
                                             onChange={handleInputChange}
-                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                            className="flex-1 px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                             style={focusRingStyle}
                                         >
                                             <option value="">Select Unit</option>
@@ -711,7 +711,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         name="currency"
                                         value={formData.currency}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                     >
                                         <option value="USA">USA</option>
@@ -726,7 +726,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         name="date"
                                         value={formData.date}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                     />
                                 </div>
@@ -738,7 +738,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                             name="fuelVendor"
                                             value={formData.fuelVendor}
                                             onChange={handleInputChange}
-                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                            className="flex-1 px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                             style={focusRingStyle}
                                         >
                                             <option value="">Select Fuel Vendor</option>
@@ -775,7 +775,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         value={formData.fuelAmount}
                                         onChange={handleInputChange}
                                         placeholder="0.00"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                     />
                                 </div>
@@ -788,7 +788,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         onChange={handleInputChange}
                                         placeholder="Internal remarks or accounting references"
                                         rows={2}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                     />
                                 </div>
@@ -811,7 +811,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                     <button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-sm hover:bg-[rgba(255,255,255,0.03)]"
+                                        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-theme text-sm hover:bg-[rgba(255,255,255,0.03)]"
                                     >
                                         <Plus className="w-4 h-4" />
                                         Add document(s)
@@ -840,7 +840,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         name="status"
                                         value={formData.status}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                     >
                                         <option value="pending">Pending</option>
@@ -857,7 +857,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                     <button
                         onClick={handleClose}
                         disabled={loadingSubmit}
-                        className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
+                        className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
                     >
                         Cancel
                     </button>
@@ -889,7 +889,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         value={newTypeName}
                                         onChange={(e) => setNewTypeName(e.target.value)}
                                         placeholder="e.g., Diesel, Gasoline, Electric"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                         onKeyPress={(e) => {
                                             if (e.key === 'Enter') {
@@ -906,7 +906,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                             setNewTypeName('');
                                         }}
                                         disabled={addingType}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
+                                        className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
                                     >
                                         Cancel
                                     </button>
@@ -942,7 +942,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         value={newUnitName}
                                         onChange={(e) => setNewUnitName(e.target.value)}
                                         placeholder="e.g., L, gal, ml"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                         onKeyPress={(e) => {
                                             if (e.key === 'Enter') {
@@ -959,7 +959,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                             setNewUnitName('');
                                         }}
                                         disabled={addingUnit}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
+                                        className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
                                     >
                                         Cancel
                                     </button>
@@ -995,7 +995,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         value={newVendorName}
                                         onChange={(e) => setNewVendorName(e.target.value)}
                                         placeholder="e.g., Shell, Chevron, Petro-Canada"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                         onKeyPress={(e) => {
                                             if (e.key === 'Enter') {
@@ -1012,7 +1012,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                             setNewVendorName('');
                                         }}
                                         disabled={addingVendor}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
+                                        className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
                                     >
                                         Cancel
                                     </button>

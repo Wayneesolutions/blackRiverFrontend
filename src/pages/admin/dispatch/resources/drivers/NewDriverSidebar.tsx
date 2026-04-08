@@ -200,7 +200,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                 <div>
                                     <label className="block text-xs text-secondary mb-1">User Account</label>
                                     <select
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-card"
+                                        className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                         value={formData.userAccount}
                                         onChange={(e) => handleUserAccountChange(e.target.value)}
                                     >
@@ -220,7 +220,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                             <label className="block text-xs text-secondary mb-1">Name</label>
                                             <input
                                                 type="text"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-100"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-gray-100"
                                                 value={formData.selectedUserName}
                                                 readOnly
                                             />
@@ -229,7 +229,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                             <label className="block text-xs text-secondary mb-1">Email</label>
                                             <input
                                                 type="email"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-100"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-gray-100"
                                                 value={formData.selectedUserEmail}
                                                 readOnly
                                             />
@@ -238,7 +238,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                             <label className="block text-xs text-secondary mb-1">Phone</label>
                                             <input
                                                 type="tel"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-100"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-gray-100"
                                                 value={formData.selectedUserPhone}
                                                 readOnly
                                             />
@@ -270,7 +270,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                         <input
                                             type="text"
                                             placeholder="Enter Internal ID"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                             value={formData.internalId}
                                             onChange={(e) => setFormData({ ...formData, internalId: e.target.value })}
                                         />
@@ -280,7 +280,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                         <input
                                             type="text"
                                             placeholder="Enter License"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                             value={formData.driverLicense}
                                             onChange={(e) => setFormData({ ...formData, driverLicense: e.target.value })}
                                         />
@@ -291,7 +291,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                     <div>
                                         <label className="block text-xs text-secondary mb-1">Vendor</label>
                                         <select
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-card"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                             value={formData.vendor}
                                             onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
                                         >
@@ -304,7 +304,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                     <div>
                                         <label className="block text-xs text-secondary mb-1">Vehicle</label>
                                         <select
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-card"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                             value={formData.vehicle}
                                             onChange={(e) => setFormData({ ...formData, vehicle: e.target.value })}
                                         >
@@ -322,7 +322,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                         <input
                                             type="text"
                                             placeholder="Enter City"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                             value={formData.city}
                                             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                                         />
@@ -330,7 +330,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                     <div>
                                         <label className="block text-xs text-secondary mb-1">Country</label>
                                         <select
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-card"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                             value={formData.country}
                                             onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                                         >
@@ -345,7 +345,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                 <div>
                                     <label className="block text-xs text-secondary mb-1">Status</label>
                                     <select
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-card"
+                                        className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                         value={formData.status}
                                         onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                                     >
@@ -404,7 +404,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                             <input
                                                 type="text"
                                                 placeholder="Enter Latitude"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                                 value={formData.latitude}
                                                 onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
                                             />
@@ -414,7 +414,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                             <input
                                                 type="text"
                                                 placeholder="Enter Longitude"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                                 value={formData.longitude}
                                                 onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
                                             />
@@ -424,7 +424,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
 
                                 {coordinatesType === 'auto' && (
                                     <div>
-                                        <button className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-card hover:bg-gray-100 transition-colors">
+                                        <button className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                                             Get Current Location
                                         </button>
                                     </div>
@@ -508,7 +508,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                             <label className="block text-sm font-medium text-primary mb-1">Name</label>
                                             <input
                                                 type="text"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                                 value={formData.name}
                                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                             />
@@ -517,7 +517,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                             <label className="block text-sm font-medium text-primary mb-1">Email</label>
                                             <input
                                                 type="email"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                             />
@@ -530,7 +530,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                             <input
                                                 type="tel"
                                                 placeholder="+91 9999999999"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                                 value={formData.phone}
                                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                             />
@@ -538,7 +538,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                         <div>
                                             <label className="block text-sm font-medium text-primary mb-1">Country</label>
                                             <select
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-card"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                                 value={formData.userCountry}
                                                 onChange={(e) => setFormData({ ...formData, userCountry: e.target.value })}
                                             >
@@ -555,7 +555,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                         <input
                                             type="text"
                                             placeholder="Role"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                             value={formData.role}
                                             onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                         />
@@ -565,7 +565,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                         <label className="block text-sm font-medium text-primary mb-1">Attach Policies</label>
                                         <input
                                             type="text"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                            className="w-full px-3 py-2 border border-theme rounded-md text-sm"
                                             value={formData.attachPolicies}
                                             onChange={(e) => setFormData({ ...formData, attachPolicies: e.target.value })}
                                         />
@@ -594,8 +594,8 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
-                <div className="border border-gray-300 rounded-md">
-                  <div className="bg-card px-4 py-2 border-b border-gray-300">
+                <div className="border border-theme rounded-md">
+                  <div className="bg-card px-4 py-2 border-b border-theme">
                     <div className="grid grid-cols-4 gap-4 text-xs font-medium text-primary uppercase">
                       <span>Permission</span>
                       <span>Description</span>
@@ -619,7 +619,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                           id={permission.id}
                           checked={selectedPermissions.includes(permission.id)}
                           onChange={() => togglePermission(permission.id)}
-                          className="w-4 h-4 text-[#00D1FF] border-gray-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-[#00D1FF] border-theme rounded focus:ring-blue-500"
                         />
                       </div>
                       <span></span>
@@ -633,7 +633,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                         <div className="flex justify-end space-x-3 px-6 py-4 border-t border-theme bg-card">
                             <button
                                 onClick={() => setIsModalOpen(false)}
-                                className="px-4 py-2 text-sm font-medium !mr-2 text-primary bg-card border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)]"
+                                className="px-4 py-2 text-sm font-medium !mr-2 text-primary bg-card border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)]"
                             >
                                 Cancel
                             </button>

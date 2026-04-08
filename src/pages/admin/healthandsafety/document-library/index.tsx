@@ -4,7 +4,7 @@ const CUSTOM_COLORS = {
   primary: '#016ab2',
   dark: '#063f6f',
   light: '#398bc3',
-  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
   gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
 };
 import {
@@ -296,7 +296,7 @@ const DocumentLibrary: React.FC = () => {
                 placeholder="Search documents by title, number, tags..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -304,7 +304,7 @@ const DocumentLibrary: React.FC = () => {
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Categories</option>
                 <option value="Safety Meeting">Safety Meeting</option>
@@ -320,7 +320,7 @@ const DocumentLibrary: React.FC = () => {
               <select
                 value={filterRetention}
                 onChange={(e) => setFilterRetention(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Retention Status</option>
                 <option value="active">Active</option>
@@ -354,7 +354,7 @@ const DocumentLibrary: React.FC = () => {
                   <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-theme">
                 {loading ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-8 text-center text-secondary">Loading...</td>

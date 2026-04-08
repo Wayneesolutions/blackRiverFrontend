@@ -149,7 +149,7 @@ const CUSTOM_COLORS = {
     primary: '#016ab2',
     dark: '#063f6f',
     light: '#398bc3',
-    gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+    gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
     gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
 };
 
@@ -1289,7 +1289,7 @@ const HazardControl = () => {
                                                 setNewHazard({ ...newHazard, type: e.target.value as any });
                                             }
                                         }}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     >
                                         <option value="">Select Type</option>
                                         {hazardTypes.map(t => (
@@ -1308,7 +1308,7 @@ const HazardControl = () => {
                                                 }
                                             }}
                                             placeholder="Add new type"
-                                            className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                            className="flex-1 px-3 py-1.5 text-sm border border-theme rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
                                         />
                                         <button
                                             type="button"
@@ -1347,7 +1347,7 @@ const HazardControl = () => {
                                             }
                                         }}
                                         rows={4}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                         placeholder="Describe the hazard..."
                                     />
                                 </div>
@@ -1379,7 +1379,7 @@ const HazardControl = () => {
                                         <select
                                             value={newHazard.reporter}
                                             onChange={(e) => setNewHazard({ ...newHazard, reporter: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                         >
                                             <option value="">Select driver</option>
                                             {drivers.map(d => (
@@ -1399,7 +1399,7 @@ const HazardControl = () => {
                                                     max="5"
                                                     value={newHazard.likelihood}
                                                     onChange={(e) => setNewHazard({ ...newHazard, likelihood: parseInt(e.target.value) as any || 1 })}
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                                 />
                                             </div>
                                             <div>
@@ -1410,7 +1410,7 @@ const HazardControl = () => {
                                                     max="5"
                                                     value={newHazard.severity}
                                                     onChange={(e) => setNewHazard({ ...newHazard, severity: parseInt(e.target.value) as any || 1 })}
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                                 />
                                             </div>
                                         </div>
@@ -1428,7 +1428,7 @@ const HazardControl = () => {
                                         <select
                                             value={(editingHazard as Hazard).status}
                                             onChange={(e) => setEditingHazard({ ...(editingHazard as Hazard), status: e.target.value as any })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                         >
                                             <option value="identified">Identified</option>
                                             <option value="assessed">Assessed</option>
@@ -1468,7 +1468,7 @@ const HazardControl = () => {
                                         } : handleSaveHazard}
                                         disabled={editingHazard ? !(editingHazard as Hazard).description || !(editingHazard as Hazard).location : (!newHazard.type || !newHazard.description || !newHazard.location || !newHazard.reporter)}
                                         style={{
-                                            background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                                         }}
                                         className="flex-1 px-4 py-3  !text-white rounded-lg  transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
@@ -1500,7 +1500,7 @@ const HazardControl = () => {
                                         <select
                                             value={newObservation.driver}
                                             onChange={(e) => setNewObservation({ ...newObservation, driver: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="">Select driver</option>
                                             {drivers.map(d => (
@@ -1513,7 +1513,7 @@ const HazardControl = () => {
                                         <select
                                             value={newObservation.observer}
                                             onChange={(e) => setNewObservation({ ...newObservation, observer: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="">Select observer (employee)</option>
                                             {employees.map(emp => {
@@ -1529,7 +1529,7 @@ const HazardControl = () => {
                                         <select
                                             value={newObservation.observationType}
                                             onChange={(e) => setNewObservation({ ...newObservation, observationType: e.target.value as 'on-road' | 'yard-driving' })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="on-road">On-Road</option>
                                             <option value="yard-driving">Yard Driving</option>
@@ -1541,7 +1541,7 @@ const HazardControl = () => {
                                             type="date"
                                             value={newObservation.date}
                                             onChange={(e) => setNewObservation({ ...newObservation, date: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
                                 </div>
@@ -1549,7 +1549,7 @@ const HazardControl = () => {
                                     <label className="block text-sm font-medium text-primary mb-2 mb-3">Safety Checklist</label>
                                     <div className="space-y-2">
                                         {Object.entries(newObservation.checklist).map(([key, value]) => (
-                                            <label key={key} className="flex items-center gap-3 p-3 bg-card rounded-lg cursor-pointer hover:bg-gray-100">
+                                            <label key={key} className="flex items-center gap-3 p-3 bg-card rounded-lg cursor-pointer hover:bg-[rgba(255,255,255,0.03)]">
                                                 <input
                                                     type="checkbox"
                                                     checked={value}
@@ -1570,7 +1570,7 @@ const HazardControl = () => {
                                         value={newObservation.coachingNotes}
                                         onChange={(e) => setNewObservation({ ...newObservation, coachingNotes: e.target.value })}
                                         rows={3}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="Add coaching notes or feedback..."
                                     />
                                 </div>
@@ -1578,7 +1578,7 @@ const HazardControl = () => {
                                     onClick={handleSaveObservation}
                                     disabled={!newObservation.driver || !newObservation.observer}
                                     style={{
-                                        background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                                        background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                                     }}
                                     className="w-full px-4 py-3  !text-white rounded-lg  transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
@@ -1605,7 +1605,7 @@ const HazardControl = () => {
                                                 setNewTruckingHazard({ ...newTruckingHazard, truckingType: e.target.value });
                                             }
                                         }}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     >
                                         <option value="">Select Type</option>
                                         {truckingHazardTypes.map(t => (
@@ -1624,7 +1624,7 @@ const HazardControl = () => {
                                                 }
                                             }}
                                             placeholder="Add new type"
-                                            className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                            className="flex-1 px-3 py-1.5 text-sm border border-theme rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
                                         />
                                         <button
                                             type="button"
@@ -1663,7 +1663,7 @@ const HazardControl = () => {
                                             }
                                         }}
                                         rows={4}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                         placeholder="Describe the hazard..."
                                     />
                                 </div>
@@ -1695,7 +1695,7 @@ const HazardControl = () => {
                                         <select
                                             value={newTruckingHazard.reporter}
                                             onChange={(e) => setNewTruckingHazard({ ...newTruckingHazard, reporter: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                         >
                                             <option value="">Select driver</option>
                                             {drivers.map(d => (
@@ -1715,7 +1715,7 @@ const HazardControl = () => {
                                                 setNewTruckingHazard({ ...newTruckingHazard, severity: e.target.value as 'Low' | 'Medium' | 'High' | 'Critical' });
                                             }
                                         }}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     >
                                         <option value="Low">Low</option>
                                         <option value="Medium">Medium</option>
@@ -1743,7 +1743,7 @@ const HazardControl = () => {
                                         disabled={editingHazard ? (!(editingHazard as TruckingHazard).truckingType || !(editingHazard as TruckingHazard).description || !(editingHazard as TruckingHazard).location) : (!newTruckingHazard.truckingType || !newTruckingHazard.description || !newTruckingHazard.location || !newTruckingHazard.reporter)}
                                         className="flex-1 px-4 py-3  !text-white rounded-lg  transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                         style={{
-                                            background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                                         }}
                                     >
                                         <FaSave /> {editingHazard ? 'Update Trucking Hazard' : 'Save Trucking Hazard'}

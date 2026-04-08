@@ -387,7 +387,7 @@ const Index = () => {
         return (
             <div className="min-h-screen flex items-center justify-center" >
                 <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#42aeec] mb-4"></div>
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-blue)] mb-4"></div>
                     <p className="text-secondary">Loading dashboard...</p>
                 </div>
             </div>
@@ -401,7 +401,7 @@ const Index = () => {
                     <p className="text-[#A855F7] mb-4">Error: {error}</p>
                     <button
                         onClick={fetchDashboardData}
-                        className="px-4 py-2 bg-[#42aeec] text-white rounded-lg hover:bg-[#1db5f5]"
+                        className="px-4 py-2 bg-[var(--accent-blue)] text-white rounded-lg hover:bg-[var(--accent-blue)]"
                     >
                         Retry
                     </button>

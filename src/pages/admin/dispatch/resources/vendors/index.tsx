@@ -254,7 +254,7 @@ const Index = () => {
                   placeholder="Search Vendors"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pl-10 pr-4 py-2 border border-theme rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -305,7 +305,7 @@ const Index = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-theme">
                     {filteredVendors.length > 0 ? (
                       filteredVendors.map((vendor) => (
                         <tr key={vendor._id} className="hover:bg-[rgba(255,255,255,0.03)]">
@@ -412,41 +412,41 @@ const Index = () => {
                 placeholder="Name"
                 value={editForm.name || ""}
                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                className="w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-theme px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="email"
                 placeholder="Email"
                 value={editForm.email || ""}
                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                className="w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-theme px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
                 placeholder="Phone"
                 value={editForm.phone || ""}
                 onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                className="w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-theme px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
                 placeholder="Website"
                 value={editForm.website || ""}
                 onChange={(e) => setEditForm({ ...editForm, website: e.target.value })}
-                className="w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-theme px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
                 placeholder="Type"
                 value={editForm.type || ""}
                 onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
-                className="w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-theme px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <textarea
                 placeholder="Address"
                 value={editForm.address || ""}
                 onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                className="w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-theme px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={3}
               />
             </div>

@@ -125,7 +125,7 @@ const PolicyManagementModule = () => {
     primary: '#016ab2',
     dark: '#063f6f',
     light: '#398bc3',
-    gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', // Highlight/Header gradient per user request
+    gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', // Highlight/Header gradient per user request
     gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
   };
 
@@ -373,7 +373,7 @@ const PolicyManagementModule = () => {
           <h3 className="text-xl font-bold mb-4 text-red-700 flex items-center gap-2"><FaUserTimes /> Acknowledgment Audit Report</h3>
           <p className='text-sm text-secondary mb-4'>Audit-ready list showing policies where mandatory acknowledgment (Read Receipts) is missing for the **current version**.</p>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+            <table className="min-w-full divide-y divide-theme">
               <thead className="bg-card">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Policy Title (Version)</th>
@@ -383,7 +383,7 @@ const PolicyManagementModule = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Action</th>
                 </tr>
               </thead>
-              <tbody className="bg-card divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-theme">
                 {nonCompliantAcknowledgment.map(p => (
                   <tr key={p._id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">{p.title} <span className='text-secondary font-normal'>v.**{p.version}**</span></td>
@@ -825,7 +825,7 @@ const PolicyManagementModule = () => {
               placeholder="Search policies by title, number, or category..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -834,7 +834,7 @@ const PolicyManagementModule = () => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -846,7 +846,7 @@ const PolicyManagementModule = () => {
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="all">All Categories</option>
               {ALL_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}

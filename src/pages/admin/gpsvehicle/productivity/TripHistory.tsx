@@ -125,7 +125,7 @@ const TripHistory = () => {
                 <select
                   value={excludeStops}
                   onChange={(e) => setExcludeStops(e.target.value)}
-                  className="text-xs border border-gray-300 rounded px-2 py-1"
+                  className="text-xs border border-theme rounded px-2 py-1"
                 >
                   <option>Under</option>
                   <option>Over</option>
@@ -134,7 +134,7 @@ const TripHistory = () => {
                   type="number"
                   value={stopDuration}
                   onChange={(e) => setStopDuration(e.target.value)}
-                  className="w-16 text-xs border border-gray-300 rounded px-2 py-1"
+                  className="w-16 text-xs border border-theme rounded px-2 py-1"
                 />
                 <span className="text-xs text-secondary">Minutes</span>
               </div>
@@ -148,7 +148,7 @@ const TripHistory = () => {
                   type="number"
                   value={overStopDuration}
                   onChange={(e) => setOverStopDuration(e.target.value)}
-                  className="w-16 text-xs border border-gray-300 rounded px-2 py-1"
+                  className="w-16 text-xs border border-theme rounded px-2 py-1"
                 />
                 <span className="text-xs text-secondary">Minutes</span>
               </div>
@@ -316,7 +316,7 @@ const TripHistory = () => {
                   placeholder="Search By Trip"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
                 <Settings className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary" />
               </div>
@@ -326,7 +326,7 @@ const TripHistory = () => {
                 <select 
                   value={selectedGroup}
                   onChange={(e) => setSelectedGroup(e.target.value)}
-                  className="appearance-none bg-card border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="appearance-none bg-card border border-theme rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
                   <option>Filter By Group</option>
                   <option>All Groups</option>
@@ -339,7 +339,7 @@ const TripHistory = () => {
               {/* Options */}
               <button 
                 onClick={() => setShowOptionsModal(true)}
-                className="flex items-center space-x-1 px-4 py-2 border !mr-3 border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                className="flex items-center space-x-1 px-4 py-2 border !mr-3 border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
               >
                 <span>Options</span>
                 <ChevronDown className="h-4 w-4" />
@@ -348,7 +348,7 @@ const TripHistory = () => {
               {/* Summary */}
               <button 
                 onClick={() => setShowSummary(!showSummary)}
-                className="px-4 py-2 border !mr-3 border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                className="px-4 py-2 border !mr-3 border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
               >
                 Summary
               </button>
@@ -359,7 +359,7 @@ const TripHistory = () => {
               <div className="relative">
                 <button 
                   onClick={() => setShowReportModal(true)}
-                  className="flex items-center space-x-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                  className="flex items-center space-x-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                 >
                   <span>Report</span>
                   <ChevronDown className="h-4 w-4" />
@@ -403,7 +403,7 @@ const TripHistory = () => {
                       <span>Total Distance</span>
                       <span className="font-medium">{trip.totalDistance}</span>
                     </div>
-                    {/* <button className="bg-card text-primary px-3 py-1 rounded text-sm font-medium hover:bg-gray-100">
+                    {/* <button className="bg-card text-primary px-3 py-1 rounded text-sm font-medium hover:bg-[rgba(255,255,255,0.03)]">
                       Show Trips
                       <div className="inline-flex ml-2 space-x-1">
                         <div className="w-1 h-1 bg-gray-800 rounded"></div>

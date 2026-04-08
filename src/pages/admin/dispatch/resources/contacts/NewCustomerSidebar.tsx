@@ -371,7 +371,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         value={customerData.customerId}
                                         onChange={handleInputChange}
                                         placeholder="e.g., CUST001, ABC123"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
@@ -383,7 +383,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         value={customerData.customer}
                                         onChange={handleInputChange}
                                         placeholder="Customer/Company Name"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                         required
                                     />
                                 </div>
@@ -396,7 +396,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         value={customerData.emailPrimary}
                                         onChange={handleInputChange}
                                         placeholder="primary@example.com"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
@@ -408,7 +408,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         value={customerData.emailSecondary}
                                         onChange={handleInputChange}
                                         placeholder="secondary@example.com"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
@@ -420,7 +420,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         value={customerData.trackingEmail}
                                         onChange={handleInputChange}
                                         placeholder="tracking@example.com"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
@@ -432,7 +432,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         value={customerData.taxId}
                                         onChange={handleInputChange}
                                         placeholder="Tax Identification Number"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
@@ -444,7 +444,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         value={customerData.assignedSalesperson}
                                         onChange={handleInputChange}
                                         placeholder="Salesperson Name"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
@@ -457,7 +457,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                             value={customerData.phonePrimary}
                                             onChange={handleInputChange}
                                             placeholder="Primary Phone"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                            className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                         />
                                     </div>
                                     <div>
@@ -468,7 +468,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                             value={customerData.phoneSecondary}
                                             onChange={handleInputChange}
                                             placeholder="Secondary Phone"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                            className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                         />
                                     </div>
                                 </div>
@@ -481,7 +481,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         value={customerData.contact}
                                         onChange={handleInputChange}
                                         placeholder="Primary Contact Name"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
                             </div>
@@ -499,7 +499,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         value={customerData.address}
                                         onChange={handleInputChange}
                                         placeholder="Street Address"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
@@ -512,7 +512,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                             value={customerData.city}
                                             onChange={handleInputChange}
                                             placeholder="City"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                            className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                         />
                                     </div>
                                     <div>
@@ -523,7 +523,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                             value={customerData.unit}
                                             onChange={handleInputChange}
                                             placeholder="Unit Number"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                            className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                         />
                                     </div>
                                 </div>
@@ -537,7 +537,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                             value={customerData.stateProvince}
                                             onChange={handleInputChange}
                                             placeholder="State/Province"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                            className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                         />
                                     </div>
                                     <div>
@@ -548,7 +548,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                             value={customerData.country}
                                             onChange={handleInputChange}
                                             placeholder="Country"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                            className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                         />
                                     </div>
                                 </div>
@@ -561,7 +561,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         value={customerData.zipCode}
                                         onChange={handleInputChange}
                                         placeholder="ZIP/Postal Code"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
                             </div>
@@ -579,7 +579,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         value={customerData.creditLimit}
                                         onChange={handleInputChange}
                                         placeholder="Maximum Credit Amount"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
@@ -591,7 +591,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         value={customerData.creditTerm}
                                         onChange={handleInputChange}
                                         placeholder="Days (e.g., 30)"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
@@ -603,7 +603,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         value={customerData.invoiceNet}
                                         onChange={handleInputChange}
                                         placeholder="Percentage (e.g., 30)"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
@@ -616,7 +616,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         onChange={handleInputChange}
                                         placeholder="Discount Percentage"
                                         step="0.01"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
@@ -627,7 +627,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         id="useFactoringCompany"
                                         checked={customerData.useFactoringCompany}
                                         onChange={handleInputChange}
-                                        className="w-4 h-4 text-[#00D1FF] border-gray-300 rounded focus:ring-blue-500"
+                                        className="w-4 h-4 text-[#00D1FF] border-theme rounded focus:ring-blue-500"
                                     />
                                     <label htmlFor="useFactoringCompany" className="ml-2 text-sm font-medium text-primary">
                                         Use Factoring Company
@@ -647,7 +647,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         id="csaFastApproved"
                                         checked={customerData.csaFastApproved}
                                         onChange={handleInputChange}
-                                        className="w-4 h-4 text-[#00D1FF] border-gray-300 rounded focus:ring-blue-500"
+                                        className="w-4 h-4 text-[#00D1FF] border-theme rounded focus:ring-blue-500"
                                     />
                                     <label htmlFor="csaFastApproved" className="ml-2 text-sm font-medium text-primary">
                                         CSA/FAST Approved
@@ -661,7 +661,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         id="softBlock"
                                         checked={customerData.softBlock}
                                         onChange={handleInputChange}
-                                        className="w-4 h-4 text-[#00D1FF] border-gray-300 rounded focus:ring-blue-500"
+                                        className="w-4 h-4 text-[#00D1FF] border-theme rounded focus:ring-blue-500"
                                     />
                                     <label htmlFor="softBlock" className="ml-2 text-sm font-medium text-primary">
                                         Soft Block
@@ -675,7 +675,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         id="hardBlock"
                                         checked={customerData.hardBlock}
                                         onChange={handleInputChange}
-                                        className="w-4 h-4 text-[#00D1FF] border-gray-300 rounded focus:ring-blue-500"
+                                        className="w-4 h-4 text-[#00D1FF] border-theme rounded focus:ring-blue-500"
                                     />
                                     <label htmlFor="hardBlock" className="ml-2 text-sm font-medium text-primary">
                                         Hard Block
@@ -691,7 +691,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="px-5 py-2.5 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                        className="px-5 py-2.5 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                         disabled={isLoading}
                     >
                         Cancel
@@ -701,7 +701,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                         onClick={handleSubmit}
                         className="px-5 py-2.5 rounded-lg !text-white transition-all font-medium"
                         style={{
-                            background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                         }}
                         disabled={isLoading || !customerData.customer.trim()}
                     >

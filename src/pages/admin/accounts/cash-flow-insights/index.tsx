@@ -103,7 +103,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                         <div className="flex items-center gap-4">
 
                             <div>
-                                <h1 className="text-3xl font-bold flex items-center gap-2" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                <h1 className="text-3xl font-bold flex items-center gap-2" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
 
                                     Cash Flow Insights
                                 </h1>
@@ -132,7 +132,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                         setPeriod(Number(e.target.value));
                                         setCustomDateRange({});
                                     }}
-                                    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="border border-theme rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 >
                                     <option value={30}>Last 30 Days</option>
                                     <option value={60}>Last 60 Days</option>
@@ -150,7 +150,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                             type="date"
                                             value={customDateRange.start || ''}
                                             onChange={(e) => setCustomDateRange(prev => ({ ...prev, start: e.target.value }))}
-                                            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="border border-theme rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         />
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -159,7 +159,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                             type="date"
                                             value={customDateRange.end || ''}
                                             onChange={(e) => setCustomDateRange(prev => ({ ...prev, end: e.target.value }))}
-                                            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="border border-theme rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         />
                                     </div>
                                     <button
@@ -328,7 +328,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                                         <span className="text-secondary">Projected Outflow:</span>
                                                         <span className="font-medium text-[#A855F7]">{formatCurrency(prediction.projectedOutflow)}</span>
                                                     </div>
-                                                    <div className="border-t border-gray-300 pt-2 mt-2">
+                                                    <div className="border-t border-theme pt-2 mt-2">
                                                         <div className="flex justify-between">
                                                             <span className="text-sm font-medium text-primary">Net Cash Flow:</span>
                                                             <span className={`font-bold ${prediction.projectedCashFlow >= 0 ? 'text-green-600' : 'text-[#A855F7]'}`}>
@@ -475,7 +475,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                                 <th className="px-4 py-3 text-right text-xs font-medium text-secondary uppercase">Net Cash Flow</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-200">
+                                        <tbody className="divide-y divide-theme">
                                             {insightsData.monthlyBreakdown.map((month, index) => (
                                                 <tr key={index} className="hover:bg-[rgba(255,255,255,0.03)]">
                                                     <td className="px-4 py-3 text-sm font-medium text-primary">{month.monthName}</td>

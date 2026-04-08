@@ -242,7 +242,7 @@ const OrderChat: React.FC<OrderChatProps> = ({ orderId, orderNumber, onClose }) 
       {/* Header */}
       <div className="bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <MessageCircle className="w-6 h-6 text-[#42aeec]" />
+          <MessageCircle className="w-6 h-6 text-[var(--accent-blue)]" />
           <div>
             <h3 className="text-lg font-semibold text-primary">Order Chat</h3>
             <p className="text-sm text-secondary">Order #{orderNumber}</p>
@@ -251,7 +251,7 @@ const OrderChat: React.FC<OrderChatProps> = ({ orderId, orderNumber, onClose }) 
         <div className="flex items-center gap-2">
           <button
             onClick={loadMessages}
-            className="text-secondary hover:text-secondary transition-colors p-2 hover:bg-gray-100 rounded"
+            className="text-secondary hover:text-secondary transition-colors p-2 hover:bg-[rgba(255,255,255,0.03)] rounded"
             title="Refresh messages"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -273,7 +273,7 @@ const OrderChat: React.FC<OrderChatProps> = ({ orderId, orderNumber, onClose }) 
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {loading ? (
           <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#42aeec]"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-blue)]"></div>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-secondary">
@@ -297,7 +297,7 @@ const OrderChat: React.FC<OrderChatProps> = ({ orderId, orderNumber, onClose }) 
                   <div
                     className={`rounded-lg px-4 py-2 ${
                       isOwnMessage
-                        ? "bg-[#42aeec] text-white"
+                        ? "bg-[var(--accent-blue)] text-white"
                         : "bg-card text-primary border border-theme"
                     }`}
                   >
@@ -395,14 +395,14 @@ const OrderChat: React.FC<OrderChatProps> = ({ orderId, orderNumber, onClose }) 
               }
             }}
             placeholder="Type a message..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent resize-none"
+            className="flex-1 px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent resize-none"
             rows={1}
             disabled={sending}
           />
           <button
             onClick={handleSendMessage}
             disabled={(!newMessage.trim() && !selectedFile) || sending}
-            className="p-2 bg-[#42aeec] text-white rounded-lg hover:bg-[#1db5f5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 bg-[var(--accent-blue)] text-white rounded-lg hover:bg-[var(--accent-blue)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-5 h-5" />
           </button>

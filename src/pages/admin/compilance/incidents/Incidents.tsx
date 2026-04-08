@@ -918,7 +918,7 @@ const Incidents: React.FC = () => {
     return (
       <div
         onClick={onClick}
-        className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+        className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
       >
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
@@ -964,7 +964,7 @@ const Incidents: React.FC = () => {
               </div>
               <button
                 onClick={handleAddIncident}
-                className="flex items-center gap-2 px-4 py-2 bg-card text-[#0ea3d8] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
+                className="flex items-center gap-2 px-4 py-2 bg-card text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
               >
                 <FaPlus /> Report Incident
               </button>
@@ -977,7 +977,7 @@ const Incidents: React.FC = () => {
               title="Total Incidents"
               value={stats.total}
               bgColor="bg-card"
-              iconColor="text-[#0ea3d8]"
+              iconColor="text-[rgba(0,209,255,0.15)]"
               icon={<FaExclamationTriangle />}
             />
             <StatCard
@@ -1052,7 +1052,7 @@ const Incidents: React.FC = () => {
                   placeholder="Search incidents..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                 />
               </div>
             </div>
@@ -1064,7 +1064,7 @@ const Incidents: React.FC = () => {
                   setStatusFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
               >
                 <option value="all">All Status</option>
                 <option value="open">Open</option>
@@ -1080,7 +1080,7 @@ const Incidents: React.FC = () => {
                   setTypeFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
               >
                 <option value="all">All Types</option>
                 {incidentTypes.map((type) => (
@@ -1096,7 +1096,7 @@ const Incidents: React.FC = () => {
                   setLocationFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
               >
                 <option value="all">All Locations</option>
                 {locations.map((location) => (
@@ -1112,7 +1112,7 @@ const Incidents: React.FC = () => {
                   setDriverFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
               >
                 <option value="all">All Drivers</option>
                 {drivers.map((driver) => (
@@ -1213,7 +1213,7 @@ const Incidents: React.FC = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-card divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-theme">
                 {loading ? (
                   <tr>
                     <td colSpan={9} className="px-6 py-12 text-center text-secondary">
@@ -1327,7 +1327,7 @@ const Incidents: React.FC = () => {
                     disabled={currentPage === 1}
                     className={`px-3 py-2 rounded-lg border ${currentPage === 1
                       ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
-                      : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-gray-300'
+                      : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                       }`}
                   >
                     <FaChevronLeft size={14} />
@@ -1350,7 +1350,7 @@ const Incidents: React.FC = () => {
                           onClick={() => setCurrentPage(pageNum)}
                           className={`px-3 py-2 rounded-lg border ${currentPage === pageNum
                             ? 'bg-[var(--accent-color)] text-white border-[var(--accent-color)]'
-                            : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-gray-300'
+                            : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                             }`}
                         >
                           {pageNum}
@@ -1363,7 +1363,7 @@ const Incidents: React.FC = () => {
                     disabled={currentPage === totalPages}
                     className={`px-3 py-2 rounded-lg border ${currentPage === totalPages
                       ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
-                      : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-gray-300'
+                      : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                       }`}
                   >
                     <FaChevronRight size={14} />
@@ -1374,7 +1374,7 @@ const Incidents: React.FC = () => {
                       setPageSize(Number(e.target.value));
                       setCurrentPage(1);
                     }}
-                    className="ml-4 px-3 py-2 rounded-lg border border-gray-300 bg-card text-primary"
+                    className="ml-4 px-3 py-2 rounded-lg border border-theme bg-card text-primary"
                   >
                     <option value={25}>25 per page</option>
                     <option value={50}>50 per page</option>
@@ -1393,7 +1393,7 @@ const Incidents: React.FC = () => {
               <div className="sticky top-0 bg-card border-b px-6 py-4 rounded-t-2xl z-10">
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-bold text-primary">Add New Incident</h3>
-                  <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                  <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors">
                     <FaTimesCircle className="text-secondary" size={20} />
                   </button>
                 </div>
@@ -1410,7 +1410,7 @@ const Incidents: React.FC = () => {
                         type="datetime-local"
                         value={incidentForm.incidentDateTime || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentDateTime: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -1420,7 +1420,7 @@ const Incidents: React.FC = () => {
                         placeholder="Incident ID (optional, auto-generated if left blank)"
                         value={incidentForm.incidentId || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentId: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -1430,7 +1430,7 @@ const Incidents: React.FC = () => {
                         placeholder="Case or file number"
                         value={incidentForm.caseFileNumber || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, caseFileNumber: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -1441,7 +1441,7 @@ const Incidents: React.FC = () => {
                           ...prev,
                           location: { ...prev.location, country: e.target.value as 'usa' | 'canada' }
                         }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
                         <option value="usa">USA</option>
                         <option value="canada">Canada</option>
@@ -1459,7 +1459,7 @@ const Incidents: React.FC = () => {
                           ...prev,
                           location: { ...prev.location, stateProvince: e.target.value }
                         }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -1472,7 +1472,7 @@ const Incidents: React.FC = () => {
                           ...prev,
                           location: { ...prev.location, city: e.target.value }
                         }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div className="col-span-2">
@@ -1485,7 +1485,7 @@ const Incidents: React.FC = () => {
                           ...prev,
                           location: { ...prev.location, streetAddress: e.target.value }
                         }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -1495,7 +1495,7 @@ const Incidents: React.FC = () => {
                         placeholder="e.g., Deer accident, Driver error, Hit another vehicle"
                         value={incidentForm.incidentType || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentType: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -1503,7 +1503,7 @@ const Incidents: React.FC = () => {
                       <select
                         value={incidentForm.incidentStatus || 'open'}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentStatus: e.target.value as 'open' | 'under-review' | 'closed' }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
                         <option value="open">Open</option>
                         <option value="under-review">Under Review</option>
@@ -1516,7 +1516,7 @@ const Incidents: React.FC = () => {
                         placeholder="Detailed description of the incident"
                         value={incidentForm.description || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, description: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         rows={3}
                       />
                     </div>
@@ -1530,7 +1530,7 @@ const Incidents: React.FC = () => {
                           ...prev,
                           supportingMedia: e.target.value ? e.target.value.split(',').map(url => url.trim()).filter(Boolean) : []
                         }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div className="col-span-2">
@@ -1554,7 +1554,7 @@ const Incidents: React.FC = () => {
                         />
                         <label
                           htmlFor="accident-pictures-upload"
-                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
+                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-theme rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
                         >
                           <FaUpload className="text-secondary" size={18} />
                           <span className="text-sm text-secondary">
@@ -1608,7 +1608,7 @@ const Incidents: React.FC = () => {
                         />
                         <label
                           htmlFor="accident-video-upload"
-                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
+                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-theme rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
                         >
                           <FaUpload className="text-secondary" size={18} />
                           <span className="text-sm text-secondary">
@@ -1648,7 +1648,7 @@ const Incidents: React.FC = () => {
                       <select
                         value={incidentForm.driver || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, driver: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
                         <option value="">Select Driver</option>
                         {drivers.map((driver) => (
@@ -1661,7 +1661,7 @@ const Incidents: React.FC = () => {
                       <select
                         value={incidentForm.coDriver || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, coDriver: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
                         <option value="">Select Co-Driver</option>
                         {drivers
@@ -1678,7 +1678,7 @@ const Incidents: React.FC = () => {
                         placeholder="Driver's license number"
                         value={incidentForm.driversLicense || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, driversLicense: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -1688,7 +1688,7 @@ const Incidents: React.FC = () => {
                         placeholder="Who filed the report (if different from driver)"
                         value={incidentForm.reportingParty || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, reportingParty: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -1698,7 +1698,7 @@ const Incidents: React.FC = () => {
                         placeholder="Witness names and contact info"
                         value={incidentForm.witnessInfo || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, witnessInfo: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -1708,7 +1708,7 @@ const Incidents: React.FC = () => {
                         placeholder="Police report number (if applicable)"
                         value={incidentForm.policeReportNumber || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, policeReportNumber: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -1723,7 +1723,7 @@ const Incidents: React.FC = () => {
                       <select
                         value={incidentForm.unitNumber || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, unitNumber: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
                         <option value="">Select Truck</option>
                         {vehicles.map((vehicle) => (
@@ -1738,7 +1738,7 @@ const Incidents: React.FC = () => {
                       <select
                         value={incidentForm.trailerNumber || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, trailerNumber: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
                         <option value="">Select Trailer</option>
                         {trailers.map((trailer) => {
@@ -1759,7 +1759,7 @@ const Incidents: React.FC = () => {
                         placeholder="VIN or plate number"
                         value={incidentForm.vinPlateNumber || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, vinPlateNumber: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div className="col-span-2">
@@ -1768,7 +1768,7 @@ const Incidents: React.FC = () => {
                         placeholder="Detailed description of damage sustained"
                         value={incidentForm.damageDescription || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, damageDescription: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         rows={3}
                       />
                     </div>
@@ -1785,7 +1785,7 @@ const Incidents: React.FC = () => {
                           type="checkbox"
                           checked={incidentForm.fmcsaReportable || false}
                           onChange={(e) => setIncidentForm(prev => ({ ...prev, fmcsaReportable: e.target.checked }))}
-                          className="w-4 h-4 text-[var(--accent-color)] border-gray-300 rounded focus:ring-[var(--accent-color)]"
+                          className="w-4 h-4 text-[var(--accent-color)] border-theme rounded focus:ring-[var(--accent-color)]"
                         />
                         <span className="text-sm font-medium text-primary">FMCSA Reportable Accident</span>
                       </label>
@@ -1796,7 +1796,7 @@ const Incidents: React.FC = () => {
                           type="checkbox"
                           checked={incidentForm.cvsaDotImpact || false}
                           onChange={(e) => setIncidentForm(prev => ({ ...prev, cvsaDotImpact: e.target.checked }))}
-                          className="w-4 h-4 text-[var(--accent-color)] border-gray-300 rounded focus:ring-[var(--accent-color)]"
+                          className="w-4 h-4 text-[var(--accent-color)] border-theme rounded focus:ring-[var(--accent-color)]"
                         />
                         <span className="text-sm font-medium text-primary">CVSA & DOT Impact</span>
                       </label>
@@ -1807,7 +1807,7 @@ const Incidents: React.FC = () => {
                           type="checkbox"
                           checked={incidentForm.alsoCreateAsAccident || false}
                           onChange={(e) => setIncidentForm(prev => ({ ...prev, alsoCreateAsAccident: e.target.checked }))}
-                          className="w-4 h-4 text-[var(--accent-color)] border-gray-300 rounded focus:ring-[var(--accent-color)]"
+                          className="w-4 h-4 text-[var(--accent-color)] border-theme rounded focus:ring-[var(--accent-color)]"
                         />
                         <span className="text-sm font-medium text-primary">Also create as accident (Issue)</span>
                         <span className="text-xs text-secondary">(Creates an accident record in the Issues system)</span>
@@ -1820,7 +1820,7 @@ const Incidents: React.FC = () => {
                           placeholder="FMCSA reporting details"
                           value={incidentForm.fmcsaNotes || ''}
                           onChange={(e) => setIncidentForm(prev => ({ ...prev, fmcsaNotes: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                           rows={2}
                         />
                       </div>
@@ -1831,7 +1831,7 @@ const Incidents: React.FC = () => {
                         placeholder="Record any changes to policies or training implemented"
                         value={incidentForm.preventativeMeasures || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, preventativeMeasures: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         rows={3}
                       />
                     </div>
@@ -1842,7 +1842,7 @@ const Incidents: React.FC = () => {
                         placeholder="Any additional notes or comments"
                         value={incidentForm.notes || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, notes: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         rows={3}
                       />
                     </div>
@@ -1866,7 +1866,7 @@ const Incidents: React.FC = () => {
                         />
                         <label
                           htmlFor="accident-report-upload"
-                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
+                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-theme rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
                         >
                           <FaUpload className="text-secondary" size={18} />
                           <span className="text-sm text-secondary">
@@ -1900,7 +1900,7 @@ const Incidents: React.FC = () => {
               </div>
 
               <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
-                <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors" disabled={loading}>
+                <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors" disabled={loading}>
                   Cancel
                 </button>
                 <button onClick={saveNewIncident} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
@@ -1918,7 +1918,7 @@ const Incidents: React.FC = () => {
               <div className="sticky top-0 bg-card border-b px-6 py-4 rounded-t-2xl z-10">
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-bold text-primary">Edit Incident: {selectedIncident.incidentNumber}</h3>
-                  <button onClick={() => { setShowEditModal(false); setSelectedIncident(null); resetForm(); }} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                  <button onClick={() => { setShowEditModal(false); setSelectedIncident(null); resetForm(); }} className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors">
                     <FaTimesCircle className="text-secondary" size={20} />
                   </button>
                 </div>
@@ -1935,7 +1935,7 @@ const Incidents: React.FC = () => {
                         type="datetime-local"
                         value={incidentForm.incidentDateTime || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentDateTime: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -1944,7 +1944,7 @@ const Incidents: React.FC = () => {
                         type="text"
                         value={incidentForm.incidentType || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentType: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -1952,7 +1952,7 @@ const Incidents: React.FC = () => {
                       <select
                         value={incidentForm.incidentStatus || 'open'}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentStatus: e.target.value as 'open' | 'under-review' | 'closed' }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
                         <option value="open">Open</option>
                         <option value="under-review">Under Review</option>
@@ -1965,7 +1965,7 @@ const Incidents: React.FC = () => {
               </div>
 
               <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
-                <button onClick={() => { setShowEditModal(false); setSelectedIncident(null); resetForm(); }} className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors" disabled={loading}>
+                <button onClick={() => { setShowEditModal(false); setSelectedIncident(null); resetForm(); }} className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors" disabled={loading}>
                   Cancel
                 </button>
                 <button onClick={saveEditedIncident} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
@@ -1987,7 +1987,7 @@ const Incidents: React.FC = () => {
                     <h3 className="text-lg font-bold text-primary">{selectedIncident.incidentNumber || 'N/A'}</h3>
                     <p className="text-xs text-secondary mt-1">{selectedIncident.incidentType || 'N/A'}</p>
                   </div>
-                  <button onClick={() => setShowViewModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                  <button onClick={() => setShowViewModal(false)} className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors">
                     <FaTimesCircle className="text-secondary" size={20} />
                   </button>
                 </div>
@@ -2351,7 +2351,7 @@ const Incidents: React.FC = () => {
                 >
                   Edit
                 </button>
-                <button onClick={() => setShowViewModal(false)} className="px-4 py-2 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors text-sm">
+                <button onClick={() => setShowViewModal(false)} className="px-4 py-2 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors text-sm">
                   Close
                 </button>
               </div>
@@ -2379,7 +2379,7 @@ const Incidents: React.FC = () => {
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => { setShowDeleteModal(false); setIncidentToDelete(null); }}
-                    className="px-4 py-2 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+                    className="px-4 py-2 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                     disabled={loading}
                   >
                     Cancel

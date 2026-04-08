@@ -223,7 +223,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Ask a question..."
-                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-card text-primary placeholder-gray-400 text-sm"
+                    className="flex-1 px-4 py-2.5 border border-theme rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-card text-primary placeholder-gray-400 text-sm"
                     rows={1}
                     style={{ maxHeight: '120px' }}
                     disabled={isLoading}

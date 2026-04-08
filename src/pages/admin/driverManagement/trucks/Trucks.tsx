@@ -1839,7 +1839,7 @@ const Trucks: React.FC = () => {
                                     setShowSidebar(true);
                                     setActiveStep('Details');
                                 }}
-                                className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
+                                className="w-10 h-10 bg-[var(--accent-blue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-blue)] transition-colors shadow-md"
                             >
                                 <Plus className="w-5 h-5" />
                             </button>
@@ -1859,7 +1859,7 @@ const Trucks: React.FC = () => {
                                 setActiveTab('All');
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'All'
-                                    ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                    ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)]'
                                     : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
@@ -1881,7 +1881,7 @@ const Trucks: React.FC = () => {
                                     setActiveTab(yard._id!.toString());
                                 }}
                                 className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === yard._id?.toString()
-                                        ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                        ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)]'
                                         : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                     }`}
                             >
@@ -1903,7 +1903,7 @@ const Trucks: React.FC = () => {
                                 setActiveTab('External');
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'External'
-                                    ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                    ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)]'
                                     : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
@@ -1923,7 +1923,7 @@ const Trucks: React.FC = () => {
                                 setActiveTab('Unassigned');
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'Unassigned'
-                                    ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                    ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)]'
                                     : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
@@ -1947,7 +1947,7 @@ const Trucks: React.FC = () => {
                                 placeholder="Search..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-card"
+                                className="flex-1 px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent bg-card"
                             />
                            
                         </div>
@@ -1958,7 +1958,7 @@ const Trucks: React.FC = () => {
                             <select
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-card"
+                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent bg-card"
                             >
                                 <option value="In Service Only">In Service Only</option>
                                 <option value="All">All</option>
@@ -1970,7 +1970,7 @@ const Trucks: React.FC = () => {
                             <select
                                 value={complianceStatus}
                                 onChange={(e) => setComplianceStatus(e.target.value)}
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-card"
+                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent bg-card"
                             >
                                 <option value="All">All</option>
                                 <option value="Compliant">Compliant</option>
@@ -1984,7 +1984,7 @@ const Trucks: React.FC = () => {
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-card"
+                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent bg-card"
                             >
                                 <option value="">Select</option>
                                 <option value="unitNumber">Unit #</option>
@@ -2015,7 +2015,7 @@ const Trucks: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.unitNumber}
                                             onChange={(e) => setFilters({ ...filters, unitNumber: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         />
                                     </th>
 
@@ -2032,7 +2032,7 @@ const Trucks: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.plateNumber}
                                             onChange={(e) => setFilters({ ...filters, plateNumber: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         />
                                     </th>
 
@@ -2047,7 +2047,7 @@ const Trucks: React.FC = () => {
                                         <select
                                             value={filters.ownership}
                                             onChange={(e) => setFilters({ ...filters, ownership: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="COMPANY ASSET">Company Asset</option>
@@ -2063,7 +2063,7 @@ const Trucks: React.FC = () => {
                                         <select
                                             value={filters.operatingStatus}
                                             onChange={(e) => setFilters({ ...filters, operatingStatus: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="IN SERVICE">In Service</option>
@@ -2080,7 +2080,7 @@ const Trucks: React.FC = () => {
                                         <select
                                             value={filters.dispatchStatus}
                                             onChange={(e) => setFilters({ ...filters, dispatchStatus: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="LOADED">Loaded</option>
@@ -2101,7 +2101,7 @@ const Trucks: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.dispatchInfo}
                                             onChange={(e) => setFilters({ ...filters, dispatchInfo: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         />
                                     </th>
 
@@ -2113,7 +2113,7 @@ const Trucks: React.FC = () => {
                                         <select
                                             value={filters.compliance}
                                             onChange={(e) => setFilters({ ...filters, compliance: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="COMPLIANT">Compliant</option>
@@ -2128,7 +2128,7 @@ const Trucks: React.FC = () => {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-theme">
                                 {filteredTrucks.length === 0 ? (
                                     <tr>
                                         <td colSpan={8} className="px-4 py-8 text-center text-secondary">
@@ -2211,7 +2211,7 @@ const Trucks: React.FC = () => {
                         <div className="w-48 bg-card border-r border-theme flex flex-col">
                             {/* Image Upload Section */}
                             <div className="p-3 border-b border-theme bg-card">
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-card"
+                                <div className="border-2 border-dashed border-theme rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-card"
                                     onClick={() => {
                                         const input = document.createElement('input');
                                         input.type = 'file';
@@ -2252,7 +2252,7 @@ const Trucks: React.FC = () => {
                                             key={step}
                                             onClick={() => setActiveStep(step)}
                                             className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
-                                                ? 'bg-[#42aeec] !text-white shadow-sm'
+                                                ? 'bg-[var(--accent-blue)] !text-white shadow-sm'
                                                 : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                 }`}
                                         >
@@ -2267,7 +2267,7 @@ const Trucks: React.FC = () => {
                                                     key={step}
                                                     onClick={() => setActiveStep(step)}
                                                     className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
-                                                        ? 'bg-[#42aeec] !text-white shadow-sm'
+                                                        ? 'bg-[var(--accent-blue)] !text-white shadow-sm'
                                                         : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                         }`}
                                                 >
@@ -2324,7 +2324,7 @@ const Trucks: React.FC = () => {
                                                     placeholder="Unit #"
                                                     value={formData.unitNumber}
                                                     onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2336,7 +2336,7 @@ const Trucks: React.FC = () => {
                                                     placeholder="VIN"
                                                     value={formData.vinNumber}
                                                     onChange={(e) => setFormData({ ...formData, vinNumber: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2348,7 +2348,7 @@ const Trucks: React.FC = () => {
                                                     placeholder="Plate #"
                                                     value={formData.plateNumber}
                                                     onChange={(e) => setFormData({ ...formData, plateNumber: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2358,7 +2358,7 @@ const Trucks: React.FC = () => {
                                                 <select
                                                     value={formData.registrationCountry}
                                                     onChange={(e) => setFormData({ ...formData, registrationCountry: e.target.value, registrationProvince: '' })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
                                                     <option value="">Select Registration Country</option>
                                                     {countries.map((country) => (
@@ -2378,7 +2378,7 @@ const Trucks: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, registrationProvince: e.target.value })}
                                                     disabled={!formData.registrationCountry}
                                                     placeholder={formData.registrationCountry ? "Enter Province/State" : "Select country first"}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                                 />
                                             </div>
                                             <div>
@@ -2390,7 +2390,7 @@ const Trucks: React.FC = () => {
                                                     placeholder="Make"
                                                     value={formData.make}
                                                     onChange={(e) => setFormData({ ...formData, make: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2402,7 +2402,7 @@ const Trucks: React.FC = () => {
                                                     placeholder="Model"
                                                     value={formData.model}
                                                     onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2414,7 +2414,7 @@ const Trucks: React.FC = () => {
                                                     placeholder="Year"
                                                     value={formData.year}
                                                     onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2425,7 +2425,7 @@ const Trucks: React.FC = () => {
                                                     type="text"
                                                     value={formData.type}
                                                     readOnly
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg bg-gray-100"
                                                 />
                                             </div>
                                             <div>
@@ -2436,7 +2436,7 @@ const Trucks: React.FC = () => {
                                                     type="text"
                                                     value={formData.weight}
                                                     onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2446,7 +2446,7 @@ const Trucks: React.FC = () => {
                                                 <select
                                                     value={formData.uom}
                                                     onChange={(e) => setFormData({ ...formData, uom: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
                                                     <option value="Kg">Kg</option>
                                                     <option value="Lbs">Lbs</option>
@@ -2460,7 +2460,7 @@ const Trucks: React.FC = () => {
                                                     type="text"
                                                     value={formData.assetValue}
                                                     onChange={(e) => setFormData({ ...formData, assetValue: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2470,7 +2470,7 @@ const Trucks: React.FC = () => {
                                                 <select
                                                     value={formData.status}
                                                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
                                                     <option value="In Service">In Service</option>
                                                     <option value="Out of Service">Out of Service</option>
@@ -2486,7 +2486,7 @@ const Trucks: React.FC = () => {
                                                     placeholder="Odometer"
                                                     value={formData.odometer}
                                                     onChange={(e) => setFormData({ ...formData, odometer: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2498,7 +2498,7 @@ const Trucks: React.FC = () => {
                                                     placeholder="Tracking Key"
                                                     value={formData.trackingKey}
                                                     onChange={(e) => setFormData({ ...formData, trackingKey: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2508,7 +2508,7 @@ const Trucks: React.FC = () => {
                                                 <select
                                                     value={formData.trailer}
                                                     onChange={(e) => setFormData({ ...formData, trailer: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
                                                     <option value="">Select Trailer</option>
                                                     {trailers.map((trailer) => (
@@ -2556,7 +2556,7 @@ const Trucks: React.FC = () => {
                                                     <select
                                                         value={formData.operator}
                                                         onChange={(e) => setFormData({ ...formData, operator: e.target.value })}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     >
                                                         <option value="">Select Operator</option>
                                                         {operators.length > 0 ? operators.map((operator) => (
@@ -2575,7 +2575,7 @@ const Trucks: React.FC = () => {
                                                     <select
                                                         value={formData.coOperator}
                                                         onChange={(e) => setFormData({ ...formData, coOperator: e.target.value })}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     >
                                                         <option value="">Select Co-Operator</option>
                                                         {operators.length > 0 ? operators.map((operator) => (
@@ -2594,7 +2594,7 @@ const Trucks: React.FC = () => {
                                                     <select
                                                         value={formData.yard}
                                                         onChange={(e) => setFormData({ ...formData, yard: e.target.value })}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     >
                                                         <option value="">Select</option>
                                                         {yards.filter(yard => yard.status === 'active').map((yard) => (
@@ -2621,7 +2621,7 @@ const Trucks: React.FC = () => {
                                                 onClick={() => setInspectionType('One Time')}
                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors border-2 ${inspectionType === 'One Time'
                                                     ? 'bg-card border-gray-700 text-primary'
-                                                    : 'bg-card border-gray-300 text-primary hover:border-gray-400'
+                                                    : 'bg-card border-theme text-primary hover:border-gray-400'
                                                     }`}
                                             >
                                                 One Time
@@ -2631,7 +2631,7 @@ const Trucks: React.FC = () => {
                                                 onClick={() => setInspectionType('Recurring')}
                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors border-2 ${inspectionType === 'Recurring'
                                                     ? 'bg-card border-gray-700 text-primary'
-                                                    : 'bg-card border-gray-300 text-primary hover:border-gray-400'
+                                                    : 'bg-card border-theme text-primary hover:border-gray-400'
                                                     }`}
                                             >
                                                 Recurring
@@ -2650,7 +2650,7 @@ const Trucks: React.FC = () => {
                                                                 type="date"
                                                                 value={inspectionForm.expiryDate}
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, expiryDate: e.target.value })}
-                                                                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                                className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                             />
                                                         </div>
                                                     </div>
@@ -2661,7 +2661,7 @@ const Trucks: React.FC = () => {
                                                             placeholder="Description"
                                                             value={inspectionForm.description}
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, description: e.target.value })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                         />
                                                     </div>
                                                     <div>
@@ -2676,7 +2676,7 @@ const Trucks: React.FC = () => {
                                                                 };
                                                                 input.click();
                                                             }}
-                                                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium bg-card"
+                                                            className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium bg-card"
                                                         >
                                                             {inspectionForm.file ? (
                                                                 <span className="flex items-center gap-1">
@@ -2807,7 +2807,7 @@ const Trucks: React.FC = () => {
                                                                     type="date"
                                                                     value={inspectionForm.scheduledOn}
                                                                     onChange={(e) => setInspectionForm({ ...inspectionForm, scheduledOn: e.target.value })}
-                                                                    className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                                    className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                                 />
                                                             </div>
                                                         </div>
@@ -2818,7 +2818,7 @@ const Trucks: React.FC = () => {
                                                                 placeholder="After"
                                                                 value={inspectionForm.after}
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, after: e.target.value })}
-                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                             />
                                                         </div>
                                                         <div>
@@ -2826,7 +2826,7 @@ const Trucks: React.FC = () => {
                                                             <select
                                                                 value={inspectionForm.unit}
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, unit: e.target.value })}
-                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                             >
                                                                 <option value="">Select Unit</option>
                                                                 <option value="Days">Days</option>
@@ -2845,13 +2845,13 @@ const Trucks: React.FC = () => {
                                                                 placeholder="Description"
                                                                 value={inspectionForm.description}
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, description: e.target.value })}
-                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                             />
                                                         </div>
                                                         <div>
                                                             <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                             {inspectionForm.file ? (
-                                                                <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card">
+                                                                <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
                                                                     <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
                                                                     <span className="text-sm text-primary truncate flex-1">
                                                                         {inspectionForm.file.name.length > 20 
@@ -2878,7 +2878,7 @@ const Trucks: React.FC = () => {
                                                                         };
                                                                         input.click();
                                                                     }}
-                                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium bg-card flex items-center justify-center gap-2"
+                                                                    className="w-full px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium bg-card flex items-center justify-center gap-2"
                                                                 >
                                                                     <Upload className="w-4 h-4" />
                                                                     <span>Select File</span>
@@ -3044,7 +3044,7 @@ const Trucks: React.FC = () => {
                                                             type="date"
                                                             value={documentForm.expiryDate}
                                                             onChange={(e) => setDocumentForm({ ...documentForm, expiryDate: e.target.value })}
-                                                            className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                            className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                         />
                                                     </div>
                                                 </div>
@@ -3055,7 +3055,7 @@ const Trucks: React.FC = () => {
                                                         placeholder="Description"
                                                         value={documentForm.description}
                                                         onChange={(e) => setDocumentForm({ ...documentForm, description: e.target.value })}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     />
                                                 </div>
                                             </div>
@@ -3064,7 +3064,7 @@ const Trucks: React.FC = () => {
                                             <div>
                                                 <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                 {documentForm.file ? (
-                                                    <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card">
+                                                    <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
                                                         <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
                                                         <span className="text-sm text-primary truncate flex-1">
                                                             {documentForm.file.name}
@@ -3089,7 +3089,7 @@ const Trucks: React.FC = () => {
                                                             };
                                                             input.click();
                                                         }}
-                                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium bg-card flex items-center justify-center gap-2"
+                                                        className="w-full px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium bg-card flex items-center justify-center gap-2"
                                                     >
                                                         <Upload className="w-4 h-4" />
                                                         <span>Select File</span>
@@ -3227,7 +3227,7 @@ const Trucks: React.FC = () => {
                                                     placeholder="Note"
                                                     value={noteForm.note}
                                                     onChange={(e) => setNoteForm({ ...noteForm, note: e.target.value })}
-                                                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                 />
                                             </div>
                                             <div>
@@ -3236,7 +3236,7 @@ const Trucks: React.FC = () => {
                                                     <select
                                                         value={noteForm.category}
                                                         onChange={(e) => setNoteForm({ ...noteForm, category: e.target.value })}
-                                                        className="px-3 py-2 pr-8 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none min-w-[150px]"
+                                                        className="px-3 py-2 pr-8 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none min-w-[150px]"
                                                     >
                                                         <option value="Category">Category</option>
                                                         <option value="Safety">Safety</option>
@@ -3274,7 +3274,7 @@ const Trucks: React.FC = () => {
                                                         <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Category</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-gray-200">
+                                                <tbody className="divide-y divide-theme">
                                                     {notes.length === 0 ? (
                                                         <tr>
                                                             <td colSpan={2} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>
@@ -3314,7 +3314,7 @@ const Trucks: React.FC = () => {
                                                             placeholder="Corportation Name"
                                                             value={payrollForm.corporationName}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, corporationName: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div>
@@ -3324,7 +3324,7 @@ const Trucks: React.FC = () => {
                                                             placeholder="Full Address"
                                                             value={payrollForm.fullAddress}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, fullAddress: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div>
@@ -3334,7 +3334,7 @@ const Trucks: React.FC = () => {
                                                             placeholder="Driver Name"
                                                             value={payrollForm.driverName}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, driverName: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div>
@@ -3344,7 +3344,7 @@ const Trucks: React.FC = () => {
                                                             placeholder="Email"
                                                             value={payrollForm.email}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, email: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                 </div>
@@ -3358,7 +3358,7 @@ const Trucks: React.FC = () => {
                                                             className={`px-4 py-2 rounded-sm font-medium transition-colors text-sm ${
                                                                 paymentMethod === method
                                                                     ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-card border border-gray-300 text-primary hover:bg-[rgba(255,255,255,0.03)]'
+                                                                    : 'bg-card border border-theme text-primary hover:bg-[rgba(255,255,255,0.03)]'
                                                             }`}
                                                         >
                                                             {method}
@@ -3379,7 +3379,7 @@ const Trucks: React.FC = () => {
                                                                     type="text"
                                                                     value={payrollForm.alone}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, alone: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                                 />
                                                             </div>
                                                             <div>
@@ -3390,7 +3390,7 @@ const Trucks: React.FC = () => {
                                                                     type="text"
                                                                     value={payrollForm.team}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, team: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                                 />
                                                             </div>
                                                             <div>
@@ -3401,7 +3401,7 @@ const Trucks: React.FC = () => {
                                                                     type="text"
                                                                     value={payrollForm.empty}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, empty: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                                 />
                                                             </div>
                                                             <div>
@@ -3412,7 +3412,7 @@ const Trucks: React.FC = () => {
                                                                     type="text"
                                                                     value={payrollForm.emptyTeam}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, emptyTeam: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                                 />
                                                             </div>
                                                         </div>
@@ -3430,7 +3430,7 @@ const Trucks: React.FC = () => {
                                                                     type="text"
                                                                     value={payrollForm.percentRate}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, percentRate: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                                 />
                                                                 <span className="text-sm font-medium text-primary">%</span>
                                                             </div>
@@ -3448,7 +3448,7 @@ const Trucks: React.FC = () => {
                                                                 type="text"
                                                                 value={payrollForm.perTripAmount}
                                                                 onChange={(e) => setPayrollForm({ ...payrollForm, perTripAmount: e.target.value })}
-                                                                className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                             />
                                                         </div>
                                                     </div>
@@ -3464,7 +3464,7 @@ const Trucks: React.FC = () => {
                                                                 type="text"
                                                                 value={payrollForm.perHour}
                                                                 onChange={(e) => setPayrollForm({ ...payrollForm, perHour: e.target.value })}
-                                                                className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                             />
                                                         </div>
                                                     </div>
@@ -3488,7 +3488,7 @@ const Trucks: React.FC = () => {
                                                             placeholder="GST No."
                                                             value={payrollForm.gstNo}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, gstNo: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div>
@@ -3498,7 +3498,7 @@ const Trucks: React.FC = () => {
                                                             placeholder="Leave Empty To Use Company"
                                                             value={payrollForm.customHst}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, customHst: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                 </div>
@@ -3520,7 +3520,7 @@ const Trucks: React.FC = () => {
                                                                 type="date"
                                                                 value={deductionForm.startDate}
                                                                 onChange={(e) => setDeductionForm({ ...deductionForm, startDate: e.target.value })}
-                                                                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                             />
                                                         </div>
                                                     </div>
@@ -3531,7 +3531,7 @@ const Trucks: React.FC = () => {
                                                             placeholder="Description"
                                                             value={deductionForm.description}
                                                             onChange={(e) => setDeductionForm({ ...deductionForm, description: e.target.value })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div className="flex-1">
@@ -3540,7 +3540,7 @@ const Trucks: React.FC = () => {
                                                             type="text"
                                                             value={deductionForm.fee}
                                                             onChange={(e) => setDeductionForm({ ...deductionForm, fee: e.target.value })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div className="flex-1">
@@ -3549,7 +3549,7 @@ const Trucks: React.FC = () => {
                                                             <select
                                                                 value={deductionForm.interval}
                                                                 onChange={(e) => setDeductionForm({ ...deductionForm, interval: e.target.value })}
-                                                                className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none"
+                                                                className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
                                                                 <option value="Interval">Interval</option>
                                                                 <option value="Annual">Annual</option>
@@ -3568,7 +3568,7 @@ const Trucks: React.FC = () => {
                                                             <select
                                                                 value={deductionForm.currency}
                                                                 onChange={(e) => setDeductionForm({ ...deductionForm, currency: e.target.value })}
-                                                                className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none"
+                                                                className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
                                                                 <option value="CAD">CAD</option>
                                                                 <option value="USD">USD</option>
@@ -3604,7 +3604,7 @@ const Trucks: React.FC = () => {
                                                                 <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Currency</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody className="divide-y divide-gray-200">
+                                                        <tbody className="divide-y divide-theme">
                                                             {deductions.length === 0 ? (
                                                                 <tr>
                                                                     <td colSpan={5} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>
@@ -3641,7 +3641,7 @@ const Trucks: React.FC = () => {
                                                                 type="date"
                                                                 value={additionForm.startDate}
                                                                 onChange={(e) => setAdditionForm({ ...additionForm, startDate: e.target.value })}
-                                                                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                             />
                                                         </div>
                                                     </div>
@@ -3652,7 +3652,7 @@ const Trucks: React.FC = () => {
                                                             placeholder="Description"
                                                             value={additionForm.description}
                                                             onChange={(e) => setAdditionForm({ ...additionForm, description: e.target.value })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div className="flex-1">
@@ -3661,7 +3661,7 @@ const Trucks: React.FC = () => {
                                                             type="text"
                                                             value={additionForm.amount}
                                                             onChange={(e) => setAdditionForm({ ...additionForm, amount: e.target.value })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                         />
                                                     </div>
                                                     <div className="flex-1">
@@ -3670,7 +3670,7 @@ const Trucks: React.FC = () => {
                                                             <select
                                                                 value={additionForm.interval}
                                                                 onChange={(e) => setAdditionForm({ ...additionForm, interval: e.target.value })}
-                                                                className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none"
+                                                                className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
                                                                 <option value="Interval">Interval</option>
                                                                 <option value="Annual">Annual</option>
@@ -3689,7 +3689,7 @@ const Trucks: React.FC = () => {
                                                             <select
                                                                 value={additionForm.currency}
                                                                 onChange={(e) => setAdditionForm({ ...additionForm, currency: e.target.value })}
-                                                                className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none"
+                                                                className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
                                                                 <option value="CAD">CAD</option>
                                                                 <option value="USD">USD</option>
@@ -3725,7 +3725,7 @@ const Trucks: React.FC = () => {
                                                                 <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Currency</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody className="divide-y divide-gray-200">
+                                                        <tbody className="divide-y divide-theme">
                                                             {additions.length === 0 ? (
                                                                 <tr>
                                                                     <td colSpan={5} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>
@@ -3829,7 +3829,7 @@ const Trucks: React.FC = () => {
                         <div className="p-6 flex items-center justify-end gap-3">
                             <button
                                 onClick={() => setTruckLimitModal({ show: false, maxTrucks: 0, usedTrucks: 0 })}
-                                className="px-5 py-2.5 border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+                                className="px-5 py-2.5 border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                             >
                                 Close
                             </button>

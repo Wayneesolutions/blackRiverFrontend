@@ -195,7 +195,7 @@ export default function RegistrationPage() {
               
               {/* Highlighted 7-day free trial badge */}
               <div className="mb-4 flex items-center justify-center lg:justify-start">
-                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white shadow-md" style={{ backgroundColor: '#42aeec', fontSize: 'calc(0.875rem * 0.98)' }}>
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white shadow-md" style={{ backgroundColor: 'var(--accent-blue)', fontSize: 'calc(0.875rem * 0.98)' }}>
                   <CheckCircle className="w-4 h-4" style={{ width: 'calc(1rem * 0.98)', height: 'calc(1rem * 0.98)' }} />
                   7-Day Free Trial
                 </span>
@@ -204,7 +204,7 @@ export default function RegistrationPage() {
               <h1 className="text-3xl lg:text-4xl font-bold mb-3 leading-tight" style={{ 
                 fontFamily: 'sans-serif', 
                 fontSize: 'calc(1.875rem * 0.98)',
-                background: 'linear-gradient(135deg, #1e3a5f 0%, #42aeec 100%)',
+                background: 'linear-gradient(135deg, #1e3a5f 0%, var(--accent-blue) 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text'
@@ -221,7 +221,7 @@ export default function RegistrationPage() {
               <h3 className="text-sm font-semibold text-primary uppercase tracking-wide mb-4" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>What's Included</h3>
               
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#42aeec', width: 'calc(2.5rem * 0.98)', height: 'calc(2.5rem * 0.98)' }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--accent-blue)', width: 'calc(2.5rem * 0.98)', height: 'calc(2.5rem * 0.98)' }}>
                   <Truck className="w-5 h-5 text-white" style={{ width: 'calc(1.25rem * 0.98)', height: 'calc(1.25rem * 0.98)' }} />
                 </div>
                 <div>
@@ -231,7 +231,7 @@ export default function RegistrationPage() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#42aeec', width: 'calc(2.5rem * 0.98)', height: 'calc(2.5rem * 0.98)' }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--accent-blue)', width: 'calc(2.5rem * 0.98)', height: 'calc(2.5rem * 0.98)' }}>
                   <MapPin className="w-5 h-5 text-white" style={{ width: 'calc(1.25rem * 0.98)', height: 'calc(1.25rem * 0.98)' }} />
                 </div>
                 <div>
@@ -241,7 +241,7 @@ export default function RegistrationPage() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#42aeec', width: 'calc(2.5rem * 0.98)', height: 'calc(2.5rem * 0.98)' }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--accent-blue)', width: 'calc(2.5rem * 0.98)', height: 'calc(2.5rem * 0.98)' }}>
                   <Users className="w-5 h-5 text-white" style={{ width: 'calc(1.25rem * 0.98)', height: 'calc(1.25rem * 0.98)' }} />
                 </div>
                 <div>
@@ -254,7 +254,7 @@ export default function RegistrationPage() {
               {showMoreFeatures && (
                 <>
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#42aeec', width: 'calc(2.5rem * 0.98)', height: 'calc(2.5rem * 0.98)' }}>
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--accent-blue)', width: 'calc(2.5rem * 0.98)', height: 'calc(2.5rem * 0.98)' }}>
                       <FileCheck className="w-5 h-5 text-white" style={{ width: 'calc(1.25rem * 0.98)', height: 'calc(1.25rem * 0.98)' }} />
                     </div>
                     <div>
@@ -264,7 +264,7 @@ export default function RegistrationPage() {
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#42aeec', width: 'calc(2.5rem * 0.98)', height: 'calc(2.5rem * 0.98)' }}>
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--accent-blue)', width: 'calc(2.5rem * 0.98)', height: 'calc(2.5rem * 0.98)' }}>
                       <HeartPulse className="w-5 h-5 text-white" style={{ width: 'calc(1.25rem * 0.98)', height: 'calc(1.25rem * 0.98)' }} />
                     </div>
                     <div>
@@ -274,7 +274,7 @@ export default function RegistrationPage() {
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#42aeec', width: 'calc(2.5rem * 0.98)', height: 'calc(2.5rem * 0.98)' }}>
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--accent-blue)', width: 'calc(2.5rem * 0.98)', height: 'calc(2.5rem * 0.98)' }}>
                       <Shield className="w-5 h-5 text-white" style={{ width: 'calc(1.25rem * 0.98)', height: 'calc(1.25rem * 0.98)' }} />
                     </div>
                     <div>
@@ -290,9 +290,9 @@ export default function RegistrationPage() {
                 type="button"
                 onClick={() => setShowMoreFeatures(!showMoreFeatures)}
                 className="w-full flex items-center justify-center gap-2 text-sm font-medium text-primary hover:text-primary transition-colors pt-2 border-t border-theme"
-                style={{ fontSize: 'calc(0.875rem * 0.98)', color: '#42aeec' }}
+                style={{ fontSize: 'calc(0.875rem * 0.98)', color: 'var(--accent-blue)' }}
                 onMouseEnter={(e) => e.currentTarget.style.color = '#2e9cd9'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#42aeec'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--accent-blue)'}
               >
                 {showMoreFeatures ? (
                   <>
@@ -311,7 +311,7 @@ export default function RegistrationPage() {
             {/* Trial Info */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100" style={{ padding: 'calc(1rem * 0.98)' }}>
               <p className="text-xs text-primary leading-relaxed flex items-center gap-2" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-white" style={{ backgroundColor: '#42aeec', fontSize: 'calc(0.75rem * 0.98)' }}>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-white" style={{ backgroundColor: 'var(--accent-blue)', fontSize: 'calc(0.75rem * 0.98)' }}>
                 
                   <span>7-Day Free Trial</span>
                 </span>
@@ -344,7 +344,7 @@ export default function RegistrationPage() {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             className={`block w-full rounded-lg border pl-10 pr-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${
-                              errors.name ? "border-red-400 bg-card focus:ring-red-200" : "border-gray-300 hover:border-gray-400 focus:ring-blue-200"
+                              errors.name ? "border-red-400 bg-card focus:ring-red-200" : "border-theme hover:border-gray-400 focus:ring-blue-200"
                             }`}
                             style={{ '--tw-ring-color': 'rgba(66, 174, 236, 0.3)', fontSize: 'calc(0.875rem * 1.005)', paddingTop: 'calc(0.625rem * 1.005)', paddingBottom: 'calc(0.625rem * 1.005)' } as React.CSSProperties}
                             placeholder="John Doe"
@@ -362,7 +362,7 @@ export default function RegistrationPage() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className={`block w-full rounded-lg border pl-10 pr-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${
-                              errors.email ? "border-red-400 bg-card focus:ring-red-200" : "border-gray-300 hover:border-gray-400 focus:ring-blue-200"
+                              errors.email ? "border-red-400 bg-card focus:ring-red-200" : "border-theme hover:border-gray-400 focus:ring-blue-200"
                             }`}
                             style={{ '--tw-ring-color': 'rgba(66, 174, 236, 0.3)', fontSize: 'calc(0.875rem * 1.005)', paddingTop: 'calc(0.625rem * 1.005)', paddingBottom: 'calc(0.625rem * 1.005)' } as React.CSSProperties}
                             placeholder="john@company.com"
@@ -380,7 +380,7 @@ export default function RegistrationPage() {
                           type="tel"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className="block w-full rounded-lg border border-gray-300 pl-10 pr-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent hover:border-gray-400 focus:ring-blue-200"
+                          className="block w-full rounded-lg border border-theme pl-10 pr-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent hover:border-gray-400 focus:ring-blue-200"
                           style={{ '--tw-ring-color': 'rgba(66, 174, 236, 0.3)', fontSize: 'calc(0.875rem * 1.005)', paddingTop: 'calc(0.625rem * 1.005)', paddingBottom: 'calc(0.625rem * 1.005)' } as React.CSSProperties}
                           placeholder="+1 (555) 123-4567"
                         />
@@ -397,7 +397,7 @@ export default function RegistrationPage() {
                         <input
                           value={country}
                           onChange={(e) => setCountry(e.target.value)}
-                          className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent hover:border-gray-400 focus:ring-blue-200"
+                          className="block w-full rounded-lg border border-theme px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent hover:border-gray-400 focus:ring-blue-200"
                           style={{ '--tw-ring-color': 'rgba(66, 174, 236, 0.3)', fontSize: 'calc(0.875rem * 1.005)', paddingTop: 'calc(0.625rem * 1.005)', paddingBottom: 'calc(0.625rem * 1.005)' } as React.CSSProperties}
                           placeholder="United States"
                         />
@@ -408,7 +408,7 @@ export default function RegistrationPage() {
                         <input
                           value={state}
                           onChange={(e) => setState(e.target.value)}
-                          className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent hover:border-gray-400 focus:ring-blue-200"
+                          className="block w-full rounded-lg border border-theme px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent hover:border-gray-400 focus:ring-blue-200"
                           style={{ '--tw-ring-color': 'rgba(66, 174, 236, 0.3)', fontSize: 'calc(0.875rem * 1.005)', paddingTop: 'calc(0.625rem * 1.005)', paddingBottom: 'calc(0.625rem * 1.005)' } as React.CSSProperties}
                           placeholder="California"
                         />
@@ -419,7 +419,7 @@ export default function RegistrationPage() {
                         <input
                           value={city}
                           onChange={(e) => setCity(e.target.value)}
-                          className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent hover:border-gray-400 focus:ring-blue-200"
+                          className="block w-full rounded-lg border border-theme px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent hover:border-gray-400 focus:ring-blue-200"
                           style={{ '--tw-ring-color': 'rgba(66, 174, 236, 0.3)', fontSize: 'calc(0.875rem * 1.005)', paddingTop: 'calc(0.625rem * 1.005)', paddingBottom: 'calc(0.625rem * 1.005)' } as React.CSSProperties}
                           placeholder="Los Angeles"
                         />
@@ -433,7 +433,7 @@ export default function RegistrationPage() {
                         <input
                           value={address}
                           onChange={(e) => setAddress(e.target.value)}
-                          className="block w-full rounded-lg border border-gray-300 pl-10 pr-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent hover:border-gray-400 focus:ring-blue-200"
+                          className="block w-full rounded-lg border border-theme pl-10 pr-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent hover:border-gray-400 focus:ring-blue-200"
                           style={{ '--tw-ring-color': 'rgba(66, 174, 236, 0.3)', fontSize: 'calc(0.875rem * 1.005)', paddingTop: 'calc(0.625rem * 1.005)', paddingBottom: 'calc(0.625rem * 1.005)' } as React.CSSProperties}
                           placeholder="123 Main Street"
                         />
@@ -454,7 +454,7 @@ export default function RegistrationPage() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className={`block w-full rounded-lg border pl-10 pr-10 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${
-                              errors.password ? "border-red-400 bg-card focus:ring-red-200" : "border-gray-300 hover:border-gray-400 focus:ring-blue-200"
+                              errors.password ? "border-red-400 bg-card focus:ring-red-200" : "border-theme hover:border-gray-400 focus:ring-blue-200"
                             }`}
                             style={{ '--tw-ring-color': 'rgba(66, 174, 236, 0.3)', fontSize: 'calc(0.875rem * 1.005)', paddingTop: 'calc(0.625rem * 1.005)', paddingBottom: 'calc(0.625rem * 1.005)' } as React.CSSProperties}
                             placeholder="Create strong password"
@@ -492,7 +492,7 @@ export default function RegistrationPage() {
                             value={confirm}
                             onChange={(e) => setConfirm(e.target.value)}
                             className={`block w-full rounded-lg border pl-10 pr-10 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${
-                              errors.confirm ? "border-red-400 bg-card focus:ring-red-200" : "border-gray-300 hover:border-gray-400 focus:ring-blue-200"
+                              errors.confirm ? "border-red-400 bg-card focus:ring-red-200" : "border-theme hover:border-gray-400 focus:ring-blue-200"
                             }`}
                             style={{ '--tw-ring-color': 'rgba(66, 174, 236, 0.3)', fontSize: 'calc(0.875rem * 1.005)', paddingTop: 'calc(0.625rem * 1.005)', paddingBottom: 'calc(0.625rem * 1.005)' } as React.CSSProperties}
                             placeholder="Re-enter password"
@@ -518,18 +518,18 @@ export default function RegistrationPage() {
                         type="checkbox"
                         checked={agree}
                         onChange={(e) => setAgree(e.target.checked)}
-                        className={`mt-1 h-4 w-4 rounded border-gray-300 ${
+                        className={`mt-1 h-4 w-4 rounded border-theme ${
                           errors.agree ? "border-red-400" : ""
                         }`}
-                        style={{ accentColor: '#42aeec' }}
+                        style={{ accentColor: 'var(--accent-blue)' }}
                       />
                       <label htmlFor="terms" className="text-sm text-primary leading-relaxed" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>
                         I agree to the{" "}
-                        <a className="font-medium underline hover:no-underline" href="#" style={{ color: '#42aeec' }}>
+                        <a className="font-medium underline hover:no-underline" href="#" style={{ color: 'var(--accent-blue)' }}>
                           Terms of Service
                         </a>{" "}
                         and{" "}
-                        <a className="font-medium underline hover:no-underline" href="#" style={{ color: '#42aeec' }}>
+                        <a className="font-medium underline hover:no-underline" href="#" style={{ color: 'var(--accent-blue)' }}>
                           Privacy Policy
                         </a>
                       </label>
@@ -551,9 +551,9 @@ export default function RegistrationPage() {
                           ? "cursor-not-allowed opacity-60" 
                           : "hover:shadow-lg transform hover:-translate-y-0.5"
                       }`}
-                      style={loading ? { backgroundColor: '#42aeec', opacity: 0.6, fontSize: 'calc(0.875rem * 0.98)', paddingTop: 'calc(0.75rem * 0.98)', paddingBottom: 'calc(0.75rem * 0.98)' } : { backgroundColor: '#42aeec', fontSize: 'calc(0.875rem * 0.98)', paddingTop: 'calc(0.75rem * 0.98)', paddingBottom: 'calc(0.75rem * 0.98)' }}
+                      style={loading ? { backgroundColor: 'var(--accent-blue)', opacity: 0.6, fontSize: 'calc(0.875rem * 0.98)', paddingTop: 'calc(0.75rem * 0.98)', paddingBottom: 'calc(0.75rem * 0.98)' } : { backgroundColor: 'var(--accent-blue)', fontSize: 'calc(0.875rem * 0.98)', paddingTop: 'calc(0.75rem * 0.98)', paddingBottom: 'calc(0.75rem * 0.98)' }}
                       onMouseEnter={(e) => { if (!loading) e.currentTarget.style.backgroundColor = '#2e9cd9'; }}
-                      onMouseLeave={(e) => { if (!loading) e.currentTarget.style.backgroundColor = '#42aeec'; }}
+                      onMouseLeave={(e) => { if (!loading) e.currentTarget.style.backgroundColor = 'var(--accent-blue)'; }}
                     >
                       {loading ? (
                         <>
@@ -570,7 +570,7 @@ export default function RegistrationPage() {
 
                     <p className="text-center text-sm text-secondary !mt-2" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>
                       Already have an account?{" "}
-                      <Link to="/" className="font-semibold underline hover:no-underline" style={{ color: '#42aeec' }}>
+                      <Link to="/" className="font-semibold underline hover:no-underline" style={{ color: 'var(--accent-blue)' }}>
                         Sign in
                       </Link>
                     </p>

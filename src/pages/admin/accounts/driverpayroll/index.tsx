@@ -2267,8 +2267,8 @@ const DriverPayrollManagement = () => {
 
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              <Truck className="text-[#42aeec]" size={36} />
+            <h1 className="text-3xl font-bold flex items-center gap-3" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <Truck className="text-[var(--accent-blue)]" size={36} />
               Driver Payroll
             </h1>
             <p className="text-secondary mt-2">Manage driver earnings based on trips and miles</p>
@@ -2277,7 +2277,7 @@ const DriverPayrollManagement = () => {
             <button
               onClick={() => setShowBulkGenerateModal(true)}
               className="px-4 py-2 !text-white rounded-lg transition-all font-medium flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
-              style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+              style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -2287,7 +2287,7 @@ const DriverPayrollManagement = () => {
             <button
               onClick={() => setShowCreateModal(true)}
               className="px-4 py-2 !text-white rounded-lg transition-all font-medium flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
-              style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+              style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
             >
               <Plus size={16} />
               Create Driver Payroll
@@ -2303,7 +2303,7 @@ const DriverPayrollManagement = () => {
                 <p className="text-2xl font-bold text-[#016ab2] mt-1">${totalPayroll.toLocaleString()}</p>
               </div>
               <div className="p-3 rounded-full bg-card">
-                <DollarSign className="text-[#42aeec]" size={24} />
+                <DollarSign className="text-[var(--accent-blue)]" size={24} />
               </div>
             </div>
           </div>
@@ -2315,7 +2315,7 @@ const DriverPayrollManagement = () => {
                 <p className="text-2xl font-bold text-[#016ab2] mt-1">{filteredPayrolls.length}</p>
               </div>
               <div className="p-3 rounded-full bg-card">
-                <Users className="text-[#42aeec]" size={24} />
+                <Users className="text-[var(--accent-blue)]" size={24} />
               </div>
             </div>
           </div>
@@ -2327,7 +2327,7 @@ const DriverPayrollManagement = () => {
                 <p className="text-2xl font-bold text-[#016ab2] mt-1">{totalMiles.toLocaleString()}</p>
               </div>
               <div className="p-3 rounded-full bg-card">
-                <TrendingUp className="text-[#42aeec]" size={24} />
+                <TrendingUp className="text-[var(--accent-blue)]" size={24} />
               </div>
             </div>
           </div>
@@ -2339,7 +2339,7 @@ const DriverPayrollManagement = () => {
                 <p className="text-2xl font-bold text-[#016ab2] mt-1">${avgPerMile.toFixed(2)}</p>
               </div>
               <div className="p-3 rounded-full bg-card">
-                <Package className="text-[#42aeec]" size={24} />
+                <Package className="text-[var(--accent-blue)]" size={24} />
               </div>
             </div>
           </div>
@@ -2354,7 +2354,7 @@ const DriverPayrollManagement = () => {
                 placeholder="Search drivers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full pl-10 pr-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
           </div>
@@ -2367,7 +2367,7 @@ const DriverPayrollManagement = () => {
               onClick={() => setDriverTypeTab('ownerOperator')}
               className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
                 driverTypeTab === 'ownerOperator'
-                  ? 'text-[#42aeec] border-b-2 border-[#42aeec] bg-card'
+                  ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] bg-card'
                   : 'text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)]'
               }`}
             >
@@ -2380,7 +2380,7 @@ const DriverPayrollManagement = () => {
               onClick={() => setDriverTypeTab('companyDriver')}
               className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
                 driverTypeTab === 'companyDriver'
-                  ? 'text-[#42aeec] border-b-2 border-[#42aeec] bg-card'
+                  ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] bg-card'
                   : 'text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)]'
               }`}
             >
@@ -2481,7 +2481,7 @@ const DriverPayrollManagement = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {filteredPayrolls.map((payroll) => (
                     <tr 
                       key={payroll._id} 
@@ -2591,7 +2591,7 @@ const DriverPayrollManagement = () => {
                     setAiAnalysis(null); // Clear AI analysis when modal is closed
                     resetForm();
                   }}
-                  className="text-secondary hover:text-secondary p-2 hover:bg-gray-100 rounded-lg"
+                  className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
                 >
                   <X size={24} />
                 </button>
@@ -2608,7 +2608,7 @@ const DriverPayrollManagement = () => {
                         name="userId"
                         value={formData.userId}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                       >
                         <option value="">Choose a driver...</option>
                         {filteredDriversByType.map((driver) => (
@@ -2636,7 +2636,7 @@ const DriverPayrollManagement = () => {
                             name="startDate"
                             value={formData.startDate}
                             onChange={(e) => handleDateRangeChange(e.target.value, formData.endDate)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                           />
                         </div>
                         <div>
@@ -2648,7 +2648,7 @@ const DriverPayrollManagement = () => {
                             name="endDate"
                             value={formData.endDate}
                             onChange={(e) => handleDateRangeChange(formData.startDate, e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                           />
                         </div>
                       </div>
@@ -2916,7 +2916,7 @@ const DriverPayrollManagement = () => {
                                 <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Earnings</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="divide-y divide-theme">
                               {driverTrips.map((trip) => (
                                 <tr key={trip._id} className={`hover:bg-[rgba(255,255,255,0.03)] ${trip.selected ? 'bg-green-50' : ''}`}>
                                   <td className="px-3 py-2">
@@ -2924,7 +2924,7 @@ const DriverPayrollManagement = () => {
                                       type="checkbox"
                                       checked={trip.selected || false}
                                       onChange={() => toggleTripSelection(trip._id)}
-                                      className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
+                                      className="w-4 h-4 text-green-600 bg-gray-100 border-theme rounded focus:ring-green-500"
                                     />
                                   </td>
                                   <td className="px-3 py-2 text-sm font-medium text-primary">
@@ -3157,7 +3157,7 @@ const DriverPayrollManagement = () => {
                                 <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Earnings</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="divide-y divide-theme">
                               {aiAnalysis.trips.map((trip) => (
                                 <tr key={trip._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                   <td className="px-3 py-2 text-sm font-medium text-primary">
@@ -3298,7 +3298,7 @@ const DriverPayrollManagement = () => {
                       min="0"
                       step="0.01"
                       placeholder="0.00"
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full pl-10 pr-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                   </div>
                   <p className="text-xs text-secondary mt-1">
@@ -3321,7 +3321,7 @@ const DriverPayrollManagement = () => {
                       name="country"
                       value={formData.country}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-card"
+                      className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-card"
                     >
                       <option value="USA">United States</option>
                       <option value="Canada">Canada</option>
@@ -3346,7 +3346,7 @@ const DriverPayrollManagement = () => {
                               min="0"
                               step="0.01"
                               placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                             />
                           </div>
                         </div>
@@ -3364,7 +3364,7 @@ const DriverPayrollManagement = () => {
                               min="0"
                               step="0.01"
                               placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                             />
                           </div>
                         </div>
@@ -3382,7 +3382,7 @@ const DriverPayrollManagement = () => {
                               min="0"
                               step="0.01"
                               placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                             />
                           </div>
                         </div>
@@ -3400,7 +3400,7 @@ const DriverPayrollManagement = () => {
                               min="0"
                               step="0.01"
                               placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                             />
                           </div>
                         </div>
@@ -3418,7 +3418,7 @@ const DriverPayrollManagement = () => {
                               min="0"
                               step="0.01"
                               placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                             />
                           </div>
                         </div>
@@ -3444,7 +3444,7 @@ const DriverPayrollManagement = () => {
                               min="0"
                               step="0.01"
                               placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                             />
                           </div>
                         </div>
@@ -3462,7 +3462,7 @@ const DriverPayrollManagement = () => {
                               min="0"
                               step="0.01"
                               placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                             />
                           </div>
                         </div>
@@ -3480,7 +3480,7 @@ const DriverPayrollManagement = () => {
                               min="0"
                               step="0.01"
                               placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                             />
                           </div>
                         </div>
@@ -3498,7 +3498,7 @@ const DriverPayrollManagement = () => {
                               min="0"
                               step="0.01"
                               placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                             />
                           </div>
                         </div>
@@ -3516,7 +3516,7 @@ const DriverPayrollManagement = () => {
                               min="0"
                               step="0.01"
                               placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                             />
                           </div>
                         </div>
@@ -3534,7 +3534,7 @@ const DriverPayrollManagement = () => {
                               min="0"
                               step="0.01"
                               placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                             />
                           </div>
                         </div>
@@ -3581,7 +3581,7 @@ const DriverPayrollManagement = () => {
                     name="payDate"
                     value={formData.payDate}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
 
@@ -3699,7 +3699,7 @@ const DriverPayrollManagement = () => {
                   <button
                     onClick={showCreateModal ? handleCreate : handleUpdate}
                     style={{
-                      background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                      background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                     }}
                     className="px-4 py-2   !text-white rounded-lg font-medium flex items-center gap-2 disabled:opacity-50"
                     disabled={loading}
@@ -3738,7 +3738,7 @@ const DriverPayrollManagement = () => {
                 </div>
                 <button
                   onClick={() => setShowViewModal(false)}
-                  className="text-secondary hover:text-secondary p-2 hover:bg-gray-100 rounded-lg"
+                  className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
                 >
                   <X size={24} />
                 </button>
@@ -3787,7 +3787,7 @@ const DriverPayrollManagement = () => {
                             <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Earnings</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200">
+                        <tbody className="divide-y divide-theme">
                           {selectedPayroll.trips.map((trip) => (
                             <tr key={trip._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                               <td className="px-3 py-2 text-sm font-medium text-primary">
@@ -4110,21 +4110,21 @@ const DriverPayrollManagement = () => {
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
             <div className="bg-card rounded-xl shadow-xl max-w-5xl w-full max-h-[95vh] overflow-y-auto">
               {/* Header */}
-              <div className="p-6 border-b-2 border-gray-300 sticky top-0 bg-card z-10">
+              <div className="p-6 border-b-2 border-theme sticky top-0 bg-card z-10">
                 <div className="flex justify-between items-start mb-4">
                   <button
                     onClick={() => {
                       setShowPaystubModal(false);
                       setSelectedPaystub(null);
                     }}
-                    className="text-secondary hover:text-secondary p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
                   >
                     <X size={24} />
                   </button>
                 </div>
                 
                 {/* Company Header Section */}
-                <div className="border-b-2 border-gray-300 pb-4 mb-4">
+                <div className="border-b-2 border-theme pb-4 mb-4">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       {selectedPaystub.companyDetails?.companyLogo && (
@@ -4187,7 +4187,7 @@ const DriverPayrollManagement = () => {
               <div className="p-6 space-y-6">
                 {/* Employee Information Section */}
                 <div className="bg-card p-5 rounded-lg border border-theme">
-                  <h3 className="text-lg font-bold text-primary mb-4 border-b border-gray-300 pb-2">Employee Information</h3>
+                  <h3 className="text-lg font-bold text-primary mb-4 border-b border-theme pb-2">Employee Information</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-semibold text-secondary uppercase">Employee / Driver Name</label>
@@ -4463,7 +4463,7 @@ const DriverPayrollManagement = () => {
                     </div>
                   )}
 
-                  <div className="pt-4 border-t border-gray-300 flex justify-between items-end">
+                  <div className="pt-4 border-t border-theme flex justify-between items-end">
                     <div>
                       {selectedPaystub.hrName && (
                         <div>
@@ -4495,7 +4495,7 @@ const DriverPayrollManagement = () => {
               </div>
 
               {/* Footer with Download PDF and Close Button */}
-              <div className="p-6 border-t-2 border-gray-300 bg-card">
+              <div className="p-6 border-t-2 border-theme bg-card">
                 <div className="flex justify-between items-center">
                   <button
                     onClick={() => handleDownloadPaystubPDF(selectedPaystub)}
@@ -4558,7 +4558,7 @@ const DriverPayrollManagement = () => {
                       type="date"
                       value={bulkDateRange.startDate}
                       onChange={(e) => setBulkDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -4569,7 +4569,7 @@ const DriverPayrollManagement = () => {
                       type="date"
                       value={bulkDateRange.endDate}
                       onChange={(e) => setBulkDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
@@ -4582,7 +4582,7 @@ const DriverPayrollManagement = () => {
                     type="date"
                     value={bulkDateRange.payDate}
                     onChange={(e) => setBulkDateRange(prev => ({ ...prev, payDate: e.target.value }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
@@ -4663,7 +4663,7 @@ const DriverPayrollManagement = () => {
                       setShowBulkGenerateModal(false);
                       setBulkGenerateResult(null);
                     }}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
+                    className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
                     disabled={loadingBulkAI}
                   >
                     {bulkGenerateResult ? 'Close' : 'Cancel'}
@@ -4743,7 +4743,7 @@ const DriverPayrollManagement = () => {
                           value={suggestion.baseSalary || 0}
                           onChange={(e) => updateBulkSuggestion(index, 'baseSalary', e.target.value)}
                           step="0.01"
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                         />
                       </div>
                       <div>
@@ -4753,7 +4753,7 @@ const DriverPayrollManagement = () => {
                           value={suggestion.bonus || 0}
                           onChange={(e) => updateBulkSuggestion(index, 'bonus', e.target.value)}
                           step="0.01"
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                         />
                       </div>
                       <div>
@@ -4763,7 +4763,7 @@ const DriverPayrollManagement = () => {
                           value={suggestion.deductions || 0}
                           onChange={(e) => updateBulkSuggestion(index, 'deductions', e.target.value)}
                           step="0.01"
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                         />
                       </div>
                     </div>
@@ -4773,7 +4773,7 @@ const DriverPayrollManagement = () => {
                       <select
                         value={suggestion.country || 'USA'}
                         onChange={(e) => updateBulkSuggestion(index, 'country', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                       >
                         <option value="USA">United States</option>
                         <option value="Canada">Canada</option>
@@ -4789,7 +4789,7 @@ const DriverPayrollManagement = () => {
                             value={suggestion.federalIncomeTaxCA || 0}
                             onChange={(e) => updateBulkSuggestion(index, 'federalIncomeTaxCA', e.target.value)}
                             step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                            className="w-full px-2 py-1 text-xs border border-theme rounded"
                           />
                         </div>
                         <div>
@@ -4799,7 +4799,7 @@ const DriverPayrollManagement = () => {
                             value={suggestion.provincialIncomeTaxCA || 0}
                             onChange={(e) => updateBulkSuggestion(index, 'provincialIncomeTaxCA', e.target.value)}
                             step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                            className="w-full px-2 py-1 text-xs border border-theme rounded"
                           />
                         </div>
                         <div>
@@ -4809,7 +4809,7 @@ const DriverPayrollManagement = () => {
                             value={suggestion.cpp || 0}
                             onChange={(e) => updateBulkSuggestion(index, 'cpp', e.target.value)}
                             step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                            className="w-full px-2 py-1 text-xs border border-theme rounded"
                           />
                         </div>
                         <div>
@@ -4819,7 +4819,7 @@ const DriverPayrollManagement = () => {
                             value={suggestion.ei || 0}
                             onChange={(e) => updateBulkSuggestion(index, 'ei', e.target.value)}
                             step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                            className="w-full px-2 py-1 text-xs border border-theme rounded"
                           />
                         </div>
                         <div>
@@ -4829,7 +4829,7 @@ const DriverPayrollManagement = () => {
                             value={suggestion.provincialHealthTaxCA || 0}
                             onChange={(e) => updateBulkSuggestion(index, 'provincialHealthTaxCA', e.target.value)}
                             step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                            className="w-full px-2 py-1 text-xs border border-theme rounded"
                           />
                         </div>
                       </div>
@@ -4842,7 +4842,7 @@ const DriverPayrollManagement = () => {
                             value={suggestion.federalIncomeTaxUS || 0}
                             onChange={(e) => updateBulkSuggestion(index, 'federalIncomeTaxUS', e.target.value)}
                             step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                            className="w-full px-2 py-1 text-xs border border-theme rounded"
                           />
                         </div>
                         <div>
@@ -4852,7 +4852,7 @@ const DriverPayrollManagement = () => {
                             value={suggestion.stateIncomeTaxUS || 0}
                             onChange={(e) => updateBulkSuggestion(index, 'stateIncomeTaxUS', e.target.value)}
                             step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                            className="w-full px-2 py-1 text-xs border border-theme rounded"
                           />
                         </div>
                         <div>
@@ -4862,7 +4862,7 @@ const DriverPayrollManagement = () => {
                             value={suggestion.socialSecurityTax || 0}
                             onChange={(e) => updateBulkSuggestion(index, 'socialSecurityTax', e.target.value)}
                             step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                            className="w-full px-2 py-1 text-xs border border-theme rounded"
                           />
                         </div>
                         <div>
@@ -4872,7 +4872,7 @@ const DriverPayrollManagement = () => {
                             value={suggestion.medicareTax || 0}
                             onChange={(e) => updateBulkSuggestion(index, 'medicareTax', e.target.value)}
                             step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                            className="w-full px-2 py-1 text-xs border border-theme rounded"
                           />
                         </div>
                         <div>
@@ -4882,7 +4882,7 @@ const DriverPayrollManagement = () => {
                             value={suggestion.stateDisabilityInsurance || 0}
                             onChange={(e) => updateBulkSuggestion(index, 'stateDisabilityInsurance', e.target.value)}
                             step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                            className="w-full px-2 py-1 text-xs border border-theme rounded"
                           />
                         </div>
                         <div>
@@ -4892,7 +4892,7 @@ const DriverPayrollManagement = () => {
                             value={suggestion.localTax || 0}
                             onChange={(e) => updateBulkSuggestion(index, 'localTax', e.target.value)}
                             step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                            className="w-full px-2 py-1 text-xs border border-theme rounded"
                           />
                         </div>
                       </div>
@@ -5010,7 +5010,7 @@ const DriverPayrollManagement = () => {
                                 <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Earnings</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="divide-y divide-theme">
                               {suggestion.trips.map((trip: any) => (
                                 <tr key={trip._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                   <td className="px-3 py-2 text-sm font-medium text-primary">
@@ -5241,7 +5241,7 @@ const DriverPayrollManagement = () => {
                     setBulkPayrollSuggestions([]);
                     setBulkGenerateResult(null);
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
+                  className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
                 >
                   Cancel
                 </button>

@@ -385,7 +385,7 @@ const Billing = () => {
         <div className="flex gap-2 mb-4 flex-wrap">
           {(['monthly', '6months', 'annual'] as const).map(t => (
             <button key={t} onClick={() => onTabChange(t)}
-              className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${tab === t ? 'bg-card border-gray-300 shadow-sm text-primary' : 'bg-transparent border-transparent text-secondary hover:text-primary'}`}>
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${tab === t ? 'bg-card border-theme shadow-sm text-primary' : 'bg-transparent border-transparent text-secondary hover:text-primary'}`}>
               {t === 'monthly' ? 'Monthly' : t === '6months' ? (
                 <span className="flex items-center gap-1.5">6 Months {bonusDays > 0 && <span className="bg-green-100 text-green-700 text-xs px-1.5 py-0.5 rounded-full font-semibold">+{bonusDays} days free</span>}</span>
               ) : (
@@ -818,7 +818,7 @@ const Billing = () => {
                 </Button>
               </Dropdown>
 
-              <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+              <div className="flex border border-theme rounded-lg overflow-hidden">
                 <Button
                   type={viewMode === 'grid' ? 'primary' : 'default'}
                   icon={<Grid3x3 className="w-4 h-4" />}
@@ -1133,7 +1133,7 @@ const Billing = () => {
         ) : (
           // List View
           <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-theme">
               {filteredAndSortedPlans.map((plan) => (
                 <div
                   key={plan._id}

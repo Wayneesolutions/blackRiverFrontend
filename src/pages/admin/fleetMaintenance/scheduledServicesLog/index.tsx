@@ -1044,7 +1044,7 @@ const ScheduledServicesLog: React.FC = () => {
                 </button>
                 <button
                   onClick={handleAddService}
-                  className="flex items-center gap-2 px-4 py-2 bg-card text-[#0ea3d8] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
+                  className="flex items-center gap-2 px-4 py-2 bg-card text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
                 >
                   <Plus className="w-5 h-5" />
                   Add Service
@@ -1154,7 +1154,7 @@ const ScheduledServicesLog: React.FC = () => {
                   placeholder="Search by unit number, make/model, or invoice..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 w-full border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                   style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                   onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                   onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1182,7 +1182,7 @@ const ScheduledServicesLog: React.FC = () => {
                 <select
                   value={filterServiceType}
                   onChange={(e) => setFilterServiceType(e.target.value as ServiceTypeFilter)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                  className="px-4 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                   style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                   onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                   onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1198,13 +1198,13 @@ const ScheduledServicesLog: React.FC = () => {
                 </select>
 
                 {/* Mechanic Type Filter */}
-                <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+                <div className="flex rounded-lg border border-theme overflow-hidden">
                   {(['all', 'internal', 'external'] as const).map((type) => (
                     <button
                       key={type}
                       type="button"
                       onClick={() => setFilterMechanicType(type)}
-                      className={`px-3 py-2 text-sm font-medium transition-colors border-r border-gray-300 last:border-r-0 ${
+                      className={`px-3 py-2 text-sm font-medium transition-colors border-r border-theme last:border-r-0 ${
                         filterMechanicType === type
                           ? 'bg-[#016ab2] !text-white'
                           : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'
@@ -1284,7 +1284,7 @@ const ScheduledServicesLog: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-theme">
                   {loading ? (
                     <tr>
                       <td colSpan={14} className="px-6 py-12 text-center text-secondary">
@@ -1511,7 +1511,7 @@ const ScheduledServicesLog: React.FC = () => {
                         setShowServiceDetails(false);
                         setTimeout(() => setSelectedService(null), 300);
                       }}
-                      className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
+                      className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                     >
                       <X size={24} />
                     </button>
@@ -1736,7 +1736,7 @@ const ScheduledServicesLog: React.FC = () => {
                           type="date"
                           value={formData.serviceDate}
                           onChange={(e) => setFormData({ ...formData, serviceDate: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1747,7 +1747,7 @@ const ScheduledServicesLog: React.FC = () => {
                         <select
                           value={formData.unitNo}
                           onChange={(e) => setFormData({ ...formData, unitNo: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1780,7 +1780,7 @@ const ScheduledServicesLog: React.FC = () => {
                           <select
                             value={formData.serviceType}
                             onChange={(e) => setFormData({ ...formData, serviceType: e.target.value as VehicleServiceType })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                             style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                             onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                             onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1799,7 +1799,7 @@ const ScheduledServicesLog: React.FC = () => {
                           type="number"
                           value={formData.odometer}
                           onChange={(e) => setFormData({ ...formData, odometer: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1812,7 +1812,7 @@ const ScheduledServicesLog: React.FC = () => {
                           type="text"
                           value={formData.invoiceNo}
                           onChange={(e) => setFormData({ ...formData, invoiceNo: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1827,7 +1827,7 @@ const ScheduledServicesLog: React.FC = () => {
                           min="0"
                           value={formData.amount}
                           onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1839,7 +1839,7 @@ const ScheduledServicesLog: React.FC = () => {
                         <select
                           value={formData.status}
                           onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1852,7 +1852,7 @@ const ScheduledServicesLog: React.FC = () => {
                       <div className="col-span-2">
                         <label className="block text-sm font-medium text-primary mb-2">Service Provider *</label>
                         {/* Toggle */}
-                        <div className="flex rounded-lg border border-gray-300 overflow-hidden mb-3 w-fit">
+                        <div className="flex rounded-lg border border-theme overflow-hidden mb-3 w-fit">
                           <button
                             type="button"
                             onClick={() => setFormData({ ...formData, mechanicType: 'internal' })}
@@ -1863,7 +1863,7 @@ const ScheduledServicesLog: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setFormData({ ...formData, mechanicType: 'external' })}
-                            className={`px-5 py-2 text-sm font-medium transition-colors border-l border-gray-300 ${formData.mechanicType === 'external' ? 'bg-[#016ab2] !text-white' : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
+                            className={`px-5 py-2 text-sm font-medium transition-colors border-l border-theme ${formData.mechanicType === 'external' ? 'bg-[#016ab2] !text-white' : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
                           >
                             External Mechanic
                           </button>
@@ -1873,7 +1873,7 @@ const ScheduledServicesLog: React.FC = () => {
                           <select
                             value={formData.serviceProvider}
                             onChange={(e) => setFormData({ ...formData, serviceProvider: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                             style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                             onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                             onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1897,7 +1897,7 @@ const ScheduledServicesLog: React.FC = () => {
                                 type="text"
                                 value={formData.externalMechanicName}
                                 onChange={(e) => setFormData({ ...formData, externalMechanicName: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                                 placeholder="Mechanic / Shop name"
                               />
@@ -1908,7 +1908,7 @@ const ScheduledServicesLog: React.FC = () => {
                                 type="text"
                                 value={formData.externalMechanicCompany}
                                 onChange={(e) => setFormData({ ...formData, externalMechanicCompany: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                                 placeholder="Company / Shop"
                               />
@@ -1919,7 +1919,7 @@ const ScheduledServicesLog: React.FC = () => {
                                 type="tel"
                                 value={formData.externalMechanicPhone}
                                 onChange={(e) => setFormData({ ...formData, externalMechanicPhone: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                                 placeholder="+1 (555) 000-0000"
                               />
@@ -1930,7 +1930,7 @@ const ScheduledServicesLog: React.FC = () => {
                                 type="email"
                                 value={formData.externalMechanicEmail}
                                 onChange={(e) => setFormData({ ...formData, externalMechanicEmail: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                                 placeholder="email@shop.com"
                               />
@@ -1945,7 +1945,7 @@ const ScheduledServicesLog: React.FC = () => {
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         rows={3}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                         style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                         onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                         onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1958,7 +1958,7 @@ const ScheduledServicesLog: React.FC = () => {
                         value={formData.notes}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                         rows={3}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                         style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                         onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                         onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1976,7 +1976,7 @@ const ScheduledServicesLog: React.FC = () => {
                         setSelectedService(null);
                         setFormError(null);
                       }}
-                      className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                      className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     >
                       Cancel
                     </button>
@@ -2024,7 +2024,7 @@ const ScheduledServicesLog: React.FC = () => {
                         setShowDeleteModal(false);
                         setSelectedService(null);
                       }}
-                      className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                      className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     >
                       Cancel
                     </button>

@@ -98,7 +98,7 @@ const DriversOnLeavePage = () => {
                   placeholder="Search drivers..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                 />
               </div>
             </div>
@@ -133,7 +133,7 @@ const DriversOnLeavePage = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {loading ? (
                     <tr>
                       <td colSpan={7} className="px-6 py-8 text-center">

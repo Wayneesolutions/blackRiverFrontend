@@ -380,7 +380,7 @@ const ViewAllAccounts = () => {
                                 placeholder="Search admins by name, email, ID, or company..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                className="pl-10 pr-4 py-2 w-full border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                         </div>
 
@@ -414,7 +414,7 @@ const ViewAllAccounts = () => {
                             <thead className="bg-card border-b border-theme">
                                 <tr>
                                     <th
-                                        className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-gray-100 min-w-[200px]"
+                                        className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-[rgba(255,255,255,0.03)] min-w-[200px]"
                                         onClick={() => handleSort('company')}
                                     >
                                         <div className="flex items-center space-x-1">
@@ -427,7 +427,7 @@ const ViewAllAccounts = () => {
                                     </th>
 
                                     <th
-                                        className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-gray-100 min-w-[120px]"
+                                        className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-[rgba(255,255,255,0.03)] min-w-[120px]"
                                         onClick={() => handleSort('revenue')}
                                     >
                                         <div className="flex items-center space-x-1">
@@ -437,7 +437,7 @@ const ViewAllAccounts = () => {
                                     </th>
                                   
                                     <th
-                                        className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-gray-100 min-w-[150px]"
+                                        className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-[rgba(255,255,255,0.03)] min-w-[150px]"
                                         onClick={() => handleSort('joinDate')}
                                     >
                                         <div className="flex items-center space-x-1">
@@ -450,7 +450,7 @@ const ViewAllAccounts = () => {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-theme">
                                 {loading ? (
                                     <tr>
                                         <td colSpan={5} className="px-6 py-12 text-center">
@@ -602,7 +602,7 @@ const ViewAllAccounts = () => {
                             <button 
                                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                 disabled={currentPage === 1}
-                                className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-2 border border-theme rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Previous
                             </button>
@@ -616,7 +616,7 @@ const ViewAllAccounts = () => {
                                         className={`px-3 py-2 rounded-lg text-sm ${
                                             currentPage === pageNum
                                                 ? 'bg-purple-600 text-white'
-                                                : 'border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                                                : 'border border-theme hover:bg-[rgba(255,255,255,0.03)]'
                                         }`}
                                     >
                                         {pageNum}
@@ -626,7 +626,7 @@ const ViewAllAccounts = () => {
                             <button 
                                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                                 disabled={currentPage === totalPages}
-                                className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-2 border border-theme rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Next
                             </button>

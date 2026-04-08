@@ -555,7 +555,7 @@ const Company = () => {
                   <button
                     onClick={() => setIsEditing(true)}
                     style={{
-                      background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
+                      background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)",
                     }}
                     className="px-4 py-2   !text-white rounded-lg transition-all font-medium flex items-center gap-2"
                   >
@@ -573,7 +573,7 @@ const Company = () => {
               onClick={() => setActiveTab('company')}
               className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'company'
                   ? 'border-blue-600 text-[#00D1FF]'
-                  : 'border-transparent text-secondary hover:text-primary hover:border-gray-300'
+                  : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                 }`}
             >
               Company & API
@@ -583,7 +583,7 @@ const Company = () => {
               onClick={() => setActiveTab('maintenance')}
               className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'maintenance'
                   ? 'border-blue-600 text-[#00D1FF]'
-                  : 'border-transparent text-secondary hover:text-primary hover:border-gray-300'
+                  : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                 }`}
             >
               Maintenance Policy Settings
@@ -645,7 +645,7 @@ const Company = () => {
                         name="companyName"
                         value={editForm.companyName}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter company name"
                       />
                     ) : (
@@ -663,7 +663,7 @@ const Company = () => {
                         name="companyCode"
                         value={editForm.companyCode}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter company code"
                       />
                     ) : (
@@ -708,7 +708,7 @@ const Company = () => {
                         name="contactEmail"
                         value={editForm.contactEmail}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter contact email"
                       />
                     ) : (
@@ -729,7 +729,7 @@ const Company = () => {
                         name="contactPhone"
                         value={editForm.contactPhone}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter contact phone"
                       />
                     ) : (
@@ -784,7 +784,7 @@ const Company = () => {
                         type="text"
                         value={samsaraConfig.apiBaseUrl}
                         onChange={(e) => handleSamsaraChange('apiBaseUrl', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="https://api.samsara.com"
                       />
                     </div>
@@ -794,7 +794,7 @@ const Company = () => {
                         type="password"
                         value={samsaraConfig.apiToken}
                         onChange={(e) => handleSamsaraChange('apiToken', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         placeholder="Enter Samsara API token"
                       />
                     </div>
@@ -814,7 +814,7 @@ const Company = () => {
                         type="text"
                         value={thermokingConfig.apiBaseUrl}
                         onChange={(e) => handleThermokingChange('apiBaseUrl', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                         placeholder="https://api.thermoking.com"
                       />
                     </div>
@@ -824,7 +824,7 @@ const Company = () => {
                         type="password"
                         value={thermokingConfig.apiKey}
                         onChange={(e) => handleThermokingChange('apiKey', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                         placeholder="Enter ThermoKing API key"
                       />
                     </div>
@@ -834,7 +834,7 @@ const Company = () => {
                         type="password"
                         value={thermokingConfig.apiSecret}
                         onChange={(e) => handleThermokingChange('apiSecret', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                         placeholder="Enter ThermoKing API secret"
                       />
                     </div>
@@ -844,7 +844,7 @@ const Company = () => {
                         type="text"
                         value={thermokingConfig.apiVersion}
                         onChange={(e) => handleThermokingChange('apiVersion', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                         placeholder="v1"
                       />
                     </div>
@@ -944,7 +944,7 @@ const Company = () => {
                 </div>
 
                 {maintenancePolicy.customServices.length === 0 ? (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  <div className="border-2 border-dashed border-theme rounded-lg p-8 text-center">
                     <Wrench className="text-secondary mx-auto mb-3" size={48} />
                     <p className="text-secondary font-medium mb-2">No services configured</p>
                     <p className="text-sm text-secondary mb-4">Add your first service to get started (e.g., Oil Change, Full Inspection, etc.)</p>
@@ -969,7 +969,7 @@ const Company = () => {
                                 type="text"
                                 value={service.name}
                                 onChange={(e) => handleCustomServiceChange(index, 'name', undefined, e.target.value)}
-                                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-semibold text-lg w-full max-w-md"
+                                className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-semibold text-lg w-full max-w-md"
                                 placeholder="Service Name (e.g., Full Inspection, Service A)"
                               />
                             ) : (
@@ -1001,7 +1001,7 @@ const Company = () => {
                                     type="number"
                                     value={service.truck.value}
                                     onChange={(e) => handleCustomServiceChange(index, 'truck', 'value', parseInt(e.target.value) || 0)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                                     placeholder="30"
                                     min="0"
                                   />
@@ -1017,7 +1017,7 @@ const Company = () => {
                                   <select
                                     value={service.truck.unit}
                                     onChange={(e) => handleCustomServiceChange(index, 'truck', 'unit', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                                   >
                                     <option value="days">Days</option>
                                     <option value="miles">Miles</option>
@@ -1045,7 +1045,7 @@ const Company = () => {
                                     type="number"
                                     value={service.trailer.value}
                                     onChange={(e) => handleCustomServiceChange(index, 'trailer', 'value', parseInt(e.target.value) || 0)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                                     placeholder="30"
                                     min="0"
                                   />
@@ -1061,7 +1061,7 @@ const Company = () => {
                                   <select
                                     value={service.trailer.unit}
                                     onChange={(e) => handleCustomServiceChange(index, 'trailer', 'unit', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                                   >
                                     <option value="days">Days</option>
                                     <option value="miles">Miles</option>
@@ -1102,7 +1102,7 @@ const Company = () => {
                                       }
                                       handleCustomServiceChange(index, 'excludeTypes', undefined, newTypes);
                                     }}
-                                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                    className="w-4 h-4 text-purple-600 border-theme rounded focus:ring-purple-500"
                                   />
                                   <span className="text-sm text-primary capitalize">{type}</span>
                                 </label>

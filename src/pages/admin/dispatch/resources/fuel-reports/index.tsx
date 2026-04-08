@@ -1152,7 +1152,7 @@ const FuelReports = () => {
                   type="date"
                   value={startDateFilter}
                   onChange={(e) => setStartDateFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-xs"
+                  className="px-3 py-2 border border-theme rounded-lg text-xs"
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -1161,7 +1161,7 @@ const FuelReports = () => {
                   type="date"
                   value={endDateFilter}
                   onChange={(e) => setEndDateFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-xs"
+                  className="px-3 py-2 border border-theme rounded-lg text-xs"
                 />
               </div>
               <div className="relative flex-1 max-w-xl">
@@ -1171,7 +1171,7 @@ const FuelReports = () => {
                   placeholder="Search by driver, vehicle, transaction #..."
                   value={searchTerm}
                   onChange={handleSearchChange}
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-sm"
+                  className="pl-10 pr-4 py-2 w-full border border-theme rounded-lg focus:ring-2 focus:border-transparent text-sm"
                   style={{ '--tw-ring-color': FLEET_COLORS.primary } as React.CSSProperties & { '--tw-ring-color': string }}
                 />
               </div>
@@ -1183,7 +1183,7 @@ const FuelReports = () => {
                     setStatusFilter(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:border-transparent"
+                  className="px-4 py-2 border border-theme rounded-lg text-xs focus:ring-2 focus:border-transparent"
                   style={{ '--tw-ring-color': FLEET_COLORS.primary } as React.CSSProperties & { '--tw-ring-color': string }}
                 >
                   <option value="all">All Status</option>
@@ -1196,14 +1196,14 @@ const FuelReports = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setImportModalOpen(true)}
-                className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 <Upload className="w-4 h-4" />
                 Import Fuel (CSV)
               </button>
               <button
                 onClick={() => setOcrModalOpen(true)}
-                className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 <FileText className="w-4 h-4" />
                 Upload Receipt (OCR)
@@ -1259,7 +1259,7 @@ const FuelReports = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-theme">
                 {filteredReports.length === 0 ? (
                   <tr>
                     <td
@@ -1400,7 +1400,7 @@ const FuelReports = () => {
                     disabled={currentPage === 1}
                     className={`px-3 py-2 rounded-lg border ${currentPage === 1
                       ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
-                      : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-gray-300'
+                      : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                       }`}
                   >
                     <ChevronLeft size={14} />
@@ -1423,7 +1423,7 @@ const FuelReports = () => {
                           onClick={() => setCurrentPage(pageNum)}
                           className={`px-3 py-2 rounded-lg border ${currentPage === pageNum
                             ? 'bg-blue-600 text-white border-blue-600'
-                            : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-gray-300'
+                            : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                             }`}
                         >
                           {pageNum}
@@ -1436,7 +1436,7 @@ const FuelReports = () => {
                     disabled={currentPage === totalPages}
                     className={`px-3 py-2 rounded-lg border ${currentPage === totalPages
                       ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
-                      : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-gray-300'
+                      : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                       }`}
                   >
                     <ChevronRight size={14} />
@@ -1447,7 +1447,7 @@ const FuelReports = () => {
                       setPageSize(Number(e.target.value));
                       setCurrentPage(1);
                     }}
-                    className="ml-4 px-3 py-2 rounded-lg border border-gray-300 bg-card text-primary"
+                    className="ml-4 px-3 py-2 rounded-lg border border-theme bg-card text-primary"
                   >
                     <option value={25}>25 per page</option>
                     <option value={50}>50 per page</option>
@@ -1536,7 +1536,7 @@ const FuelReports = () => {
                       value={editForm.state}
                       onChange={(e) => handleEditFieldChange("state", e.target.value)}
                       placeholder="e.g., Ontario, BC, Manitoba"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                       style={focusRingStyle}
                     />
                   </div>
@@ -1548,7 +1548,7 @@ const FuelReports = () => {
                       value={editForm.city}
                       onChange={(e) => handleEditFieldChange("city", e.target.value)}
                       placeholder="e.g., Mississauga, Hope"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                       style={focusRingStyle}
                     />
                   </div>
@@ -1560,7 +1560,7 @@ const FuelReports = () => {
                       value={editForm.transactionNumber}
                       onChange={(e) => handleEditFieldChange("transactionNumber", e.target.value)}
                       placeholder="Unique transaction ID"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                       style={focusRingStyle}
                     />
                   </div>
@@ -1570,7 +1570,7 @@ const FuelReports = () => {
                     <select
                       value={editForm.unit}
                       onChange={(e) => handleEditFieldChange("unit", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                       style={focusRingStyle}
                     >
                       <option value="">Select Unit</option>
@@ -1596,7 +1596,7 @@ const FuelReports = () => {
                           handleEditFieldChange("product", v);
                           handleEditFieldChange("type", v);
                         }}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                        className="flex-1 px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                         style={focusRingStyle}
                       >
                         <option value="">Select Product</option>
@@ -1629,7 +1629,7 @@ const FuelReports = () => {
                       value={editForm.transactionAmount}
                       onChange={(e) => handleEditFieldChange("transactionAmount", e.target.value)}
                       placeholder="0.00"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                       style={focusRingStyle}
                     />
                   </div>
@@ -1641,7 +1641,7 @@ const FuelReports = () => {
                       value={editForm.currentOdometer}
                       onChange={(e) => handleEditFieldChange("currentOdometer", e.target.value)}
                       placeholder="Enter odometer reading"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                       style={focusRingStyle}
                     />
                   </div>
@@ -1652,7 +1652,7 @@ const FuelReports = () => {
                       <select
                         value={editForm.measurementUnit}
                         onChange={(e) => handleEditFieldChange("measurementUnit", e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                        className="flex-1 px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                         style={focusRingStyle}
                       >
                         <option value="">Select Unit</option>
@@ -1685,7 +1685,7 @@ const FuelReports = () => {
                     <select
                       value={editForm.currency}
                       onChange={(e) => handleEditFieldChange("currency", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                       style={focusRingStyle}
                     >
                       <option value="USA">USA</option>
@@ -1699,7 +1699,7 @@ const FuelReports = () => {
                       type="date"
                       value={editForm.date}
                       onChange={(e) => handleEditFieldChange("date", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                       style={focusRingStyle}
                     />
                   </div>
@@ -1710,7 +1710,7 @@ const FuelReports = () => {
                       <select
                         value={editForm.fuelVendor}
                         onChange={(e) => handleEditFieldChange("fuelVendor", e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                        className="flex-1 px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                         style={focusRingStyle}
                       >
                         <option value="">Select Fuel Vendor</option>
@@ -1746,7 +1746,7 @@ const FuelReports = () => {
                       value={editForm.fuelAmount}
                       onChange={(e) => handleEditFieldChange("fuelAmount", e.target.value)}
                       placeholder="0.00"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                       style={focusRingStyle}
                     />
                   </div>
@@ -1758,7 +1758,7 @@ const FuelReports = () => {
                       onChange={(e) => handleEditFieldChange("paymentNotes", e.target.value)}
                       placeholder="Internal remarks or accounting references"
                       rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                       style={focusRingStyle}
                     />
                   </div>
@@ -1768,7 +1768,7 @@ const FuelReports = () => {
                     <select
                       value={editForm.status}
                       onChange={(e) => handleEditFieldChange("status", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                       style={focusRingStyle}
                     >
                       <option value="pending">Pending</option>
@@ -1784,7 +1784,7 @@ const FuelReports = () => {
               <button
                 onClick={closeEditModal}
                 disabled={editSubmitting}
-                className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
+                className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
               >
                 Cancel
               </button>
@@ -1816,7 +1816,7 @@ const FuelReports = () => {
                         value={newEditTypeName}
                         onChange={(e) => setNewEditTypeName(e.target.value)}
                         placeholder="e.g., Diesel, Gasoline, Electric"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                         style={focusRingStyle}
                         onKeyPress={(e) => {
                           if (e.key === 'Enter') {
@@ -1833,7 +1833,7 @@ const FuelReports = () => {
                           setNewEditTypeName('');
                         }}
                         disabled={addingEditType}
-                        className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
+                        className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
                       >
                         Cancel
                       </button>
@@ -1869,7 +1869,7 @@ const FuelReports = () => {
                         value={newEditUnitName}
                         onChange={(e) => setNewEditUnitName(e.target.value)}
                         placeholder="e.g., L, gal, ml"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                         style={focusRingStyle}
                         onKeyPress={(e) => {
                           if (e.key === 'Enter') {
@@ -1886,7 +1886,7 @@ const FuelReports = () => {
                           setNewEditUnitName('');
                         }}
                         disabled={addingEditUnit}
-                        className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
+                        className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
                       >
                         Cancel
                       </button>
@@ -1922,7 +1922,7 @@ const FuelReports = () => {
                         value={newEditVendorName}
                         onChange={(e) => setNewEditVendorName(e.target.value)}
                         placeholder="e.g., Shell, Chevron, Petro-Canada"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                         style={focusRingStyle}
                         onKeyPress={(e) => {
                           if (e.key === 'Enter') {
@@ -1939,7 +1939,7 @@ const FuelReports = () => {
                           setNewEditVendorName('');
                         }}
                         disabled={addingEditVendor}
-                        className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
+                        className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
                       >
                         Cancel
                       </button>
@@ -2010,7 +2010,7 @@ const FuelReports = () => {
             {/* File Upload */}
             {!csvFile && (
               <div 
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 transition-colors"
+                className="border-2 border-dashed border-theme rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 transition-colors"
                 onClick={() => csvFileInputRef.current?.click()}
               >
                 <input
@@ -2049,7 +2049,7 @@ const FuelReports = () => {
                     <select
                       value={defaultUnitForImport}
                       onChange={(e) => setDefaultUnitForImport(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent text-sm"
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent text-sm"
                       style={focusRingStyle}
                     >
                       <option value="">Select Unit</option>
@@ -2065,7 +2065,7 @@ const FuelReports = () => {
                     <select
                       value={defaultCurrencyForImport}
                       onChange={(e) => setDefaultCurrencyForImport(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent text-sm"
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent text-sm"
                       style={focusRingStyle}
                     >
                       <option value="USA">USA (USD)</option>
@@ -2079,7 +2079,7 @@ const FuelReports = () => {
                       value={defaultProductForImport}
                       onChange={(e) => setDefaultProductForImport(e.target.value)}
                       placeholder="e.g., Truck Diesel"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent text-sm"
+                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent text-sm"
                       style={focusRingStyle}
                     />
                   </div>
@@ -2095,7 +2095,7 @@ const FuelReports = () => {
                         <select
                           value={csvMapping.date || ""}
                           onChange={(e) => setCsvMapping(prev => ({ ...prev, date: e.target.value }))}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                          className="w-full px-2 py-1.5 border border-theme rounded-md text-xs"
                         >
                           <option value="">Select column...</option>
                           {csvHeaders.map(header => (
@@ -2108,7 +2108,7 @@ const FuelReports = () => {
                         <select
                           value={csvMapping.transactionAmount || ""}
                           onChange={(e) => setCsvMapping(prev => ({ ...prev, transactionAmount: e.target.value }))}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                          className="w-full px-2 py-1.5 border border-theme rounded-md text-xs"
                         >
                           <option value="">Select column...</option>
                           {csvHeaders.map(header => (
@@ -2121,7 +2121,7 @@ const FuelReports = () => {
                         <select
                           value={csvMapping.fuelAmount || ""}
                           onChange={(e) => setCsvMapping(prev => ({ ...prev, fuelAmount: e.target.value }))}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                          className="w-full px-2 py-1.5 border border-theme rounded-md text-xs"
                         >
                           <option value="">Select column...</option>
                           {csvHeaders.map(header => (
@@ -2134,7 +2134,7 @@ const FuelReports = () => {
                         <select
                           value={csvMapping.transactionNumber || ""}
                           onChange={(e) => setCsvMapping(prev => ({ ...prev, transactionNumber: e.target.value }))}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                          className="w-full px-2 py-1.5 border border-theme rounded-md text-xs"
                         >
                           <option value="">Select column...</option>
                           {csvHeaders.map(header => (
@@ -2147,7 +2147,7 @@ const FuelReports = () => {
                         <select
                           value={csvMapping.fuelVendor || ""}
                           onChange={(e) => setCsvMapping(prev => ({ ...prev, fuelVendor: e.target.value }))}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                          className="w-full px-2 py-1.5 border border-theme rounded-md text-xs"
                         >
                           <option value="">Select column...</option>
                           {csvHeaders.map(header => (
@@ -2160,7 +2160,7 @@ const FuelReports = () => {
                         <select
                           value={csvMapping.unit || ""}
                           onChange={(e) => setCsvMapping(prev => ({ ...prev, unit: e.target.value }))}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                          className="w-full px-2 py-1.5 border border-theme rounded-md text-xs"
                         >
                           <option value="">Select column...</option>
                           {csvHeaders.map(header => (
@@ -2173,7 +2173,7 @@ const FuelReports = () => {
                         <select
                           value={csvMapping.city || ""}
                           onChange={(e) => setCsvMapping(prev => ({ ...prev, city: e.target.value }))}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                          className="w-full px-2 py-1.5 border border-theme rounded-md text-xs"
                         >
                           <option value="">Select column...</option>
                           {csvHeaders.map(header => (
@@ -2186,7 +2186,7 @@ const FuelReports = () => {
                         <select
                           value={csvMapping.state || ""}
                           onChange={(e) => setCsvMapping(prev => ({ ...prev, state: e.target.value }))}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                          className="w-full px-2 py-1.5 border border-theme rounded-md text-xs"
                         >
                           <option value="">Select column...</option>
                           {csvHeaders.map(header => (
@@ -2199,7 +2199,7 @@ const FuelReports = () => {
                         <select
                           value={csvMapping.address || ""}
                           onChange={(e) => setCsvMapping(prev => ({ ...prev, address: e.target.value }))}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                          className="w-full px-2 py-1.5 border border-theme rounded-md text-xs"
                         >
                           <option value="">Select column...</option>
                           {csvHeaders.map(header => (
@@ -2212,7 +2212,7 @@ const FuelReports = () => {
                         <select
                           value={csvMapping.odometer || ""}
                           onChange={(e) => setCsvMapping(prev => ({ ...prev, odometer: e.target.value }))}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                          className="w-full px-2 py-1.5 border border-theme rounded-md text-xs"
                         >
                           <option value="">Select column...</option>
                           {csvHeaders.map(header => (
@@ -2225,7 +2225,7 @@ const FuelReports = () => {
                         <select
                           value={csvMapping.product || ""}
                           onChange={(e) => setCsvMapping(prev => ({ ...prev, product: e.target.value }))}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                          className="w-full px-2 py-1.5 border border-theme rounded-md text-xs"
                         >
                           <option value="">Select column...</option>
                           {csvHeaders.map(header => (
@@ -2289,7 +2289,7 @@ const FuelReports = () => {
                   <button 
                     onClick={closeImportModal} 
                     disabled={csvImporting}
-                    className="px-4 py-2 rounded-lg border border-gray-300 text-primary hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-60"
+                    className="px-4 py-2 rounded-lg border border-theme text-primary hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-60"
                   >
                     {csvImportResult ? 'Close' : 'Cancel'}
                   </button>
@@ -2325,7 +2325,7 @@ const FuelReports = () => {
             {/* File Upload */}
             {!ocrFile && (
               <div 
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 transition-colors"
+                className="border-2 border-dashed border-theme rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 transition-colors"
                 onClick={() => ocrFileInputRef.current?.click()}
               >
                 <input
@@ -2443,7 +2443,7 @@ const FuelReports = () => {
                   <button 
                     onClick={closeOcrModal}
                     disabled={ocrExtracting}
-                    className="px-4 py-2 rounded-lg border border-gray-300 text-primary hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-60"
+                    className="px-4 py-2 rounded-lg border border-theme text-primary hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-60"
                   >
                     Cancel
                   </button>

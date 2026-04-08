@@ -98,7 +98,7 @@ const NotificationConfig: React.FC = () => {
                 <select
                   value={bulk}
                   onChange={(e) => setBulk(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-card px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  className="w-full rounded-lg border border-theme bg-card px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                 >
                   <option value="">Select notifiables...</option>
                   {OPTION_GROUPS.map((g) => (
@@ -147,7 +147,7 @@ const NotificationConfig: React.FC = () => {
                     <select
                       value={selections[evt.key] || ""}
                       onChange={(e) => handleChange(evt.key, e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 bg-card px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-lg border border-theme bg-card px-3 py-2 text-sm text-primary shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     >
                       <option value="">Select notifiables...</option>
                       {OPTION_GROUPS.map((g) => (

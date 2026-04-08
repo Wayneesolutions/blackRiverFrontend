@@ -336,7 +336,7 @@ return (
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search vehicles..."
-            className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="pl-10 pr-4 py-2 border border-theme rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
@@ -371,7 +371,7 @@ return (
                 <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {displayedVehicles.length > 0 && (
                 displayedVehicles.map((vehicle) => (
                   <tr key={vehicle._id} className="hover:bg-[rgba(255,255,255,0.03)]">
@@ -449,7 +449,7 @@ return (
                   }
                 }}
                 disabled={currentPage === 1 || loading}
-                className="px-3 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                className="px-3 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Previous
@@ -476,7 +476,7 @@ return (
                       className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                         currentPage === pageNum
                           ? 'bg-blue-600 text-white'
-                          : 'text-primary bg-card border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                          : 'text-primary bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)]'
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       {pageNum}
@@ -492,7 +492,7 @@ return (
                   }
                 }}
                 disabled={currentPage === totalPages || loading}
-                className="px-3 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                className="px-3 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
               >
                 Next
                 <ChevronRight className="w-4 h-4" />
@@ -505,7 +505,7 @@ return (
                   setCurrentPage(1);
                 }}
                 disabled={loading}
-                className="ml-4 px-3 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="ml-4 px-3 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value={10}>10 per page</option>
                 <option value={25}>25 per page</option>
@@ -555,7 +555,7 @@ return (
               <button
                 onClick={closeDeleteModal}
                 disabled={deleteLoading}
-                className="px-5 py-2.5 text-primary bg-card border border-gray-300 rounded-md hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                className="px-5 py-2.5 text-primary bg-card border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>

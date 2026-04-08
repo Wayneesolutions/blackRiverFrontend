@@ -1833,7 +1833,7 @@ const IncidentManagement: React.FC = () => {
           <div className="relative">
             <button
               onClick={() => setShowNewReportMenu(!showNewReportMenu)}
-              className="px-3 py-2 bg-card text-[#0ea3d8] rounded-lg shadow-sm hover:bg-card/90 transition flex items-center gap-2 font-bold text-xs"
+              className="px-3 py-2 bg-card text-[rgba(0,209,255,0.15)] rounded-lg shadow-sm hover:bg-card/90 transition flex items-center gap-2 font-bold text-xs"
             >
               <FaPlus size={10} /> New Report
             </button>
@@ -1989,7 +1989,7 @@ const IncidentManagement: React.FC = () => {
                       value={incidentFormData.date}
                       onChange={(e) => setIncidentFormData({ ...incidentFormData, date: e.target.value })}
                       required
-                      className="w-full border border-gray-300 p-2 rounded-lg"
+                      className="w-full border border-theme p-2 rounded-lg"
                     />
                   </div>
                   <div>
@@ -1999,7 +1999,7 @@ const IncidentManagement: React.FC = () => {
                       value={incidentFormData.time}
                       onChange={(e) => setIncidentFormData({ ...incidentFormData, time: e.target.value })}
                       required
-                      className="w-full border border-gray-300 p-2 rounded-lg"
+                      className="w-full border border-theme p-2 rounded-lg"
                     />
                   </div>
                 </div>
@@ -2012,7 +2012,7 @@ const IncidentManagement: React.FC = () => {
                       onChange={(e) => setIncidentFormData({ ...incidentFormData, location: e.target.value })}
                       required
                       placeholder="Location"
-                      className="w-full border border-gray-300 p-2 rounded-lg"
+                      className="w-full border border-theme p-2 rounded-lg"
                     />
                   </div>
                   <div>
@@ -2021,7 +2021,7 @@ const IncidentManagement: React.FC = () => {
                       value={incidentFormData.locationType}
                       onChange={(e) => setIncidentFormData({ ...incidentFormData, locationType: e.target.value as any })}
                       required
-                      className="w-full border border-gray-300 p-2 rounded-lg"
+                      className="w-full border border-theme p-2 rounded-lg"
                     >
                       <option value="warehouse">Warehouse</option>
                       <option value="yard">Yard</option>
@@ -2038,7 +2038,7 @@ const IncidentManagement: React.FC = () => {
                       value={incidentFormData.severity}
                       onChange={(e) => setIncidentFormData({ ...incidentFormData, severity: e.target.value as any })}
                       required
-                      className="w-full border border-gray-300 p-2 rounded-lg"
+                      className="w-full border border-theme p-2 rounded-lg"
                     >
                       <option value="low">Low</option>
                       <option value="medium">Medium</option>
@@ -2054,7 +2054,7 @@ const IncidentManagement: React.FC = () => {
                       onChange={(e) => setIncidentFormData({ ...incidentFormData, reportedBy: e.target.value })}
                       required
                       placeholder="Reporter Name"
-                      className="w-full border border-gray-300 p-2 rounded-lg"
+                      className="w-full border border-theme p-2 rounded-lg"
                     />
                   </div>
                 </div>
@@ -2065,7 +2065,7 @@ const IncidentManagement: React.FC = () => {
                     value={incidentFormData.reportedByRole}
                     onChange={(e) => setIncidentFormData({ ...incidentFormData, reportedByRole: e.target.value })}
                     placeholder="Role"
-                    className="w-full border border-gray-300 p-2 rounded-lg"
+                    className="w-full border border-theme p-2 rounded-lg"
                   />
                 </div>
                 <div>
@@ -2076,7 +2076,7 @@ const IncidentManagement: React.FC = () => {
                     onChange={(e) => setIncidentFormData({ ...incidentFormData, description: e.target.value })}
                     required
                     placeholder="Describe the incident..."
-                    className="w-full border border-gray-300 p-2 rounded-lg"
+                    className="w-full border border-theme p-2 rounded-lg"
                   />
                 </div>
                 <div>
@@ -2140,7 +2140,7 @@ const IncidentManagement: React.FC = () => {
                     disabled={uploadingFiles}
                     className="px-4 py-2 !text-white rounded-lg disabled:opacity-50"
                     style={{
-                      background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                      background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                     }}
                   >
                     {uploadingFiles ? 'Creating...' : 'Create Incident'}

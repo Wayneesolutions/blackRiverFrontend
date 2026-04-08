@@ -64,7 +64,7 @@ const DriverAvatar = ({ driver: d, size }: { driver: DriverData; size: "sm" | "m
     );
   }
   return (
-    <div className={`${cls} rounded-full bg-[#42aeec]/10 text-[#42aeec] font-bold ${textCls} flex items-center justify-center flex-shrink-0`}>
+    <div className={`${cls} rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] font-bold ${textCls} flex items-center justify-center flex-shrink-0`}>
       {initials(d)}
     </div>
   );
@@ -148,7 +148,7 @@ const SlidePanel = ({ driver: d, onClose }: { driver: DriverData; onClose: () =>
       >
         <div
           className="flex items-center justify-between px-5 py-4 flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, #42aeec 0%, #0ea3d8 100%)" }}
+          style={{ background: "linear-gradient(135deg, var(--accent-blue) 0%, rgba(0,209,255,0.15) 100%)" }}
         >
           <div className="flex items-center gap-3">
             <DriverAvatar driver={d} size="md" />
@@ -237,14 +237,14 @@ const DriversPage = () => {
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-xl font-bold text-primary flex items-center gap-2">
-            <Users size={20} className="text-[#42aeec]" /> Drivers
+            <Users size={20} className="text-[var(--accent-blue)]" /> Drivers
           </h1>
           <p className="text-sm text-secondary mt-0.5">{drivers.length} drivers</p>
         </div>
         <button
           onClick={async () => { setExporting(true); try { await exportToExcel(drivers); } finally { setExporting(false); } }}
           disabled={exporting || !drivers.length}
-          className="flex items-center gap-2 px-4 py-2 bg-[#42aeec] hover:bg-[#1db5f5] disabled:opacity-50 !text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] disabled:opacity-50 !text-white text-sm font-medium rounded-lg transition-colors"
         >
           {exporting ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />} Export
         </button>
@@ -255,18 +255,18 @@ const DriversPage = () => {
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
           <input type="text" placeholder="Search name, email…" value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-8 pr-3 py-2 text-sm border border-theme rounded-lg outline-none focus:border-[#42aeec] focus:ring-1 focus:ring-[#42aeec]/20" />
+            className="w-full pl-8 pr-3 py-2 text-sm border border-theme rounded-lg outline-none focus:border-[var(--accent-blue)] focus:ring-1 focus:ring-[var(--accent-blue)]/20" />
         </div>
         <div className="flex items-center gap-2">
           <Filter size={14} className="text-secondary" />
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-sm border border-theme rounded-lg px-3 py-2 outline-none focus:border-[#42aeec] bg-card">
+            className="text-sm border border-theme rounded-lg px-3 py-2 outline-none focus:border-[var(--accent-blue)] bg-card">
             <option value="">All Statuses</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
         </div>
-        <button onClick={load} className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-secondary hover:text-[#42aeec] border border-theme">
+        <button onClick={load} className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-secondary hover:text-[var(--accent-blue)] border border-theme">
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
         </button>
       </div>
@@ -279,7 +279,7 @@ const DriversPage = () => {
 
       {loading ? (
         <div className="flex items-center justify-center py-24">
-          <div className="w-10 h-10 border-2 border-[#42aeec] border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-2 border-[var(--accent-blue)] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : drivers.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-3 text-secondary">
@@ -298,7 +298,7 @@ const DriversPage = () => {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {drivers.map((d) => (
-                  <tr key={d._id} onClick={() => setSelected(d)} className="hover:bg-[#42aeec]/5 cursor-pointer group transition-colors">
+                  <tr key={d._id} onClick={() => setSelected(d)} className="hover:bg-[var(--accent-blue)]/5 cursor-pointer group transition-colors">
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-2.5">
                         <DriverAvatar driver={d} size="sm" />
@@ -315,7 +315,7 @@ const DriversPage = () => {
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary">{fmt(d.details?.licenceExpiry)}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary">{d.details?.jobType || "—"}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-right pr-4">
-                      <ChevronRight size={15} className="text-gray-300 group-hover:text-[#42aeec] transition-colors inline-block" />
+                      <ChevronRight size={15} className="text-gray-300 group-hover:text-[var(--accent-blue)] transition-colors inline-block" />
                     </td>
                   </tr>
                 ))}

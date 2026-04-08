@@ -36,7 +36,7 @@ const CUSTOM_COLORS = {
   primary: '#016ab2',
   dark: '#063f6f',
   light: '#398bc3',
-  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
   gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
 };
 
@@ -748,7 +748,7 @@ const EnhancedCommitteeCAPA = () => {
               placeholder="Search CAPA number, title, or assignee..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+              className="w-full pl-10 pr-4 py-2 border-2 border-theme rounded-lg focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div className="relative">
@@ -756,7 +756,7 @@ const EnhancedCommitteeCAPA = () => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
+              className="w-full pl-10 pr-4 py-2 border-2 border-theme rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
             >
               <option value="all">All Statuses</option>
               <option value="open">Open</option>
@@ -770,7 +770,7 @@ const EnhancedCommitteeCAPA = () => {
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
+              className="w-full pl-10 pr-4 py-2 border-2 border-theme rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
             >
               <option value="all">All Priorities</option>
               <option value="critical">Critical</option>
@@ -1060,7 +1060,7 @@ const EnhancedCommitteeCAPA = () => {
             onClick={() => setActiveTab('committee')}
             className={`flex-1 py-3 px-6 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${activeTab === 'committee'
               ? '!text-white'
-              : 'text-secondary hover:bg-gray-100'
+              : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
               }`}
             style={activeTab === 'committee' ? { background: CUSTOM_COLORS.primary } : {}}
           >
@@ -1071,7 +1071,7 @@ const EnhancedCommitteeCAPA = () => {
             onClick={() => setActiveTab('capa')}
             className={`flex-1 py-3 px-6 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${activeTab === 'capa'
               ? '!text-white'
-              : 'text-secondary hover:bg-gray-100'
+              : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
               }`}
             style={activeTab === 'capa' ? { background: CUSTOM_COLORS.primary } : {}}
           >
@@ -1109,7 +1109,7 @@ const EnhancedCommitteeCAPA = () => {
                     value={memberFormData.name}
                     onChange={(e) => setMemberFormData({ ...memberFormData, name: e.target.value })}
                     required
-                    className="w-full border border-gray-300 p-2 rounded-lg"
+                    className="w-full border border-theme p-2 rounded-lg"
                   />
                 </div>
                 <div>
@@ -1120,7 +1120,7 @@ const EnhancedCommitteeCAPA = () => {
                     onChange={(e) => setMemberFormData({ ...memberFormData, role: e.target.value })}
                     required
                     placeholder="e.g., Chairperson, Member"
-                    className="w-full border border-gray-300 p-2 rounded-lg"
+                    className="w-full border border-theme p-2 rounded-lg"
                   />
                 </div>
                 <div>
@@ -1130,7 +1130,7 @@ const EnhancedCommitteeCAPA = () => {
                     value={memberFormData.department}
                     onChange={(e) => setMemberFormData({ ...memberFormData, department: e.target.value })}
                     required
-                    className="w-full border border-gray-300 p-2 rounded-lg"
+                    className="w-full border border-theme p-2 rounded-lg"
                   />
                 </div>
                 <div>
@@ -1140,7 +1140,7 @@ const EnhancedCommitteeCAPA = () => {
                     value={memberFormData.email}
                     onChange={(e) => setMemberFormData({ ...memberFormData, email: e.target.value })}
                     required
-                    className="w-full border border-gray-300 p-2 rounded-lg"
+                    className="w-full border border-theme p-2 rounded-lg"
                   />
                 </div>
                 <div>
@@ -1150,14 +1150,14 @@ const EnhancedCommitteeCAPA = () => {
                     value={memberFormData.phone}
                     onChange={(e) => setMemberFormData({ ...memberFormData, phone: e.target.value })}
                     required
-                    className="w-full border border-gray-300 p-2 rounded-lg"
+                    className="w-full border border-theme p-2 rounded-lg"
                   />
                 </div>
                 <div className="flex justify-end gap-4 pt-4 border-t">
                   <button
                     type="button"
                     onClick={() => setShowMemberModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                    className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                   >
                     Cancel
                   </button>
@@ -1214,7 +1214,7 @@ const EnhancedCommitteeCAPA = () => {
                     value={capaFormData.title}
                     onChange={(e) => setCapaFormData({ ...capaFormData, title: e.target.value })}
                     required
-                    className="w-full border border-gray-300 p-2 rounded-lg"
+                    className="w-full border border-theme p-2 rounded-lg"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -1224,7 +1224,7 @@ const EnhancedCommitteeCAPA = () => {
                       value={capaFormData.type}
                       onChange={(e) => setCapaFormData({ ...capaFormData, type: e.target.value as any })}
                       required
-                      className="w-full border border-gray-300 p-2 rounded-lg"
+                      className="w-full border border-theme p-2 rounded-lg"
                     >
                       <option value="corrective">Corrective</option>
                       <option value="preventive">Preventive</option>
@@ -1236,7 +1236,7 @@ const EnhancedCommitteeCAPA = () => {
                       value={capaFormData.priority}
                       onChange={(e) => setCapaFormData({ ...capaFormData, priority: e.target.value as any })}
                       required
-                      className="w-full border border-gray-300 p-2 rounded-lg"
+                      className="w-full border border-theme p-2 rounded-lg"
                     >
                       <option value="low">Low</option>
                       <option value="medium">Medium</option>
@@ -1253,7 +1253,7 @@ const EnhancedCommitteeCAPA = () => {
                     onChange={(e) => setCapaFormData({ ...capaFormData, source: e.target.value })}
                     required
                     placeholder="e.g., Incident Report, Safety Audit"
-                    className="w-full border border-gray-300 p-2 rounded-lg"
+                    className="w-full border border-theme p-2 rounded-lg"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -1264,7 +1264,7 @@ const EnhancedCommitteeCAPA = () => {
                       value={capaFormData.issueDate}
                       onChange={(e) => setCapaFormData({ ...capaFormData, issueDate: e.target.value })}
                       required
-                      className="w-full border border-gray-300 p-2 rounded-lg"
+                      className="w-full border border-theme p-2 rounded-lg"
                     />
                   </div>
                   <div>
@@ -1274,7 +1274,7 @@ const EnhancedCommitteeCAPA = () => {
                       value={capaFormData.dueDate}
                       onChange={(e) => setCapaFormData({ ...capaFormData, dueDate: e.target.value })}
                       required
-                      className="w-full border border-gray-300 p-2 rounded-lg"
+                      className="w-full border border-theme p-2 rounded-lg"
                     />
                   </div>
                 </div>
@@ -1285,7 +1285,7 @@ const EnhancedCommitteeCAPA = () => {
                       value={capaFormData.status}
                       onChange={(e) => setCapaFormData({ ...capaFormData, status: e.target.value as any })}
                       required
-                      className="w-full border border-gray-300 p-2 rounded-lg"
+                      className="w-full border border-theme p-2 rounded-lg"
                     >
                       <option value="open">Open</option>
                       <option value="in-progress">In Progress</option>
@@ -1299,7 +1299,7 @@ const EnhancedCommitteeCAPA = () => {
                       value={capaFormData.assignedTo}
                       onChange={(e) => setCapaFormData({ ...capaFormData, assignedTo: e.target.value })}
                       required
-                      className="w-full border border-gray-300 p-2 rounded-lg"
+                      className="w-full border border-theme p-2 rounded-lg"
                     >
                       <option value="">Select Employee</option>
                       {employees.map((emp) => (
@@ -1331,7 +1331,7 @@ const EnhancedCommitteeCAPA = () => {
                         preventiveAction: ''
                       });
                     }}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                    className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                   >
                     Cancel
                   </button>

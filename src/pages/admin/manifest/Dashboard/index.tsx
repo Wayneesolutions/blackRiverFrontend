@@ -26,7 +26,7 @@ const StatCard = ({
 }) => (
   <div
     onClick={onClick}
-    className={`bg-card rounded-xl p-5 shadow-sm border border-theme flex items-start gap-4 ${onClick ? "cursor-pointer hover:shadow-md hover:border-[#42aeec]/20 transition-all group" : ""}`}
+    className={`bg-card rounded-xl p-5 shadow-sm border border-theme flex items-start gap-4 ${onClick ? "cursor-pointer hover:shadow-md hover:border-[var(--accent-blue)]/20 transition-all group" : ""}`}
   >
     <div className={`${bgColor} rounded-xl p-3 flex-shrink-0`}>
       <span className={color}>{icon}</span>
@@ -36,7 +36,7 @@ const StatCard = ({
       <p className="text-2xl font-bold text-primary">{value}</p>
       {sub && <p className="text-xs text-secondary mt-0.5">{sub}</p>}
     </div>
-    {onClick && <ArrowRight size={16} className="text-gray-300 group-hover:text-[#42aeec] transition-colors mt-1 flex-shrink-0" />}
+    {onClick && <ArrowRight size={16} className="text-gray-300 group-hover:text-[var(--accent-blue)] transition-colors mt-1 flex-shrink-0" />}
   </div>
 );
 
@@ -78,7 +78,7 @@ const Dashboard = () => {
     return (
       <div className="p-6 min-h-screen bg-main">
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#42aeec]" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--accent-blue)]" />
         </div>
       </div>
     );
@@ -94,7 +94,7 @@ const Dashboard = () => {
         </div>
         <button
           onClick={load}
-          className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg shadow-sm border border-theme text-sm text-secondary hover:border-[#42aeec] hover:text-[#42aeec] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg shadow-sm border border-theme text-sm text-secondary hover:border-[var(--accent-blue)] hover:text-[var(--accent-blue)] transition-colors"
         >
           <RefreshCw size={14} /> Refresh
         </button>

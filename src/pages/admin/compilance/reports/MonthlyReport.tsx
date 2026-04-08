@@ -1011,7 +1011,7 @@ const MonthlyReport: React.FC = () => {
     return (
       <div
         onClick={onClick}
-        className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+        className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
       >
         <div className="flex items-start justify-between mb-2">
           {/* Left side content */}
@@ -1171,7 +1171,7 @@ const MonthlyReport: React.FC = () => {
       {/* Extracted Data Review Modal */}
       {showExtractedDataModal && extractedData && (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0)' }}>
-          <div className="bg-card rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border-2 border-gray-300">
+          <div className="bg-card rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border-2 border-theme">
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-theme flex items-center justify-between bg-card">
               <div>
@@ -1983,7 +1983,7 @@ const MonthlyReport: React.FC = () => {
                       </div>
                       <div className="space-y-2">
                         {Object.entries(violationStats.byType || {}).map(([type, count]) => (
-                          <div key={type} className="flex justify-between p-3 bg-card rounded-lg hover:bg-gray-100 transition">
+                          <div key={type} className="flex justify-between p-3 bg-card rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition">
                             <span className="font-medium text-primary capitalize">{type.replace(/-/g, ' ')}</span>
                             <span className="font-bold text-primary">{count as number}</span>
                           </div>
@@ -2023,7 +2023,7 @@ const MonthlyReport: React.FC = () => {
                     <div className="mt-6">
                       <h4 className="text-lg font-semibold text-primary mb-4">Top 5 Drivers with Most Violations</h4>
                       <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
+                        <table className="min-w-full divide-y divide-theme">
                           <thead className="bg-card">
                             <tr>
                               <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Driver</th>
@@ -2031,7 +2031,7 @@ const MonthlyReport: React.FC = () => {
                               <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Points</th>
                             </tr>
                           </thead>
-                          <tbody className="bg-card divide-y divide-gray-200">
+                          <tbody className="bg-card divide-y divide-theme">
                             {violationStats.topViolators.slice(0, 5).map((violator: any, index: number) => (
                               <tr key={index} className="hover:bg-[rgba(255,255,255,0.03)]">
                                 <td className="px-4 py-3 text-sm">
@@ -2117,7 +2117,7 @@ const MonthlyReport: React.FC = () => {
                     <select
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
                     >
                       {Array.from({ length: 5 }, (_, i) => {
                         const year = new Date().getFullYear() - i;
@@ -2134,7 +2134,7 @@ const MonthlyReport: React.FC = () => {
                     <select
                       value={selectedMonth}
                       onChange={(e) => setSelectedMonth(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
                       disabled={loading || monthlyData.length === 0}
                     >
                       <option value="">Select a month</option>
@@ -2447,7 +2447,7 @@ const MonthlyReport: React.FC = () => {
                                 <th className="px-4 py-2 text-left font-semibold text-primary">Violations</th>
                               </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-theme">
                               {oldData.inspections.preview.map((inspection) => (
                                 <tr key={inspection._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                   <td className="px-4 py-2 text-primary">{inspection.inspectionId}</td>
@@ -2494,7 +2494,7 @@ const MonthlyReport: React.FC = () => {
                                 <th className="px-4 py-2 text-left font-semibold text-primary">Driver</th>
                               </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-theme">
                               {oldData.tickets.preview.map((ticket) => (
                                 <tr key={ticket._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                   <td className="px-4 py-2 text-primary">{ticket.ticketNumber}</td>

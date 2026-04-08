@@ -366,7 +366,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                         <button
                             onClick={handleAddClick}
                             style={{
-                                background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                             }}
                             className="flex items-center gap-2 px-6 py-3 !text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
                         >
@@ -383,7 +383,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                     <button
                         onClick={handleAddClick}
                         style={{
-                            background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                         }}
                         className="flex items-center gap-2 px-6 py-3 !text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
                     >
@@ -410,7 +410,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                         fetchCertificates();
                                     }
                                 }}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
                     </div>
@@ -419,7 +419,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                         <select
                             value={selectedDriver}
                             onChange={(e) => setSelectedDriver(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">All Drivers</option>
                             {drivers.map(driver => (
@@ -434,7 +434,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                         <select
                             value={selectedType}
                             onChange={(e) => setSelectedType(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">All Types</option>
                             {certificateTypes.map(type => (
@@ -447,7 +447,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                         <select
                             value={selectedStatus}
                             onChange={(e) => setSelectedStatus(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">All Status</option>
                             <option value="active">Active</option>
@@ -508,7 +508,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-theme">
                                 {filteredCertificates.map((cert) => (
                                     <tr key={cert._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -614,7 +614,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                 <select
                                     value={formData.driverId}
                                     onChange={(e) => setFormData({ ...formData, driverId: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
                                 >
                                     <option value="">Select a driver</option>
@@ -634,7 +634,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                     type="text"
                                     value={formData.certificateName}
                                     onChange={(e) => setFormData({ ...formData, certificateName: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="e.g., Commercial Driver License"
                                     required
                                 />
@@ -647,7 +647,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                 <select
                                     value={formData.certificateType}
                                     onChange={(e) => setFormData({ ...formData, certificateType: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
                                 >
                                     <option value="">Select type</option>
@@ -664,7 +664,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                 <select
                                     value={formData.verificationType}
                                     onChange={(e) => setFormData({ ...formData, verificationType: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
                                 >
                                     <option value="">Select verification type</option>
@@ -687,7 +687,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                         type="date"
                                         value={formData.issuedDate}
                                         onChange={(e) => setFormData({ ...formData, issuedDate: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required
                                     />
                                 </div>
@@ -699,7 +699,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                         type="date"
                                         value={formData.expiryDate}
                                         onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
                             </div>
@@ -712,7 +712,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                     type="text"
                                     value={formData.issuingAuthority}
                                     onChange={(e) => setFormData({ ...formData, issuingAuthority: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="e.g., Department of Motor Vehicles"
                                     required
                                 />
@@ -726,7 +726,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                     type="text"
                                     value={formData.certificateNumber}
                                     onChange={(e) => setFormData({ ...formData, certificateNumber: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="Certificate number or license number"
                                 />
                             </div>
@@ -743,7 +743,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                             onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                                             className="hidden"
                                         />
-                                        <div className="px-4 py-2 border border-gray-300 rounded-lg border-dashed hover:bg-[rgba(255,255,255,0.03)] text-center">
+                                        <div className="px-4 py-2 border border-theme rounded-lg border-dashed hover:bg-[rgba(255,255,255,0.03)] text-center">
                                             {selectedFile ? (
                                                 <span className="text-[#00D1FF]">{selectedFile.name}</span>
                                             ) : editingCertificate?.fileName ? (
@@ -764,7 +764,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                     value={formData.notes}
                                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                                     rows={3}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="Additional notes or comments..."
                                 />
                             </div>
@@ -773,7 +773,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                 <button
                                     type="button"
                                     onClick={() => setShowAddModal(false)}
-                                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
+                                    className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
                                     disabled={saving}
                                 >
                                     Cancel
@@ -781,7 +781,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                 <button
                                     type="submit"
                                     style={{
-                                        background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                        background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                                     }}
                                     className="px-6 py-2 !text-white font-semibold rounded-lg hover:opacity-90 disabled:opacity-50"
                                     disabled={saving}
@@ -914,7 +914,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                             <div className="flex justify-end gap-4 pt-4 border-t border-theme">
                                 <button
                                     onClick={() => setShowDetailsModal(false)}
-                                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
+                                    className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
                                 >
                                     Close
                                 </button>
@@ -924,7 +924,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                         handleEditClick(selectedCertificate);
                                     }}
                                     style={{
-                                        background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                        background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                                     }}
                                     className="px-6 py-2 !text-white font-semibold rounded-lg hover:opacity-90"
                                 >
@@ -956,7 +956,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                             <div className="flex items-center justify-end gap-3">
                                 <button
                                     onClick={() => setConfirmDelete({ open: false, id: null, name: null })}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                                    className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                                 >
                                     Cancel
                                 </button>

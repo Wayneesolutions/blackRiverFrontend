@@ -433,7 +433,7 @@ const UnifiedSchedulingPage = () => {
               </div>
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center px-3.5 py-1.5 border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                className="flex items-center px-3.5 py-1.5 border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 <Filter className="w-3.5 h-3.5 mr-1.5" />
                 Filters
@@ -469,7 +469,7 @@ const UnifiedSchedulingPage = () => {
                 <select
                   value={driverFilter}
                   onChange={(e) => setDriverFilter(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2.5 py-1.5 border border-theme rounded-md focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Drivers</option>
                   {uniqueDrivers.map((driver) => (
@@ -484,7 +484,7 @@ const UnifiedSchedulingPage = () => {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2.5 py-1.5 border border-theme rounded-md focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Status</option>
                   <option value="QUOTED">Quoted</option>
@@ -591,7 +591,7 @@ const UnifiedSchedulingPage = () => {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => viewMode === 'month' ? navigateMonth(-1) : viewMode === 'week' ? navigateWeek(-1) : navigateDay(-1)}
-                    className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
+                    className="p-1.5 rounded-md hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -602,7 +602,7 @@ const UnifiedSchedulingPage = () => {
                   </h2>
                   <button
                     onClick={() => viewMode === 'month' ? navigateMonth(1) : viewMode === 'week' ? navigateWeek(1) : navigateDay(1)}
-                    className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
+                    className="p-1.5 rounded-md hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -920,7 +920,7 @@ const UnifiedSchedulingPage = () => {
                     setCurrentDate(new Date(e.target.value));
                   }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -932,7 +932,7 @@ const UnifiedSchedulingPage = () => {
                 type="time"
                 value={selectedTime}
                 onChange={(e) => setSelectedTime(e.target.value || DEFAULT_SCHEDULE_TIME)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -943,7 +943,7 @@ const UnifiedSchedulingPage = () => {
                   setSelectedOrder(null);
                   setSelectedTime(DEFAULT_SCHEDULE_TIME);
                 }}
-                className="px-4 py-2 text-sm !mr-3 font-medium text-primary bg-card border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)]"
+                className="px-4 py-2 text-sm !mr-3 font-medium text-primary bg-card border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)]"
               >
                 Cancel
               </button>
@@ -956,7 +956,7 @@ const UnifiedSchedulingPage = () => {
                 }}
                 className="px-4 py-2 text-sm font-medium !text-white bg-blue-600 rounded-md hover:bg-blue-700"
                 style={{
-                  background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
+                  background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)",
                 }}
               >
                 Schedule Order

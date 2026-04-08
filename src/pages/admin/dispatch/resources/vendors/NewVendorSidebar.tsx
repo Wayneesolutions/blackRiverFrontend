@@ -116,7 +116,7 @@ const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose, onNotifi
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder="Name"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                      className="w-full px-3 py-2 border border-theme rounded-md 
                       focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -130,7 +130,7 @@ const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose, onNotifi
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="Email"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                      className="w-full px-3 py-2 border border-theme rounded-md 
                       focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -148,7 +148,7 @@ const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose, onNotifi
                       value={formData.internalId}
                       onChange={handleInputChange}
                       placeholder="Internal ID"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                      className="w-full px-3 py-2 border border-theme rounded-md 
                       focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -162,7 +162,7 @@ const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose, onNotifi
                       value={formData.phone}
                       onChange={handleInputChange}
                       placeholder="+65 8123 4567"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                      className="w-full px-3 py-2 border border-theme rounded-md 
                       focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -180,7 +180,7 @@ const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose, onNotifi
                       value={formData.website}
                       onChange={handleInputChange}
                       placeholder="Website"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                      className="w-full px-3 py-2 border border-theme rounded-md 
                       focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -192,7 +192,7 @@ const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose, onNotifi
                       name="type"
                       value={formData.type}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                      className="w-full px-3 py-2 border border-theme rounded-md 
                       focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select vendor type</option>
@@ -214,7 +214,7 @@ const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose, onNotifi
                       name="status"
                       value={formData.status}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                      className="w-full px-3 py-2 border border-theme rounded-md 
                       focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="active">Active</option>
@@ -229,7 +229,7 @@ const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose, onNotifi
                       name="country"
                       value={formData.country}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                      className="w-full px-3 py-2 border border-theme rounded-md 
                       focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select Country</option>
@@ -252,7 +252,7 @@ const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose, onNotifi
                     value={formData.address}
                     onChange={handleInputChange}
                     placeholder="Enter Address"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                    className="w-full px-3 py-2 border border-theme rounded-md 
                     focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -267,7 +267,7 @@ const NewVendorSidebar: FC<NewVendorSidebarProps> = ({ isOpen, onClose, onNotifi
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 !mr-3 rounded-md text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+              className="px-4 py-2 border border-theme !mr-3 rounded-md text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               disabled={loading}
             >
               Cancel

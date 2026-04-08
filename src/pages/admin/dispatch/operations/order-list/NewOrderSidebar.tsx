@@ -10,7 +10,7 @@ import { getUserInfo } from "../../../../../utils/auth";
 import AddressSearch from "../../../../../components/common/AddressSearch";
 
 // Color constants
-const PRIMARY_GRADIENT = 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)';
+const PRIMARY_GRADIENT = 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)';
 const PRIMARY_COLOR = '#016ab2';
 const PRIMARY_LIGHT_BG = 'rgba(66, 174, 236, 0.1)';
 
@@ -2663,7 +2663,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 </div>
                 <button
                     onClick={onClose}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors ml-4"
+                    className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors ml-4"
                 >
                     <X className="w-5 h-5 text-secondary" />
                 </button>
@@ -2698,7 +2698,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             <div className="relative">
                                                 <div
                                                     onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
-                                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-opacity-75"
+                                                    className="flex items-center gap-1 p-2 border border-theme rounded bg-card cursor-pointer hover:border-opacity-75"
                                                 >
                                                     <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${customerDropdownOpen ? 'rotate-180' : ''}`} />
                                                     <input
@@ -2724,7 +2724,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 setSelectedCustomer(null);
                                                                 setCustomerSearch("");
                                                             }}
-                                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                            className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                                                         >
                                                             <X className="w-4 h-4 text-secondary" />
                                                         </button>
@@ -2733,7 +2733,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 </div>
 
                                                 {customerDropdownOpen && (
-                                                    <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                    <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                                                         <div className="p-2 border-b border-theme">
                                                             <div className="relative">
                                                                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -2742,7 +2742,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     value={customerSearch}
                                                                     onChange={(e) => setCustomerSearch(e.target.value)}
                                                                     placeholder="Search customers..."
-                                                                    className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                    className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                                     autoFocus
                                                                 />
                                                             </div>
@@ -2787,7 +2787,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 type="text"
                                                 value={selectedCustomer?.name || ""}
                                                 readOnly
-                                                className="w-full p-2 border border-gray-300 rounded bg-card text-sm"
+                                                className="w-full p-2 border border-theme rounded bg-card text-sm"
                                             />
                                         </div>
                                         <div>
@@ -2796,7 +2796,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 type="text"
                                                 value={customerUnit}
                                                 onChange={(e) => setCustomerUnit(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                             />
                                         </div>
                                         <div>
@@ -2805,7 +2805,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 type="text"
                                                 value={formatFullAddress(selectedCustomer)}
                                                 readOnly
-                                                className="w-full p-2 border border-gray-300 rounded bg-card text-sm"
+                                                className="w-full p-2 border border-theme rounded bg-card text-sm"
                                             />
                                         </div>
                                         <div>
@@ -2815,7 +2815,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     type="text"
                                                     value={customerPostalCode}
                                                     onChange={(e) => setCustomerPostalCode(e.target.value)}
-                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                 />
                                                 <button className="px-2 rounded text-xl leading-none flex-shrink-0 transition-colors" style={{ color: PRIMARY_COLOR }}>
                                                     ✏️
@@ -2828,7 +2828,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 type="text"
                                                 value={getCustomerAddress(selectedCustomer).city}
                                                 readOnly
-                                                className="w-full p-2 border border-gray-300 rounded bg-card text-sm"
+                                                className="w-full p-2 border border-theme rounded bg-card text-sm"
                                             />
                                         </div>
                                         <div>
@@ -2837,7 +2837,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 type="text"
                                                 value={getCustomerAddress(selectedCustomer).country}
                                                 readOnly
-                                                className="w-full p-2 border border-gray-300 rounded bg-card text-sm"
+                                                className="w-full p-2 border border-theme rounded bg-card text-sm"
                                             />
                                         </div>
                                         <div>
@@ -2846,34 +2846,34 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 type="text"
                                                 value={getCustomerAddress(selectedCustomer).state}
                                                 readOnly
-                                                className="w-full p-2 border border-gray-300 rounded bg-card text-sm"
+                                                className="w-full p-2 border border-theme rounded bg-card text-sm"
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-medium text-primary mb-1">Primary Phone #</label>
                                             <div className="flex gap-1">
-                                                <select className="w-20 p-2 border border-gray-300 rounded text-sm">
+                                                <select className="w-20 p-2 border border-theme rounded text-sm">
                                                     <option>🇺🇸 +1</option>
                                                 </select>
                                                 <input
                                                     type="text"
                                                     value={customerPrimaryPhone}
                                                     onChange={(e) => setCustomerPrimaryPhone(e.target.value)}
-                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                 />
                                             </div>
                                         </div>
                                         <div>
                                             <label className="block text-xs font-medium text-primary mb-1">Secondary Phone #</label>
                                             <div className="flex gap-1">
-                                                <select className="w-20 p-2 border border-gray-300 rounded text-sm">
+                                                <select className="w-20 p-2 border border-theme rounded text-sm">
                                                     <option>🇺🇸 +1</option>
                                                 </select>
                                                 <input
                                                     type="text"
                                                     value={customerSecondaryPhone}
                                                     onChange={(e) => setCustomerSecondaryPhone(e.target.value)}
-                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                 />
                                             </div>
                                         </div>
@@ -2883,7 +2883,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 type="text"
                                                 value={customerContact}
                                                 onChange={(e) => setCustomerContact(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                             />
                                         </div>
                                         <div>
@@ -2892,7 +2892,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 type="email"
                                                 value={payableEmail}
                                                 onChange={(e) => setPayableEmail(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                             />
                                         </div>
                                         <div>
@@ -2900,7 +2900,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             <select
                                                 value={selectedEquipment[0] || ""}
                                                 onChange={(e) => setSelectedEquipment(e.target.value ? [e.target.value] : [])}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                             >
                                                 <option value="">Select</option>
                                                 {equipmentTypes.map(eq => (
@@ -2914,7 +2914,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 type="email"
                                                 value={secondaryPayableEmail}
                                                 onChange={(e) => setSecondaryPayableEmail(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                             />
                                         </div>
                                     </div>
@@ -2931,10 +2931,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     type="text"
                                                     value={brokerName}
                                                     onChange={(e) => setBrokerName(e.target.value)}
-                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                     placeholder="Enter customs broker"
                                                 />
-                                                <button className="p-2 border border-gray-300 rounded hover:bg-[rgba(255,255,255,0.03)]">
+                                                <button className="p-2 border border-theme rounded hover:bg-[rgba(255,255,255,0.03)]">
                                                     <Search className="w-4 h-4 text-secondary" />
                                                 </button>
                                             </div>
@@ -2942,14 +2942,14 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         <div>
                                             <label className="block text-xs font-medium text-primary mb-1">Primary Phone #</label>
                                             <div className="flex gap-1">
-                                                <select className="w-20 p-2 border border-gray-300 rounded text-sm">
+                                                <select className="w-20 p-2 border border-theme rounded text-sm">
                                                     <option>🇺🇸 +1</option>
                                                 </select>
                                                 <input
                                                     type="text"
                                                     value={brokerPhone}
                                                     onChange={(e) => setBrokerPhone(e.target.value)}
-                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                     placeholder="Enter phone number"
                                                 />
                                             </div>
@@ -2960,7 +2960,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 type="email"
                                                 value={brokerEmail}
                                                 onChange={(e) => setBrokerEmail(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                 placeholder="Enter broker email"
                                             />
                                         </div>
@@ -2971,10 +2971,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     type="text"
                                                     value={pars}
                                                     onChange={(e) => setPars(e.target.value)}
-                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                     placeholder="Enter PARS number"
                                                 />
-                                                <button className="p-2 border border-gray-300 rounded hover:bg-[rgba(255,255,255,0.03)]">
+                                                <button className="p-2 border border-theme rounded hover:bg-[rgba(255,255,255,0.03)]">
                                                     <Search className="w-4 h-4 text-secondary" />
                                                 </button>
                                             </div>
@@ -2986,10 +2986,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     type="text"
                                                     value={paps}
                                                     onChange={(e) => setPaps(e.target.value)}
-                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                     placeholder="Enter PAPS number"
                                                 />
-                                                <button className="p-2 border border-gray-300 rounded hover:bg-[rgba(255,255,255,0.03)]">
+                                                <button className="p-2 border border-theme rounded hover:bg-[rgba(255,255,255,0.03)]">
                                                     <Search className="w-4 h-4 text-secondary" />
                                                 </button>
                                             </div>
@@ -3000,7 +3000,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 type="text"
                                                 value={trailerSealNo}
                                                 onChange={(e) => setTrailerSealNo(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                 placeholder="Enter Alphanumeric Seal Number"
                                             />
                                         </div>
@@ -3128,7 +3128,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     type="text"
                                                     value={customerOrderNo}
                                                     onChange={(e) => setCustomerOrderNo(e.target.value)}
-                                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                 />
                                             </div>
                                             <div>
@@ -3137,7 +3137,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     type="date"
                                                     value={billingDate}
                                                     onChange={(e) => setBillingDate(e.target.value)}
-                                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                 />
                                             </div>
                                             <div>
@@ -3147,9 +3147,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         type="number"
                                                         value={rate}
                                                         onChange={(e) => setRate(e.target.value)}
-                                                        className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                        className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                     />
-                                                    <div className="flex border border-gray-300 rounded overflow-hidden">
+                                                    <div className="flex border border-theme rounded overflow-hidden">
                                                         <button
                                                             onClick={() => setRateCurrency("CAD")}
                                                             className={`px-3 py-2 text-sm ${rateCurrency === "CAD" ? "bg-gray-800 !text-white" : "bg-card text-primary"}`}
@@ -3172,7 +3172,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         value={selectedSalesman}
                                                         onChange={(e) => setSelectedSalesman(e.target.value)}
                                                         disabled={loadingSalespersons}
-                                                        className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                                        className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                                                     >
                                                         <option value="">Select</option>
                                                         {loadingSalespersons ? (
@@ -3196,7 +3196,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     type="text"
                                                     value={dispatcher}
                                                     onChange={(e) => setDispatcher(e.target.value)}
-                                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                 />
                                             </div>
                                             <div>
@@ -3205,7 +3205,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     type="email"
                                                     value={dispatcherEmail}
                                                     onChange={(e) => setDispatcherEmail(e.target.value)}
-                                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                 />
                                             </div>
                                             <div className="flex gap-4">
@@ -3254,7 +3254,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             };
                                                             setTaxAmount(taxRates[e.target.value] || "");
                                                         }}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                        className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                     >
                                                         <option value="No Tax">No Tax</option>
                                                         <option value="GST">GST</option>
@@ -3270,7 +3270,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         type="number"
                                                         value={taxAmount}
                                                         onChange={(e) => setTaxAmount(e.target.value)}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                        className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                     />
                                                 </div>
                                             </div>
@@ -3315,7 +3315,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             rows={4}
                                             value={invoiceInstructions}
                                             onChange={(e) => setInvoiceInstructions(e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm resize-y"
+                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm resize-y"
                                             placeholder="Enter invoice instructions..."
                                         />
                                     </div>
@@ -3326,7 +3326,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             rows={4}
                                             value={invoiceNotes}
                                             onChange={(e) => setInvoiceNotes(e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm resize-y"
+                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm resize-y"
                                             placeholder="Enter invoice notes..."
                                         />
                                     </div>
@@ -3342,7 +3342,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 <select
                                                     value={newChargeCategory}
                                                     onChange={(e) => setNewChargeCategory(e.target.value)}
-                                                    className="w-full p-2 border border-gray-300 rounded text-xs"
+                                                    className="w-full p-2 border border-theme rounded text-xs"
                                                 >
                                                     <option value="">Select Category</option>
                                                     <option value="Fuel Surcharge - % Of Base Rate">Fuel Surcharge - % Of Base Rate</option>
@@ -3358,7 +3358,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     value={newChargePercent}
                                                     onChange={(e) => setNewChargePercent(e.target.value)}
                                                     placeholder="Charge %"
-                                                    className="w-full p-2 border border-gray-300 rounded text-xs"
+                                                    className="w-full p-2 border border-theme rounded text-xs"
                                                 />
                                             </div>
                                             <div className="col-span-2">
@@ -3367,7 +3367,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     value={newChargeAmount}
                                                     onChange={(e) => setNewChargeAmount(e.target.value)}
                                                     placeholder="Charge $"
-                                                    className="w-full p-2 border border-gray-300 rounded text-xs"
+                                                    className="w-full p-2 border border-theme rounded text-xs"
                                                 />
                                             </div>
                                             <div className="col-span-3">
@@ -3376,7 +3376,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     value={newChargeDescription}
                                                     onChange={(e) => setNewChargeDescription(e.target.value)}
                                                     placeholder="Description"
-                                                    className="w-full p-2 border border-gray-300 rounded text-xs"
+                                                    className="w-full p-2 border border-theme rounded text-xs"
                                                 />
                                             </div>
                                             <div className="col-span-1 flex items-center justify-center">
@@ -3550,7 +3550,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <div className="relative">
                                                         <div
                                                             onClick={() => setShipperCustomerDropdownOpen(!shipperCustomerDropdownOpen)}
-                                                            className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-opacity-75"
+                                                            className="flex items-center gap-1 p-2 border border-theme rounded bg-card cursor-pointer hover:border-opacity-75"
                                                         >
                                                             <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${shipperCustomerDropdownOpen ? 'rotate-180' : ''}`} />
                                                             <input
@@ -3580,7 +3580,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                         setShipperAddress("");
                                                                         setPickupLocationAddress('');
                                                                     }}
-                                                                    className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                                    className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                                                                 >
                                                                     <X className="w-4 h-4 text-secondary" />
                                                                 </button>
@@ -3589,7 +3589,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         </div>
 
                                                         {shipperCustomerDropdownOpen && (
-                                                            <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                            <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                                                                 <div className="p-2 border-b border-theme">
                                                                     <div className="relative">
                                                                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -3598,7 +3598,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             value={shipperCustomerSearch}
                                                                             onChange={(e) => setShipperCustomerSearch(e.target.value)}
                                                                             placeholder="Search customers..."
-                                                                            className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                            className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                                             autoFocus
                                                                         />
                                                                     </div>
@@ -3677,7 +3677,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="text"
                                                             value={shipperName}
                                                             onChange={(e) => setShipperName(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                         />
                                                     </div>
                                                     <div>
@@ -3686,7 +3686,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="text"
                                                             value={shipperUnit}
                                                             onChange={(e) => setShipperUnit(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                         />
                                                     </div>
                                                     <div>
@@ -3695,7 +3695,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="text"
                                                             value={shipperAddress}
                                                             onChange={(e) => setShipperAddress(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                         />
                                                     </div>
                                                     <div>
@@ -3703,7 +3703,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         <select
                                                             value={shipperCountry}
                                                             onChange={(e) => setShipperCountry(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                         >
                                                             <option value="">Select Country</option>
                                                             <option value="Canada">Canada</option>
@@ -3716,7 +3716,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="text"
                                                             value={shipperProvince}
                                                             onChange={(e) => setShipperProvince(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                         />
                                                     </div>
                                                     <div>
@@ -3725,7 +3725,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="text"
                                                             value={shipperCity}
                                                             onChange={(e) => setShipperCity(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                         />
                                                     </div>
                                                     <div>
@@ -3735,9 +3735,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 type="text"
                                                                 value={shipperPostalCode}
                                                                 onChange={(e) => setShipperPostalCode(e.target.value)}
-                                                                className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                                className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                             />
-                                                            <button className="p-2 border border-gray-300 rounded hover:bg-[rgba(255,255,255,0.03)] text-green-600">
+                                                            <button className="p-2 border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-green-600">
                                                                 ✓
                                                             </button>
                                                         </div>
@@ -3745,28 +3745,28 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <div>
                                                         <label className="block text-xs font-medium text-primary mb-1">Primary Phone #</label>
                                                         <div className="flex gap-1">
-                                                            <select className="w-20 p-2 border border-gray-300 rounded text-sm">
+                                                            <select className="w-20 p-2 border border-theme rounded text-sm">
                                                                 <option>🇺🇸 +1</option>
                                                             </select>
                                                             <input
                                                                 type="text"
                                                                 value={shipperPrimaryPhone}
                                                                 onChange={(e) => setShipperPrimaryPhone(e.target.value)}
-                                                                className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                                className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                             />
                                                         </div>
                                                     </div>
                                                     <div>
                                                         <label className="block text-xs font-medium text-primary mb-1">Secondary Phone #</label>
                                                         <div className="flex gap-1">
-                                                            <select className="w-20 p-2 border border-gray-300 rounded text-sm">
+                                                            <select className="w-20 p-2 border border-theme rounded text-sm">
                                                                 <option>🇺🇸 +1</option>
                                                             </select>
                                                             <input
                                                                 type="text"
                                                                 value={shipperSecondaryPhone}
                                                                 onChange={(e) => setShipperSecondaryPhone(e.target.value)}
-                                                                className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                                className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                             />
                                                         </div>
                                                     </div>
@@ -3776,7 +3776,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="text"
                                                             value={shipperContact}
                                                             onChange={(e) => setShipperContact(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                         />
                                                     </div>
                                                     <div>
@@ -3785,7 +3785,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="text"
                                                             value={shipperStore}
                                                             onChange={(e) => setShipperStore(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                         />
                                                     </div>
                                                     <div>
@@ -3832,7 +3832,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             rows={4}
                                                             value={goods}
                                                             onChange={(e) => setGoods(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm resize-y"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm resize-y"
                                                         />
                                                     </div>
                                                     <div>
@@ -3841,7 +3841,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             rows={4}
                                                             value={pickUpNotes}
                                                             onChange={(e) => setPickUpNotes(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm resize-y"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm resize-y"
                                                         />
                                                     </div>
                                                     <div>
@@ -3850,7 +3850,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="text"
                                                             value={pickUpNumber}
                                                             onChange={(e) => setPickUpNumber(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                         />
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
@@ -3860,7 +3860,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 type="text"
                                                                 value={weight}
                                                                 onChange={(e) => setWeight(e.target.value)}
-                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                             />
                                                         </div>
                                                         <div>
@@ -3869,7 +3869,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 type="text"
                                                                 value={pickupSkids}
                                                                 onChange={(e) => setPickupSkids(e.target.value)}
-                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                             />
                                                         </div>
                                                         <div>
@@ -3878,7 +3878,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 type="text"
                                                                 value={pickupCases}
                                                                 onChange={(e) => setPickupCases(e.target.value)}
-                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                             />
                                                         </div>
                                                         <div>
@@ -3886,7 +3886,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             <select
                                                                 value={pickupUoM}
                                                                 onChange={(e) => setPickupUoM(e.target.value)}
-                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                             >
                                                                 <option value="Kg">Kg</option>
                                                                 <option value="lbs">lbs</option>
@@ -3899,7 +3899,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 type="text"
                                                                 value={temperature}
                                                                 onChange={(e) => setTemperature(e.target.value)}
-                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                             />
                                                         </div>
                                                         <div>
@@ -3907,7 +3907,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             <select
                                                                 value={pickupTempUnits}
                                                                 onChange={(e) => setPickupTempUnits(e.target.value)}
-                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                             >
                                                                 <option value="">Select</option>
                                                                 <option value="Celsius">Celsius</option>
@@ -3942,7 +3942,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     type="date"
                                                                     value={pickupDate}
                                                                     onChange={(e) => setPickupDate(e.target.value)}
-                                                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                                    className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                                 />
                                                             </div>
                                                             <div>
@@ -3952,12 +3952,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                         type="time"
                                                                         value={pickupTime}
                                                                         onChange={(e) => setPickupTime(e.target.value)}
-                                                                        className="w-full p-2 pr-8 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                                                        className="w-full p-2 pr-8 border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                                                     />
                                                                     {pickupTime && (
                                                                         <button
                                                                             onClick={() => setPickupTime("")}
-                                                                            className="absolute right-2 p-1 hover:bg-gray-100 rounded transition-colors"
+                                                                            className="absolute right-2 p-1 hover:bg-[rgba(255,255,255,0.03)] rounded transition-colors"
                                                                             title="Clear"
                                                                             type="button"
                                                                         >
@@ -3978,7 +3978,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             type="date"
                                                                             value={pickupStartDate}
                                                                             onChange={(e) => setPickupStartDate(e.target.value)}
-                                                                            className="w-full p-2 pr-8 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                                                            className="w-full p-2 pr-8 border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -3990,12 +3990,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             value={pickupStartTime}
                                                                             onChange={(e) => setPickupStartTime(e.target.value)}
                                                                             placeholder="TBA"
-                                                                            className="w-full p-2 pr-8 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                                                            className="w-full p-2 pr-8 border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                                                         />
                                                                         {pickupStartTime && (
                                                                             <button
                                                                                 onClick={() => setPickupStartTime("")}
-                                                                                className="absolute right-2 p-1 hover:bg-gray-100 rounded transition-colors"
+                                                                                className="absolute right-2 p-1 hover:bg-[rgba(255,255,255,0.03)] rounded transition-colors"
                                                                                 title="Clear"
                                                                                 type="button"
                                                                             >
@@ -4014,7 +4014,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             type="date"
                                                                             value={pickupEndDate}
                                                                             onChange={(e) => setPickupEndDate(e.target.value)}
-                                                                            className="w-full p-2 pr-8 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                                                            className="w-full p-2 pr-8 border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -4026,12 +4026,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             value={pickupEndTime}
                                                                             onChange={(e) => setPickupEndTime(e.target.value)}
                                                                             placeholder="TBA"
-                                                                            className="w-full p-2 pr-8 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                                                            className="w-full p-2 pr-8 border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                                                         />
                                                                         {pickupEndTime && (
                                                                             <button
                                                                                 onClick={() => setPickupEndTime("")}
-                                                                                className="absolute right-2 p-1 hover:bg-gray-100 rounded transition-colors"
+                                                                                className="absolute right-2 p-1 hover:bg-[rgba(255,255,255,0.03)] rounded transition-colors"
                                                                                 title="Clear"
                                                                                 type="button"
                                                                             >
@@ -4173,7 +4173,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 <div className="relative">
                                                     <div
                                                         onClick={() => setReceiverCustomerDropdownOpen(!receiverCustomerDropdownOpen)}
-                                                        className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-opacity-75"
+                                                        className="flex items-center gap-1 p-2 border border-theme rounded bg-card cursor-pointer hover:border-opacity-75"
                                                     >
                                                         <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${receiverCustomerDropdownOpen ? 'rotate-180' : ''}`} />
                                                         <input
@@ -4203,7 +4203,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     setReceiverAddress("");
                                                                     setDeliveryLocationAddress('');
                                                                 }}
-                                                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                                                className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                                                             >
                                                                 <X className="w-4 h-4 text-secondary" />
                                                             </button>
@@ -4212,7 +4212,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     </div>
 
                                                     {receiverCustomerDropdownOpen && (
-                                                        <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                        <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                                                             <div className="p-2 border-b border-theme">
                                                                 <div className="relative">
                                                                     <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -4221,7 +4221,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                         value={receiverCustomerSearch}
                                                                         onChange={(e) => setReceiverCustomerSearch(e.target.value)}
                                                                         placeholder="Search customers..."
-                                                                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                        className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                                         autoFocus
                                                                     />
                                                                 </div>
@@ -4266,7 +4266,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     type="text"
                                                     value={receiverName}
                                                     readOnly
-                                                    className="w-full p-2.5 border border-gray-300 rounded-md bg-card text-sm cursor-not-allowed"
+                                                    className="w-full p-2.5 border border-theme rounded-md bg-card text-sm cursor-not-allowed"
                                                     placeholder="Auto-filled from selection"
                                                 />
                                             </div>
@@ -4278,7 +4278,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     type="tel"
                                                     value={receiverPhone}
                                                     readOnly
-                                                    className="w-full p-2.5 border border-gray-300 rounded-md bg-card text-sm cursor-not-allowed"
+                                                    className="w-full p-2.5 border border-theme rounded-md bg-card text-sm cursor-not-allowed"
                                                     placeholder="Auto-filled from selection"
                                                 />
                                             </div>
@@ -4314,7 +4314,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         type="text"
                                                         value={deliveryLocationAddress}
                                                         readOnly
-                                                        className="w-full p-2.5 border border-gray-300 rounded-md bg-card text-sm cursor-not-allowed"
+                                                        className="w-full p-2.5 border border-theme rounded-md bg-card text-sm cursor-not-allowed"
                                                         placeholder="Auto-filled from customer"
                                                     />
                                                 </div>
@@ -4328,7 +4328,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         type="text"
                                                         value={receiverAddress}
                                                         onChange={(e) => setReceiverAddress(e.target.value)}
-                                                        className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 text-sm"
+                                                        className="w-full p-2.5 border border-theme rounded-md focus:outline-none focus:ring-2 text-sm"
                                                         placeholder="Enter receiver address"
                                                     />
                                                 </div>
@@ -4347,7 +4347,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     rows={4}
                                                     value={deliveryGoods}
                                                     onChange={(e) => setDeliveryGoods(e.target.value)}
-                                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm resize-y"
+                                                    className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm resize-y"
                                                 />
                                             </div>
                                             <div>
@@ -4356,7 +4356,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     rows={4}
                                                     value={dropOffNotes}
                                                     onChange={(e) => setDropOffNotes(e.target.value)}
-                                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm resize-y"
+                                                    className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm resize-y"
                                                 />
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
@@ -4366,7 +4366,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         type="text"
                                                         value={dropOffNumber}
                                                         onChange={(e) => setDropOffNumber(e.target.value)}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                        className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                     />
                                                 </div>
                                                 <div>
@@ -4375,7 +4375,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         type="text"
                                                         value={deliverySkids}
                                                         onChange={(e) => setDeliverySkids(e.target.value)}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                        className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                     />
                                                 </div>
                                             </div>
@@ -4386,7 +4386,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         type="text"
                                                         value={deliveryCases}
                                                         onChange={(e) => setDeliveryCases(e.target.value)}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                        className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                     />
                                                 </div>
                                                 <div>
@@ -4395,7 +4395,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         type="text"
                                                         value={weight}
                                                         onChange={(e) => setWeight(e.target.value)}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                        className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                     />
                                                 </div>
                                             </div>
@@ -4405,7 +4405,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <select
                                                         value={deliveryUoM}
                                                         onChange={(e) => setDeliveryUoM(e.target.value)}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                        className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                     >
                                                         <option value="Kg">Kg</option>
                                                         <option value="Lbs">Lbs</option>
@@ -4417,7 +4417,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         type="text"
                                                         value={temperature}
                                                         onChange={(e) => setTemperature(e.target.value)}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                        className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                     />
                                                 </div>
                                             </div>
@@ -4426,7 +4426,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 <select
                                                     value={deliveryTempUnits}
                                                     onChange={(e) => setDeliveryTempUnits(e.target.value)}
-                                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                 >
                                                     <option value="">Select</option>
                                                     <option value="Celsius">Celsius</option>
@@ -4815,7 +4815,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     onClick={() => {
                                                         // Add stop logic
                                                     }}
-                                                    className="w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-sm"
+                                                    className="w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm"
                                                 >
                                                     +
                                                 </button>
@@ -4827,7 +4827,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             setSelectedStopIndex(null);
                                                         }
                                                     }}
-                                                    className="w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-sm"
+                                                    className="w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm"
                                                 >
                                                     -
                                                 </button>
@@ -4913,7 +4913,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     setSelectedStopIndex(insertIndex);
                                                     addNotification('success', 'TAKE TO YARD - Drop Off job added');
                                                 }}
-                                                className="px-3 py-1.5 bg-card hover:bg-[rgba(255,255,255,0.03)] border border-gray-300 rounded text-xs font-medium text-primary"
+                                                className="px-3 py-1.5 bg-card hover:bg-[rgba(255,255,255,0.03)] border border-theme rounded text-xs font-medium text-primary"
                                             >
                                                 TAKE TO YARD
                                             </button>
@@ -4945,7 +4945,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     setSelectedStopIndex(insertIndex);
                                                     addNotification('success', 'TRACTOR SWAP - Drop Off job added');
                                                 }}
-                                                className="px-3 py-1.5 bg-card hover:bg-[rgba(255,255,255,0.03)] border border-gray-300 rounded text-xs font-medium text-primary"
+                                                className="px-3 py-1.5 bg-card hover:bg-[rgba(255,255,255,0.03)] border border-theme rounded text-xs font-medium text-primary"
                                             >
                                                 TRACTOR SWAP
                                             </button>
@@ -4974,7 +4974,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     updated[selectedStopIndex].date = e.target.value;
                                                                     setJobStops(updated);
                                                                 }}
-                                                                className="flex-1 p-1 border border-gray-300 rounded text-xs"
+                                                                className="flex-1 p-1 border border-theme rounded text-xs"
                                                             />
                                                             <button className="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded text-xs">
                                                                 TBA
@@ -4990,7 +4990,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 updated[selectedStopIndex].city = e.target.value;
                                                                 setJobStops(updated);
                                                             }}
-                                                            className="mt-1 w-full p-1 border border-gray-300 rounded text-xs"
+                                                            className="mt-1 w-full p-1 border border-theme rounded text-xs"
                                                         >
                                                             <option value="">Select Yard</option>
                                                             <option value="Winnipeg Yard">Winnipeg Yard</option>
@@ -5015,7 +5015,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         onClick={() => {
                                                             // Add assignment logic
                                                         }}
-                                                        className="w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-sm"
+                                                        className="w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm"
                                                     >
                                                         +
                                                     </button>
@@ -5023,7 +5023,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         onClick={() => {
                                                             // Remove assignment logic
                                                         }}
-                                                        className="w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-sm"
+                                                        className="w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm"
                                                     >
                                                         -
                                                     </button>
@@ -5037,7 +5037,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                         assignmentType === "DRIVER"
                                                             ? "bg-gray-800 !text-white"
-                                                            : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
+                                                            : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
                                                     }`}
                                                 >
                                                     DRIVER
@@ -5047,7 +5047,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     className={`px-3 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-1 ${
                                                         assignmentType === "CARRIER"
                                                             ? "bg-gray-800 !text-white"
-                                                            : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
+                                                            : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
                                                     }`}
                                                 >
                                                     CARRIER
@@ -5070,11 +5070,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 }}
                                                                 onFocus={() => setCarrierDropdownOpen(true)}
                                                                 placeholder="Search carrier..."
-                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm pr-10"
+                                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
                                                             />
                                                             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                             {carrierDropdownOpen && (
-                                                                <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                                <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                                                                     <div className="p-2 border-b border-theme">
                                                                         <div className="relative">
                                                                             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -5083,7 +5083,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                 value={carrierSearch}
                                                                                 onChange={(e) => setCarrierSearch(e.target.value)}
                                                                                 placeholder="Search carriers..."
-                                                                                className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                                className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                                                 autoFocus
                                                                             />
                                                                         </div>
@@ -5108,7 +5108,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                             addAuditTrailEntry(`Receiver - Carrier Added`);
                                                                                         }
                                                                                     }}
-                                                                                    className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+                                                                                    className="p-2 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm"
                                                                                 >
                                                                                     {carrier.name || carrier.companyName || 'N/A'}
                                                                                 </div>
@@ -5151,11 +5151,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             }}
                                                             onFocus={() => setTruckDropdownOpen(true)}
                                                             placeholder="Search truck..."
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm pr-10"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
                                                         />
                                                         <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                         {truckDropdownOpen && (
-                                                            <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                            <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                                                                 <div className="p-2 border-b border-theme">
                                                                     <div className="relative">
                                                                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -5164,7 +5164,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             value={truckSearch}
                                                                             onChange={(e) => setTruckSearch(e.target.value)}
                                                                             placeholder="Search trucks..."
-                                                                            className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                            className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                                             autoFocus
                                                                         />
                                                                     </div>
@@ -5193,7 +5193,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Truck Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-theme last:border-b-0"
+                                                                                className="p-2 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm border-b border-theme last:border-b-0"
                                                                             >
                                                                                 <div className="font-medium text-primary">
                                                                                     {truck.plateNumber || truck.vehicleNumber || truck.unitNumber || truck.name || 'N/A'}
@@ -5260,11 +5260,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             }}
                                                             onFocus={() => setTrailerDropdownOpen(true)}
                                                             placeholder="Search trailer..."
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm pr-10"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
                                                         />
                                                         <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                         {trailerDropdownOpen && (
-                                                            <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                            <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                                                                 <div className="p-2 border-b border-theme">
                                                                     <div className="relative">
                                                                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -5273,7 +5273,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             value={trailerSearch}
                                                                             onChange={(e) => setTrailerSearch(e.target.value)}
                                                                             placeholder="Search trailers..."
-                                                                            className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                            className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                                             autoFocus
                                                                         />
                                                                     </div>
@@ -5301,7 +5301,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Trailer Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-theme last:border-b-0"
+                                                                                className="p-2 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm border-b border-theme last:border-b-0"
                                                                             >
                                                                                 <div className="font-medium text-primary">
                                                                                     {trailer.trailer || trailer.plateNumber || trailer.unitNumber || trailer.name || 'N/A'}
@@ -5364,11 +5364,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             }}
                                                             onFocus={() => setDriverDropdownOpen(true)}
                                                             placeholder="Search driver..."
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm pr-10"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
                                                         />
                                                         <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                         {driverDropdownOpen && (
-                                                            <div className="absolute z-50 w-full bottom-full mb-1 bg-card border border-gray-300 rounded-lg shadow-xl max-h-96 overflow-hidden" style={{ maxHeight: '24rem' }}>
+                                                            <div className="absolute z-50 w-full bottom-full mb-1 bg-card border border-theme rounded-lg shadow-xl max-h-96 overflow-hidden" style={{ maxHeight: '24rem' }}>
                                                                 <div className="p-2 border-b border-theme">
                                                                     <div className="relative">
                                                                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -5377,7 +5377,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             value={driverSearch}
                                                                             onChange={(e) => setDriverSearch(e.target.value)}
                                                                             placeholder="Search drivers..."
-                                                                            className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                            className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                                             autoFocus
                                                                         />
                                                                     </div>
@@ -5404,7 +5404,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Driver Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-theme last:border-b-0"
+                                                                                className="p-3 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm border-b border-theme last:border-b-0"
                                                                             >
                                                                                 <div className="font-medium text-primary flex items-center justify-between mb-1">
                                                                                     <span>{driver.name || driver.internalId || 'N/A'}</span>
@@ -5588,11 +5588,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             }}
                                                             onFocus={() => setCoDriverDropdownOpen(true)}
                                                             placeholder="Search co-driver..."
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm pr-10"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
                                                         />
                                                         <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                         {coDriverDropdownOpen && (
-                                                            <div className="absolute z-50 w-full bottom-full mb-1 bg-card border border-gray-300 rounded-lg shadow-xl max-h-96 overflow-hidden" style={{ maxHeight: '24rem' }}>
+                                                            <div className="absolute z-50 w-full bottom-full mb-1 bg-card border border-theme rounded-lg shadow-xl max-h-96 overflow-hidden" style={{ maxHeight: '24rem' }}>
                                                                 <div className="p-2 border-b border-theme">
                                                                     <div className="relative">
                                                                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -5601,7 +5601,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             value={coDriverSearch}
                                                                             onChange={(e) => setCoDriverSearch(e.target.value)}
                                                                             placeholder="Search co-drivers..."
-                                                                            className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                            className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                                             autoFocus
                                                                         />
                                                                     </div>
@@ -5628,7 +5628,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Codriver Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-theme last:border-b-0"
+                                                                                className="p-3 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm border-b border-theme last:border-b-0"
                                                                             >
                                                                                 <div className="font-medium text-primary flex items-center justify-between mb-1">
                                                                                     <span>{driver.name || driver.internalId || 'N/A'}</span>
@@ -5827,7 +5827,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => setPayType("ADD")}
-                                                    className={`w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-sm transition-colors ${
+                                                    className={`w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm transition-colors ${
                                                         payType === "ADD"
                                                             ? "bg-gray-800 !text-white border-gray-800"
                                                             : "bg-card"
@@ -5837,7 +5837,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 </button>
                                                 <button
                                                     onClick={() => setPayType("SUBTRACT")}
-                                                    className={`w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-sm transition-colors ${
+                                                    className={`w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm transition-colors ${
                                                         payType === "SUBTRACT"
                                                             ? "bg-gray-800 !text-white border-gray-800"
                                                             : "bg-card"
@@ -5857,7 +5857,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         const driver = drivers.find(d => d._id === e.target.value);
                                                         setSelectedPayDriver(driver || null);
                                                     }}
-                                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                 >
                                                     <option value="">Select Driver</option>
                                                     {drivers.map((driver) => (
@@ -5882,7 +5882,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                         payType === "TOTAL"
                                                             ? "bg-gray-800 !text-white"
-                                                            : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
+                                                            : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
                                                     }`}
                                                 >
                                                     TOTAL
@@ -5893,14 +5893,14 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                             payType === "BASE"
                                                                 ? "bg-gray-800 !text-white"
-                                                                : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
+                                                                : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
                                                         }`}
                                                     >
                                                         BASE
                                                     </button>
                                                     <button
                                                         onClick={() => setPayType("ADD")}
-                                                        className={`w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-sm transition-colors ${
+                                                        className={`w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm transition-colors ${
                                                             payType === "ADD"
                                                                 ? "bg-gray-800 !text-white border-gray-800"
                                                                 : "bg-card"
@@ -5910,7 +5910,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     </button>
                                                     <button
                                                         onClick={() => setPayType("SUBTRACT")}
-                                                        className={`w-6 h-6 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-sm transition-colors ${
+                                                        className={`w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm transition-colors ${
                                                             payType === "SUBTRACT"
                                                                 ? "bg-gray-800 !text-white border-gray-800"
                                                                 : "bg-card"
@@ -5933,7 +5933,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payCurrency === "CAD"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
+                                                                    : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             CAD
@@ -5943,7 +5943,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payCurrency === "USD"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
+                                                                    : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             USD
@@ -5957,7 +5957,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payRateUnit === "/MILE"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
+                                                                    : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             /MILE
@@ -5967,7 +5967,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payRateUnit === "/TRIP"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
+                                                                    : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             /TRIP
@@ -5977,7 +5977,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payRateUnit === "/HR"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
+                                                                    : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             /HR
@@ -5987,7 +5987,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payRateUnit === "/%"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
+                                                                    : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             /%
@@ -5997,7 +5997,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payRateUnit === "/LOAD"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
+                                                                    : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             /LOAD
@@ -6007,7 +6007,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                                                                 payRateUnit === "/DAY"
                                                                     ? "bg-gray-800 !text-white"
-                                                                    : "bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]"
+                                                                    : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
                                                             }`}
                                                         >
                                                             /DAY
@@ -6023,7 +6023,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="text"
                                                             value={payRate}
                                                             onChange={(e) => setPayRate(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                             placeholder="0.27"
                                                         />
                                                     </div>
@@ -6038,7 +6038,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 type="text"
                                                                 value={payHours}
                                                                 onChange={(e) => setPayHours(e.target.value)}
-                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                                 placeholder="8"
                                                             />
                                                         </div>
@@ -6057,7 +6057,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 type="text"
                                                                 value={payAmount}
                                                                 onChange={(e) => setPayAmount(e.target.value)}
-                                                                className="flex-1 p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                className="flex-1 p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                                 placeholder="12"
                                                             />
                                                         </div>
@@ -6070,7 +6070,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="date"
                                                             value={payDate}
                                                             onChange={(e) => setPayDate(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                            className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                         />
                                                     </div>
                                                     
@@ -6080,7 +6080,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         <select
                                                             value={payCurrency}
                                                             onChange={(e) => setPayCurrency(e.target.value as "CAD" | "USD")}
-                                                            className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                            className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                         >
                                                             <option value="CAD">CAD</option>
                                                             <option value="USD">USD</option>
@@ -6094,7 +6094,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="text"
                                                             value={payMemo}
                                                             onChange={(e) => setPayMemo(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                            className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                             placeholder="Memo"
                                                         />
                                                     </div>
@@ -6140,7 +6140,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 setPresetMemo(e.target.value);
                                                                 setPayMemo(e.target.value);
                                                             }}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                         >
                                                             <option value="">Preset Memo</option>
                                                             <option value="Tolls">Tolls</option>
@@ -6158,7 +6158,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     {payItems.length > 0 && (
                                                         <div className="space-y-2">
                                                             {payItems.map((item, index) => (
-                                                                <div key={index} className="flex items-center justify-between p-2 bg-card border border-gray-300 rounded text-sm">
+                                                                <div key={index} className="flex items-center justify-between p-2 bg-card border border-theme rounded text-sm">
                                                                     <span className="font-medium">${item.amount}</span>
                                                                     <span className="text-secondary">{item.date}</span>
                                                                     <button
@@ -6182,7 +6182,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             )}
 
                                             {payType === "TOTAL" && (
-                                                <div className="bg-gray-100 border border-gray-300 rounded p-3 text-sm">
+                                                <div className="bg-gray-100 border border-theme rounded p-3 text-sm">
                                                     <div className="flex items-center justify-between mb-2">
                                                         <span className="text-secondary">Base Pay ({payRateUnit})</span>
                                                         <span className="font-medium">$0.00</span>
@@ -6190,7 +6190,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <div className="text-xs text-secondary mb-2">
                                                         0.00 mi x ${payRate}
                                                     </div>
-                                                    <div className="border-t border-gray-300 pt-2 flex items-center justify-between">
+                                                    <div className="border-t border-theme pt-2 flex items-center justify-between">
                                                         <span className="font-semibold">TOTAL</span>
                                                         <span className="font-semibold">$0.00</span>
                                                     </div>
@@ -6208,7 +6208,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 type="text"
                                                                 value={deductionAmount}
                                                                 onChange={(e) => setDeductionAmount(e.target.value)}
-                                                                className="flex-1 p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                                className="flex-1 p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                                 placeholder="12"
                                                             />
                                                         </div>
@@ -6221,7 +6221,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="date"
                                                             value={deductionDate}
                                                             onChange={(e) => setDeductionDate(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                            className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                         />
                                                     </div>
                                                     
@@ -6231,7 +6231,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         <select
                                                             value={payCurrency}
                                                             onChange={(e) => setPayCurrency(e.target.value as "CAD" | "USD")}
-                                                            className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                            className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                         >
                                                             <option value="CAD">CAD</option>
                                                             <option value="USD">USD</option>
@@ -6245,7 +6245,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             type="text"
                                                             value={deductionMemo}
                                                             onChange={(e) => setDeductionMemo(e.target.value)}
-                                                            className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2"
+                                                            className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
                                                             placeholder="Memo"
                                                         />
                                                     </div>
@@ -6291,7 +6291,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 setDeductionPresetMemo(e.target.value);
                                                                 setDeductionMemo(e.target.value);
                                                             }}
-                                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
                                                         >
                                                             <option value="">Preset Memo</option>
                                                             <option value="Tolls">Tolls</option>
@@ -6309,7 +6309,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     {deductionItems.length > 0 && (
                                                         <div className="space-y-2">
                                                             {deductionItems.map((item, index) => (
-                                                                <div key={index} className="flex items-center justify-between p-2 bg-card border border-gray-300 rounded text-sm">
+                                                                <div key={index} className="flex items-center justify-between p-2 bg-card border border-theme rounded text-sm">
                                                                     <span className="font-medium">${item.amount}</span>
                                                                     <span className="text-secondary">{item.date}</span>
                                                                     <button
@@ -6353,7 +6353,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                                                 </svg>
                                                             </button>
-                                                            <button className="w-5 h-5 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-xs">
+                                                            <button className="w-5 h-5 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-xs">
                                                                 +
                                                             </button>
                                                         </div>
@@ -6439,7 +6439,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     value={noteText}
                                                     onChange={(e) => setNoteText(e.target.value)}
                                                     placeholder={noteType === "public" ? "Add a new public note..." : "Add a new private note..."}
-                                                    className="w-full p-3 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 min-h-[120px] resize-y"
+                                                    className="w-full p-3 border border-theme rounded text-sm focus:outline-none focus:ring-2 min-h-[120px] resize-y"
                                                 />
                                             </div>
                                             
@@ -6506,7 +6506,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 <th className="px-3 py-2 text-left text-xs font-semibold text-primary">Details</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody className="divide-y divide-gray-200">
+                                                        <tbody className="divide-y divide-theme">
                                                             {auditTrailLoading ? (
                                                                 <tr>
                                                                     <td colSpan={4} className="px-3 py-4 text-center text-secondary text-sm">

@@ -148,7 +148,7 @@ const MonthlySalaryReport = () => {
                             <select
                                 value={selectedMonth}
                                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 {monthNames.map((month, idx) => (
                                     <option key={idx} value={idx + 1}>{month}</option>
@@ -157,7 +157,7 @@ const MonthlySalaryReport = () => {
                             <select
                                 value={selectedYear}
                                 onChange={(e) => setSelectedYear(Number(e.target.value))}
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map(year => (
                                     <option key={year} value={year}>{year}</option>
@@ -297,7 +297,7 @@ const MonthlySalaryReport = () => {
                                             <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Details</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-200">
+                                    <tbody className="divide-y divide-theme">
                                         {report.employees.map((employee) => (
                                             <React.Fragment key={employee.employeeId}>
                                                 <tr className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">

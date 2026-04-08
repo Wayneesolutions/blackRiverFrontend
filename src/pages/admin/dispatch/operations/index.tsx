@@ -776,7 +776,7 @@ const Index = () => {
     return (
       <div className="min-h-screen flex items-center justify-center" >
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-[#42aeec] mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 animate-spin text-[var(--accent-blue)] mx-auto mb-4" />
           <p className="text-secondary">Loading dashboard...</p>
         </div>
       </div>
@@ -815,7 +815,7 @@ const Index = () => {
                   <div
                     key={feature.id}
                     onClick={() => navigate(`${basePath}/${feature.id === 'vehicles' || feature.id === 'trailers' ? 'fleets' : feature.id}`)}
-                    className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+                    className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <div className="flex items-start justify-between mb-2">
                       {/* Left side content */}
@@ -849,7 +849,7 @@ const Index = () => {
               {/* Truck Utilization */}
               <div
                 onClick={() => navigate(`${basePath}/utilization`)}
-                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
@@ -868,7 +868,7 @@ const Index = () => {
               {/* Trailer Utilization */}
               <div
                 onClick={() => navigate(`${basePath}/utilization`)}
-                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
@@ -887,7 +887,7 @@ const Index = () => {
               {/* Revenue Per Mile */}
               <div
                 onClick={() => navigate(`${basePath}/revenue-per-mile`)}
-                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
@@ -906,7 +906,7 @@ const Index = () => {
               {/* Deliveries Today */}
               <div
                 onClick={() => navigate(`${basePath}/deliveries`)}
-                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
@@ -925,7 +925,7 @@ const Index = () => {
               {/* Pickups Today */}
               <div
                 onClick={() => navigate(`${basePath}/pickups`)}
-                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
@@ -944,7 +944,7 @@ const Index = () => {
               {/* Unassigned Drivers */}
               <div
                 onClick={() => navigate(`${basePath}/drivers?filter=unassigned`)}
-                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
@@ -963,7 +963,7 @@ const Index = () => {
               {/* Drivers on Leave */}
               <div
                 onClick={() => navigate(`${basePath}/drivers-on-leave`)}
-                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]"
+                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
@@ -1006,7 +1006,7 @@ const Index = () => {
                     placeholder="Search orders..."
                     value={orderSearchTerm}
                     onChange={(e) => setOrderSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                   />
                 </div>
               </div>
@@ -1090,7 +1090,7 @@ const Index = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-theme">
                     {filteredOrders.length === 0 ? (
                       <tr>
                         <td colSpan={10} className="px-6 py-8 text-center text-secondary">
@@ -1305,7 +1305,7 @@ const Index = () => {
                         setItemsPerPage(Number(e.target.value));
                         setCurrentPage(1);
                       }}
-                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="px-3 py-1.5 border border-theme rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value={10}>10 per page</option>
                       <option value={25}>25 per page</option>
@@ -1320,7 +1320,7 @@ const Index = () => {
                       disabled={currentPage === 1}
                       className={`p-2 border rounded-lg transition-colors ${currentPage === 1
                         ? "bg-gray-100 text-secondary cursor-not-allowed"
-                        : "bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-gray-300"
+                        : "bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme"
                         }`}
                     >
                       <ChevronLeft className="w-5 h-5" />
@@ -1345,7 +1345,7 @@ const Index = () => {
                             onClick={() => setCurrentPage(pageNum)}
                             className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${currentPage === pageNum
                               ? "bg-blue-600 !text-white"
-                              : "bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-gray-300"
+                              : "bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme"
                               }`}
                           >
                             {pageNum}
@@ -1359,7 +1359,7 @@ const Index = () => {
                       disabled={currentPage === totalPages}
                       className={`p-2 border rounded-lg transition-colors ${currentPage === totalPages
                         ? "bg-gray-100 text-secondary cursor-not-allowed"
-                        : "bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-gray-300"
+                        : "bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme"
                         }`}
                     >
                       <ChevronRight className="w-5 h-5" />

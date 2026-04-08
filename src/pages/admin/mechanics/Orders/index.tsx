@@ -285,7 +285,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
     return (
       <div className="p-6 min-h-screen bg-main">
         <div className="flex items-center justify-center py-16">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#42aeec]" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--accent-blue)]" />
         </div>
       </div>
     );
@@ -327,12 +327,12 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
             onClick={() => { setStatusFilter("all"); setPage(1); }}
             className={`p-4 rounded-lg border-2 cursor-pointer transition ${
               statusFilter === "all"
-                ? "border-[#42aeec] bg-[#42aeec]/5"
-                : "border-theme bg-card hover:border-gray-300"
+                ? "border-[var(--accent-blue)] bg-[var(--accent-blue)]/5"
+                : "border-theme bg-card hover:border-theme"
             }`}
           >
             <div className="flex items-center gap-2">
-              <LayoutGrid className="text-[#42aeec]" size={20} />
+              <LayoutGrid className="text-[var(--accent-blue)]" size={20} />
               <span className="text-sm font-medium text-secondary">All Orders</span>
             </div>
             <p className="text-2xl font-bold text-primary mt-1">{pagination.allCount}</p>
@@ -342,7 +342,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
             className={`p-4 rounded-lg border-2 cursor-pointer transition ${
               statusFilter === "pending"
                 ? "border-amber-500 bg-amber-50"
-                : "border-theme bg-card hover:border-gray-300"
+                : "border-theme bg-card hover:border-theme"
             }`}
           >
             <div className="flex items-center gap-2">
@@ -356,7 +356,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
             className={`p-4 rounded-lg border-2 cursor-pointer transition ${
               statusFilter === "completed"
                 ? "border-green-500 bg-green-50"
-                : "border-theme bg-card hover:border-gray-300"
+                : "border-theme bg-card hover:border-theme"
             }`}
           >
             <div className="flex items-center gap-2">
@@ -380,7 +380,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
       )}
 
       <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
-        <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[#42aeec]/5 to-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-sm font-bold text-primary">{isCompletedOnly ? "Completed Orders" : "Orders"}</h2>
             <p className="text-xs text-secondary mt-0.5">
@@ -396,14 +396,14 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search unit, description..."
-                className="pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg w-48 focus:border-[#42aeec] focus:ring-2 focus:ring-[#42aeec]/20"
+                className="pl-9 pr-3 py-2 text-sm border border-theme rounded-lg w-48 focus:border-[var(--accent-blue)] focus:ring-2 focus:ring-[var(--accent-blue)]/20"
               />
             </div>
             {!isCompletedOnly && (
               <select
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-[#42aeec] focus:ring-2 focus:ring-[#42aeec]/20"
+                className="px-3 py-2 text-sm border border-theme rounded-lg focus:border-[var(--accent-blue)] focus:ring-2 focus:ring-[var(--accent-blue)]/20"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -418,7 +418,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-theme">
             <thead className="bg-card">
               <tr>
                 <th className="w-8 px-2 py-3" />
@@ -442,7 +442,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-gray-200">
+            <tbody className="bg-card divide-y divide-theme">
               {orders.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-secondary">
@@ -500,7 +500,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                           <button
                             type="button"
                             onClick={() => openCompleteModal(order)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-[#42aeec] !text-white hover:bg-[#359dd9]"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-[var(--accent-blue)] !text-white hover:bg-[#359dd9]"
                           >
                             Update
                           </button>
@@ -519,7 +519,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                             {/* Vehicle details */}
                             <div className="p-4 rounded-lg bg-card border border-theme">
                               <div className="flex items-center gap-2 mb-2 font-semibold text-primary">
-                                <Car size={16} className="text-[#42aeec]" />
+                                <Car size={16} className="text-[var(--accent-blue)]" />
                                 Vehicle Details
                               </div>
                               <dl className="space-y-1 text-secondary">
@@ -531,7 +531,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                             {/* Repair details */}
                             <div className="p-4 rounded-lg bg-card border border-theme md:col-span-2">
                               <div className="flex items-center gap-2 mb-2 font-semibold text-primary">
-                                <FileText size={16} className="text-[#42aeec]" />
+                                <FileText size={16} className="text-[var(--accent-blue)]" />
                                 Repair Details
                               </div>
                               <p className="text-secondary whitespace-pre-wrap">{order.repairDetails || order.description || "—"}</p>
@@ -539,7 +539,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                             {/* Parts used */}
                             <div className="p-4 rounded-lg bg-card border border-theme lg:col-span-2">
                               <div className="flex items-center gap-2 mb-2 font-semibold text-primary">
-                                <PackageOpen size={16} className="text-[#42aeec]" />
+                                <PackageOpen size={16} className="text-[var(--accent-blue)]" />
                                 Parts Used ({order.completedParts?.length ?? 0})
                               </div>
                               {order.completedParts && order.completedParts.length > 0 ? (
@@ -572,7 +572,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                             {/* Dates & total */}
                             <div className="p-4 rounded-lg bg-card border border-theme">
                               <div className="flex items-center gap-2 mb-2 font-semibold text-primary">
-                                <Calendar size={16} className="text-[#42aeec]" />
+                                <Calendar size={16} className="text-[var(--accent-blue)]" />
                                 Dates & Total
                               </div>
                               <dl className="space-y-1 text-secondary">
@@ -607,7 +607,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                 type="button"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={pagination.page <= 1 || loading}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={16} />
                 Previous
@@ -619,7 +619,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                 type="button"
                 onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                 disabled={pagination.page >= pagination.totalPages || loading}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
                 <ChevronRight size={16} />
@@ -634,10 +634,10 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
           <div className="bg-card rounded-xl shadow-2xl w-full max-w-2xl my-8">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-gradient-to-r from-[#42aeec]/5 to-transparent">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-[#42aeec]/10">
-                  <Wrench className="text-[#42aeec]" size={24} />
+                <div className="p-2 rounded-lg bg-[var(--accent-blue)]/10">
+                  <Wrench className="text-[var(--accent-blue)]" size={24} />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-primary">Complete Order</h3>
@@ -647,7 +647,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
               <button
                 type="button"
                 onClick={closeCompleteModal}
-                className="p-2 text-secondary hover:text-secondary hover:bg-gray-100 rounded-lg transition"
+                className="p-2 text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition"
               >
                 <X size={22} />
               </button>
@@ -674,14 +674,14 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
               {/* Repair Details */}
               <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-primary mb-2">
-                  <FileText size={16} className="text-[#42aeec]" />
+                  <FileText size={16} className="text-[var(--accent-blue)]" />
                   Repair Details <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={completeForm.repairDetails}
                   onChange={(e) => setCompleteForm((f) => ({ ...f, repairDetails: e.target.value }))}
                   rows={4}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#42aeec] focus:ring-2 focus:ring-[#42aeec]/20 transition"
+                  className="w-full rounded-lg border border-theme px-4 py-3 text-sm focus:border-[var(--accent-blue)] focus:ring-2 focus:ring-[var(--accent-blue)]/20 transition"
                   placeholder="Describe the repair work performed, issues found, and resolution..."
                 />
               </div>
@@ -689,7 +689,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
               {/* Parts Used */}
               <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-primary mb-3">
-                  <Package size={16} className="text-[#42aeec]" />
+                  <Package size={16} className="text-[var(--accent-blue)]" />
                   Parts Used
                 </label>
                 <div className="flex gap-2 mb-3">
@@ -697,7 +697,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                     value={selectedPartId}
                     onChange={(e) => setSelectedPartId(e.target.value)}
                     disabled={sparePartsLoading}
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#42aeec] focus:ring-2 focus:ring-[#42aeec]/20"
+                    className="flex-1 rounded-lg border border-theme px-3 py-2 text-sm focus:border-[var(--accent-blue)] focus:ring-2 focus:ring-[var(--accent-blue)]/20"
                   >
                     <option value="">Select part from inventory...</option>
                     {spareParts.map((p) => (
@@ -710,14 +710,14 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                     type="button"
                     onClick={addPartFromDropdown}
                     disabled={!selectedPartId || sparePartsLoading}
-                    className="px-4 py-2 text-sm font-medium !text-white bg-[#42aeec] hover:bg-[#359dd9] rounded-lg disabled:opacity-50 transition"
+                    className="px-4 py-2 text-sm font-medium !text-white bg-[var(--accent-blue)] hover:bg-[#359dd9] rounded-lg disabled:opacity-50 transition"
                   >
                     Add
                   </button>
                   <button
                     type="button"
                     onClick={addPart}
-                    className="px-4 py-2 text-sm font-medium text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition"
+                    className="px-4 py-2 text-sm font-medium text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition"
                   >
                     Custom Part
                   </button>
@@ -749,7 +749,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                                 value={part.partName}
                                 onChange={(e) => updatePart(part.id, "partName", e.target.value)}
                                 placeholder="e.g. Oil Filter"
-                                className="w-full rounded border border-theme px-2 py-1.5 text-sm focus:border-[#42aeec] focus:ring-1 focus:ring-[#42aeec]/30"
+                                className="w-full rounded border border-theme px-2 py-1.5 text-sm focus:border-[var(--accent-blue)] focus:ring-1 focus:ring-[var(--accent-blue)]/30"
                               />
                             </td>
                             <td className="px-4 py-2">
@@ -758,7 +758,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                                 value={part.partNumber}
                                 onChange={(e) => updatePart(part.id, "partNumber", e.target.value)}
                                 placeholder="e.g. OF-123"
-                                className="w-full rounded border border-theme px-2 py-1.5 text-sm focus:border-[#42aeec] focus:ring-1 focus:ring-[#42aeec]/30"
+                                className="w-full rounded border border-theme px-2 py-1.5 text-sm focus:border-[var(--accent-blue)] focus:ring-1 focus:ring-[var(--accent-blue)]/30"
                               />
                             </td>
                             <td className="px-4 py-2 text-right">
@@ -767,7 +767,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                                 min="1"
                                 value={part.quantity}
                                 onChange={(e) => updatePart(part.id, "quantity", parseInt(e.target.value) || 1)}
-                                className="w-16 rounded border border-theme px-2 py-1.5 text-sm text-right focus:border-[#42aeec] focus:ring-1 focus:ring-[#42aeec]/30"
+                                className="w-16 rounded border border-theme px-2 py-1.5 text-sm text-right focus:border-[var(--accent-blue)] focus:ring-1 focus:ring-[var(--accent-blue)]/30"
                               />
                             </td>
                             <td className="px-4 py-2 text-right">
@@ -778,7 +778,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                                 value={part.cost || ""}
                                 onChange={(e) => updatePart(part.id, "cost", parseFloat(e.target.value) || 0)}
                                 placeholder="0.00"
-                                className="w-20 rounded border border-theme px-2 py-1.5 text-sm text-right focus:border-[#42aeec] focus:ring-1 focus:ring-[#42aeec]/30"
+                                className="w-20 rounded border border-theme px-2 py-1.5 text-sm text-right focus:border-[var(--accent-blue)] focus:ring-1 focus:ring-[var(--accent-blue)]/30"
                               />
                             </td>
                             <td className="px-2 py-2">
@@ -816,7 +816,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                     value={completeForm.totalAmount !== "" ? completeForm.totalAmount : (partsSubtotal > 0 ? partsSubtotal.toFixed(2) : "")}
                     onChange={(e) => setCompleteForm((f) => ({ ...f, totalAmount: e.target.value }))}
                     placeholder="0.00"
-                    className="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-right focus:border-[#42aeec] focus:ring-2 focus:ring-[#42aeec]/20"
+                    className="w-28 rounded-lg border border-theme px-3 py-2 text-sm font-semibold text-right focus:border-[var(--accent-blue)] focus:ring-2 focus:ring-[var(--accent-blue)]/20"
                   />
                 </div>
               </div>
@@ -824,7 +824,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
               {/* Invoice Upload */}
               <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-primary mb-2">
-                  <FileText size={16} className="text-[#42aeec]" />
+                  <FileText size={16} className="text-[var(--accent-blue)]" />
                   Invoice File <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -835,7 +835,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                     onChange={(e) => setInvoiceFile(e.target.files?.[0] || null)}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                  <div className="flex items-center gap-3 rounded-lg border-2 border-dashed border-theme p-4 hover:border-[#42aeec]/50 hover:bg-[#42aeec]/5 transition">
+                  <div className="flex items-center gap-3 rounded-lg border-2 border-dashed border-theme p-4 hover:border-[var(--accent-blue)]/50 hover:bg-[var(--accent-blue)]/5 transition">
                     <div className="p-2 rounded-lg bg-gray-100">
                       <FileText className="text-secondary" size={24} />
                     </div>
@@ -857,7 +857,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
               <button
                 type="button"
                 onClick={closeCompleteModal}
-                className="px-5 py-2.5 text-sm font-medium text-primary bg-card border border-gray-300 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition"
+                className="px-5 py-2.5 text-sm font-medium text-primary bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition"
               >
                 Cancel
               </button>
@@ -865,7 +865,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                 type="button"
                 onClick={handleCompleteOrder}
                 disabled={submittingComplete}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold !text-white bg-[#42aeec] hover:bg-[#359dd9] rounded-lg disabled:opacity-50 transition"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold !text-white bg-[var(--accent-blue)] hover:bg-[#359dd9] rounded-lg disabled:opacity-50 transition"
               >
                 <CheckCircle size={18} />
                 {submittingComplete ? "Submitting…" : "Complete Order"}
@@ -879,10 +879,10 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
       {detailsOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
           <div className="bg-card rounded-xl shadow-2xl w-full max-w-2xl my-8 max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-gradient-to-r from-[#42aeec]/5 to-transparent flex-shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-[#42aeec]/10">
-                  <Eye className="text-[#42aeec]" size={24} />
+                <div className="p-2 rounded-lg bg-[var(--accent-blue)]/10">
+                  <Eye className="text-[var(--accent-blue)]" size={24} />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-primary">Order Details</h3>
@@ -894,7 +894,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
               <button
                 type="button"
                 onClick={() => setDetailsOrder(null)}
-                className="p-2 text-secondary hover:text-secondary hover:bg-gray-100 rounded-lg transition"
+                className="p-2 text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition"
               >
                 <X size={22} />
               </button>
@@ -999,9 +999,9 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
               {/* Completion Total */}
               {(detailsOrder.status === "completed" || detailsOrder.status === "Completed") &&
                 detailsOrder.completionTotalAmount != null && (
-                  <div className="flex justify-between items-center p-4 rounded-lg bg-[#42aeec]/5 border border-[#42aeec]/20">
+                  <div className="flex justify-between items-center p-4 rounded-lg bg-[var(--accent-blue)]/5 border border-[var(--accent-blue)]/20">
                     <span className="text-sm font-semibold text-primary">Total Amount</span>
-                    <span className="text-lg font-bold text-[#42aeec]">${Number(detailsOrder.completionTotalAmount).toFixed(2)}</span>
+                    <span className="text-lg font-bold text-[var(--accent-blue)]">${Number(detailsOrder.completionTotalAmount).toFixed(2)}</span>
                   </div>
                 )}
 
@@ -1014,7 +1014,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                       href={(detailsOrder.invoiceSignedUrl as string) || (detailsOrder.invoiceUploadUrl as string)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm font-medium text-[#42aeec] hover:underline"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-[var(--accent-blue)] hover:underline"
                     >
                       <FileText size={16} />
                       View Invoice
@@ -1032,7 +1032,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                       setDetailsOrder(null);
                       openCompleteModal(detailsOrder);
                     }}
-                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium !text-white bg-[#42aeec] hover:bg-[#359dd9] rounded-lg"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium !text-white bg-[var(--accent-blue)] hover:bg-[#359dd9] rounded-lg"
                   >
                     <CheckCircle size={16} />
                     Complete Order
@@ -1041,7 +1041,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                 <button
                   type="button"
                   onClick={() => setDetailsOrder(null)}
-                  className="px-4 py-2 text-sm font-medium text-primary bg-card border border-gray-300 hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
+                  className="px-4 py-2 text-sm font-medium text-primary bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
                 >
                   Close
                 </button>

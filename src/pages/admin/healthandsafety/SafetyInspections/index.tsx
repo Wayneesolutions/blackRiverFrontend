@@ -19,7 +19,7 @@ const CUSTOM_COLORS = {
   primary: '#016ab2',
   dark: '#063f6f',
   light: '#398bc3',
-  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
   gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
 };
 
@@ -582,7 +582,7 @@ const SafetyInspections: React.FC = () => {
                 <select
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="">Select Type...</option>
                   {INSPECTION_TYPES.map(type => (
@@ -600,7 +600,7 @@ const SafetyInspections: React.FC = () => {
                   value={selectedLocation}
                   onChange={(e) => setSelectedLocation(e.target.value)}
                   placeholder="e.g., Warehouse A, Trailer #4587"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -610,7 +610,7 @@ const SafetyInspections: React.FC = () => {
                   type="date"
                   value={scheduledDate}
                   onChange={(e) => setScheduledDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -620,7 +620,7 @@ const SafetyInspections: React.FC = () => {
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -631,7 +631,7 @@ const SafetyInspections: React.FC = () => {
                   value={selectedInspector}
                   onChange={(e) => setSelectedInspector(e.target.value)}
                   placeholder="Enter inspector name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -640,7 +640,7 @@ const SafetyInspections: React.FC = () => {
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as any)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -656,7 +656,7 @@ const SafetyInspections: React.FC = () => {
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   placeholder="Additional notes..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
             </div>
@@ -1004,14 +1004,14 @@ const SafetyInspections: React.FC = () => {
               placeholder="Search by inspection number or location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              className="w-full pl-10 pr-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            className="px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
           >
             <option value="all">All Types</option>
             {INSPECTION_TYPES.map(type => (
@@ -1022,7 +1022,7 @@ const SafetyInspections: React.FC = () => {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            className="px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
           >
             <option value="all">All Status</option>
             <option value="scheduled">Scheduled</option>
@@ -1059,7 +1059,7 @@ const SafetyInspections: React.FC = () => {
             onClick={() => setCurrentTab(tab)}
             className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition ${currentTab === tab
               ? 'text-white'
-              : 'bg-card text-primary hover:bg-gray-100'
+              : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)]'
               }
             style={currentTab === tab ? { background: CUSTOM_COLORS.primary } : {}}`}
           >
@@ -1084,7 +1084,7 @@ const SafetyInspections: React.FC = () => {
                 <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {loading ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-8 text-center text-secondary">Loading...</td>

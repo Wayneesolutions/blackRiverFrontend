@@ -212,14 +212,14 @@ const YardManagement = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
-                <FaWarehouse className="text-[#42aeec]" />
+                <FaWarehouse className="text-[var(--accent-blue)]" />
                 Yard Management
               </h1>
               <p className="text-secondary mt-2">Manage fleet yards and locations</p>
             </div>
             <button
               onClick={() => handleOpenModal()}
-              className="px-4 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#3598c7] transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-[var(--accent-blue)] !text-white rounded-lg hover:bg-[#3598c7] transition-colors flex items-center gap-2"
             >
               <FaPlus /> Add Yard
             </button>
@@ -235,7 +235,7 @@ const YardManagement = () => {
               placeholder="Search by name, code, or type..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
             />
           </div>
         </div>
@@ -268,7 +268,7 @@ const YardManagement = () => {
         {/* Yards Table */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#42aeec]"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-blue)]"></div>
             <p className="mt-2 text-secondary">Loading yards...</p>
           </div>
         ) : filteredYards.length === 0 ? (
@@ -311,7 +311,7 @@ const YardManagement = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {filteredYards.map((yard) => (
                     <tr key={yard._id} className="hover:bg-[rgba(255,255,255,0.03)]"    onClick={() => handleOpenModal(yard)}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
@@ -363,7 +363,7 @@ const YardManagement = () => {
                         <div className="flex items-center gap-3">
                           <button
                             onClick={() => handleOpenModal(yard)}
-                            className="text-[#42aeec] hover:text-[#3598c7]"
+                            className="text-[var(--accent-blue)] hover:text-[#3598c7]"
                             title="Edit"
                           >
                             <FaEdit />
@@ -415,7 +415,7 @@ const YardManagement = () => {
                     required
                     value={formData.yardName}
                     onChange={(e) => setFormData({ ...formData, yardName: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     placeholder="Enter yard name"
                   />
                 </div>
@@ -429,7 +429,7 @@ const YardManagement = () => {
                     required
                     value={formData.yardCode}
                     onChange={(e) => setFormData({ ...formData, yardCode: e.target.value.toUpperCase() })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     placeholder="Enter yard code"
                   />
                 </div>
@@ -442,7 +442,7 @@ const YardManagement = () => {
                     required
                     value={formData.yardType}
                     onChange={(e) => setFormData({ ...formData, yardType: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                   >
                     {yardTypes.map(type => (
                       <option key={type} value={type}>
@@ -460,7 +460,7 @@ const YardManagement = () => {
                     required
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                   >
                     {statusOptions.map(status => (
                       <option key={status} value={status}>
@@ -502,7 +502,7 @@ const YardManagement = () => {
                       required
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                       placeholder="Enter street address"
                     />
                   </div>
@@ -515,7 +515,7 @@ const YardManagement = () => {
                       type="text"
                       value={formData.unit}
                       onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                       placeholder="Enter unit or lot number"
                     />
                   </div>
@@ -530,7 +530,7 @@ const YardManagement = () => {
                         required
                         value={formData.city}
                         onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                         placeholder="Enter city"
                       />
                     </div>
@@ -543,7 +543,7 @@ const YardManagement = () => {
                         required
                         value={formData.stateProvince}
                         onChange={(e) => setFormData({ ...formData, stateProvince: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                         placeholder="Enter state/province"
                       />
                     </div>
@@ -559,7 +559,7 @@ const YardManagement = () => {
                         required
                         value={formData.country}
                         onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                         placeholder="Enter country"
                       />
                     </div>
@@ -572,7 +572,7 @@ const YardManagement = () => {
                         required
                         value={formData.zipPostalCode}
                         onChange={(e) => setFormData({ ...formData, zipPostalCode: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                         placeholder="Enter ZIP/postal code"
                       />
                     </div>
@@ -590,7 +590,7 @@ const YardManagement = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#3598c7] transition-colors"
+                    className="px-4 py-2 bg-[var(--accent-blue)] !text-white rounded-lg hover:bg-[#3598c7] transition-colors"
                   >
                     {editingYard ? 'Update' : 'Create'}
                   </button>

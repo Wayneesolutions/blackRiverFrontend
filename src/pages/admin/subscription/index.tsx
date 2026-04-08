@@ -1311,12 +1311,12 @@ const SubscriptionPage = () => {
                               <div className="flex items-center gap-3">
                                 <button
                                   onClick={() => setExtraTrucks(Math.max(0, extraTrucks - 1))}
-                                  className="w-8 h-8 rounded-lg border border-gray-300 bg-card flex items-center justify-center text-primary hover:bg-gray-100 font-bold text-lg leading-none"
+                                  className="w-8 h-8 rounded-lg border border-theme bg-card flex items-center justify-center text-primary hover:bg-[rgba(255,255,255,0.03)] font-bold text-lg leading-none"
                                 >−</button>
                                 <span className="w-12 text-center font-bold text-lg text-primary">{extraTrucks}</span>
                                 <button
                                   onClick={() => setExtraTrucks(extraTrucks + 1)}
-                                  className="w-8 h-8 rounded-lg border border-gray-300 bg-card flex items-center justify-center text-primary hover:bg-gray-100 font-bold text-lg leading-none"
+                                  className="w-8 h-8 rounded-lg border border-theme bg-card flex items-center justify-center text-primary hover:bg-[rgba(255,255,255,0.03)] font-bold text-lg leading-none"
                                 >+</button>
                                 {extraTrucks > 0 && (
                                   <span className="ml-auto text-sm font-semibold text-[#F59E0B]">
@@ -1406,7 +1406,7 @@ const SubscriptionPage = () => {
                 <div className="flex items-center gap-4 mb-4">
                   <button
                     onClick={() => setAddTruckCount(Math.max(1, addTruckCount - 1))}
-                    className="w-10 h-10 rounded-xl border-2 border-gray-300 bg-card flex items-center justify-center text-primary hover:bg-gray-100 font-bold text-xl leading-none"
+                    className="w-10 h-10 rounded-xl border-2 border-theme bg-card flex items-center justify-center text-primary hover:bg-[rgba(255,255,255,0.03)] font-bold text-xl leading-none"
                   >−</button>
                   <span className="w-16 text-center font-bold text-2xl text-primary">{addTruckCount}</span>
                   <button

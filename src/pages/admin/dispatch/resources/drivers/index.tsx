@@ -357,7 +357,7 @@ const DriversTable = () => {
                             <input
                                 type="text"
                                 placeholder="Search drivers..."
-                                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="pl-10 pr-4 py-2 border border-theme rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -548,7 +548,7 @@ const DriversTable = () => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200">
+                                <tbody className="divide-y divide-theme">
                                     {filteredDrivers.length > 0 ? (
                                         filteredDrivers.map((driver) => (
                                             <tr
@@ -802,7 +802,7 @@ const DriversTable = () => {
                                             setShowDriverDetails(false);
                                             setTimeout(() => setSelectedDriver(null), 300);
                                         }}
-                                        className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
+                                        className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                                     >
                                         <X size={24} />
                                     </button>

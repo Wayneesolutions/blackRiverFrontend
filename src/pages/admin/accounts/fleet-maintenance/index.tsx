@@ -660,7 +660,7 @@ export default function FleetMaintenanceFinance() {
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold border-none" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Fleet & Maintenance Finance</h1>
+                <h1 className="text-3xl font-bold border-none" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Fleet & Maintenance Finance</h1>
                 <p className="text-sm text-secondary mt-1">
                   Financial reporting and tracking for maintenance operations, parts costs, and service expenses
                 </p>
@@ -672,7 +672,7 @@ export default function FleetMaintenanceFinance() {
                     setShowPartsModal(true);
                   }}
                   className="px-4 py-2 !text-white rounded-lg transition-all flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
-                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                  style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                 >
                   <Plus className="w-4 h-4" />
                   New Parts Entry
@@ -685,7 +685,7 @@ export default function FleetMaintenanceFinance() {
                     setShowLaborModal(true);
                   }}
                   className="px-4 py-2 !text-white rounded-lg transition-all flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
-                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                  style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                 >
                   <Plus className="w-4 h-4" />
                   New Labor Rate
@@ -698,7 +698,7 @@ export default function FleetMaintenanceFinance() {
                     setShowPlanModal(true);
                   }}
                   className="px-4 py-2 !text-white rounded-lg transition-all flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
-                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                  style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                 >
                   <Plus className="w-4 h-4" />
                   New Maintenance Plan
@@ -717,8 +717,8 @@ export default function FleetMaintenanceFinance() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${activeTab === tab.id
-                      ? 'border-[#42aeec] text-[#016ab2]'
-                      : 'border-transparent text-secondary hover:text-primary hover:border-gray-300'
+                      ? 'border-[var(--accent-blue)] text-[#016ab2]'
+                      : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                       }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -743,10 +743,10 @@ export default function FleetMaintenanceFinance() {
                 }`}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 rounded-full bg-card">
-                    <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[#42aeec]' :
-                      card.color === 'green' ? 'text-[#0ea3d8]' :
-                        card.color === 'purple' ? 'text-[#1db5f5]' :
-                          'text-[#42aeec]'
+                    <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[var(--accent-blue)]' :
+                      card.color === 'green' ? 'text-[rgba(0,209,255,0.15)]' :
+                        card.color === 'purple' ? 'text-[var(--accent-blue)]' :
+                          'text-[var(--accent-blue)]'
                       }`} />
                   </div>
                   <span className={`text-sm font-medium ${card.color === 'blue' ? 'text-[#063f6f]' :
@@ -773,19 +773,19 @@ export default function FleetMaintenanceFinance() {
                   placeholder="Search..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+                  className="pl-10 pr-4 py-2 border border-theme rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
                 />
               </div>
-              <button className="p-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+              <button className="p-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                 <Filter className="w-4 h-4 text-secondary" />
               </button>
             </div>
             <div className="flex items-center gap-2">
-              <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-2">
+              <button className="px-4 py-2 text-sm border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-2">
                 <Download className="w-4 h-4" />
                 Export Report
               </button>
-              <button className="px-4 py-2 text-sm !text-white rounded-lg transition-all flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
+              <button className="px-4 py-2 text-sm !text-white rounded-lg transition-all flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}>
                 <FileText className="w-4 h-4" />
                 Generate Report
               </button>
@@ -810,7 +810,7 @@ export default function FleetMaintenanceFinance() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {expenseSummary.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-4 text-center text-secondary">No data available</td>
@@ -873,7 +873,7 @@ export default function FleetMaintenanceFinance() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {partsCostLog.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="px-6 py-4 text-center text-secondary">No parts cost log entries</td>
@@ -931,7 +931,7 @@ export default function FleetMaintenanceFinance() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {laborRates.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-4 text-center text-secondary">No labor rates configured</td>
@@ -989,7 +989,7 @@ export default function FleetMaintenanceFinance() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {maintenancePlans.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="px-6 py-4 text-center text-secondary">No maintenance plans</td>
@@ -1073,7 +1073,7 @@ export default function FleetMaintenanceFinance() {
                   type="text"
                   value={partsFormData.partNumber}
                   onChange={(e) => setPartsFormData({ ...partsFormData, partNumber: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -1083,7 +1083,7 @@ export default function FleetMaintenanceFinance() {
                   type="text"
                   value={partsFormData.description}
                   onChange={(e) => setPartsFormData({ ...partsFormData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -1095,7 +1095,7 @@ export default function FleetMaintenanceFinance() {
                     step="0.01"
                     value={partsFormData.unitCost}
                     onChange={(e) => setPartsFormData({ ...partsFormData, unitCost: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
@@ -1105,7 +1105,7 @@ export default function FleetMaintenanceFinance() {
                     type="number"
                     value={partsFormData.quantity}
                     onChange={(e) => setPartsFormData({ ...partsFormData, quantity: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
@@ -1116,7 +1116,7 @@ export default function FleetMaintenanceFinance() {
                   type="date"
                   value={partsFormData.dateOfUse}
                   onChange={(e) => setPartsFormData({ ...partsFormData, dateOfUse: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -1140,7 +1140,7 @@ export default function FleetMaintenanceFinance() {
                       });
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
                   <option value="">Select Vehicle</option>
@@ -1161,14 +1161,14 @@ export default function FleetMaintenanceFinance() {
                     setShowPartsModal(false);
                     resetPartsForm();
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                  className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreateParts}
                   style={{
-                    background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                    background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                   }}
                   className="px-4 py-2  !text-white rounded-lg transition-colors"
                 >
@@ -1202,7 +1202,7 @@ export default function FleetMaintenanceFinance() {
                   type="text"
                   value={laborFormData.rateType}
                   onChange={(e) => setLaborFormData({ ...laborFormData, rateType: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -1211,7 +1211,7 @@ export default function FleetMaintenanceFinance() {
                 <textarea
                   value={laborFormData.description}
                   onChange={(e) => setLaborFormData({ ...laborFormData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={3}
                 />
               </div>
@@ -1222,7 +1222,7 @@ export default function FleetMaintenanceFinance() {
                   step="0.01"
                   value={laborFormData.rate}
                   onChange={(e) => setLaborFormData({ ...laborFormData, rate: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -1232,7 +1232,7 @@ export default function FleetMaintenanceFinance() {
                     type="checkbox"
                     checked={laborFormData.isActive}
                     onChange={(e) => setLaborFormData({ ...laborFormData, isActive: e.target.checked })}
-                    className="rounded border-gray-300"
+                    className="rounded border-theme"
                   />
                   <span className="text-sm font-medium text-primary">Active</span>
                 </label>
@@ -1243,14 +1243,14 @@ export default function FleetMaintenanceFinance() {
                     setShowLaborModal(false);
                     resetLaborForm();
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                  className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreateLabor}
                   style={{
-                    background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                    background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                   }}
                   className="px-4 py-2  !text-white rounded-lg  transition-colors"
                 >
@@ -1284,7 +1284,7 @@ export default function FleetMaintenanceFinance() {
                   type="text"
                   value={planFormData.planName}
                   onChange={(e) => setPlanFormData({ ...planFormData, planName: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -1308,7 +1308,7 @@ export default function FleetMaintenanceFinance() {
                       });
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
                   <option value="">Select Vehicle</option>
@@ -1331,7 +1331,7 @@ export default function FleetMaintenanceFinance() {
                     step="0.01"
                     value={planFormData.plannedCost}
                     onChange={(e) => setPlanFormData({ ...planFormData, plannedCost: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
@@ -1342,7 +1342,7 @@ export default function FleetMaintenanceFinance() {
                     step="0.01"
                     value={planFormData.actualCost}
                     onChange={(e) => setPlanFormData({ ...planFormData, actualCost: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -1351,7 +1351,7 @@ export default function FleetMaintenanceFinance() {
                 <select
                   value={planFormData.status}
                   onChange={(e) => setPlanFormData({ ...planFormData, status: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="Scheduled">Scheduled</option>
                   <option value="In Progress">In Progress</option>
@@ -1365,14 +1365,14 @@ export default function FleetMaintenanceFinance() {
                     setShowPlanModal(false);
                     resetPlanForm();
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                  className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreatePlan}
                   style={{
-                    background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                    background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                   }}
                   className="px-4 py-2 !text-white rounded-lg  transition-colors"
                 >
@@ -1541,7 +1541,7 @@ export default function FleetMaintenanceFinance() {
                     <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${
                       (selectedItem as LaborRateItem).isActive 
                         ? 'bg-green-100 text-green-800 border-2 border-green-300' 
-                        : 'bg-gray-100 text-primary border-2 border-gray-300'
+                        : 'bg-gray-100 text-primary border-2 border-theme'
                     }`}>
                       {(selectedItem as LaborRateItem).isActive ? 'Active' : 'Inactive'}
                     </span>
@@ -1583,7 +1583,7 @@ export default function FleetMaintenanceFinance() {
                       ? 'bg-card border-red-300' 
                       : (selectedItem as MaintenancePlanItem).variance < 0
                       ? 'bg-green-50 border-green-300'
-                      : 'bg-card border-gray-300'
+                      : 'bg-card border-theme'
                   }`}>
                     <label className="text-sm font-medium text-primary mb-1 block">Variance</label>
                     <p className={`text-2xl font-bold ${

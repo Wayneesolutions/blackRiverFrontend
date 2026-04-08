@@ -270,7 +270,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full pl-12 pr-12 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                  className="w-full pl-12 pr-12 py-3 text-lg border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                 />
                 <button
                   type="button"
@@ -279,7 +279,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                     setSearchQuery("");
                     setSelectedIndex(0);
                   }}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                 >
                   <X className="text-secondary" size={20} />
                 </button>

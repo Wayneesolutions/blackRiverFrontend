@@ -347,7 +347,7 @@ const TrainingContentView: React.FC = () => {
     return (
       <div className="p-6 bg-main min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#0ea3d8] mx-auto mb-4" />
+          <Loader2 className="w-8 h-8 animate-spin text-[rgba(0,209,255,0.15)] mx-auto mb-4" />
           <p className="text-secondary">Loading training content...</p>
         </div>
       </div>
@@ -385,12 +385,12 @@ const TrainingContentView: React.FC = () => {
                   <div key={item._id} className="bg-card rounded-lg p-4 border border-theme">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2 flex-1">
-                        <div className="text-[#0ea3d8]">{getIcon(item.type)}</div>
+                        <div className="text-[rgba(0,209,255,0.15)]">{getIcon(item.type)}</div>
                         <h3 className="font-semibold text-primary">{item.name}</h3>
                       </div>
                       <button
                         onClick={() => handleViewContent(item._id, item.type)}
-                        className="text-[#0ea3d8] hover:text-[#0d8fc4] p-1"
+                        className="text-[rgba(0,209,255,0.15)] hover:text-[#0d8fc4] p-1"
                         title="View content"
                       >
                         <Eye className="w-4 h-4" />
@@ -528,7 +528,7 @@ const TrainingContentView: React.FC = () => {
                             <button
                               onClick={() => handleSubmitQA(item._id, item)}
                               disabled={!allAnswered || isSubmitting}
-                              className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                              className="px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                               {isSubmitting ? (
                                 <>

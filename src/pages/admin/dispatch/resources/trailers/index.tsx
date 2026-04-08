@@ -360,7 +360,7 @@ const TrailersTable = () => {
                                     placeholder="Search trailers..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="pl-10 pr-4 py-2 border border-theme rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
                         </div>
@@ -436,7 +436,7 @@ const TrailersTable = () => {
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
+                                <table className="min-w-full divide-y divide-theme">
                                     <thead className="bg-card">
                                         <tr>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
@@ -459,7 +459,7 @@ const TrailersTable = () => {
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-card divide-y divide-gray-200">
+                                    <tbody className="bg-card divide-y divide-theme">
                                         {trailers.length === 0 ? (
                                             <tr>
                                                 <td colSpan={6} className="px-6 py-12 text-center text-secondary">
@@ -576,7 +576,7 @@ const TrailersTable = () => {
                     <button
                       onClick={closeDeleteModal}
                       disabled={deleteLoading}
-                      className="px-5 py-2.5 text-primary bg-card border border-gray-300 rounded-md hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="px-5 py-2.5 text-primary bg-card border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>

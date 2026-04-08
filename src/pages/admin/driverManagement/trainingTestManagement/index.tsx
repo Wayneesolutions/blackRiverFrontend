@@ -593,7 +593,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                   onClick={() => setActiveTab('training')}
                   className={`px-6 py-3 font-medium text-sm transition-colors ${
                     activeTab === 'training'
-                      ? 'text-[#0ea3d8] border-b-2 border-[#0ea3d8]'
+                      ? 'text-[rgba(0,209,255,0.15)] border-b-2 border-[rgba(0,209,255,0.15)]'
                       : 'text-secondary hover:text-primary'
                   }`}
                 >
@@ -603,7 +603,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                   onClick={() => setActiveTab('questionBanks')}
                   className={`px-6 py-3 font-medium text-sm transition-colors ${
                     activeTab === 'questionBanks'
-                      ? 'text-[#0ea3d8] border-b-2 border-[#0ea3d8]'
+                      ? 'text-[rgba(0,209,255,0.15)] border-b-2 border-[rgba(0,209,255,0.15)]'
                       : 'text-secondary hover:text-primary'
                   }`}
                 >
@@ -621,7 +621,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
               <h2 className="text-xl font-bold text-primary">Training Content</h2>
               <button
                 onClick={() => setShowUploadModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors"
               >
                 <Upload className="w-4 h-4" />
                 Upload Content
@@ -631,7 +631,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
             {/* Training Content List */}
             {loading ? (
               <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#0ea3d8]"></div>
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[rgba(0,209,255,0.15)]"></div>
                 <p className="mt-4 text-secondary">Loading training content...</p>
               </div>
             ) : trainingContent.length === 0 ? (
@@ -697,7 +697,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
               <h2 className="text-xl font-bold text-primary">Question Banks</h2>
               <button
                 onClick={handleCreateQuestionBank}
-                className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Create Question Bank
@@ -707,7 +707,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
             {/* Question Banks List */}
             {loading ? (
               <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#0ea3d8]"></div>
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[rgba(0,209,255,0.15)]"></div>
                 <p className="mt-4 text-secondary">Loading question banks...</p>
               </div>
             ) : questionBanks.length === 0 ? (
@@ -741,7 +741,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleEditQuestionBank(bank)}
-                          className="p-2 text-[#0ea3d8] hover:bg-[#0ea3d8]/10 rounded transition-colors"
+                          className="p-2 text-[rgba(0,209,255,0.15)] hover:bg-[rgba(0,209,255,0.15)]/10 rounded transition-colors"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -786,7 +786,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                       value={uploadForm.name}
                       onChange={(e) => setUploadForm(prev => ({ ...prev, name: e.target.value }))}
                       placeholder="Enter content name"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)]"
                     />
                   </div>
 
@@ -799,8 +799,8 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                           onClick={() => setUploadForm(prev => ({ ...prev, type: option.value }))}
                           className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-lg transition-colors ${
                             uploadForm.type === option.value
-                              ? 'border-[#0ea3d8] bg-[#0ea3d8]/10 text-[#0ea3d8]'
-                              : 'border-gray-300 hover:border-gray-400'
+                              ? 'border-[rgba(0,209,255,0.15)] bg-[rgba(0,209,255,0.15)]/10 text-[rgba(0,209,255,0.15)]'
+                              : 'border-theme hover:border-gray-400'
                           }`}
                         >
                           {option.icon}
@@ -815,7 +815,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                     <select
                       value={uploadForm.testType}
                       onChange={(e) => setUploadForm(prev => ({ ...prev, testType: e.target.value as TestType }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)]"
                     >
                       {testTypes.map((type) => (
                         <option key={type.value} value={type.value}>
@@ -827,7 +827,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
 
                   <div>
                     <label className="block text-sm font-medium text-primary mb-2">File</label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <div className="border-2 border-dashed border-theme rounded-lg p-6 text-center">
                       <input
                         type="file"
                         onChange={handleFileSelect}
@@ -854,13 +854,13 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                       setShowUploadModal(false);
                       setUploadForm({ name: '', type: 'PDF', testType: 'TDG', file: null });
                     }}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                    className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleUploadContent}
-                    className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors"
+                    className="px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors"
                   >
                     Upload
                   </button>
@@ -901,7 +901,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                         value={questionBankForm.testName}
                         onChange={(e) => setQuestionBankForm(prev => ({ ...prev, testName: e.target.value }))}
                         placeholder="Enter test name"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)]"
                       />
                     </div>
                     <div>
@@ -909,7 +909,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                       <select
                         value={questionBankForm.testType}
                         onChange={(e) => setQuestionBankForm(prev => ({ ...prev, testType: e.target.value as TestType }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)]"
                       >
                         {testTypes.map((type) => (
                           <option key={type.value} value={type.value}>
@@ -926,7 +926,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                         max="100"
                         value={questionBankForm.passingPercentage}
                         onChange={(e) => setQuestionBankForm(prev => ({ ...prev, passingPercentage: parseInt(e.target.value) || 80 }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)]"
                       />
                     </div>
                     <div className="flex items-center pt-8">
@@ -935,7 +935,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                         id="mandatory"
                         checked={questionBankForm.mandatory}
                         onChange={(e) => setQuestionBankForm(prev => ({ ...prev, mandatory: e.target.checked }))}
-                        className="w-4 h-4 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8]"
+                        className="w-4 h-4 text-[rgba(0,209,255,0.15)] border-theme rounded focus:ring-[rgba(0,209,255,0.15)]"
                       />
                       <label htmlFor="mandatory" className="ml-2 text-sm font-medium text-primary">
                         Mandatory Test
@@ -956,7 +956,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                           onChange={(e) => setQuestionForm(prev => ({ ...prev, question: e.target.value }))}
                           placeholder="Enter question text"
                           rows={3}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)]"
                         />
                       </div>
                       <div>
@@ -968,7 +968,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                               name="correctAnswer"
                               checked={questionForm.correctAnswer === index}
                               onChange={() => setQuestionForm(prev => ({ ...prev, correctAnswer: index }))}
-                              className="w-4 h-4 text-[#0ea3d8] border-gray-300"
+                              className="w-4 h-4 text-[rgba(0,209,255,0.15)] border-theme"
                             />
                             <input
                               type="text"
@@ -979,7 +979,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                                 setQuestionForm(prev => ({ ...prev, options: newOptions }));
                               }}
                               placeholder={`Option ${index + 1}`}
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                              className="flex-1 px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)]"
                             />
                           </div>
                         ))}
@@ -992,13 +992,13 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                                 setEditingQuestionIndex(null);
                                 setQuestionForm({ question: '', options: ['', '', '', ''], correctAnswer: 0 });
                               }}
-                              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                              className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                             >
                               Cancel
                             </button>
                             <button
                               onClick={handleUpdateQuestion}
-                              className="px-4 py-2 bg-[#0ea3d8] text-white rounded-lg hover:bg-[#0d8fc7] transition-colors"
+                              className="px-4 py-2 bg-[rgba(0,209,255,0.15)] text-white rounded-lg hover:bg-[#0d8fc7] transition-colors"
                             >
                               Update Question
                             </button>
@@ -1006,7 +1006,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                         ) : (
                           <button
                             onClick={handleAddQuestion}
-                            className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors"
+                            className="px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors"
                           >
                             Add Question
                           </button>
@@ -1054,7 +1054,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                               <div className="flex items-center gap-2 ml-4">
                                 <button
                                   onClick={() => handleEditQuestion(index)}
-                                  className="p-2 text-[#0ea3d8] hover:bg-[#0ea3d8]/10 rounded transition-colors"
+                                  className="p-2 text-[rgba(0,209,255,0.15)] hover:bg-[rgba(0,209,255,0.15)]/10 rounded transition-colors"
                                 >
                                   <Edit className="w-4 h-4" />
                                 </button>
@@ -1092,7 +1092,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                         correctAnswer: 0
                       });
                     }}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                    className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     disabled={loading}
                   >
                     Cancel
@@ -1100,7 +1100,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                   <button
                     onClick={handleSaveQuestionBank}
                     disabled={loading}
-                    className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? 'Saving...' : editingQuestionBank ? 'Update' : 'Create'} Question Bank
                   </button>

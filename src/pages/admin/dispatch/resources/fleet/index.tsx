@@ -824,7 +824,7 @@ const Index = () => {
                       setShowUnitDetails(false);
                       setTimeout(() => setSelectedUnit(null), 300);
                     }}
-                    className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
+                    className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                   >
                     <X size={24} />
                   </button>

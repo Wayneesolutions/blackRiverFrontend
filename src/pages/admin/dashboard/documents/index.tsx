@@ -118,9 +118,9 @@ const DocumentManagement: React.FC = () => {
   const primaryButtonStyle: React.CSSProperties = {
     background: `linear-gradient(
       90deg,
-      #42aeec 0%,
-      #1db5f5 40%,
-      #0ea3d8 100%
+      var(--accent-blue) 0%,
+      var(--accent-blue) 40%,
+      rgba(0,209,255,0.15) 100%
     )`,
     color: "#fff",
     boxShadow: `0 12px 24px ${FLEET_COLORS.focusRing}`,
@@ -565,7 +565,7 @@ const DocumentManagement: React.FC = () => {
                   setShowCreateCategory(false);
                   setNewCategoryName('');
                 }}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-secondary" />
               </button>
@@ -576,7 +576,7 @@ const DocumentManagement: React.FC = () => {
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 placeholder="e.g. Insurance, Maintenance, Training"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <div className="flex gap-3 pt-2">
                 <button
@@ -585,7 +585,7 @@ const DocumentManagement: React.FC = () => {
                     setShowCreateCategory(false);
                     setNewCategoryName('');
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                  className="flex-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                 >
                   Cancel
                 </button>
@@ -616,7 +616,7 @@ const DocumentManagement: React.FC = () => {
                   setEditCategory(null);
                   setEditCategoryName('');
                 }}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-secondary" />
               </button>
@@ -626,7 +626,7 @@ const DocumentManagement: React.FC = () => {
               <input
                 value={editCategoryName}
                 onChange={(e) => setEditCategoryName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <div className="flex gap-3 pt-2">
                 <button
@@ -635,7 +635,7 @@ const DocumentManagement: React.FC = () => {
                     setEditCategory(null);
                     setEditCategoryName('');
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                  className="flex-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                 >
                   Cancel
                 </button>
@@ -663,7 +663,7 @@ const DocumentManagement: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setConfirmDeleteCategory(null)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-secondary" />
               </button>
@@ -679,7 +679,7 @@ const DocumentManagement: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setConfirmDeleteCategory(null)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                  className="flex-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                 >
                   Cancel
                 </button>
@@ -810,7 +810,7 @@ const DocumentManagement: React.FC = () => {
                               e.stopPropagation();
                               openEditCategory(category);
                             }}
-                            className="p-1 rounded hover:bg-gray-100"
+                            className="p-1 rounded hover:bg-[rgba(255,255,255,0.03)]"
                             title="Edit category"
                           >
                             <Edit size={14} />
@@ -934,7 +934,7 @@ const DocumentManagement: React.FC = () => {
                         className="px-6 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 
                transition-all duration-200 hover:shadow-md"
                         style={{
-                          background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
+                          background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)",
                           color: "#fff",
                           boxShadow: `0 4px 12px ${FLEET_COLORS.focusRing}30`,
                         }}
@@ -952,7 +952,7 @@ const DocumentManagement: React.FC = () => {
                             handleDownload(doc);
                           }}
                           className="px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center justify-center 
-                 hover:bg-gray-100"
+                 hover:bg-[rgba(255,255,255,0.03)]"
                           style={{
                             border: `1px solid ${FLEET_COLORS.focusRing}`,
                             color: FLEET_COLORS.dark,
@@ -1055,7 +1055,7 @@ const DocumentManagement: React.FC = () => {
               {/* File Select */}
               <div>
                 <label className="block text-sm font-semibold text-primary mb-2">Select File</label>
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-theme rounded-lg cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     <Upload size={32} className="text-secondary mb-2" />
                     <p className="text-sm text-secondary mb-1">
@@ -1085,7 +1085,7 @@ const DocumentManagement: React.FC = () => {
                   value={uploadForm.name}
                   onChange={(e) => setUploadForm({ ...uploadForm, name: e.target.value })}
                   placeholder="Enter document name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -1095,7 +1095,7 @@ const DocumentManagement: React.FC = () => {
                 <select
                   value={uploadForm.category}
                   onChange={(e) => setUploadForm({ ...uploadForm, category: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {categories.filter((c) => c.key !== "all").length === 0 ? (
                     <option value="" disabled>
@@ -1131,7 +1131,7 @@ const DocumentManagement: React.FC = () => {
                   onChange={(e) => setUploadForm({ ...uploadForm, description: e.target.value })}
                   placeholder="Enter a brief description"
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 />
               </div>
 
@@ -1139,7 +1139,7 @@ const DocumentManagement: React.FC = () => {
               <div className="flex gap-3 pt-4 border-t border-theme">
                 <button
                   onClick={() => setUploadDialog(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                  className="flex-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                 >
                   Cancel
                 </button>
@@ -1309,7 +1309,7 @@ const DocumentManagement: React.FC = () => {
                   // Since we're using S3, we should always show download option for Office documents
                   if (isS3Url || !isPublic) {
                     return (
-                      <div className="flex flex-col items-center justify-center h-[70vh] bg-card rounded-lg border-2 border-dashed border-gray-300">
+                      <div className="flex flex-col items-center justify-center h-[70vh] bg-card rounded-lg border-2 border-dashed border-theme">
                         <div className="text-center mb-6">
                           <FileText className="text-secondary mb-4 mx-auto" size={64} />
                           <h3 className="text-lg font-semibold text-primary mb-2">Office Document Preview Unavailable</h3>
@@ -1361,7 +1361,7 @@ const DocumentManagement: React.FC = () => {
                   // If viewer error occurred, show message with options
                   if (viewerError) {
                     return (
-                      <div className="flex flex-col items-center justify-center h-[70vh] bg-card rounded-lg border-2 border-dashed border-gray-300">
+                      <div className="flex flex-col items-center justify-center h-[70vh] bg-card rounded-lg border-2 border-dashed border-theme">
                         <div className="text-center mb-6">
                           <AlertCircle className="text-yellow-500 mb-4 mx-auto" size={64} />
                           <h3 className="text-lg font-semibold text-primary mb-2">Viewer Error</h3>
@@ -1556,7 +1556,7 @@ const DocumentManagement: React.FC = () => {
                   // If viewMode is set to 'newtab', show message that it opened
                   if (viewMode === 'newtab') {
                     return (
-                      <div className="flex flex-col items-center justify-center h-[70vh] bg-card rounded-lg border-2 border-dashed border-gray-300">
+                      <div className="flex flex-col items-center justify-center h-[70vh] bg-card rounded-lg border-2 border-dashed border-theme">
                         <div className="text-center mb-6">
                           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Eye className="text-green-600" size={32} />
@@ -1639,7 +1639,7 @@ const DocumentManagement: React.FC = () => {
 
                 // Show message with option to try viewing
                 return (
-                  <div className="flex flex-col items-center justify-center h-[70vh] bg-card rounded-lg border-2 border-dashed border-gray-300">
+                  <div className="flex flex-col items-center justify-center h-[70vh] bg-card rounded-lg border-2 border-dashed border-theme">
                     <FileText className="text-secondary mb-4" size={64} />
                     <h3 className="text-lg font-semibold text-primary mb-2">Document Preview Not Available</h3>
                     <p className="text-sm text-secondary mb-6 text-center max-w-md">
@@ -1699,7 +1699,7 @@ const DocumentManagement: React.FC = () => {
               <p className="text-sm text-secondary mt-2">This action cannot be undone. You are about to delete <span className="font-medium text-primary">{confirmDelete.name}</span>.</p>
             </div>
             <div className="p-4 flex items-center justify-end gap-3">
-              <button onClick={() => setConfirmDelete({ open: false, id: null })} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium">Cancel</button>
+              <button onClick={() => setConfirmDelete({ open: false, id: null })} className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium">Cancel</button>
               <button onClick={handleConfirmDelete} className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors font-medium">Delete</button>
             </div>
           </div>

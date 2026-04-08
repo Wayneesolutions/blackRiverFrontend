@@ -45,7 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                 {/* Toggle button */}
                 <button
                     onClick={onToggle}
-                    className="ml-2 p-1.5 rounded-md hover:bg-gray-100 transition-colors"
+                    className="ml-2 p-1.5 rounded-md hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
                     {isCollapsed ? (

@@ -85,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
           </div>
           <button
             onClick={onToggle}
-            className="text-secondary hover:text-primary cursor-pointer transition-colors p-1 rounded-md hover:bg-gray-100"
+            className="text-secondary hover:text-primary cursor-pointer transition-colors p-1 rounded-md hover:bg-[rgba(255,255,255,0.03)]"
           >
             {isCollapsed ? <FaBars size={16} /> : <FaTimes size={16} />}
           </button>

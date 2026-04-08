@@ -25,7 +25,7 @@ const CUSTOM_COLORS = {
     primary: '#016ab2',
     dark: '#063f6f',
     light: '#398bc3',
-    gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+    gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
 };
 
 interface FirstAidLog {
@@ -265,7 +265,7 @@ const FirstAidLogsPage: React.FC = () => {
                                         <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200">
+                                <tbody className="divide-y divide-theme">
                                     {loading ? (
                                         <tr><td colSpan={8} className="text-center py-8">Loading logs...</td></tr>
                                     ) : firstAidLogs.length === 0 ? (

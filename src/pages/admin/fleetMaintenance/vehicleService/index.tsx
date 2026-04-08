@@ -269,14 +269,14 @@ const VehicleServiceManagement = () => {
                   placeholder="Search services..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               <select
                 value={filters.priority || ''}
                 onChange={(e) => setFilters({ ...filters, priority: e.target.value as any || undefined })}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">All Priorities</option>
                 <option value="urgent">Urgent</option>
@@ -288,7 +288,7 @@ const VehicleServiceManagement = () => {
               <select
                 value={filters.status || ''}
                 onChange={(e) => setFilters({ ...filters, status: e.target.value as any || undefined })}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">All Statuses</option>
                 <option value="pending">Pending</option>
@@ -316,7 +316,7 @@ const VehicleServiceManagement = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-theme">
                 <thead className="bg-card">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
@@ -342,7 +342,7 @@ const VehicleServiceManagement = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {filteredServices.map((service) => (
                     <tr key={service._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -370,7 +370,7 @@ const VehicleServiceManagement = () => {
                             <select
                               value={service.status}
                               onChange={(e) => handleUpdateStatus(service._id, e.target.value as any)}
-                              className="text-xs border border-gray-300 rounded px-2 py-1"
+                              className="text-xs border border-theme rounded px-2 py-1"
                             >
                               <option value="pending">Pending</option>
                               <option value="in-progress">In Progress</option>
@@ -428,7 +428,7 @@ const VehicleServiceManagement = () => {
                   <select
                     value={formData.vehicleId}
                     onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select Vehicle</option>
                     {vehicles.map(vehicle => (
@@ -444,7 +444,7 @@ const VehicleServiceManagement = () => {
                   <select
                     value={formData.serviceType}
                     onChange={(e) => setFormData({ ...formData, serviceType: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="oil-change">Oil Change</option>
                     <option value="tire-rotation">Tire Rotation</option>
@@ -459,7 +459,7 @@ const VehicleServiceManagement = () => {
                   <select
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -474,7 +474,7 @@ const VehicleServiceManagement = () => {
                     type="date"
                     value={formData.dueDate}
                     onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
@@ -484,7 +484,7 @@ const VehicleServiceManagement = () => {
                     type="number"
                     value={formData.dueMileage}
                     onChange={(e) => setFormData({ ...formData, dueMileage: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
@@ -493,7 +493,7 @@ const VehicleServiceManagement = () => {
                   <select
                     value={formData.assignedMechanic}
                     onChange={(e) => setFormData({ ...formData, assignedMechanic: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select Mechanic</option>
                     {mechanics.map(mechanic => (
@@ -510,14 +510,14 @@ const VehicleServiceManagement = () => {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4">
                   <button
                     onClick={() => setShowCreateModal(false)}
-                    className="px-4 py-2 text-secondary border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)]"
+                    className="px-4 py-2 text-secondary border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)]"
                   >
                     Cancel
                   </button>
@@ -552,7 +552,7 @@ const VehicleServiceManagement = () => {
                   <select
                     value={formData.vehicleId}
                     onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select Vehicle</option>
                     {vehicles.map(vehicle => (
@@ -569,7 +569,7 @@ const VehicleServiceManagement = () => {
                   <select
                     value={formData.serviceType}
                     onChange={(e) => setFormData({ ...formData, serviceType: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="oil-change">Oil Change</option>
                     <option value="tire-rotation">Tire Rotation</option>
@@ -584,7 +584,7 @@ const VehicleServiceManagement = () => {
                   <select
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -599,7 +599,7 @@ const VehicleServiceManagement = () => {
                     type="date"
                     value={formData.dueDate}
                     onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
@@ -609,7 +609,7 @@ const VehicleServiceManagement = () => {
                     type="number"
                     value={formData.dueMileage}
                     onChange={(e) => setFormData({ ...formData, dueMileage: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
@@ -618,7 +618,7 @@ const VehicleServiceManagement = () => {
                   <select
                     value={formData.assignedMechanic}
                     onChange={(e) => setFormData({ ...formData, assignedMechanic: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select Mechanic</option>
                     {mechanics.map(mechanic => (
@@ -635,14 +635,14 @@ const VehicleServiceManagement = () => {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4">
                   <button
                     onClick={() => setShowEditModal(false)}
-                    className="px-4 py-2 text-secondary border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)]"
+                    className="px-4 py-2 text-secondary border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)]"
                   >
                     Cancel
                   </button>
@@ -677,7 +677,7 @@ const VehicleServiceManagement = () => {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 text-secondary border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)]"
+                  className="px-4 py-2 text-secondary border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)]"
                 >
                   Cancel
                 </button>

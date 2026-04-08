@@ -106,7 +106,7 @@ const NavigatorSettings = () => {
                                                 id={key}
                                                 checked={selectedFields[key as FieldKey]}   // ✅ Cast to FieldKey
                                                 onChange={() => handleFieldChange(key as FieldKey)}
-                                                className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+                                                className="w-4 h-4 text-purple-600 bg-gray-100 border-theme rounded focus:ring-purple-500 focus:ring-2"
                                             />
 
                                             <label htmlFor={key} className="text-sm text-primary cursor-pointer">
@@ -159,7 +159,7 @@ const NavigatorSettings = () => {
                                     <select
                                         value={onboardMethod}
                                         onChange={(e) => setOnboardMethod(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-card text-sm"
+                                        className="w-full px-3 py-2 border border-theme rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-card text-sm"
                                     >
                                         <option value="invite">Invite</option>
                                         <option value="direct">Direct Registration</option>
@@ -196,7 +196,7 @@ const NavigatorSettings = () => {
                                             </button>
                                         </div>
 
-                                        <div className="h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-card">
+                                        <div className="h-32 border-2 border-dashed border-theme rounded-lg flex items-center justify-center bg-card">
                                             <div className="text-center">
                                                 <div className="text-secondary mb-2">
                                                     <svg className="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48">

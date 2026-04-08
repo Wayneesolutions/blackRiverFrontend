@@ -367,7 +367,7 @@ const InvoicePayment: React.FC = () => {
                                 <div className="mt-6 pt-6 border-t border-theme">
                                     <h3 className="text-sm font-medium text-secondary uppercase tracking-wide mb-4">Service Breakdown</h3>
                                     <div className="overflow-x-auto">
-                                        <table className="min-w-full divide-y divide-gray-200">
+                                        <table className="min-w-full divide-y divide-theme">
                                             <thead className="bg-card">
                                                 <tr>
                                                     <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Description</th>
@@ -377,7 +377,7 @@ const InvoicePayment: React.FC = () => {
                                                     <th className="px-4 py-3 text-right text-xs font-medium text-secondary uppercase tracking-wider">Tax</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="bg-card divide-y divide-gray-200">
+                                            <tbody className="bg-card divide-y divide-theme">
                                                 {invoice.serviceBreakdown.map((item, index) => {
                                                     const itemAmount = item.amount || (item.unitPrice * (item.quantity || 1));
                                                     const itemTax = item.taxAmount || (itemAmount * ((item.taxRate || 0) / 100));

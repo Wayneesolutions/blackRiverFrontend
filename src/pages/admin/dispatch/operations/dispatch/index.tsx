@@ -340,7 +340,7 @@ const Index = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-gray-200">
+            <tbody className="bg-card divide-y divide-theme">
               {loads.length === 0 ? (
                 <tr>
                   <td colSpan={11} className="px-6 py-12 text-center text-secondary">
@@ -499,7 +499,7 @@ const Index = () => {
                   setShowDetailsModal(false);
                   setSelectedLoad(null);
                 }}
-                className="p-2 hover:bg-gray-100 rounded-lg"
+                className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
               >
                 <span className="text-secondary">✕</span>
               </button>

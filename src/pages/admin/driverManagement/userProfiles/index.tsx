@@ -515,7 +515,7 @@ const UserProfilesPortfolio: React.FC = () => {
                                 placeholder="Search by name or email..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                                className="pl-10 pr-4 py-2 w-full border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                                 style={focusRingStyle}
                             />
                         </div>
@@ -546,7 +546,7 @@ const UserProfilesPortfolio: React.FC = () => {
                             <select
                                 value={selectedRole}
                                 onChange={(e) => setSelectedRole(e.target.value as UserRole)}
-                                className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                                className="px-4 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                                 style={focusRingStyle}
                             >
                                 <option value="all">All Roles</option>
@@ -628,7 +628,7 @@ const UserProfilesPortfolio: React.FC = () => {
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="divide-y divide-theme">
                                 {loading ? (
                                     <tr>
                                         <td colSpan={showDriverColumns ? 10 : 7} className="px-6 py-12 text-center text-secondary">
@@ -801,7 +801,7 @@ const UserProfilesPortfolio: React.FC = () => {
                             {/* Header */}
                             <div className="sticky top-0  text-white p-6 z-10"
                                 style={{
-                                    background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                                    background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                                 }}>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
@@ -960,7 +960,7 @@ const UserProfilesPortfolio: React.FC = () => {
                                                     onClick={() => setProfileTimePeriod(period)}
                                                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${profileTimePeriod === period
                                                         ? '!text-white shadow-md'
-                                                        : 'bg-card text-primary hover:bg-gray-100 border border-gray-300'
+                                                        : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                         }`}
                                                     style={profileTimePeriod === period ? { background: ACCENT_GRADIENT, borderColor: 'transparent' } : undefined}
                                                 >

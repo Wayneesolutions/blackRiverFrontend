@@ -79,7 +79,7 @@ const MechanicsSidebar: React.FC<MechanicsSidebarProps> = ({ isCollapsed = false
                   to={link.key}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-2.5 transition cursor-pointer select-none ${
-                      isActive ? "bg-[#42aeec]/10 text-[#42aeec]" : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[#42aeec]"
+                      isActive ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]" : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[var(--accent-blue)]"
                     }`
                   }
                 >

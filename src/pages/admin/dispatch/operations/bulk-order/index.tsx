@@ -245,7 +245,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
         <div className="min-h-screen flex flex-col bg-card">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-theme" style={{
-                background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
             }}>
                 <h2 className="text-base font-semibold text-white">
                     {order ? "Edit Order" : "New Order"}
@@ -270,7 +270,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                             <div className="relative">
                                 <div
                                     onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
-                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer hover:border-[#1db5f5] focus-within:border-[#1db5f5] focus-within:ring-1 focus-within:ring-[#42aeec]/30"
+                                    className="flex items-center gap-1 p-2 border border-theme rounded-lg bg-card cursor-pointer hover:border-[var(--accent-blue)] focus-within:border-[var(--accent-blue)] focus-within:ring-1 focus-within:ring-[var(--accent-blue)]/30"
                                 >
                                     <ChevronDown className={`w-3.5 h-3.5 text-secondary transition-transform flex-shrink-0 ${customerDropdownOpen ? 'rotate-180' : ''}`} />
                                     <input
@@ -292,14 +292,14 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                 setSelectedCustomer(null);
                                                 setCustomerSearch("");
                                             }}
-                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                            className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                                         >
                                             <X className="w-3.5 h-3.5 text-secondary" />
                                         </button>
                                     )}
                                 </div>
                                 {customerDropdownOpen && (
-                                    <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
+                                    <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-60 overflow-hidden">
                                         <div className="p-2 border-b border-theme">
                                             <div className="relative">
                                                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-secondary" />
@@ -308,7 +308,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                     value={customerSearch}
                                                     onChange={(e) => setCustomerSearch(e.target.value)}
                                                     placeholder="Search..."
-                                                    className="w-full pl-7 pr-2 py-1.5 border border-gray-300 rounded text-[13px] focus:outline-none focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5]"
+                                                    className="w-full pl-7 pr-2 py-1.5 border border-theme rounded text-[13px] focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)]"
                                                     autoFocus
                                                 />
                                             </div>
@@ -323,7 +323,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                             setCustomerSearch("");
                                                             setCustomerDropdownOpen(false);
                                                         }}
-                                                        className={`px-3 py-2 cursor-pointer hover:bg-[#42aeec]/10 text-[13px] ${selectedCustomer?._id === customer._id ? 'bg-[#42aeec]/10' : ''
+                                                        className={`px-3 py-2 cursor-pointer hover:bg-[var(--accent-blue)]/10 text-[13px] ${selectedCustomer?._id === customer._id ? 'bg-[var(--accent-blue)]/10' : ''
                                                             }`}
                                                     >
                                                         <div className="font-medium text-[#016ab2]">{customer.name || 'Unnamed Customer'}</div>
@@ -348,7 +348,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={commodity}
                                 onChange={(e) => setCommodity(e.target.value)}
                                 placeholder="Enter commodity"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-1 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] text-[13px] bg-card"
                             />
                         </div>
 
@@ -364,7 +364,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             : "bg-gray-100 text-primary hover:bg-gray-200"
                                         }`}
                                     style={loadType === "FTL" ? {
-                                        background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                                        background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                                     } : {}}
                                 >
                                     FTL
@@ -376,7 +376,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             : "bg-gray-100 text-primary hover:bg-gray-200"
                                         }`}
                                     style={loadType === "LTL" ? {
-                                        background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                                        background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                                     } : {}}
                                 >
                                     LTL
@@ -394,7 +394,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                             <div className="relative">
                                 <div
                                     onClick={() => setPickupDropdownOpen(!pickupDropdownOpen)}
-                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer hover:border-[#1db5f5] focus-within:border-[#1db5f5] focus-within:ring-1 focus-within:ring-[#42aeec]/30"
+                                    className="flex items-center gap-1 p-2 border border-theme rounded-lg bg-card cursor-pointer hover:border-[var(--accent-blue)] focus-within:border-[var(--accent-blue)] focus-within:ring-1 focus-within:ring-[var(--accent-blue)]/30"
                                 >
                                     <ChevronDown className={`w-3.5 h-3.5 text-secondary transition-transform flex-shrink-0 ${pickupDropdownOpen ? 'rotate-180' : ''}`} />
                                     <input
@@ -416,14 +416,14 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                 setSelectedPickupPlace(null);
                                                 setPickupSearch("");
                                             }}
-                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                            className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                                         >
                                             <X className="w-3.5 h-3.5 text-secondary" />
                                         </button>
                                     )}
                                 </div>
                                 {pickupDropdownOpen && (
-                                    <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
+                                    <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-60 overflow-hidden">
                                         <div className="p-2 border-b border-theme">
                                             <div className="relative">
                                                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-secondary" />
@@ -432,7 +432,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                     value={pickupSearch}
                                                     onChange={(e) => setPickupSearch(e.target.value)}
                                                     placeholder="Search places..."
-                                                    className="w-full pl-7 pr-2 py-1.5 border border-gray-300 rounded text-[13px] focus:outline-none focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5]"
+                                                    className="w-full pl-7 pr-2 py-1.5 border border-theme rounded text-[13px] focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)]"
                                                     autoFocus
                                                 />
                                             </div>
@@ -447,7 +447,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                             setPickupSearch("");
                                                             setPickupDropdownOpen(false);
                                                         }}
-                                                        className={`px-3 py-2 cursor-pointer hover:bg-[#42aeec]/10 text-[13px] ${selectedPickupPlace?._id === place._id ? 'bg-[#42aeec]/10' : ''
+                                                        className={`px-3 py-2 cursor-pointer hover:bg-[var(--accent-blue)]/10 text-[13px] ${selectedPickupPlace?._id === place._id ? 'bg-[var(--accent-blue)]/10' : ''
                                                             }`}
                                                     >
                                                         <div className="font-medium text-[#016ab2]">{place.name || 'Unnamed Place'}</div>
@@ -472,13 +472,13 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                     type="date"
                                     value={pickupDate}
                                     onChange={(e) => setPickupDate(e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
+                                    className="flex-1 px-3 py-2 border border-theme rounded-lg focus:ring-1 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] text-[13px] bg-card"
                                 />
                                 <input
                                     type="time"
                                     value={deliveryTime}
                                     onChange={(e) => setDeliveryTime(e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
+                                    className="flex-1 px-3 py-2 border border-theme rounded-lg focus:ring-1 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] text-[13px] bg-card"
                                 />
                             </div>
                         </div>
@@ -495,7 +495,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={pickupRefNo}
                                 onChange={(e) => setPickupRefNo(e.target.value)}
                                 placeholder="Enter reference"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-1 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] text-[13px] bg-card"
                             />
                         </div>
 
@@ -508,7 +508,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={deliveryRefNo}
                                 onChange={(e) => setDeliveryRefNo(e.target.value)}
                                 placeholder="Enter reference"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-1 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] text-[13px] bg-card"
                             />
                         </div>
 
@@ -520,7 +520,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 <select
                                     value={valueOfGoodsCurrency}
                                     onChange={(e) => setValueOfGoodsCurrency(e.target.value)}
-                                    className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
+                                    className="w-20 px-2 py-2 border border-theme rounded-lg focus:ring-1 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] text-[13px] bg-card"
                                 >
                                     <option>CAD</option>
                                     <option>USD</option>
@@ -546,7 +546,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                         }
                                     }}
                                     placeholder="0.00"
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
+                                    className="flex-1 px-3 py-2 border border-theme rounded-lg focus:ring-1 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] text-[13px] bg-card"
                                 />
                             </div>
                         </div>
@@ -560,7 +560,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={customerOrderNo}
                                 onChange={(e) => setCustomerOrderNo(e.target.value)}
                                 placeholder="Order number"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-1 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] text-[13px] bg-card"
                             />
                         </div>
                     </div>
@@ -574,7 +574,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                             <select
                                 value={taxBasedOn}
                                 onChange={(e) => setTaxBasedOn(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-1 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] text-[13px] bg-card"
                             >
                                 <option>Delivery</option>
                                 <option>Pickup</option>
@@ -586,12 +586,12 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 Tax 1
                             </label>
                             <div className="flex items-center gap-2">
-                                <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-[rgba(255,255,255,0.03)] bg-card min-w-fit">
+                                <label className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg cursor-pointer hover:bg-[rgba(255,255,255,0.03)] bg-card min-w-fit">
                                     <input
                                         type="checkbox"
                                         checked={tax1}
                                         onChange={(e) => setTax1(e.target.checked)}
-                                        className="w-3.5 h-3.5 text-[#016ab2] rounded focus:ring-[#42aeec]/30"
+                                        className="w-3.5 h-3.5 text-[#016ab2] rounded focus:ring-[var(--accent-blue)]/30"
                                     />
                                     <span className="text-[13px] whitespace-nowrap">Tax 1</span>
                                 </label>
@@ -613,7 +613,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             }
                                         }}
                                         placeholder="0.00"
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
+                                        className="flex-1 px-3 py-2 border border-theme rounded-lg focus:ring-1 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] text-[13px] bg-card"
                                     />
                                     <span className="text-[13px] text-secondary flex-shrink-0">%</span>
                                 </div>
@@ -630,7 +630,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={totalTax}
                                 onChange={(e) => setTotalTax(e.target.value)}
                                 placeholder="0.00"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-1 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] text-[13px] bg-card"
                                 readOnly
                             />
                         </div>
@@ -645,7 +645,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={grossTotalFreight}
                                 onChange={(e) => setGrossTotalFreight(e.target.value)}
                                 placeholder="0.00"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-1 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] text-[13px] bg-card"
                                 readOnly
                             />
                         </div>
@@ -657,7 +657,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
             <div className="flex items-center justify-end gap-3 px-5 py-3.5 border-t border-theme bg-card">
                 <button
                     onClick={handleReset}
-                    className="px-5 py-2 text-[13px] font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                    className="px-5 py-2 text-[13px] font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                     Reset
                 </button>
@@ -665,7 +665,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                     onClick={handleSubmit}
                     className="px-5 py-2 text-[13px] font-medium !text-white rounded-lg transition-all shadow-md hover:shadow-lg"
                     style={{
-                        background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                        background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                     }}
                 >
                     {order ? "Update" : "Add"}
@@ -829,7 +829,7 @@ const BulkOrder = () => {
                         onClick={handleAddOrder}
                         className="flex items-center gap-2 px-3 py-1.5 !text-white rounded text-[13px] transition-all shadow-md hover:shadow-lg"
                         style={{
-                            background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                         }}
                     >
                         <Plus className="w-3.5 h-3.5" />
@@ -858,9 +858,9 @@ const BulkOrder = () => {
                                     <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-theme">
                                 {orders.map((order) => (
-                                    <tr key={order.id} className="hover:bg-[#42aeec]/5">
+                                    <tr key={order.id} className="hover:bg-[var(--accent-blue)]/5">
                                         <td className="px-3 py-2 whitespace-nowrap text-[11px] text-primary">{order.company}</td>
                                         <td className="px-3 py-2 whitespace-nowrap text-[11px] text-primary">{order.customerName || "-"}</td>
                                         <td className="px-3 py-2 whitespace-nowrap text-[11px] text-primary">{order.commodity || "-"}</td>
@@ -880,7 +880,7 @@ const BulkOrder = () => {
                                             <div className="flex items-center gap-1">
                                                 <button
                                                     onClick={() => handleEditOrder(order)}
-                                                    className="p-1 text-[#016ab2] hover:bg-[#42aeec]/10 rounded"
+                                                    className="p-1 text-[#016ab2] hover:bg-[var(--accent-blue)]/10 rounded"
                                                     title="Edit"
                                                 >
                                                     <Edit className="w-3 h-3" />
@@ -941,7 +941,7 @@ const BulkOrder = () => {
                         <div className="flex justify-end gap-2">
                             <button
                                 onClick={() => setDeleteConfirm({ show: false, orderId: null })}
-                                className="px-4 py-2 text-[13px] font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                                className="px-4 py-2 text-[13px] font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                             >
                                 Cancel
                             </button>

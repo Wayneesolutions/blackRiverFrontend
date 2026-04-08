@@ -293,7 +293,7 @@ const Index = () => {
         <div
           className="absolute inset-x-0 top-0"
           style={{
-            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+            background: `linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)`,
             height: '101px'
           }}
           aria-hidden="true"
@@ -323,7 +323,7 @@ const Index = () => {
                       navigate(feature.path);
                     }
                   }}
-                  className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all ${feature.path ? 'cursor-pointer' : 'cursor-default'} border border-transparent hover:border-[#42aeec]/20 ${feature.path ? 'hover:scale-[1.02] active:scale-[0.98]' : ''}`}
+                  className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all ${feature.path ? 'cursor-pointer' : 'cursor-default'} border border-transparent hover:border-[var(--accent-blue)]/20 ${feature.path ? 'hover:scale-[1.02] active:scale-[0.98]' : ''}`}
                 >
                   <div className="flex items-start justify-between mb-2">
                     {/* Left side content */}
@@ -496,7 +496,7 @@ const Index = () => {
                       <th className="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-theme">
                     {dashboardStats.documentExpiryTracking.slice(0, 10).map((doc, index) => {
                       const expiryDate = doc.expiryDate ? new Date(doc.expiryDate) : null;
                       const today = new Date();

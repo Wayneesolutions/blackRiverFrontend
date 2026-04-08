@@ -119,7 +119,7 @@ const ReportsAnalytics = () => {
     primary: '#016ab2',
     dark: '#063f6f',
     light: '#398bc3',
-    gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+    gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
     gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
   };
 
@@ -396,7 +396,7 @@ const ReportsAnalytics = () => {
             <select
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
@@ -612,7 +612,7 @@ const ReportsAnalytics = () => {
                     value={generateFormData.title}
                     onChange={(e) => setGenerateFormData({ ...generateFormData, title: e.target.value })}
                     placeholder="Auto-generated if left empty"
-                    className="w-full border border-gray-300 p-2 rounded-lg"
+                    className="w-full border border-theme p-2 rounded-lg"
                   />
                 </div>
                 <div>
@@ -621,7 +621,7 @@ const ReportsAnalytics = () => {
                     value={generateFormData.type}
                     onChange={(e) => setGenerateFormData({ ...generateFormData, type: e.target.value })}
                     required
-                    className="w-full border border-gray-300 p-2 rounded-lg"
+                    className="w-full border border-theme p-2 rounded-lg"
                   >
                     <option value="Monthly Summary">Monthly Summary</option>
                     <option value="Incident Analysis">Incident Analysis</option>
@@ -637,7 +637,7 @@ const ReportsAnalytics = () => {
                     value={generateFormData.periodType}
                     onChange={(e) => setGenerateFormData({ ...generateFormData, periodType: e.target.value })}
                     required
-                    className="w-full border border-gray-300 p-2 rounded-lg"
+                    className="w-full border border-theme p-2 rounded-lg"
                   >
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
@@ -651,7 +651,7 @@ const ReportsAnalytics = () => {
                   <button
                     type="button"
                     onClick={() => setShowGenerateModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                    className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                   >
                     Cancel
                   </button>

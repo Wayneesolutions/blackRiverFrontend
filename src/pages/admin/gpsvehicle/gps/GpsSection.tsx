@@ -486,10 +486,10 @@ const GpsSection = () => {
                                             placeholder="Search vehicle..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
-                                            className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="pl-9 pr-4 py-2 border border-theme rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
-                                    <button className="p-2 text-secondary hover:bg-gray-100 rounded-lg">
+                                    <button className="p-2 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg">
                                         <RefreshCw size={18} />
                                     </button>
                                 </div>
@@ -750,7 +750,7 @@ const GpsSection = () => {
                                                     <XAxis type="number" stroke="#9ca3af" fontSize={12} />
                                                     <YAxis dataKey="name" type="category" stroke="#6b7280" fontSize={12} width={80} />
                                                     <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
-                                                    <Bar dataKey="hours" fill="#42aeec" radius={[0, 4, 4, 0]} barSize={20} />
+                                                    <Bar dataKey="hours" fill="var(--accent-blue)" radius={[0, 4, 4, 0]} barSize={20} />
                                                 </BarChart>
                                             </ResponsiveContainer>
                                         </div>

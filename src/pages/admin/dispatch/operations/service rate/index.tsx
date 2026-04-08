@@ -442,7 +442,7 @@ const ServicePage = () => {
                       name="serviceName"
                       value={updateForm.serviceName}
                       onChange={handleUpdateChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                      className="w-full border border-theme rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                       placeholder="Enter service name"
                     />
                   </div>
@@ -454,7 +454,7 @@ const ServicePage = () => {
                       name="orderType"
                       value={updateForm.orderType}
                       onChange={handleUpdateChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
+                      className="w-full border border-theme rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
                     >
                       <option value="">Select order type</option>
                       <option value="transport">Transport</option>
@@ -471,7 +471,7 @@ const ServicePage = () => {
                     name="tags"
                     value={updateForm.tags}
                     onChange={handleUpdateChange}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                    className="w-full border border-theme rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                     placeholder="e.g. priority, fragile"
                   />
                 </div>
@@ -495,7 +495,7 @@ const ServicePage = () => {
                         name="price"
                         value={updateForm.price}
                         onChange={handleUpdateChange}
-                        className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                        className="w-full border border-theme rounded-lg pl-10 pr-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                         placeholder="0.00"
                       />
                     </div>
@@ -508,7 +508,7 @@ const ServicePage = () => {
                       name="rateCalculationMethod"
                       value={updateForm.rateCalculationMethod}
                       onChange={handleUpdateChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
+                      className="w-full border border-theme rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
                     >
                       <option value="">Select calculation method</option>
                       <option value="fixed-meter">Fixed Meter</option>
@@ -526,7 +526,7 @@ const ServicePage = () => {
                       name="duration"
                       value={updateForm.duration}
                       onChange={handleUpdateChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                      className="w-full border border-theme rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                       placeholder="Enter duration terms if applicable"
                     />
                   </div>
@@ -538,7 +538,7 @@ const ServicePage = () => {
                       name="serviceRestriction"
                       value={updateForm.serviceRestriction}
                       onChange={handleUpdateChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
+                      className="w-full border border-theme rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
                     >
                       <option value="">Select restriction</option>
                       <option value="service-area">Restrict to service area</option>
@@ -565,7 +565,7 @@ const ServicePage = () => {
                       onChange={handleUpdateChange}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-theme after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
                 {updateForm.cashOnDeliver && (
@@ -578,7 +578,7 @@ const ServicePage = () => {
                         name="cashOnDeliverMethod"
                         value={updateForm.cashOnDeliverMethod}
                         onChange={handleUpdateChange}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
+                        className="w-full border border-theme rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
                       >
                         <option value="">Select COD calculation method</option>
                         <option value="flat">Flat Fee</option>
@@ -605,7 +605,7 @@ const ServicePage = () => {
                       onChange={handleUpdateChange}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-theme after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
                 {updateForm.peakHours && (
@@ -620,7 +620,7 @@ const ServicePage = () => {
                           name="peakHoursStart"
                           value={updateForm.peakHoursStart}
                           onChange={handleUpdateChange}
-                          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                          className="w-full border border-theme rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                         />
                       </div>
                       <div>
@@ -632,7 +632,7 @@ const ServicePage = () => {
                           name="peakHoursEnd"
                           value={updateForm.peakHoursEnd}
                           onChange={handleUpdateChange}
-                          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                          className="w-full border border-theme rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                         />
                       </div>
                     </div>
@@ -644,7 +644,7 @@ const ServicePage = () => {
                         name="peakHoursMethod"
                         value={updateForm.peakHoursMethod}
                         onChange={handleUpdateChange}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
+                        className="w-full border border-theme rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
                       >
                         <option value="">Select peak hours method</option>
                         <option value="flat">Flat Additional Fee</option>
@@ -659,7 +659,7 @@ const ServicePage = () => {
             <div className="px-6 py-4 border-t border-theme bg-card flex justify-end gap-3">
               <button
                 onClick={closeUpdateModal}
-                className="px-6 py-2.5 text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200 font-medium"
+                className="px-6 py-2.5 text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200 font-medium"
               >
                 Cancel
               </button>
@@ -708,7 +708,7 @@ const ServicePage = () => {
               <button
                 onClick={closeDeleteModal}
                 disabled={deleteSubmitting}
-                className="px-5 py-2.5 text-primary bg-card border border-gray-300 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="px-5 py-2.5 text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>

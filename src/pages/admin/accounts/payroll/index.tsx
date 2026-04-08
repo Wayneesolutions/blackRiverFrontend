@@ -1821,7 +1821,7 @@ const PayrollManagement = () => {
 
                 <div className="flex justify-between items-center mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Payroll Management</h1>
+                        <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Payroll Management</h1>
                         <p className="text-secondary mt-2">Manage employee salaries and payroll records</p>
                     </div>
                     <div className="flex gap-3">
@@ -1837,7 +1837,7 @@ const PayrollManagement = () => {
                         <button
                             onClick={() => setShowBulkAIModal(true)}
                             className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all font-medium flex items-center gap-2"
-                            style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                            style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                         >
                             <Sparkles size={16} />
                             Generate All Payrolls (AI)
@@ -1845,7 +1845,7 @@ const PayrollManagement = () => {
                         <button
                             onClick={() => setShowCreateModal(true)}
                             className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all font-medium flex items-center gap-2"
-                            style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                            style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                         >
                             <Plus size={16} />
                             Create Payroll
@@ -1861,7 +1861,7 @@ const PayrollManagement = () => {
                                 <p className="text-2xl font-bold text-[#016ab2] mt-1">${totalPayroll.toLocaleString()}</p>
                             </div>
                             <div className="p-3 rounded-full bg-card flex-shrink-0">
-                                <DollarSign className="text-[#42aeec]" size={24} />
+                                <DollarSign className="text-[var(--accent-blue)]" size={24} />
                             </div>
                         </div>
                     </div>
@@ -1872,7 +1872,7 @@ const PayrollManagement = () => {
                                 <p className="text-2xl font-bold text-[#016ab2] mt-1">{payrollData.length}</p>
                             </div>
                             <div className="p-3 rounded-full bg-card flex-shrink-0">
-                                <Users className="text-[#0ea3d8]" size={24} />
+                                <Users className="text-[rgba(0,209,255,0.15)]" size={24} />
                             </div>
                         </div>
                     </div>
@@ -1883,7 +1883,7 @@ const PayrollManagement = () => {
                                 <p className="text-2xl font-bold text-[#016ab2] mt-1">${Math.round(avgSalary).toLocaleString()}</p>
                             </div>
                             <div className="p-3 rounded-full bg-card flex-shrink-0">
-                                <TrendingUp className="text-[#1db5f5]" size={24} />
+                                <TrendingUp className="text-[var(--accent-blue)]" size={24} />
                             </div>
                         </div>
                     </div>
@@ -1912,14 +1912,14 @@ const PayrollManagement = () => {
                                     placeholder="Search by employee name or internal ID..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    className="w-full pl-10 pr-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                 />
                             </div>
                             <div className="flex gap-2">
                                 <select
                                     value={filterStatus}
                                     onChange={(e) => setFilterStatus(e.target.value)}
-                                    className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    className="px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                 >
                                     <option value="all">All Roles</option>
                                     <option value="driver">Driver</option>
@@ -1962,11 +1962,11 @@ const PayrollManagement = () => {
                                     border-radius: 5px;
                                 }
                                 .top-scrollbar-container::-webkit-scrollbar-thumb {
-                                    background: #42aeec;
+                                    background: var(--accent-blue);
                                     border-radius: 5px;
                                 }
                                 .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                                    background: #0ea3d8;
+                                    background: rgba(0,209,255,0.15);
                                 }
                                 .table-container-with-scrollbar {
                                     overflow-x: auto;
@@ -1980,11 +1980,11 @@ const PayrollManagement = () => {
                                     border-radius: 5px;
                                 }
                                 .table-container-with-scrollbar::-webkit-scrollbar-thumb {
-                                    background: #42aeec;
+                                    background: var(--accent-blue);
                                     border-radius: 5px;
                                 }
                                 .table-container-with-scrollbar::-webkit-scrollbar-thumb:hover {
-                                    background: #0ea3d8;
+                                    background: rgba(0,209,255,0.15);
                                 }
                             `}</style>
                             <div
@@ -1995,7 +1995,7 @@ const PayrollManagement = () => {
                                     marginBottom: '8px',
                                     paddingTop: '8px',
                                     scrollbarWidth: 'thin',
-                                    scrollbarColor: '#42aeec #f7fafc'
+                                    scrollbarColor: 'var(--accent-blue) #f7fafc'
                                 }}
                             >
                                 <div className="top-scroll-content" style={{ height: '1px', minWidth: '100%' }}></div>
@@ -2034,7 +2034,7 @@ const PayrollManagement = () => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-card divide-y divide-gray-200">
+                                <tbody className="bg-card divide-y divide-theme">
                                     {filteredPayrolls.map((payroll) => {
                                         return (
                                             <tr 
@@ -2146,7 +2146,7 @@ const PayrollManagement = () => {
                                         resetForm();
                                         setSelectedPayroll(null);
                                     }}
-                                    className="text-secondary hover:text-secondary p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                    className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
                                 >
                                     <X size={24} />
                                 </button>
@@ -2161,7 +2161,7 @@ const PayrollManagement = () => {
                                         name="userId"
                                         value={formData.userId}
                                         onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                     >
                                         <option value="">Select Employee</option>
                                         {employees.map((emp) => (
@@ -2187,7 +2187,7 @@ const PayrollManagement = () => {
                                                 name="startDate"
                                                 value={formData.startDate}
                                                 onChange={(e) => handleDateRangeChange(e.target.value, formData.endDate)}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                             />
                                         </div>
                                         <div>
@@ -2199,7 +2199,7 @@ const PayrollManagement = () => {
                                                 name="endDate"
                                                 value={formData.endDate}
                                                 onChange={(e) => handleDateRangeChange(formData.startDate, e.target.value)}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                             />
                                         </div>
                                     </div>
@@ -2356,7 +2356,7 @@ const PayrollManagement = () => {
                                                 min="0"
                                                 step="0.01"
                                                 placeholder="5000.00"
-                                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                className="w-full pl-10 pr-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                             />
                                         </div>
                                     </div>
@@ -2375,7 +2375,7 @@ const PayrollManagement = () => {
                                                 min="0"
                                                 step="0.01"
                                                 placeholder="0.00"
-                                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                className="w-full pl-10 pr-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                             />
                                         </div>
                                     </div>
@@ -2573,7 +2573,7 @@ const PayrollManagement = () => {
                                             name="country"
                                             value={formData.country}
                                             onChange={handleInputChange}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-card"
+                                            className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-card"
                                         >
                                             <option value="USA">United States</option>
                                             <option value="Canada">Canada</option>
@@ -2598,7 +2598,7 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                                                            className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
@@ -2616,7 +2616,7 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                                                            className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
@@ -2634,7 +2634,7 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                                                            className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
@@ -2652,7 +2652,7 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                                                            className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
@@ -2670,7 +2670,7 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                                                            className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
@@ -2696,7 +2696,7 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                                                            className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
@@ -2714,7 +2714,7 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                                                            className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
@@ -2732,7 +2732,7 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                                                            className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
@@ -2750,7 +2750,7 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                                                            className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
@@ -2768,7 +2768,7 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                                                            className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
@@ -2786,7 +2786,7 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                                                            className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
@@ -2835,7 +2835,7 @@ const PayrollManagement = () => {
                                         name="payDate"
                                         value={formData.payDate}
                                         onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-card"
+                                        className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-card"
                                     />
                                 </div>
 
@@ -2952,7 +2952,7 @@ const PayrollManagement = () => {
                                     <button
                                         onClick={showCreateModal ? handleCreate : handleUpdate}
                                         style={{
-                                            background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                                         }}
                                         className="px-4 py-2 !text-white rounded-lg transition-all font-medium flex items-center gap-2 disabled:opacity-50"
                                         disabled={loading}
@@ -2990,7 +2990,7 @@ const PayrollManagement = () => {
                                 </div>
                                 <button
                                     onClick={() => setShowViewModal(false)}
-                                    className="text-secondary hover:text-secondary p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                    className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
                                 >
                                     <X size={24} />
                                 </button>
@@ -3053,7 +3053,7 @@ const PayrollManagement = () => {
                                         <div>
                                             <label className="text-sm font-semibold text-secondary">Total Pay</label>
                                             <div style={{
-                                                background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                                                background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
 
                                             }}
                                                 className="mt-1 px-4 py-3  rounded-lg text-white font-bold text-xl">
@@ -3112,21 +3112,21 @@ const PayrollManagement = () => {
                     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
                         <div className="bg-card rounded-xl shadow-xl max-w-5xl w-full max-h-[95vh] overflow-y-auto">
                             {/* Header */}
-                            <div className="p-6 border-b-2 border-gray-300 sticky top-0 bg-card z-10">
+                            <div className="p-6 border-b-2 border-theme sticky top-0 bg-card z-10">
                                 <div className="flex justify-between items-start mb-4">
                                     <button
                                         onClick={() => {
                                             setShowPaystubModal(false);
                                             setSelectedPaystub(null);
                                         }}
-                                        className="text-secondary hover:text-secondary p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                        className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
                                     >
                                         <X size={24} />
                                     </button>
                                 </div>
                                 
                                 {/* Company Header Section */}
-                                <div className="border-b-2 border-gray-300 pb-4 mb-4">
+                                <div className="border-b-2 border-theme pb-4 mb-4">
                                     <div className="flex justify-between items-start">
                                         <div className="flex-1">
                                             {selectedPaystub.companyDetails?.companyLogo && (
@@ -3189,7 +3189,7 @@ const PayrollManagement = () => {
                             <div className="p-6 space-y-6">
                                 {/* Employee Information Section */}
                                 <div className="bg-card p-5 rounded-lg border border-theme">
-                                    <h3 className="text-lg font-bold text-primary mb-4 border-b border-gray-300 pb-2">Employee Information</h3>
+                                    <h3 className="text-lg font-bold text-primary mb-4 border-b border-theme pb-2">Employee Information</h3>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="text-xs font-semibold text-secondary uppercase">Employee / Driver Name</label>
@@ -3465,7 +3465,7 @@ const PayrollManagement = () => {
                                         </div>
                                     )}
 
-                                    <div className="pt-4 border-t border-gray-300 flex justify-between items-end">
+                                    <div className="pt-4 border-t border-theme flex justify-between items-end">
                                         <div>
                                             {selectedPaystub.hrName && (
                                                 <div>
@@ -3497,7 +3497,7 @@ const PayrollManagement = () => {
                             </div>
 
                             {/* Footer with Download PDF and Close Button */}
-                            <div className="p-6 border-t-2 border-gray-300 bg-card">
+                            <div className="p-6 border-t-2 border-theme bg-card">
                                 <div className="flex justify-between items-center">
                                     <button
                                         onClick={() => handleDownloadPaystubPDF(selectedPaystub)}
@@ -3599,7 +3599,7 @@ const PayrollManagement = () => {
                                         onChange={(e) => {
                                             setFormData({ ...formData, userId: e.target.value });
                                         }}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="">Select Employee</option>
                                         {employees.map((emp) => (
@@ -3616,7 +3616,7 @@ const PayrollManagement = () => {
                                             type="date"
                                             value={formData.startDate}
                                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
                                     <div>
@@ -3625,7 +3625,7 @@ const PayrollManagement = () => {
                                             type="date"
                                             value={formData.endDate}
                                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
                                 </div>
@@ -3638,7 +3638,7 @@ const PayrollManagement = () => {
                                         value={formData.baseSalary}
                                         onChange={(e) => setFormData({ ...formData, baseSalary: e.target.value })}
                                         placeholder="Leave empty to use employee default"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
 
@@ -3648,7 +3648,7 @@ const PayrollManagement = () => {
                                         onClick={handleAutoGenerate}
                                         disabled={generatingAutoPayroll || !formData.userId || !formData.startDate || !formData.endDate}
                                         className="w-full px-4 py-3 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                                        style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                                     >
                                         {generatingAutoPayroll ? (
                                             <>
@@ -3978,7 +3978,7 @@ const PayrollManagement = () => {
                                             payDate: new Date().toISOString().split('T')[0]
                                         });
                                     }}
-                                    className="text-secondary hover:text-secondary p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                    className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
                                 >
                                     <X size={24} />
                                 </button>
@@ -4003,7 +4003,7 @@ const PayrollManagement = () => {
                                                     type="date"
                                                     value={bulkAIDateRange.startDate}
                                                     onChange={(e) => setBulkAIDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                    className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 />
                                             </div>
                                             <div>
@@ -4014,7 +4014,7 @@ const PayrollManagement = () => {
                                                     type="date"
                                                     value={bulkAIDateRange.endDate}
                                                     onChange={(e) => setBulkAIDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                    className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 />
                                             </div>
                                             <div>
@@ -4025,7 +4025,7 @@ const PayrollManagement = () => {
                                                     type="date"
                                                     value={bulkAIDateRange.payDate}
                                                     onChange={(e) => setBulkAIDateRange(prev => ({ ...prev, payDate: e.target.value }))}
-                                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                    className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 />
                                             </div>
                                         </div>
@@ -4086,7 +4086,7 @@ const PayrollManagement = () => {
                                                             <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Actions</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody className="divide-y divide-gray-200">
+                                                    <tbody className="divide-y divide-theme">
                                                         {bulkAIPayrolls.map((payroll, index) => (
                                                             <tr key={index} className="hover:bg-[rgba(255,255,255,0.03)]">
                                                                 <td className="px-4 py-3">
@@ -4119,7 +4119,7 @@ const PayrollManagement = () => {
                                                                         type="number"
                                                                         value={typeof payroll.baseSalary === 'number' ? payroll.baseSalary : parseFloat(payroll.baseSalary || 0)}
                                                                         onChange={(e) => updateBulkPayroll(index, 'baseSalary', e.target.value)}
-                                                                        className="w-28 px-2 py-1 border border-gray-300 rounded text-sm"
+                                                                        className="w-28 px-2 py-1 border border-theme rounded text-sm"
                                                                         step="0.01"
                                                                         min="0"
                                                                     />
@@ -4129,7 +4129,7 @@ const PayrollManagement = () => {
                                                                         type="number"
                                                                         value={typeof payroll.bonus === 'number' ? payroll.bonus : parseFloat(payroll.bonus || 0)}
                                                                         onChange={(e) => updateBulkPayroll(index, 'bonus', e.target.value)}
-                                                                        className="w-28 px-2 py-1 border border-gray-300 rounded text-sm"
+                                                                        className="w-28 px-2 py-1 border border-theme rounded text-sm"
                                                                         step="0.01"
                                                                         min="0"
                                                                     />
@@ -4139,7 +4139,7 @@ const PayrollManagement = () => {
                                                                         type="number"
                                                                         value={typeof payroll.deductions === 'number' ? payroll.deductions : parseFloat(payroll.deductions || 0)}
                                                                         onChange={(e) => updateBulkPayroll(index, 'deductions', e.target.value)}
-                                                                        className="w-28 px-2 py-1 border border-gray-300 rounded text-sm"
+                                                                        className="w-28 px-2 py-1 border border-theme rounded text-sm"
                                                                         step="0.01"
                                                                         min="0"
                                                                     />
@@ -4264,7 +4264,7 @@ const PayrollManagement = () => {
                                                                             }
                                                                         }}
                                                                         style={{
-                                                                            background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                                                                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                                                                         }}
                                                                         className="px-3 py-1 bg-green-600 hover:bg-green-700 !text-white rounded text-sm font-medium transition-colors"
                                                                     >

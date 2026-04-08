@@ -98,9 +98,9 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
   const primaryButtonStyle: React.CSSProperties = {
     background: `linear-gradient(
       90deg,
-      #42aeec 0%,
-      #1db5f5 40%,
-      #0ea3d8 100%
+      var(--accent-blue) 0%,
+      var(--accent-blue) 40%,
+      rgba(0,209,255,0.15) 100%
     )`,
     color: "#fff",
     boxShadow: `0 12px 24px ${FLEET_COLORS.focusRing}`,
@@ -1176,7 +1176,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
         </h2>
         <button
           onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
         >
           <X className="w-5 h-5 text-secondary" />
         </button>
@@ -1200,7 +1200,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                     setOrderSearch("");
                   }
                 }}
-                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer transition-colors"
+                className="flex items-center gap-1 p-2 border border-theme rounded-lg bg-card cursor-pointer transition-colors"
                 style={{
                   borderColor: orderDropdownOpen ? FLEET_COLORS.primary : undefined,
                   boxShadow: orderDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
@@ -1233,14 +1233,14 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                       setSelectedOrderDetails([]);
                       setOrderSearch("");
                     }}
-                    className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                    className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                   >
                     <X className="w-4 h-4 text-secondary" />
                   </button>
                 )}
               </div>
               {orderDropdownOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg" style={{ maxHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+                <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg" style={{ maxHeight: '600px', display: 'flex', flexDirection: 'column' }}>
                   <div className="p-2 border-b border-theme flex-shrink-0">
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -1249,7 +1249,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         value={orderSearch}
                         onChange={(e) => setOrderSearch(e.target.value)}
                         placeholder="Search orders..."
-                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
+                        className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none"
 
                         onFocus={focusHandlers.onFocus}
                         onBlur={focusHandlers.onBlur}
@@ -1485,7 +1485,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               <div className="relative">
                 <div
                   onClick={() => setDriverDropdownOpen(!driverDropdownOpen)}
-                  className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer transition-colors"
+                  className="flex items-center gap-1 p-2 border border-theme rounded-lg bg-card cursor-pointer transition-colors"
                   style={{
                     borderColor: driverDropdownOpen ? FLEET_COLORS.primary : undefined,
                     boxShadow: driverDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
@@ -1511,14 +1511,14 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         setSelectedDriver(null);
                         setDriverSearch("");
                       }}
-                      className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                      className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                     >
                       <X className="w-4 h-4 text-secondary" />
                     </button>
                   )}
                 </div>
                 {driverDropdownOpen && (
-                  <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                  <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                     <div className="p-2 border-b border-theme">
                       <div className="relative">
                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -1527,7 +1527,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                           value={driverSearch}
                           onChange={(e) => setDriverSearch(e.target.value)}
                           placeholder="Search drivers..."
-                          className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
+                          className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none"
                           onFocus={focusHandlers.onFocus}
                           onBlur={focusHandlers.onBlur}
                           autoFocus
@@ -1593,7 +1593,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               <div className="relative">
                 <div
                   onClick={() => setCoDriverDropdownOpen(!coDriverDropdownOpen)}
-                  className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer transition-colors"
+                  className="flex items-center gap-1 p-2 border border-theme rounded-lg bg-card cursor-pointer transition-colors"
                   style={{
                     borderColor: coDriverDropdownOpen ? FLEET_COLORS.primary : undefined,
                     boxShadow: coDriverDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
@@ -1619,14 +1619,14 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         setSelectedCoDriver(null);
                         setCoDriverSearch("");
                       }}
-                      className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                      className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                     >
                       <X className="w-4 h-4 text-secondary" />
                     </button>
                   )}
                 </div>
                 {coDriverDropdownOpen && (
-                  <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                  <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                     <div className="p-2 border-b border-theme">
                       <div className="relative">
                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -1635,7 +1635,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                           value={coDriverSearch}
                           onChange={(e) => setCoDriverSearch(e.target.value)}
                           placeholder="Search drivers..."
-                          className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
+                          className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none"
                           onFocus={focusHandlers.onFocus}
                           onBlur={focusHandlers.onBlur}
                           autoFocus
@@ -1714,7 +1714,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
             <div className="relative">
               <div
                 onClick={() => setTruckDropdownOpen(!truckDropdownOpen)}
-                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer transition-colors"
+                className="flex items-center gap-1 p-2 border border-theme rounded-lg bg-card cursor-pointer transition-colors"
                 style={{
                   borderColor: truckDropdownOpen ? FLEET_COLORS.primary : undefined,
                   boxShadow: truckDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
@@ -1744,14 +1744,14 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                       setSelectedTruck(null);
                       setTruckSearch("");
                     }}
-                    className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                    className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                   >
                     <X className="w-4 h-4 text-secondary" />
                   </button>
                 )}
               </div>
               {truckDropdownOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                   <div className="p-2 border-b border-theme">
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -1760,7 +1760,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         value={truckSearch}
                         onChange={(e) => setTruckSearch(e.target.value)}
                         placeholder="Search trucks..."
-                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
+                        className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none"
                         onFocus={focusHandlers.onFocus}
                         onBlur={focusHandlers.onBlur}
                         autoFocus
@@ -1827,7 +1827,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
             <div className="relative">
               <div
                 onClick={() => setTrailerDropdownOpen(!trailerDropdownOpen)}
-                className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer transition-colors"
+                className="flex items-center gap-1 p-2 border border-theme rounded-lg bg-card cursor-pointer transition-colors"
                 style={{
                   borderColor: trailerDropdownOpen ? FLEET_COLORS.primary : undefined,
                   boxShadow: trailerDropdownOpen ? `0 0 0 2px ${FLEET_COLORS.focusRing}` : undefined
@@ -1857,14 +1857,14 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                       setSelectedTrailer(null);
                       setTrailerSearch("");
                     }}
-                    className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                    className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                   >
                     <X className="w-4 h-4 text-secondary" />
                   </button>
                 )}
               </div>
               {trailerDropdownOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                   <div className="p-2 border-b border-theme">
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -1873,7 +1873,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                         value={trailerSearch}
                         onChange={(e) => setTrailerSearch(e.target.value)}
                         placeholder="Search trailers..."
-                        className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none"
+                        className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none"
                         onFocus={focusHandlers.onFocus}
                         onBlur={focusHandlers.onBlur}
                         autoFocus
@@ -2057,7 +2057,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                 type="date"
                 value={plannedStartDate}
                 onChange={(e) => setPlannedStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-card"
+                className="w-full px-3 py-2 border border-theme rounded-lg text-sm bg-card"
 
                 onFocus={focusHandlers.onFocus}
                 onBlur={focusHandlers.onBlur}
@@ -2072,7 +2072,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
                 value={plannedEndDate}
                 onChange={(e) => setPlannedEndDate(e.target.value)}
                 min={plannedStartDate}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-card"
+                className="w-full px-3 py-2 border border-theme rounded-lg text-sm bg-card"
 
                 onFocus={focusHandlers.onFocus}
                 onBlur={focusHandlers.onBlur}
@@ -2088,7 +2088,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-card"
+              className="w-full px-3 py-2 border border-theme rounded-lg text-sm bg-card"
 
               onFocus={focusHandlers.onFocus}
               onBlur={focusHandlers.onBlur}
@@ -2112,7 +2112,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
               placeholder="Add any notes about this trip..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-card"
+              className="w-full px-3 py-2 border border-theme rounded-lg text-sm bg-card"
 
               onFocus={focusHandlers.onFocus}
               onBlur={focusHandlers.onBlur}
@@ -2481,7 +2481,7 @@ const NewTripSidebar = ({ trip, onClose, onSave }: { trip?: Trip | null; onClose
       <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-theme bg-card">
         <button
           onClick={onClose}
-          className="px-6 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+          className="px-6 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
         >
           Cancel
         </button>

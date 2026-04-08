@@ -200,7 +200,7 @@ const NewPlacesSidebar: React.FC<NewPlaceSidebarProps> = ({ isOpen, onClose }) =
                       name={field.name}
                       value={formData[field.name as keyof typeof formData]}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 bg-card border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 bg-card border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                 ))}
@@ -211,7 +211,7 @@ const NewPlacesSidebar: React.FC<NewPlaceSidebarProps> = ({ isOpen, onClose }) =
                   <select
                     value={selectedCountry}
                     onChange={e => handleCountryChange(e.target.value)}
-                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 bg-card border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     {countries.map(c => (
                       <option key={c.code} value={c.code}>
@@ -229,14 +229,14 @@ const NewPlacesSidebar: React.FC<NewPlaceSidebarProps> = ({ isOpen, onClose }) =
         <div className="p-4 border-t border-theme flex justify-end bg-card sticky bottom-0">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 !mr-3 rounded-md text-primary hover:bg-[rgba(255,255,255,0.03)] mr-2"
+            className="px-4 py-2 border border-theme !mr-3 rounded-md text-primary hover:bg-[rgba(255,255,255,0.03)] mr-2"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             style={{
-              background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+              background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
             }}
             className="px-4 py-2  !text-white rounded-md hover:bg-blue-700"
           >

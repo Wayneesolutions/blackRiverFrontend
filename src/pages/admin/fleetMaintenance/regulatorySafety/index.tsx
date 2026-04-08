@@ -549,7 +549,7 @@ const RegulatorySafety: React.FC = () => {
                 placeholder="Search by unit number, make/model, invoice, or decal number..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                className="pl-10 pr-4 py-2 w-full border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                 onFocus={(e) => {
                   e.target.style.borderColor = '#016ab2';
@@ -627,7 +627,7 @@ const RegulatorySafety: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-theme">
                   {loading ? (
                     <tr>
                       <td colSpan={10} className="px-6 py-12 text-center text-secondary">
@@ -735,7 +735,7 @@ const RegulatorySafety: React.FC = () => {
                         setShowRecordDetails(false);
                         setTimeout(() => setSelectedRecord(null), 300);
                       }}
-                      className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
+                      className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                     >
                       <X size={24} />
                     </button>
@@ -875,7 +875,7 @@ const RegulatorySafety: React.FC = () => {
                       <select
                         value={formData.unitNo}
                         onChange={(e) => setFormData({ ...formData, unitNo: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                         style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                         onFocus={(e) => {
                           e.target.style.borderColor = '#016ab2';
@@ -900,7 +900,7 @@ const RegulatorySafety: React.FC = () => {
                         type="date"
                         value={formData.safetyExpiryDate}
                         onChange={(e) => setFormData({ ...formData, safetyExpiryDate: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                         style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                         onFocus={(e) => {
                           e.target.style.borderColor = '#016ab2';
@@ -918,7 +918,7 @@ const RegulatorySafety: React.FC = () => {
                         type="text"
                         value={formData.safetyDecalNumber}
                         onChange={(e) => setFormData({ ...formData, safetyDecalNumber: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                         style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                         onFocus={(e) => {
                           e.target.style.borderColor = '#016ab2';
@@ -937,7 +937,7 @@ const RegulatorySafety: React.FC = () => {
                         type="text"
                         value={formData.safetyPaperNumber}
                         onChange={(e) => setFormData({ ...formData, safetyPaperNumber: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                         style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                         onFocus={(e) => {
                           e.target.style.borderColor = '#016ab2';
@@ -956,7 +956,7 @@ const RegulatorySafety: React.FC = () => {
                         type="text"
                         value={formData.shopName}
                         onChange={(e) => setFormData({ ...formData, shopName: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                         style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                         onFocus={(e) => {
                           e.target.style.borderColor = '#016ab2';
@@ -975,7 +975,7 @@ const RegulatorySafety: React.FC = () => {
                         type="text"
                         value={formData.invoiceNo}
                         onChange={(e) => setFormData({ ...formData, invoiceNo: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                         style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                         onFocus={(e) => {
                           e.target.style.borderColor = '#016ab2';
@@ -994,7 +994,7 @@ const RegulatorySafety: React.FC = () => {
                         value={formData.notes}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                         rows={3}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                         style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                         onFocus={(e) => {
                           e.target.style.borderColor = '#016ab2';
@@ -1012,7 +1012,7 @@ const RegulatorySafety: React.FC = () => {
                 <div className="flex-shrink-0 bg-card px-6 py-4 flex justify-end gap-3 border-t border-theme">
                   <button
                     onClick={closeModals}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                    className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     Cancel
                   </button>
@@ -1061,7 +1061,7 @@ const RegulatorySafety: React.FC = () => {
                       setShowDeleteModal(false);
                       setSelectedRecord(null);
                     }}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                    className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     Cancel
                   </button>

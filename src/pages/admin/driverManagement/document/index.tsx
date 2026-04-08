@@ -287,7 +287,7 @@ const EmployeeDocumentsPage = () => {
                         <button
                             onClick={() => setShowUploadModal(true)}
                             style={{
-                                background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)"
+                                background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)"
                             }}
                             className="px-4 py-2  !mr-4 !text-white rounded-lg transition-colors flex items-center space-x-2"
                         >
@@ -414,7 +414,7 @@ const EmployeeDocumentsPage = () => {
                         <button
                             onClick={() => setShowUploadModal(true)}
                             style={{
-                                background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)"
+                                background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)"
                             }}
                             className="px-4 py-2  !text-white rounded-lg  transition-colors"
                         >
@@ -466,7 +466,7 @@ const EmployeeDocumentsPage = () => {
                                                 <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-200">
+                                        <tbody className="divide-y divide-theme">
                                             {empDoc.documents.map((doc: EmployeeDocument, index: number) => (
                                                 <tr key={index} className="hover:bg-[rgba(255,255,255,0.03)]">
                                                     <td className="px-6 py-4">
@@ -946,7 +946,7 @@ const ViewDocumentModal = ({
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="flex flex-col items-center justify-center h-[40vh] bg-card rounded-lg border-2 border-dashed border-gray-300">
+                                            <div className="flex flex-col items-center justify-center h-[40vh] bg-card rounded-lg border-2 border-dashed border-theme">
                                                 <FileText className="text-secondary mb-4" size={48} />
                                                 <p className="text-sm text-secondary mb-4">This file type cannot be previewed in the browser.</p>
                                                 <div className="flex gap-2">
@@ -986,7 +986,7 @@ const ViewDocumentModal = ({
                                         )}
                                     </>
                                 ) : (
-                                    <div className="flex flex-col items-center justify-center h-[40vh] bg-card rounded-lg border-2 border-dashed border-gray-300">
+                                    <div className="flex flex-col items-center justify-center h-[40vh] bg-card rounded-lg border-2 border-dashed border-theme">
                                         <FileText className="text-secondary mb-4" size={48} />
                                         <p className="text-sm text-secondary mb-4">No file URL available.</p>
                                     </div>
@@ -1001,7 +1001,7 @@ const ViewDocumentModal = ({
                     <button
                         onClick={() => onEdit(document)}
                         style={{
-                            background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)"
+                            background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)"
                         }}
                         className="!text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
                     >
@@ -1010,7 +1010,7 @@ const ViewDocumentModal = ({
                     </button>
                     <button
                         onClick={onClose}
-                        className="text-secondary hover:text-primary px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                        className="text-secondary hover:text-primary px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     >
                         Close
                     </button>
@@ -1047,7 +1047,7 @@ const DeleteConfirmationModal = ({
                     <div className="flex items-center justify-end gap-3">
                         <button
                             onClick={onCancel}
-                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                            className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                         >
                             Cancel
                         </button>
@@ -1238,7 +1238,7 @@ const UploadDocumentModal = ({
                             <select
                                 value={formData.employee}
                                 onChange={(e) => setFormData({ ...formData, employee: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 required
                             >
                                 <option value="">Select Employee</option>
@@ -1257,7 +1257,7 @@ const UploadDocumentModal = ({
                             <select
                                 value={formData.documentType}
                                 onChange={(e) => setFormData({ ...formData, documentType: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 required
                             >
                                 <option value="">Select Document Type</option>
@@ -1276,7 +1276,7 @@ const UploadDocumentModal = ({
                                     type="text"
                                     value={formData.documentNumber}
                                     onChange={(e) => setFormData({ ...formData, documentNumber: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
                             <div>
@@ -1286,7 +1286,7 @@ const UploadDocumentModal = ({
                                 <select
                                     value={formData.status}
                                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="valid">Valid</option>
                                     <option value="pending">Pending</option>
@@ -1305,7 +1305,7 @@ const UploadDocumentModal = ({
                                     type="date"
                                     value={formData.issueDate}
                                     onChange={(e) => setFormData({ ...formData, issueDate: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
                             <div>
@@ -1316,7 +1316,7 @@ const UploadDocumentModal = ({
                                     type="date"
                                     value={formData.expiryDate}
                                     onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
                         </div>
@@ -1329,7 +1329,7 @@ const UploadDocumentModal = ({
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 rows={3}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="Enter document description..."
                             />
                         </div>
@@ -1341,7 +1341,7 @@ const UploadDocumentModal = ({
                             <input
                                 type="file"
                                 onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt,.zip"
                             />
                             {editingDocument && (
@@ -1355,7 +1355,7 @@ const UploadDocumentModal = ({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 !mr-4 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                                className="px-4 py-2 !mr-4 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                             >
                                 Cancel
                             </button>
@@ -1363,7 +1363,7 @@ const UploadDocumentModal = ({
                                 type="submit"
                                 disabled={loading}
                                 style={{
-                                    background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)"
+                                    background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)"
                                 }}
                                 className="px-4 py-2  !text-white rounded-lg  disabled:opacity-50"
                             >

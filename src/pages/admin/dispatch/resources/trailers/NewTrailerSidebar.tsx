@@ -182,7 +182,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                                 value={formData.internalId}
                                                 onChange={handleInputChange}
                                                 className={`pl-10 w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                                    errors.internalId ? 'border-red-500' : 'border-gray-300'
+                                                    errors.internalId ? 'border-red-500' : 'border-theme'
                                                 }`}
                                                 placeholder="TRL-001"
                                             />
@@ -200,7 +200,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                             value={formData.trailer}
                                             onChange={handleInputChange}
                                             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                                errors.trailer ? 'border-red-500' : 'border-gray-300'
+                                                errors.trailer ? 'border-red-500' : 'border-theme'
                                             }`}
                                             placeholder="Trailer Name"
                                         />
@@ -218,7 +218,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                                 value={formData.make}
                                                 onChange={handleInputChange}
                                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                                    errors.make ? 'border-red-500' : 'border-gray-300'
+                                                    errors.make ? 'border-red-500' : 'border-theme'
                                                 }`}
                                                 placeholder="Freightliner"
                                             />
@@ -235,7 +235,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                                 value={formData.model}
                                                 onChange={handleInputChange}
                                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                                    errors.model ? 'border-red-500' : 'border-gray-300'
+                                                    errors.model ? 'border-red-500' : 'border-theme'
                                                 }`}
                                                 placeholder="Cascadia"
                                             />
@@ -256,7 +256,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                                 onChange={handleInputChange}
                                                 min="1900"
                                                 max={new Date().getFullYear() + 1}
-                                                className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="pl-10 w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
                                     </div>
@@ -279,7 +279,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                                 value={formData.plateNumber}
                                                 onChange={handleInputChange}
                                                 className={`pl-10 w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                                    errors.plateNumber ? 'border-red-500' : 'border-gray-300'
+                                                    errors.plateNumber ? 'border-red-500' : 'border-theme'
                                                 }`}
                                                 placeholder="ABC-123"
                                             />
@@ -297,7 +297,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                             value={formData.vinNumber}
                                             onChange={handleInputChange}
                                             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                                errors.vinNumber ? 'border-red-500' : 'border-gray-300'
+                                                errors.vinNumber ? 'border-red-500' : 'border-theme'
                                             }`}
                                             placeholder="1HGBH41JXMN109186"
                                         />
@@ -314,7 +314,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                             value={formData.capacity}
                                             onChange={handleInputChange}
                                             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                                errors.capacity ? 'border-red-500' : 'border-gray-300'
+                                                errors.capacity ? 'border-red-500' : 'border-theme'
                                             }`}
                                             placeholder="26,000 lbs"
                                         />
@@ -329,7 +329,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                             name="type"
                                             value={formData.type}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="dry_van">Dry Van</option>
                                             <option value="refrigerated">Refrigerated</option>
@@ -353,7 +353,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                             name="status"
                                             value={formData.status}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="moving">Moving</option>
                                             <option value="idle">Idle</option>
@@ -370,7 +370,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                             name="operationStatus"
                                             value={formData.operationStatus}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="available">Available</option>
                                             <option value="in_transit">In Transit</option>
@@ -397,7 +397,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                                                 name="address"
                                                 value={formData.address}
                                                 onChange={handleInputChange}
-                                                className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="pl-10 w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                 placeholder="123 Main St, City, State"
                                             />
                                         </div>
@@ -416,7 +416,7 @@ const NewTrailerSidebar: React.FC<NewTrailerSidebarProps> = ({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 text-sm !mr-4 font-medium text-primary bg-card border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="px-4 py-2 text-sm !mr-4 font-medium text-primary bg-card border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 Cancel
                             </button>

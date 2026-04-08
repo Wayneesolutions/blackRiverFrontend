@@ -212,7 +212,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="text-secondary hover:text-secondary p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -234,7 +234,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder="Enter fleet name"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 required
               />
             </div>
@@ -251,7 +251,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
                   value={formData.serviceArea}
                   onChange={handleInputChange}
                   placeholder="Enter service area"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
               <div>
@@ -264,7 +264,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
                   value={formData.parentFleet}
                   onChange={handleInputChange}
                   placeholder="Enter parent fleet"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -281,7 +281,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
                   value={formData.vendor}
                   onChange={handleInputChange}
                   placeholder="Enter vendor id"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
               <div>
@@ -294,7 +294,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
                   value={formData.zone}
                   onChange={handleInputChange}
                   placeholder="Enter zone"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -311,7 +311,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
                   value={formData.manPower}
                   onChange={handleInputChange}
                   placeholder="Enter manpower"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
               <div>
@@ -324,7 +324,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
                   value={formData.activeManPower}
                   onChange={handleInputChange}
                   placeholder="Enter active manpower"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -340,7 +340,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
                 value={formData.task}
                 onChange={handleInputChange}
                 placeholder="Enter task or mission"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
 
@@ -353,7 +353,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
                 name="status"
                 value={formData.status}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 required
               >
                 <option value="active">Active</option>
@@ -369,7 +369,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 border border-gray-300 !mr-3 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+              className="px-6 py-3 border border-theme !mr-3 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
             >
               Cancel
             </button>

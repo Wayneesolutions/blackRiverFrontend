@@ -97,7 +97,7 @@ const DeliveryComponent: React.FC<DeliveryComponentProps> = ({ load, onClose, on
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
           >
             <FaTimes className="text-secondary" size={20} />
           </button>
@@ -266,7 +266,7 @@ const DeliveryComponent: React.FC<DeliveryComponentProps> = ({ load, onClose, on
         <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-between items-center border-t rounded-b-xl">
           <button
             onClick={onClose}
-            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium"
+            className="px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium"
           >
             Cancel
           </button>
@@ -311,7 +311,7 @@ const DeliveryComponent: React.FC<DeliveryComponentProps> = ({ load, onClose, on
                   <label className="block text-sm font-semibold text-primary mb-2">
                     Payment Method
                   </label>
-                  <select className="w-full p-3 border border-gray-300 rounded-lg">
+                  <select className="w-full p-3 border border-theme rounded-lg">
                     <option>Select Payment Method</option>
                     <option>Bank Transfer</option>
                     <option>Check</option>
@@ -326,7 +326,7 @@ const DeliveryComponent: React.FC<DeliveryComponentProps> = ({ load, onClose, on
                   <input
                     type="text"
                     placeholder="Transaction ID or reference number"
-                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    className="w-full p-3 border border-theme rounded-lg"
                   />
                 </div>
               </div>
@@ -334,7 +334,7 @@ const DeliveryComponent: React.FC<DeliveryComponentProps> = ({ load, onClose, on
             <div className="p-6 border-t flex justify-end gap-3">
               <button
                 onClick={() => setShowPaymentModal(false)}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                className="px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
               >
                 Cancel
               </button>

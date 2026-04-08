@@ -254,7 +254,7 @@ const Index = () => {
                   placeholder="Search Places"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pl-10 pr-4 py-2 border border-theme rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -263,7 +263,7 @@ const Index = () => {
               <button
                 onClick={() => setIsSidebarOpen(true)}
                 style={{
-                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                 }}
                 className="!text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
               >
@@ -295,7 +295,7 @@ const Index = () => {
                       <th className="px-6 py-3 text-xs font-medium text-secondary uppercase text-left">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-theme">
                     {filteredPlaces.length > 0 ? (
                       filteredPlaces.map((place) => {
                         // Build full address from all available fields
@@ -411,7 +411,7 @@ const Index = () => {
                   type="text"
                   value={editData.name || ""}
                   onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 w-full rounded-md border border-theme px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -421,7 +421,7 @@ const Index = () => {
                   type="text"
                   value={editData.street1 || ""}
                   onChange={(e) => setEditData({ ...editData, street1: e.target.value })}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 w-full rounded-md border border-theme px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -430,7 +430,7 @@ const Index = () => {
                   type="text"
                   value={editData.street2 || ""}
                   onChange={(e) => setEditData({ ...editData, street2: e.target.value })}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 w-full rounded-md border border-theme px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -440,7 +440,7 @@ const Index = () => {
                     type="text"
                     value={editData.neighbourHood || ""}
                     onChange={(e) => setEditData({ ...editData, neighbourHood: e.target.value })}
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 w-full rounded-md border border-theme px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
@@ -449,7 +449,7 @@ const Index = () => {
                     type="text"
                     value={editData.building || ""}
                     onChange={(e) => setEditData({ ...editData, building: e.target.value })}
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 w-full rounded-md border border-theme px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -460,7 +460,7 @@ const Index = () => {
                     type="text"
                     value={editData.city || ""}
                     onChange={(e) => setEditData({ ...editData, city: e.target.value })}
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 w-full rounded-md border border-theme px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
@@ -469,7 +469,7 @@ const Index = () => {
                     type="text"
                     value={editData.state || ""}
                     onChange={(e) => setEditData({ ...editData, state: e.target.value })}
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 w-full rounded-md border border-theme px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -484,7 +484,7 @@ const Index = () => {
                       postalCode: e.target.value,
                       securityAccessCodepostalCode: e.target.value
                     })}
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 w-full rounded-md border border-theme px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
@@ -493,7 +493,7 @@ const Index = () => {
                     type="text"
                     value={editData.country || ""}
                     onChange={(e) => setEditData({ ...editData, country: e.target.value })}
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="mt-1 w-full rounded-md border border-theme px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -503,7 +503,7 @@ const Index = () => {
                   type="text"
                   value={editData.phone || ""}
                   onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 w-full rounded-md border border-theme px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -520,7 +520,7 @@ const Index = () => {
                 onClick={handleEditSave}
                 disabled={editLoading}
                 style={{
-                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                 }}
                 className="rounded-md  px-4 py-2 text-sm font-medium !text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
               >

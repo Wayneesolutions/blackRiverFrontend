@@ -592,7 +592,7 @@ export default function ReceiptsFinancialNotes() {
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>📋 Receipts & Financial Notes</h1>
+                <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>📋 Receipts & Financial Notes</h1>
                 <p className="text-sm text-secondary mt-1">
                   Store and manage digital receipts, and log internal finance comments
                 </p>
@@ -601,7 +601,7 @@ export default function ReceiptsFinancialNotes() {
                 {activeTab === 'receipts-archive' && (
                   <button
                     onClick={handleCreateReceipt}
-                    className="px-4 py-2 border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-2"
+                    className="px-4 py-2 border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-2"
                   >
                     <Upload className="w-4 h-4" />
                     Upload Receipt
@@ -611,7 +611,7 @@ export default function ReceiptsFinancialNotes() {
                   <button
                     onClick={handleCreateNote}
                     className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2"
-                    style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                    style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                   >
                     <Plus className="w-4 h-4" />
                     New Note
@@ -631,8 +631,8 @@ export default function ReceiptsFinancialNotes() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === tab.id
-                      ? 'border-[#42aeec] text-[#016ab2]'
-                      : 'border-transparent text-secondary hover:text-primary hover:border-gray-300'
+                      ? 'border-[var(--accent-blue)] text-[#016ab2]'
+                      : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                       }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -657,9 +657,9 @@ export default function ReceiptsFinancialNotes() {
                 }`}>
                 <div className="flex items-center justify-between mb-4">
                   <div className={`p-3 rounded-lg bg-card`}>
-                    <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[#42aeec]' :
-                      card.color === 'green' ? 'text-[#0ea3d8]' :
-                        card.color === 'purple' ? 'text-[#1db5f5]' :
+                    <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[var(--accent-blue)]' :
+                      card.color === 'green' ? 'text-[rgba(0,209,255,0.15)]' :
+                        card.color === 'purple' ? 'text-[var(--accent-blue)]' :
                           'text-orange-500' // Keeping orange logic or similar
                       }`} />
                   </div>
@@ -685,26 +685,26 @@ export default function ReceiptsFinancialNotes() {
                     placeholder={activeTab === 'receipts-archive' ? 'Search by date, amount, payee/vendor, expense type...' : 'Search notes by title, content, user...'}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                    className="pl-10 pr-4 py-2 border border-theme rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                   />
                 </div>
                 {activeTab === 'receipts-archive' && (
                   <select
                     value={selectedExpenseType}
                     onChange={(e) => setSelectedExpenseType(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-4 py-2 border border-theme rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {expenseTypes.map(type => (
                       <option key={type} value={type}>{type}</option>
                     ))}
                   </select>
                 )}
-                <button className="p-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                <button className="p-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                   <Filter className="w-4 h-4 text-secondary" />
                 </button>
               </div>
               <div className="flex items-center gap-2">
-                <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-2">
+                <button className="px-4 py-2 text-sm border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-2">
                   <Download className="w-4 h-4" />
                   Export
                 </button>
@@ -732,7 +732,7 @@ export default function ReceiptsFinancialNotes() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-theme">
                     {filteredReceipts.map(receipt => (
                       <tr 
                         key={receipt._id} 
@@ -845,7 +845,7 @@ export default function ReceiptsFinancialNotes() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-theme">
                     {filteredNotes.map(note => (
                       <tr 
                         key={note._id} 
@@ -956,7 +956,7 @@ export default function ReceiptsFinancialNotes() {
                   type="date"
                   value={receiptFormData.date}
                   onChange={(e) => setReceiptFormData({ ...receiptFormData, date: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-theme rounded-lg px-3 py-2"
                   required
                 />
               </div>
@@ -967,7 +967,7 @@ export default function ReceiptsFinancialNotes() {
                   step="0.01"
                   value={receiptFormData.amount}
                   onChange={(e) => setReceiptFormData({ ...receiptFormData, amount: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-theme rounded-lg px-3 py-2"
                   required
                 />
               </div>
@@ -977,7 +977,7 @@ export default function ReceiptsFinancialNotes() {
                   type="text"
                   value={receiptFormData.payeeVendor}
                   onChange={(e) => setReceiptFormData({ ...receiptFormData, payeeVendor: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-theme rounded-lg px-3 py-2"
                   required
                 />
               </div>
@@ -986,7 +986,7 @@ export default function ReceiptsFinancialNotes() {
                 <select
                   value={receiptFormData.expenseType}
                   onChange={(e) => setReceiptFormData({ ...receiptFormData, expenseType: e.target.value as any })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-theme rounded-lg px-3 py-2"
                   required
                 >
                   {expenseTypes.filter(t => t !== 'All').map(type => (
@@ -999,7 +999,7 @@ export default function ReceiptsFinancialNotes() {
                 <textarea
                   value={receiptFormData.description}
                   onChange={(e) => setReceiptFormData({ ...receiptFormData, description: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-theme rounded-lg px-3 py-2"
                   rows={3}
                 />
               </div>
@@ -1011,7 +1011,7 @@ export default function ReceiptsFinancialNotes() {
                   type="file"
                   accept="image/*,.pdf"
                   onChange={(e) => setReceiptFormData({ ...receiptFormData, file: e.target.files?.[0] || null })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-theme rounded-lg px-3 py-2"
                   required={!editingReceipt}
                 />
               </div>
@@ -1019,7 +1019,7 @@ export default function ReceiptsFinancialNotes() {
                 <button
                   type="submit"
                   style={{
-                    background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                    background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
 
                   }}
                   className="px-4 py-2  !text-white rounded-lg"
@@ -1029,7 +1029,7 @@ export default function ReceiptsFinancialNotes() {
                 <button
                   type="button"
                   onClick={() => setShowReceiptModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                  className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                 >
                   Cancel
                 </button>
@@ -1056,7 +1056,7 @@ export default function ReceiptsFinancialNotes() {
                   type="text"
                   value={noteFormData.noteTitle}
                   onChange={(e) => setNoteFormData({ ...noteFormData, noteTitle: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-theme rounded-lg px-3 py-2"
                   required
                 />
               </div>
@@ -1065,7 +1065,7 @@ export default function ReceiptsFinancialNotes() {
                 <textarea
                   value={noteFormData.noteContent}
                   onChange={(e) => setNoteFormData({ ...noteFormData, noteContent: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-theme rounded-lg px-3 py-2"
                   rows={5}
                   required
                 />
@@ -1077,7 +1077,7 @@ export default function ReceiptsFinancialNotes() {
                   value={noteFormData.linkedTransaction}
                   onChange={(e) => setNoteFormData({ ...noteFormData, linkedTransaction: e.target.value })}
                   placeholder="e.g., Invoice #INV-2024-045"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-theme rounded-lg px-3 py-2"
                 />
               </div>
               <div>
@@ -1087,13 +1087,13 @@ export default function ReceiptsFinancialNotes() {
                   value={noteFormData.linkedTransactionId}
                   onChange={(e) => setNoteFormData({ ...noteFormData, linkedTransactionId: e.target.value })}
                   placeholder="e.g., INV-2024-045"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full border border-theme rounded-lg px-3 py-2"
                 />
               </div>
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                  style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                   className="px-4 py-2  !text-white rounded-lg"
                 >
                   {editingNote ? 'Update' : 'Create'}
@@ -1101,7 +1101,7 @@ export default function ReceiptsFinancialNotes() {
                 <button
                   type="button"
                   onClick={() => setShowNoteModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                  className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                 >
                   Cancel
                 </button>
@@ -1153,11 +1153,11 @@ export default function ReceiptsFinancialNotes() {
                   <div>
                     <label className="block text-sm font-medium text-primary mb-1">Receipt</label>
                     {loadingReceiptUrl ? (
-                      <div className="w-full h-96 border border-gray-300 rounded-lg flex items-center justify-center bg-card">
+                      <div className="w-full h-96 border border-theme rounded-lg flex items-center justify-center bg-card">
                         <p className="text-secondary">Loading receipt...</p>
                       </div>
                     ) : receiptViewUrl ? (
-                      <div className="w-full border border-gray-300 rounded-lg overflow-hidden">
+                      <div className="w-full border border-theme rounded-lg overflow-hidden">
                         {receiptViewUrl.toLowerCase().endsWith('.pdf') || viewingReceipt.fileType === 'PDF' ? (
                           <iframe
                             src={receiptViewUrl}
@@ -1183,7 +1183,7 @@ export default function ReceiptsFinancialNotes() {
                         )}
                       </div>
                     ) : (
-                      <div className="w-full h-96 border border-gray-300 rounded-lg flex items-center justify-center bg-card">
+                      <div className="w-full h-96 border border-theme rounded-lg flex items-center justify-center bg-card">
                         <p className="text-secondary">Receipt file not available</p>
                       </div>
                     )}

@@ -1710,7 +1710,7 @@ const TrailersPage: React.FC = () => {
                                     setShowSidebar(true);
                                     setActiveStep('Details');
                                 }}
-                                className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
+                                className="w-10 h-10 bg-[var(--accent-blue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-blue)] transition-colors shadow-md"
                             >
                                 <Plus className="w-5 h-5" />
                             </button>
@@ -1728,7 +1728,7 @@ const TrailersPage: React.FC = () => {
                                 fetchTabCount('All');
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'All'
-                                ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)]'
                                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
@@ -1749,7 +1749,7 @@ const TrailersPage: React.FC = () => {
                                         fetchTabCount(yardId);
                                     }}
                                     className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === yard._id?.toString()
-                                        ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                        ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)]'
                                         : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                         }`}
                                 >
@@ -1771,7 +1771,7 @@ const TrailersPage: React.FC = () => {
                                 fetchTabCount('External');
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'External'
-                                ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)]'
                                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
@@ -1787,7 +1787,7 @@ const TrailersPage: React.FC = () => {
                                 fetchTabCount('Unassigned');
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'Unassigned'
-                                ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)]'
                                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
@@ -1809,7 +1809,7 @@ const TrailersPage: React.FC = () => {
                                 placeholder="Search..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                className="flex-1 px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                             />
                           
                         </div>
@@ -1820,7 +1820,7 @@ const TrailersPage: React.FC = () => {
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                             >
                                 <option value="">Select</option>
                                 <option value="trailerNumber">Trailer #</option>
@@ -1834,7 +1834,7 @@ const TrailersPage: React.FC = () => {
                             <select
                                 value={complianceStatus}
                                 onChange={(e) => setComplianceStatus(e.target.value)}
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                             >
                                 <option value="All">All</option>
                                 <option value="Compliant">Compliant</option>
@@ -1848,7 +1848,7 @@ const TrailersPage: React.FC = () => {
                             <select
                                 value={operatingStatus}
                                 onChange={(e) => setOperatingStatus(e.target.value)}
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                             >
                                 <option value="Active">Active</option>
                                 <option value="All">All</option>
@@ -1881,7 +1881,7 @@ const TrailersPage: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.trailerNumber}
                                             onChange={(e) => setFilters({ ...filters, trailerNumber: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]"
                                         />
                                     </th>
 
@@ -1898,7 +1898,7 @@ const TrailersPage: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.plateNumber}
                                             onChange={(e) => setFilters({ ...filters, plateNumber: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]"
                                         />
                                     </th>
 
@@ -1915,7 +1915,7 @@ const TrailersPage: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.type}
                                             onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]"
                                         />
                                     </th>
 
@@ -1930,7 +1930,7 @@ const TrailersPage: React.FC = () => {
                                         <select
                                             value={filters.ownership}
                                             onChange={(e) => setFilters({ ...filters, ownership: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="COMPANY ASSET">Company Asset</option>
@@ -1951,7 +1951,7 @@ const TrailersPage: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.lastDispatch}
                                             onChange={(e) => setFilters({ ...filters, lastDispatch: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]"
                                         />
                                     </th>
 
@@ -1968,7 +1968,7 @@ const TrailersPage: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.lastDispatchDate}
                                             onChange={(e) => setFilters({ ...filters, lastDispatchDate: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]"
                                         />
                                     </th>
 
@@ -1985,7 +1985,7 @@ const TrailersPage: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.lastDropLocation}
                                             onChange={(e) => setFilters({ ...filters, lastDropLocation: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]"
                                         />
                                     </th>
 
@@ -1999,7 +1999,7 @@ const TrailersPage: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.notes}
                                             onChange={(e) => setFilters({ ...filters, notes: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]"
                                         />
                                     </th>
 
@@ -2014,7 +2014,7 @@ const TrailersPage: React.FC = () => {
                                         <select
                                             value={filters.operatingStatus}
                                             onChange={(e) => setFilters({ ...filters, operatingStatus: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="IN SERVICE">In Service</option>
@@ -2032,7 +2032,7 @@ const TrailersPage: React.FC = () => {
                                         <select
                                             value={filters.loadedStatus}
                                             onChange={(e) => setFilters({ ...filters, loadedStatus: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="LOADED">Loaded</option>
@@ -2049,7 +2049,7 @@ const TrailersPage: React.FC = () => {
                                         <select
                                             value={filters.compliance}
                                             onChange={(e) => setFilters({ ...filters, compliance: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="COMPLIANT">Compliant</option>
@@ -2063,7 +2063,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-theme">
                                 {filteredTrailers.length === 0 ? (
                                     <tr>
                                         <td colSpan={12} className="px-4 py-8 text-center text-secondary">
@@ -2153,7 +2153,7 @@ const TrailersPage: React.FC = () => {
                         <div className="w-48 bg-card border-r border-theme flex flex-col">
                             {/* Image Upload Section */}
                             <div className="p-3 border-b border-theme bg-card">
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-card"
+                                <div className="border-2 border-dashed border-theme rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-card"
                                     onClick={() => {
                                         const input = document.createElement('input');
                                         input.type = 'file';
@@ -2195,7 +2195,7 @@ const TrailersPage: React.FC = () => {
                                             key={step}
                                             onClick={() => setActiveStep(step)}
                                             className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
-                                                ? 'bg-[#42aeec] !text-white shadow-sm'
+                                                ? 'bg-[var(--accent-blue)] !text-white shadow-sm'
                                                 : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                 }`}
                                         >
@@ -2245,7 +2245,7 @@ const TrailersPage: React.FC = () => {
                                                     placeholder="Unit #"
                                                     value={formData.unitNumber}
                                                     onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2257,7 +2257,7 @@ const TrailersPage: React.FC = () => {
                                                     placeholder="VIN #"
                                                     value={formData.vinNumber}
                                                     onChange={(e) => setFormData({ ...formData, vinNumber: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2269,7 +2269,7 @@ const TrailersPage: React.FC = () => {
                                                     placeholder="Plate #"
                                                     value={formData.plateNumber}
                                                     onChange={(e) => setFormData({ ...formData, plateNumber: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2279,7 +2279,7 @@ const TrailersPage: React.FC = () => {
                                                 <select
                                                     value={formData.registrationCountry}
                                                     onChange={(e) => setFormData({ ...formData, registrationCountry: e.target.value, registrationProvince: '' })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
                                                     <option value="">Select Registration Country</option>
                                                     {countries.map((country) => (
@@ -2297,7 +2297,7 @@ const TrailersPage: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, registrationProvince: e.target.value })}
                                                     disabled={!formData.registrationCountry}
                                                     placeholder={formData.registrationCountry ? "Enter Province/State" : "Select country first"}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                                 />
                                             </div>
                                             <div>
@@ -2309,7 +2309,7 @@ const TrailersPage: React.FC = () => {
                                                     placeholder="Make"
                                                     value={formData.make}
                                                     onChange={(e) => setFormData({ ...formData, make: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2319,7 +2319,7 @@ const TrailersPage: React.FC = () => {
                                                     placeholder="Model"
                                                     value={formData.model}
                                                     onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2331,7 +2331,7 @@ const TrailersPage: React.FC = () => {
                                                     placeholder="Year"
                                                     value={formData.year}
                                                     onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2341,7 +2341,7 @@ const TrailersPage: React.FC = () => {
                                                 <select
                                                     value={formData.type}
                                                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
                                                     <option value="">Select Type</option>
                                                     <option value="RF">Reefer</option>
@@ -2358,7 +2358,7 @@ const TrailersPage: React.FC = () => {
                                                     placeholder="0"
                                                     value={formData.weight}
                                                     onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
@@ -2368,7 +2368,7 @@ const TrailersPage: React.FC = () => {
                                                 <select
                                                     value={formData.uom}
                                                     onChange={(e) => setFormData({ ...formData, uom: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
                                                     <option value="Kg">Kg</option>
                                                     <option value="Lbs">Lbs</option>
@@ -2381,7 +2381,7 @@ const TrailersPage: React.FC = () => {
                                                 <select
                                                     value={formData.status}
                                                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
                                                     <option value="In Service">In Service</option>
                                                     <option value="Out of Service">Out of Service</option>
@@ -2421,7 +2421,7 @@ const TrailersPage: React.FC = () => {
                                             <select
                                                 value={formData.yard}
                                                 onChange={(e) => setFormData({ ...formData, yard: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                             >
                                                 <option value="">Select</option>
                                                 {yards.filter(yard => yard.status === 'active').map((yard) => (
@@ -2511,7 +2511,7 @@ const TrailersPage: React.FC = () => {
                                                 onClick={() => setInspectionType('One Time')}
                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors border-2 ${inspectionType === 'One Time'
                                                     ? 'bg-card border-gray-700 text-primary'
-                                                    : 'bg-card border-gray-300 text-primary hover:border-gray-400'
+                                                    : 'bg-card border-theme text-primary hover:border-gray-400'
                                                     }`}
                                             >
                                                 One Time
@@ -2521,7 +2521,7 @@ const TrailersPage: React.FC = () => {
                                                 onClick={() => setInspectionType('Recurring')}
                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors border-2 ${inspectionType === 'Recurring'
                                                     ? 'bg-card border-gray-700 text-primary'
-                                                    : 'bg-card border-gray-300 text-primary hover:border-gray-400'
+                                                    : 'bg-card border-theme text-primary hover:border-gray-400'
                                                     }`}
                                             >
                                                 Recurring
@@ -2540,7 +2540,7 @@ const TrailersPage: React.FC = () => {
                                                                 type="date"
                                                                 value={inspectionForm.expiryDate}
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, expiryDate: e.target.value })}
-                                                                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                                className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                             />
                                                         </div>
                                                     </div>
@@ -2551,13 +2551,13 @@ const TrailersPage: React.FC = () => {
                                                             placeholder="Description"
                                                             value={inspectionForm.description}
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, description: e.target.value })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                         />
                                                     </div>
                                                     <div className="flex-1">
                                                         <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                         {inspectionForm.file ? (
-                                                            <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card">
+                                                            <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
                                                                 <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
                                                                 <span className="text-sm text-primary truncate flex-1">
                                                                     {inspectionForm.file.name}
@@ -2579,7 +2579,7 @@ const TrailersPage: React.FC = () => {
                                                                         setInspectionForm({ ...inspectionForm, file: e.target.files[0] });
                                                                     }
                                                                 }}
-                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                                                             />
                                                         )}
@@ -2735,7 +2735,7 @@ const TrailersPage: React.FC = () => {
                                                                 type="date"
                                                                 value={inspectionForm.scheduledOn}
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, scheduledOn: e.target.value })}
-                                                                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                                className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                             />
                                                         </div>
                                                     </div>
@@ -2746,7 +2746,7 @@ const TrailersPage: React.FC = () => {
                                                             placeholder="After"
                                                             value={inspectionForm.after}
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, after: e.target.value })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                         />
                                                     </div>
                                                     <div className="flex-1">
@@ -2754,7 +2754,7 @@ const TrailersPage: React.FC = () => {
                                                         <select
                                                             value={inspectionForm.unit}
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, unit: e.target.value })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                         >
                                                             <option value="">Select Unit</option>
                                                             <option value="Days">Days</option>
@@ -2769,13 +2769,13 @@ const TrailersPage: React.FC = () => {
                                                             placeholder="Description"
                                                             value={inspectionForm.description}
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, description: e.target.value })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                         />
                                                     </div>
                                                     <div className="flex-1">
                                                         <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                         {inspectionForm.file ? (
-                                                            <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card">
+                                                            <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
                                                                 <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
                                                                 <span className="text-sm text-primary truncate flex-1">
                                                                     {inspectionForm.file.name}
@@ -2797,7 +2797,7 @@ const TrailersPage: React.FC = () => {
                                                                         setInspectionForm({ ...inspectionForm, file: e.target.files[0] });
                                                                     }
                                                                 }}
-                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                                                             />
                                                         )}
@@ -2985,7 +2985,7 @@ const TrailersPage: React.FC = () => {
                                                         type="date"
                                                         value={documentForm.expiryDate}
                                                         onChange={(e) => setDocumentForm({ ...documentForm, expiryDate: e.target.value })}
-                                                        className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                        className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     />
                                                 </div>
                                             </div>
@@ -2996,13 +2996,13 @@ const TrailersPage: React.FC = () => {
                                                     placeholder="Description"
                                                     value={documentForm.description}
                                                     onChange={(e) => setDocumentForm({ ...documentForm, description: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 />
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                 {documentForm.file ? (
-                                                    <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card">
+                                                    <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
                                                         <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
                                                         <span className="text-sm text-primary truncate flex-1">
                                                             {documentForm.file.name}
@@ -3036,7 +3036,7 @@ const TrailersPage: React.FC = () => {
                                                         <button
                                                             type="button"
                                                             onClick={() => documentFileInputRef.current?.click()}
-                                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium flex items-center justify-center gap-2"
+                                                            className="w-full px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium flex items-center justify-center gap-2"
                                                         >
                                                             <Upload className="w-4 h-4" />
                                                             <span>Select File</span>
@@ -3169,7 +3169,7 @@ const TrailersPage: React.FC = () => {
                                                     placeholder="Note"
                                                     value={noteForm.note}
                                                     onChange={(e) => setNoteForm({ ...noteForm, note: e.target.value })}
-                                                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
                                                 />
                                             </div>
                                             <div>
@@ -3178,7 +3178,7 @@ const TrailersPage: React.FC = () => {
                                                     <select
                                                         value={noteForm.category}
                                                         onChange={(e) => setNoteForm({ ...noteForm, category: e.target.value })}
-                                                        className="px-3 py-2 pr-8 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none min-w-[150px]"
+                                                        className="px-3 py-2 pr-8 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none min-w-[150px]"
                                                     >
                                                         <option value="Category">Category</option>
                                                         <option value="Safety">Safety</option>
@@ -3216,7 +3216,7 @@ const TrailersPage: React.FC = () => {
                                                         <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Category</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-gray-200">
+                                                <tbody className="divide-y divide-theme">
                                                     {notes.length === 0 ? (
                                                         <tr>
                                                             <td colSpan={2} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>

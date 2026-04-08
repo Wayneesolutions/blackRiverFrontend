@@ -525,7 +525,7 @@ const AdminHRTrainingView: React.FC = () => {
     return (
       <div className="p-6 bg-main min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#0ea3d8] mx-auto mb-4" />
+          <Loader2 className="w-8 h-8 animate-spin text-[rgba(0,209,255,0.15)] mx-auto mb-4" />
           <p className="text-secondary">Loading training content...</p>
         </div>
       </div>
@@ -584,7 +584,7 @@ const AdminHRTrainingView: React.FC = () => {
                   ).size;
 
                   return (
-                    <div className="rounded-lg border-2 transition-all border-theme bg-card hover:border-gray-300">
+                    <div className="rounded-lg border-2 transition-all border-theme bg-card hover:border-theme">
                       <div className="p-3">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-semibold text-primary">HR</span>
@@ -628,7 +628,7 @@ const AdminHRTrainingView: React.FC = () => {
                         {/* Dropdown Toggle Button */}
                         <button
                           onClick={() => setOpenDropdown(isDropdownOpen ? null : 'hr')}
-                          className="w-full mt-3 flex items-center justify-between px-2 py-1.5 text-xs font-medium text-primary bg-card rounded border border-gray-300 hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                          className="w-full mt-3 flex items-center justify-between px-2 py-1.5 text-xs font-medium text-primary bg-card rounded border border-theme hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                         >
                           <span>View Users ({roleUsers.length})</span>
                           <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
@@ -678,7 +678,7 @@ const AdminHRTrainingView: React.FC = () => {
                                 >
                                   <div className="flex items-center gap-2 flex-1">
                                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                                      style={{ background: 'linear-gradient(135deg, #0ea3d8 0%, #0d8fc4 100%)' }}
+                                      style={{ background: 'linear-gradient(135deg, rgba(0,209,255,0.15) 0%, #0d8fc4 100%)' }}
                                     >
                                       {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                                     </div>
@@ -738,7 +738,7 @@ const AdminHRTrainingView: React.FC = () => {
                   setUploadDescription('');
                   setUploadFile(null);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Upload Content
@@ -758,13 +758,13 @@ const AdminHRTrainingView: React.FC = () => {
                   <div key={item._id} className="bg-card rounded-lg p-4 border border-theme">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2 flex-1">
-                        <div className="text-[#0ea3d8]">{getIcon(item.type)}</div>
+                        <div className="text-[rgba(0,209,255,0.15)]">{getIcon(item.type)}</div>
                         <h3 className="font-semibold text-primary">{item.name}</h3>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleViewContent(item._id, item.type)}
-                          className="text-[#0ea3d8] hover:text-[#0d8fc4] p-1"
+                          className="text-[rgba(0,209,255,0.15)] hover:text-[#0d8fc4] p-1"
                           title="View content"
                         >
                           <Eye className="w-4 h-4" />
@@ -818,7 +818,7 @@ const AdminHRTrainingView: React.FC = () => {
                   setCurrentQOptions(['', '', '', '']);
                   setCurrentQCorrectAnswer(0);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Add Q&A
@@ -889,7 +889,7 @@ const AdminHRTrainingView: React.FC = () => {
                                   {allUserResults.length > 0 && (
                                     <div className="mt-4 mb-4">
                                       <div className="flex items-center gap-2 mb-3">
-                                        <TrendingUp className="w-4 h-4 text-[#0ea3d8]" />
+                                        <TrendingUp className="w-4 h-4 text-[rgba(0,209,255,0.15)]" />
                                         <h4 className="text-sm font-semibold text-primary">User Results</h4>
                                         <span className="text-xs text-secondary">({allUserResults.length} {allUserResults.length === 1 ? 'user' : 'users'})</span>
                                       </div>
@@ -909,7 +909,7 @@ const AdminHRTrainingView: React.FC = () => {
                                               <div className="flex items-start justify-between mb-3">
                                                 <div className="flex items-center gap-3">
                                                   <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm`}
-                                                    style={{ background: 'linear-gradient(135deg, #0ea3d8 0%, #0d8fc4 100%)' }}
+                                                    style={{ background: 'linear-gradient(135deg, rgba(0,209,255,0.15) 0%, #0d8fc4 100%)' }}
                                                   >
                                                     {initials}
                                                   </div>
@@ -1042,7 +1042,7 @@ const AdminHRTrainingView: React.FC = () => {
                     value={uploadTestType}
                     onChange={(e) => setUploadTestType(e.target.value)}
                     disabled={uploading}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                    className="flex-1 px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                   >
                     <option value="">Select Test Type</option>
                     {testTypes.map((type) => (
@@ -1071,8 +1071,8 @@ const AdminHRTrainingView: React.FC = () => {
                     disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
                       uploadType === 'VIDEO'
-                        ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
-                        : 'bg-card text-primary border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                        ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
+                        : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
                     } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Video className="w-4 h-4 inline mr-2" />
@@ -1084,8 +1084,8 @@ const AdminHRTrainingView: React.FC = () => {
                     disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
                       uploadType === 'PDF'
-                        ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
-                        : 'bg-card text-primary border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                        ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
+                        : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
                     } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <FileText className="w-4 h-4 inline mr-2" />
@@ -1097,8 +1097,8 @@ const AdminHRTrainingView: React.FC = () => {
                     disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
                       uploadType === 'IMAGE'
-                        ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
-                        : 'bg-card text-primary border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                        ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
+                        : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
                     } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Image className="w-4 h-4 inline mr-2" />
@@ -1117,7 +1117,7 @@ const AdminHRTrainingView: React.FC = () => {
                   onChange={(e) => setUploadTitle(e.target.value)}
                   placeholder="Enter content title"
                   disabled={uploading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                 />
               </div>
               <div>
@@ -1131,7 +1131,7 @@ const AdminHRTrainingView: React.FC = () => {
                   placeholder="Enter content description (optional)"
                   rows={3}
                   disabled={uploading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                 />
               </div>
               <div>
@@ -1144,21 +1144,21 @@ const AdminHRTrainingView: React.FC = () => {
                   accept={uploadType === 'VIDEO' ? 'video/*' : uploadType === 'PDF' ? 'application/pdf' : 'image/*'}
                   onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                   disabled={uploading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                 />
               </div>
               <div className="flex gap-2 justify-end pt-4">
                 <button
                   onClick={() => !uploading && setShowUploadModal(false)}
                   disabled={uploading}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleUpload}
                   disabled={uploading || !uploadTitle.trim() || !uploadFile}
-                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {uploading ? (
                     <>
@@ -1215,7 +1215,7 @@ const AdminHRTrainingView: React.FC = () => {
                   onChange={(e) => setQATitle(e.target.value)}
                   placeholder="Enter Q&A title"
                   disabled={creatingQA}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                 />
               </div>
 
@@ -1227,7 +1227,7 @@ const AdminHRTrainingView: React.FC = () => {
                     value={qaTestType}
                     onChange={(e) => setQATestType(e.target.value)}
                     disabled={creatingQA}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                    className="flex-1 px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                   >
                     <option value="">Select Test Type</option>
                     {testTypes.map((type) => (
@@ -1260,7 +1260,7 @@ const AdminHRTrainingView: React.FC = () => {
                   placeholder="Enter description (optional)"
                   rows={3}
                   disabled={creatingQA}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                 />
               </div>
 
@@ -1323,7 +1323,7 @@ const AdminHRTrainingView: React.FC = () => {
                       placeholder="Enter question"
                       rows={2}
                       disabled={creatingQA}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                     />
                   </div>
 
@@ -1356,7 +1356,7 @@ const AdminHRTrainingView: React.FC = () => {
                             }}
                             placeholder={`Option ${String.fromCharCode(65 + idx)}`}
                             disabled={creatingQA}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                            className="flex-1 px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                           />
                         </div>
                       ))}
@@ -1382,14 +1382,14 @@ const AdminHRTrainingView: React.FC = () => {
                 <button
                   onClick={() => !creatingQA && setShowQAModal(false)}
                   disabled={creatingQA}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddQA}
                   disabled={creatingQA || !qaTitle.trim() || qaQuestions.length === 0}
-                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {creatingQA ? (
                     <>
@@ -1435,7 +1435,7 @@ const AdminHRTrainingView: React.FC = () => {
                   onChange={(e) => setNewTestTypeName(e.target.value.toUpperCase())}
                   placeholder="Enter test type name (uppercase)"
                   disabled={creatingTestType}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                 />
                 <p className="text-xs text-secondary mt-1">This will be stored in uppercase</p>
               </div>
@@ -1450,7 +1450,7 @@ const AdminHRTrainingView: React.FC = () => {
                   onChange={(e) => setNewTestTypeDisplayName(e.target.value)}
                   placeholder="Enter display name"
                   disabled={creatingTestType}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                 />
                 <p className="text-xs text-secondary mt-1">This is how it will appear in dropdowns</p>
               </div>
@@ -1458,14 +1458,14 @@ const AdminHRTrainingView: React.FC = () => {
                 <button
                   onClick={() => !creatingTestType && setShowAddTestTypeModal(false)}
                   disabled={creatingTestType}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddTestType}
                   disabled={creatingTestType || !newTestTypeName.trim() || !newTestTypeDisplayName.trim()}
-                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {creatingTestType ? (
                     <>

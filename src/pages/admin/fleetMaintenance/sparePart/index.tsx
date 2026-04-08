@@ -875,7 +875,7 @@ const SparePartsInventory = () => {
                 <button
                     ref={buttonRef}
                     onClick={() => setShowDropdown(!showDropdown)}
-                    className="p-2 text-secondary hover:text-primary hover:bg-gray-100 rounded-full transition-colors"
+                    className="p-2 text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                     title="More actions"
                 >
                     <FaEllipsisH size={16} />
@@ -971,7 +971,7 @@ const SparePartsInventory = () => {
                             placeholder="Search parts..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 pr-4 py-2.5 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all"
+                            className="pl-10 pr-4 py-2.5 w-full border border-theme rounded-lg focus:ring-2 focus:border-transparent transition-all"
                             style={focusRingStyle}
                         />
                     </div>
@@ -1082,7 +1082,7 @@ const SparePartsInventory = () => {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="divide-y divide-theme">
                                 {filteredParts.map((part) => {
                                     const stockStatus = getStockStatus(part.stockQty, part.minStockLevel);
                                     const supplier = typeof part.supplier === 'object' ? part.supplier : suppliers.find(s => s._id === part.supplier);
@@ -1254,7 +1254,7 @@ const SparePartsInventory = () => {
                                 </button>
                                 <button
                                     onClick={() => setShowAddModal(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-card text-[#0ea3d8] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
+                                    className="flex items-center gap-2 px-4 py-2 bg-card text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
                                 >
                                     <FaPlus /> Add New Part
                                 </button>
@@ -1315,7 +1315,7 @@ const SparePartsInventory = () => {
                                         type="text"
                                         defaultValue={newPartRef.current.partNumber}
                                         onChange={(e) => newPartRef.current.partNumber = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="e.g., ENG-001"
                                         required
                                     />
@@ -1328,7 +1328,7 @@ const SparePartsInventory = () => {
                                         type="text"
                                         defaultValue={newPartRef.current.partName}
                                         onChange={(e) => newPartRef.current.partName = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="Enter part name"
                                         required
                                     />
@@ -1343,7 +1343,7 @@ const SparePartsInventory = () => {
                                     <select
                                         defaultValue={newPartRef.current.category}
                                         onChange={(e) => newPartRef.current.category = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
                                         <option value="">Select Category</option>
                                         <option value="Engine Parts">Engine Parts</option>
@@ -1361,7 +1361,7 @@ const SparePartsInventory = () => {
                                     <select
                                         defaultValue={newPartRef.current.condition}
                                         onChange={(e) => newPartRef.current.condition = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
                                         <option value="new">New</option>
                                         <option value="refurbished">Refurbished</option>
@@ -1377,7 +1377,7 @@ const SparePartsInventory = () => {
                                 <textarea
                                     defaultValue={newPartRef.current.description}
                                     onChange={(e) => newPartRef.current.description = e.target.value}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     rows={2}
                                     placeholder="Part description..."
                                 />
@@ -1392,7 +1392,7 @@ const SparePartsInventory = () => {
                                         type="number"
                                         defaultValue={newPartRef.current.stockQty}
                                         onChange={(e) => newPartRef.current.stockQty = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="0"
                                         min="0"
                                         required
@@ -1406,7 +1406,7 @@ const SparePartsInventory = () => {
                                         type="number"
                                         defaultValue={newPartRef.current.minStockLevel}
                                         onChange={(e) => newPartRef.current.minStockLevel = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="0"
                                         min="0"
                                     />
@@ -1419,7 +1419,7 @@ const SparePartsInventory = () => {
                                         type="number"
                                         defaultValue={newPartRef.current.maxStockLevel}
                                         onChange={(e) => newPartRef.current.maxStockLevel = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="100"
                                         min="0"
                                     />
@@ -1436,7 +1436,7 @@ const SparePartsInventory = () => {
                                         step="0.01"
                                         defaultValue={newPartRef.current.buyingPrice}
                                         onChange={(e) => newPartRef.current.buyingPrice = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="0.00"
                                         min="0"
                                     />
@@ -1450,7 +1450,7 @@ const SparePartsInventory = () => {
                                         step="0.01"
                                         defaultValue={newPartRef.current.sellingPrice}
                                         onChange={(e) => newPartRef.current.sellingPrice = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="0.00"
                                         min="0"
                                     />
@@ -1466,7 +1466,7 @@ const SparePartsInventory = () => {
                                         type="date"
                                         defaultValue={newPartRef.current.purchaseDate}
                                         onChange={(e) => newPartRef.current.purchaseDate = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
                                 </div>
                                 <div>
@@ -1484,7 +1484,7 @@ const SparePartsInventory = () => {
                                                 newPartRef.current.supplier = e.target.value;
                                             }
                                         }}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
                                         <option value="">Select Supplier</option>
                                         {suppliers.map(supplier => (
@@ -1526,7 +1526,7 @@ const SparePartsInventory = () => {
                                         type="number"
                                         defaultValue={newPartRef.current.warrantyPeriod}
                                         onChange={(e) => newPartRef.current.warrantyPeriod = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="12"
                                         min="0"
                                     />
@@ -1537,7 +1537,7 @@ const SparePartsInventory = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowAddModal(false)}
-                                    className="px-4 py-2 text-secondary border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                                    className="px-4 py-2 text-secondary border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                                     disabled={submitting}
                                 >
                                     Cancel
@@ -1571,7 +1571,7 @@ const SparePartsInventory = () => {
                                         type="text"
                                         defaultValue={newPartRef.current.partNumber}
                                         onChange={(e) => newPartRef.current.partNumber = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="e.g., ENG-001"
                                         required
                                     />
@@ -1584,7 +1584,7 @@ const SparePartsInventory = () => {
                                         type="text"
                                         defaultValue={newPartRef.current.partName}
                                         onChange={(e) => newPartRef.current.partName = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="Enter part name"
                                         required
                                     />
@@ -1599,7 +1599,7 @@ const SparePartsInventory = () => {
                                     <select
                                         defaultValue={newPartRef.current.category}
                                         onChange={(e) => newPartRef.current.category = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
                                         <option value="">Select Category</option>
                                         <option value="Engine Parts">Engine Parts</option>
@@ -1617,7 +1617,7 @@ const SparePartsInventory = () => {
                                     <select
                                         defaultValue={newPartRef.current.condition}
                                         onChange={(e) => newPartRef.current.condition = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
                                         <option value="new">New</option>
                                         <option value="refurbished">Refurbished</option>
@@ -1633,7 +1633,7 @@ const SparePartsInventory = () => {
                                 <textarea
                                     defaultValue={newPartRef.current.description}
                                     onChange={(e) => newPartRef.current.description = e.target.value}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     rows={2}
                                     placeholder="Part description..."
                                 />
@@ -1648,7 +1648,7 @@ const SparePartsInventory = () => {
                                         type="number"
                                         defaultValue={newPartRef.current.stockQty}
                                         onChange={(e) => newPartRef.current.stockQty = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="0"
                                         min="0"
                                         required
@@ -1662,7 +1662,7 @@ const SparePartsInventory = () => {
                                         type="number"
                                         defaultValue={newPartRef.current.minStockLevel}
                                         onChange={(e) => newPartRef.current.minStockLevel = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="0"
                                         min="0"
                                     />
@@ -1675,7 +1675,7 @@ const SparePartsInventory = () => {
                                         type="number"
                                         defaultValue={newPartRef.current.maxStockLevel}
                                         onChange={(e) => newPartRef.current.maxStockLevel = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="100"
                                         min="0"
                                     />
@@ -1692,7 +1692,7 @@ const SparePartsInventory = () => {
                                         step="0.01"
                                         defaultValue={newPartRef.current.buyingPrice}
                                         onChange={(e) => newPartRef.current.buyingPrice = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="0.00"
                                         min="0"
                                     />
@@ -1706,7 +1706,7 @@ const SparePartsInventory = () => {
                                         step="0.01"
                                         defaultValue={newPartRef.current.sellingPrice}
                                         onChange={(e) => newPartRef.current.sellingPrice = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="0.00"
                                         min="0"
                                     />
@@ -1722,7 +1722,7 @@ const SparePartsInventory = () => {
                                         type="date"
                                         defaultValue={newPartRef.current.purchaseDate}
                                         onChange={(e) => newPartRef.current.purchaseDate = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
                                 </div>
                                 <div>
@@ -1740,7 +1740,7 @@ const SparePartsInventory = () => {
                                                 newPartRef.current.supplier = e.target.value;
                                             }
                                         }}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
                                         <option value="">Select Supplier</option>
                                         {suppliers.map(supplier => (
@@ -1782,7 +1782,7 @@ const SparePartsInventory = () => {
                                         type="number"
                                         defaultValue={newPartRef.current.warrantyPeriod}
                                         onChange={(e) => newPartRef.current.warrantyPeriod = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="12"
                                         min="0"
                                     />
@@ -1796,7 +1796,7 @@ const SparePartsInventory = () => {
                                         setShowEditModal(false);
                                         setSelectedPart(null);
                                     }}
-                                    className="px-4 py-2 text-secondary border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                                    className="px-4 py-2 text-secondary border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                                     disabled={submitting}
                                 >
                                     Cancel
@@ -1829,7 +1829,7 @@ const SparePartsInventory = () => {
                                     type="text"
                                     defaultValue={newSupplierRef.current.name}
                                     onChange={(e) => newSupplierRef.current.name = e.target.value}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Enter supplier name"
                                     required
                                 />
@@ -1842,7 +1842,7 @@ const SparePartsInventory = () => {
                                     type="text"
                                     defaultValue={newSupplierRef.current.contact}
                                     onChange={(e) => newSupplierRef.current.contact = e.target.value}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Enter contact person"
                                     required
                                 />
@@ -1855,7 +1855,7 @@ const SparePartsInventory = () => {
                                     type="email"
                                     defaultValue={newSupplierRef.current.email}
                                     onChange={(e) => newSupplierRef.current.email = e.target.value}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Enter email"
                                     required
                                 />
@@ -1868,7 +1868,7 @@ const SparePartsInventory = () => {
                                     type="tel"
                                     defaultValue={newSupplierRef.current.phone}
                                     onChange={(e) => newSupplierRef.current.phone = e.target.value}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Enter phone number"
                                 />
                             </div>
@@ -1889,7 +1889,7 @@ const SparePartsInventory = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowSupplierModal(false)}
-                                    className="px-4 py-2 text-secondary border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                                    className="px-4 py-2 text-secondary border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                                 >
                                     Cancel
                                 </button>
@@ -1917,7 +1917,7 @@ const SparePartsInventory = () => {
                             <button
                                 onClick={closeDeleteModal}
                                 disabled={deleteLoading}
-                                className="px-4 py-2 text-secondary border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="px-4 py-2 text-secondary border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                                 Cancel
                             </button>
@@ -1951,7 +1951,7 @@ const SparePartsInventory = () => {
                                         type="text"
                                         defaultValue={invoiceRef.current.customerName}
                                         onChange={(e) => invoiceRef.current.customerName = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="Enter customer name"
                                         required
                                     />
@@ -1964,7 +1964,7 @@ const SparePartsInventory = () => {
                                         type="email"
                                         defaultValue={invoiceRef.current.customerEmail}
                                         onChange={(e) => invoiceRef.current.customerEmail = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="Enter email"
                                     />
                                 </div>
@@ -1976,7 +1976,7 @@ const SparePartsInventory = () => {
                                         type="tel"
                                         defaultValue={invoiceRef.current.customerPhone}
                                         onChange={(e) => invoiceRef.current.customerPhone = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="Enter phone"
                                     />
                                 </div>
@@ -1989,7 +1989,7 @@ const SparePartsInventory = () => {
                                         step="0.01"
                                         defaultValue={invoiceRef.current.taxRate}
                                         onChange={(e) => invoiceRef.current.taxRate = parseFloat(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="13"
                                     />
                                 </div>
@@ -2001,7 +2001,7 @@ const SparePartsInventory = () => {
                                 <textarea
                                     defaultValue={invoiceRef.current.customerAddress}
                                     onChange={(e) => invoiceRef.current.customerAddress = e.target.value}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     rows={2}
                                     placeholder="Enter customer address"
                                 />
@@ -2030,7 +2030,7 @@ const SparePartsInventory = () => {
                                                     min="1"
                                                     value={item.quantity}
                                                     onChange={(e) => updateInvoiceItemQuantity(item.partId, parseInt(e.target.value))}
-                                                    className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
+                                                    className="w-16 px-2 py-1 border border-theme rounded text-center"
                                                 />
                                                 <span className="text-sm text-secondary">× ${item.unitPrice.toFixed(2)}</span>
                                                 <span className="font-medium text-primary">${item.totalPrice.toFixed(2)}</span>
@@ -2070,7 +2070,7 @@ const SparePartsInventory = () => {
                         <div className="flex justify-end space-x-3">
                             <button
                                 onClick={() => setShowInvoiceModal(false)}
-                                className="px-4 py-2 text-secondary border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                                className="px-4 py-2 text-secondary border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                             >
                                 Cancel
                             </button>
@@ -2103,7 +2103,7 @@ const SparePartsInventory = () => {
                                     usageDataRef.current = { unitNumber: '', qtyUsed: '' };
                                     setQtyUsedInput('');
                                 }}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                             >
                                 <FaTimes className="text-secondary" size={18} />
                             </button>
@@ -2159,7 +2159,7 @@ const SparePartsInventory = () => {
                                     <select
                                         defaultValue={usageDataRef.current.unitNumber}
                                         onChange={(e) => usageDataRef.current.unitNumber = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all bg-card"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all bg-card"
                                         style={focusRingStyle}
                                         required
                                     >
@@ -2184,7 +2184,7 @@ const SparePartsInventory = () => {
                                         setQtyUsedInput(value);
                                         usageDataRef.current.qtyUsed = value;
                                     }}
-                                    className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
+                                    className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:border-transparent transition-all"
                                     style={focusRingStyle}
                                     placeholder={`Enter quantity (max: ${selectedPart.stockQty})`}
                                     min="1"
@@ -2203,7 +2203,7 @@ const SparePartsInventory = () => {
                                         setSelectedPart(null);
                                         usageDataRef.current = { unitNumber: '', qtyUsed: '' };
                                     }}
-                                    className="px-5 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+                                    className="px-5 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                                     disabled={submitting}
                                 >
                                     Cancel
@@ -2236,7 +2236,7 @@ const SparePartsInventory = () => {
                                         setShowDetailsModal(false);
                                         setSelectedPart(null);
                                     }}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                                 >
                                     <FaTimes className="text-secondary" size={20} />
                                 </button>
@@ -2292,7 +2292,7 @@ const SparePartsInventory = () => {
                                         setShowDetailsModal(false);
                                         setSelectedPart(null);
                                     }}
-                                    className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+                                    className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                                 >
                                     Close
                                 </button>
@@ -2344,7 +2344,7 @@ const SparePartsInventory = () => {
                                         setShowInvoiceDetailsModal(false);
                                         setSelectedInvoice(null);
                                     }}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                                 >
                                     <FaTimes className="text-secondary" size={20} />
                                 </button>
@@ -2458,7 +2458,7 @@ const SparePartsInventory = () => {
                                         setShowInvoiceDetailsModal(false);
                                         setSelectedInvoice(null);
                                     }}
-                                    className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+                                    className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                                 >
                                     Close
                                 </button>

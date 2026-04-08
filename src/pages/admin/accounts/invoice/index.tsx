@@ -860,7 +860,7 @@ const InvoiceManagement: React.FC = () => {
                         <p className="text-xs text-[#063f6f]">{invoices.length} invoices</p>
                     </div>
                     <div className="bg-card p-3 rounded-full">
-                        <DollarSign className="h-6 w-6 text-[#42aeec]" />
+                        <DollarSign className="h-6 w-6 text-[var(--accent-blue)]" />
                     </div>
                 </div>
             </div>
@@ -875,7 +875,7 @@ const InvoiceManagement: React.FC = () => {
                         <p className="text-xs text-[#063f6f]">{stats.paidCount} invoices</p>
                     </div>
                     <div className="bg-card p-3 rounded-full">
-                        <TrendingUp className="h-6 w-6 text-[#0ea3d8]" />
+                        <TrendingUp className="h-6 w-6 text-[rgba(0,209,255,0.15)]" />
                     </div>
                 </div>
             </div>
@@ -905,7 +905,7 @@ const InvoiceManagement: React.FC = () => {
                         <p className="text-xs text-[#063f6f]">Payment efficiency</p>
                     </div>
                     <div className="bg-card p-3 rounded-full">
-                        <Users className="h-6 w-6 text-[#1db5f5]" />
+                        <Users className="h-6 w-6 text-[var(--accent-blue)]" />
                     </div>
                 </div>
             </div>
@@ -923,7 +923,7 @@ const InvoiceManagement: React.FC = () => {
                             <select
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="border border-theme rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
                                 <option value="all">All Status</option>
                                 <option value="paid">Paid</option>
@@ -952,7 +952,7 @@ const InvoiceManagement: React.FC = () => {
                                 <th className="text-left py-3 px-6 font-medium text-secondary">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200">
+                        <tbody className="divide-y divide-theme">
                             {filteredInvoices.map((invoice) => {
                                 // Extract trip number from notes if tripId is null
                                 const extractTripNumberFromNotes = (notes: string): string | null => {
@@ -1067,7 +1067,7 @@ const InvoiceManagement: React.FC = () => {
                                                         e.stopPropagation();
                                                         handleDownloadPDF(invoice);
                                                     }}
-                                                    className="p-2 text-primary hover:text-primary hover:bg-gray-100 rounded-lg transition-all"
+                                                    className="p-2 text-primary hover:text-primary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-all"
                                                     title="Download PDF"
                                                 >
                                                     <Download className="h-4 w-4" />
@@ -1143,7 +1143,7 @@ const InvoiceManagement: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('list')}
-                                className="text-secondary hover:text-primary transition-colors px-3 py-2 hover:bg-gray-100 rounded-lg"
+                                className="text-secondary hover:text-primary transition-colors px-3 py-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
                             >
                                 ← Back to List
                             </button>
@@ -1155,7 +1155,7 @@ const InvoiceManagement: React.FC = () => {
                     {/* Invoice Document Preview */}
                     <div className="max-w-4xl mx-auto bg-card shadow-2xl rounded-sm overflow-hidden border border-theme">
                         {/* Header - White Background with Logo and Title */}
-                        <div className="bg-card px-10 py-6 border-b-2 border-gray-300 flex items-center justify-between">
+                        <div className="bg-card px-10 py-6 border-b-2 border-theme flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 {company?.logoUrl && (
                                     <img 
@@ -1270,7 +1270,7 @@ const InvoiceManagement: React.FC = () => {
                                         }
                                         // Show section if truck object exists (even if empty)
                                         return truckInfo ? (
-                                            <div className="mt-6 pt-6 border-t border-gray-300">
+                                            <div className="mt-6 pt-6 border-t border-theme">
                                                 <h4 className="font-semibold text-primary mb-4 text-sm uppercase tracking-wide">
                                                     Truck Details
                                                 </h4>
@@ -1335,7 +1335,7 @@ const InvoiceManagement: React.FC = () => {
                                         }
                                         // Show section if trailer object exists (even if empty)
                                         return trailerInfo ? (
-                                            <div className="mt-6 pt-6 border-t border-gray-300">
+                                            <div className="mt-6 pt-6 border-t border-theme">
                                                 <h4 className="font-semibold text-primary mb-4 text-sm uppercase tracking-wide">
                                                     Trailer Details
                                                 </h4>
@@ -1414,7 +1414,7 @@ const InvoiceManagement: React.FC = () => {
                                         
                                         // Show section if driver or coDriver exists
                                         return (driverInfo || coDriverInfo) ? (
-                                            <div className="mt-6 pt-6 border-t border-gray-300">
+                                            <div className="mt-6 pt-6 border-t border-theme">
                                                 <h4 className="font-semibold text-primary mb-4 text-sm uppercase tracking-wide">
                                                     Driver Information
                                                 </h4>
@@ -1478,7 +1478,7 @@ const InvoiceManagement: React.FC = () => {
 
                                     {/* Additional Trip Information */}
                                     {(trip?.route?.totalDistance || trip?.plannedStartDate || trip?.actualStartDate) && (
-                                        <div className="mt-6 pt-6 border-t border-gray-300">
+                                        <div className="mt-6 pt-6 border-t border-theme">
                                                 <h4 className="font-semibold text-primary mb-4 text-sm uppercase tracking-wide">
                                                     Trip Information
                                                 </h4>
@@ -1537,7 +1537,7 @@ const InvoiceManagement: React.FC = () => {
                             <div className="mt-10">
                                 <table className="w-full border-collapse">
                                     <thead>
-                                        <tr className="border-b-2 border-gray-300">
+                                        <tr className="border-b-2 border-theme">
                                             <th className="text-left py-4 px-5 font-bold text-primary text-sm uppercase tracking-wide">Description</th>
                                             <th className="text-center py-4 px-5 font-bold text-primary text-sm uppercase tracking-wide">Qty</th>
                                             <th className="text-right py-4 px-5 font-bold text-primary text-sm uppercase tracking-wide">Unit Price</th>
@@ -1604,7 +1604,7 @@ const InvoiceManagement: React.FC = () => {
 
                             {/* GST Details Section */}
                             {company && (company.taxNumber || gstRate > 0 || pstRate > 0) && (
-                                <div className="mt-8 pt-6 border-t border-gray-300">
+                                <div className="mt-8 pt-6 border-t border-theme">
                                     <h4 className="font-semibold text-primary mb-4 text-sm uppercase tracking-wide">
                                         Tax Information
                                     </h4>
@@ -1640,7 +1640,7 @@ const InvoiceManagement: React.FC = () => {
                             )}
 
                             {/* Invoice Metadata */}
-                            <div className="mt-10 pt-6 border-t-2 border-gray-300 grid grid-cols-2 gap-6 text-sm">
+                            <div className="mt-10 pt-6 border-t-2 border-theme grid grid-cols-2 gap-6 text-sm">
                                 <div>
                                     <span className="font-semibold text-primary">Invoice Date:</span>
                                     <span className="ml-2 text-primary">{formatDate(selectedInvoice.invoiceDate)}</span>
@@ -1663,7 +1663,7 @@ const InvoiceManagement: React.FC = () => {
 
                             {/* Notes */}
                             {selectedInvoice.notes && (
-                                <div className="mt-8 pt-6 border-t-2 border-gray-300">
+                                <div className="mt-8 pt-6 border-t-2 border-theme">
                                     <h4 className="font-semibold text-primary mb-3 text-sm uppercase tracking-wide">Notes:</h4>
                                     <p className="text-sm text-primary leading-relaxed whitespace-pre-wrap">{selectedInvoice.notes}</p>
                                 </div>
@@ -1973,7 +1973,7 @@ const InvoiceManagement: React.FC = () => {
                                     type="text"
                                     value={editForm.clientName}
                                     onChange={(e) => handleInputChange('clientName', e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 />
                             </div>
 
@@ -1983,7 +1983,7 @@ const InvoiceManagement: React.FC = () => {
                                     type="email"
                                     value={editForm.clientEmail}
                                     onChange={(e) => handleInputChange('clientEmail', e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 />
                             </div>
 
@@ -1995,7 +1995,7 @@ const InvoiceManagement: React.FC = () => {
                                     step="0.01"
                                     value={editForm.amount}
                                     onChange={(e) => handleInputChange('amount', parseFloat(e.target.value) || 0)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 />
                             </div>
 
@@ -2008,7 +2008,7 @@ const InvoiceManagement: React.FC = () => {
                                     max="100"
                                     value={editForm.gstRate || ''}
                                     onChange={(e) => handleInputChange('gstRate', parseFloat(e.target.value) || 0)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="0.00"
                                 />
                             </div>
@@ -2022,7 +2022,7 @@ const InvoiceManagement: React.FC = () => {
                                     max="100"
                                     value={editForm.pstRate || ''}
                                     onChange={(e) => handleInputChange('pstRate', parseFloat(e.target.value) || 0)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="0.00"
                                 />
                             </div>
@@ -2034,7 +2034,7 @@ const InvoiceManagement: React.FC = () => {
                                 <select
                                     value={editForm.status}
                                     onChange={(e) => handleInputChange('status', e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 >
                                     <option value="pending">Pending</option>
                                     <option value="paid">Paid</option>
@@ -2047,7 +2047,7 @@ const InvoiceManagement: React.FC = () => {
                                     type="date"
                                     value={editForm.dueDate.split('T')[0]}
                                     onChange={(e) => handleInputChange('dueDate', e.target.value + 'T00:00:00Z')}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 />
                             </div>
 
@@ -2058,7 +2058,7 @@ const InvoiceManagement: React.FC = () => {
                                         type="date"
                                         value={editForm.paymentDate ? editForm.paymentDate.split('T')[0] : ''}
                                         onChange={(e) => handleInputChange('paymentDate', e.target.value ? e.target.value + 'T00:00:00Z' : null)}
-                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
                                 </div>
                             )}
@@ -2072,7 +2072,7 @@ const InvoiceManagement: React.FC = () => {
                             value={editForm.notes}
                             onChange={(e) => handleInputChange('notes', e.target.value)}
                             rows={4}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
                 </div>
@@ -2236,7 +2236,7 @@ const InvoiceManagement: React.FC = () => {
                                 <select
                                     value={newInvoice.tripId}
                                     onChange={(e) => handleOrderSelect(e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     disabled={loading}
                                 >
                                     <option value="">
@@ -2312,7 +2312,7 @@ const InvoiceManagement: React.FC = () => {
                                     onChange={(e) => handleInputChange('clientName', e.target.value)}
                                     className={`w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${newInvoice.tripId && newInvoice.clientName
                                         ? 'border-green-300 bg-green-50'
-                                        : 'border-gray-300'
+                                        : 'border-theme'
                                         }`}
                                     placeholder="Enter client name"
                                     required
@@ -2332,7 +2332,7 @@ const InvoiceManagement: React.FC = () => {
                                     onChange={(e) => handleInputChange('clientEmail', e.target.value)}
                                     className={`w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${newInvoice.tripId && newInvoice.clientEmail
                                         ? 'border-green-300 bg-green-50'
-                                        : 'border-gray-300'
+                                        : 'border-theme'
                                         }`}
                                     placeholder="client@example.com"
                                 />
@@ -2347,7 +2347,7 @@ const InvoiceManagement: React.FC = () => {
                                     min="0"
                                     value={newInvoice.amount}
                                     onChange={(e) => handleInputChange('amount', e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="0.00"
                                     required
                                 />
@@ -2362,7 +2362,7 @@ const InvoiceManagement: React.FC = () => {
                                     max="100"
                                     value={newInvoice.gstRate}
                                     onChange={(e) => handleInputChange('gstRate', e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="0.00"
                                 />
                             </div>
@@ -2376,7 +2376,7 @@ const InvoiceManagement: React.FC = () => {
                                     max="100"
                                     value={newInvoice.pstRate}
                                     onChange={(e) => handleInputChange('pstRate', e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="0.00"
                                 />
                             </div>
@@ -2388,7 +2388,7 @@ const InvoiceManagement: React.FC = () => {
                                 <select
                                     value={newInvoice.currency}
                                     onChange={(e) => handleInputChange('currency', e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 >
                                     <option value="USD">USD - US Dollar</option>
                                     <option value="EUR">EUR - Euro</option>
@@ -2405,7 +2405,7 @@ const InvoiceManagement: React.FC = () => {
                                     type="date"
                                     value={newInvoice.dueDate}
                                     onChange={(e) => handleInputChange('dueDate', e.target.value)}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     min={new Date().toISOString().split('T')[0]}
                                     required
                                 />
@@ -2417,7 +2417,7 @@ const InvoiceManagement: React.FC = () => {
                                     value={newInvoice.notes}
                                     onChange={(e) => handleInputChange('notes', e.target.value)}
                                     rows={8}
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Add any additional notes or details about this invoice..."
                                 />
                             </div>
@@ -2474,7 +2474,7 @@ const InvoiceManagement: React.FC = () => {
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Invoice Management</h1>
+                            <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Invoice Management</h1>
                             <p className="mt-2 text-secondary">Manage invoices, track payments, and monitor revenue</p>
                         </div>
                         {activeTab === 'list' && (
@@ -2482,7 +2482,7 @@ const InvoiceManagement: React.FC = () => {
                                 <button
                                     onClick={() => setActiveTab('create')}
                                     className="px-4 py-2 rounded-lg transition-all flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white"
-                                    style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                                    style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                                 >
                                     <Plus className="h-4 w-4" />
                                     New Invoice

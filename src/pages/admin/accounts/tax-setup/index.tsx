@@ -703,11 +703,11 @@ export default function TaxConfigurationPage() {
         <div className="bg-card rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
+              <div className="p-3 rounded-lg" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}>
                 <Settings className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Tax Configuration Management</h1>
+                <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Tax Configuration Management</h1>
                 <p className="text-slate-600 text-sm mt-1">Add, edit, and manage tax settings across all components</p>
               </div>
             </div>
@@ -723,19 +723,19 @@ export default function TaxConfigurationPage() {
         {/* Navigation Tabs */}
         <div className="bg-card rounded-lg shadow-sm mb-6 overflow-hidden">
           <div className="flex border-b border-slate-200">
-            <button onClick={() => setActiveTab('ifta')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'ifta' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-card' : 'text-slate-600 hover:bg-slate-50'}`}>
+            <button onClick={() => setActiveTab('ifta')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'ifta' ? 'text-[#016ab2] border-b-2 border-[var(--accent-blue)] bg-card' : 'text-slate-600 hover:bg-slate-50'}`}>
               <FileText className="w-5 h-5" />
               <span className="hidden sm:inline">IFTA Rates</span>
             </button>
-            <button onClick={() => setActiveTab('sales')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'sales' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-card' : 'text-slate-600 hover:bg-slate-50'}`}>
+            <button onClick={() => setActiveTab('sales')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'sales' ? 'text-[#016ab2] border-b-2 border-[var(--accent-blue)] bg-card' : 'text-slate-600 hover:bg-slate-50'}`}>
               <MapPin className="w-5 h-5" />
               <span className="hidden sm:inline">Sales Tax</span>
             </button>
-            <button onClick={() => setActiveTab('payroll')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'payroll' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-card' : 'text-slate-600 hover:bg-slate-50'}`}>
+            <button onClick={() => setActiveTab('payroll')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'payroll' ? 'text-[#016ab2] border-b-2 border-[var(--accent-blue)] bg-card' : 'text-slate-600 hover:bg-slate-50'}`}>
               <Calculator className="w-5 h-5" />
               <span className="hidden sm:inline">Payroll</span>
             </button>
-            <button onClick={() => setActiveTab('vendor')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'vendor' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-card' : 'text-slate-600 hover:bg-slate-50'}`}>
+            <button onClick={() => setActiveTab('vendor')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'vendor' ? 'text-[#016ab2] border-b-2 border-[var(--accent-blue)] bg-card' : 'text-slate-600 hover:bg-slate-50'}`}>
               <DollarSign className="w-5 h-5" />
               <span className="hidden sm:inline">Vendor Tax</span>
             </button>
@@ -760,7 +760,7 @@ export default function TaxConfigurationPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <button onClick={handleAddNew} className="flex items-center gap-2 !text-white px-4 py-2 rounded-lg hover:shadow-lg hover:scale-105 transform duration-200 transition-all" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
+              <button onClick={handleAddNew} className="flex items-center gap-2 !text-white px-4 py-2 rounded-lg hover:shadow-lg hover:scale-105 transform duration-200 transition-all" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}>
                 <Plus className="w-4 h-4" />
                 Add New
               </button>
@@ -953,7 +953,7 @@ export default function TaxConfigurationPage() {
                   </button>
                   <button type="submit"
                     style={{
-                      background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                      background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                     }}
                     className="flex-1  !text-white px-4 py-2 rounded-lg ">
                     <Save className="w-4 h-4 inline mr-2" />

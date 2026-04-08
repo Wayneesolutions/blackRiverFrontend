@@ -99,7 +99,7 @@ const NewIssuesSidebar: FC<NewIssuesSidebarProps> = ({ isOpen, onClose }) => {
                                             name="reporter"
                                             value={formData.reporter}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="">Select Reporter</option>
                                             <option value="raman">Raman's Beauty Lounge</option>
@@ -115,7 +115,7 @@ const NewIssuesSidebar: FC<NewIssuesSidebarProps> = ({ isOpen, onClose }) => {
                                             name="assignee"
                                             value={formData.assignee}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="">Select Assignee</option>
                                             <option value="manager1">John Manager</option>
@@ -135,7 +135,7 @@ const NewIssuesSidebar: FC<NewIssuesSidebarProps> = ({ isOpen, onClose }) => {
                                             name="driver"
                                             value={formData.driver}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="">Select Driver</option>
                                             <option value="mike">Mike Johnson</option>
@@ -151,7 +151,7 @@ const NewIssuesSidebar: FC<NewIssuesSidebarProps> = ({ isOpen, onClose }) => {
                                             name="vehicle"
                                             value={formData.vehicle}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="">Select Vehicle</option>
                                             <option value="truck-alpha">Truck Alpha</option>
@@ -171,7 +171,7 @@ const NewIssuesSidebar: FC<NewIssuesSidebarProps> = ({ isOpen, onClose }) => {
                                             name="issueType"
                                             value={formData.issueType}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="">Select Type</option>
                                             <option value="operational">Operational</option>
@@ -188,7 +188,7 @@ const NewIssuesSidebar: FC<NewIssuesSidebarProps> = ({ isOpen, onClose }) => {
                                             name="issueCategory"
                                             value={formData.issueCategory}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="">Select Category</option>
                                             <option value="engine">Engine</option>
@@ -210,7 +210,7 @@ const NewIssuesSidebar: FC<NewIssuesSidebarProps> = ({ isOpen, onClose }) => {
                                         onChange={handleInputChange}
                                         placeholder="Describe the issue"
                                         rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
 
@@ -225,7 +225,7 @@ const NewIssuesSidebar: FC<NewIssuesSidebarProps> = ({ isOpen, onClose }) => {
                                         value={formData.issueTags}
                                         onChange={handleInputChange}
                                         placeholder="Add tags (comma separated)"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
 
@@ -239,7 +239,7 @@ const NewIssuesSidebar: FC<NewIssuesSidebarProps> = ({ isOpen, onClose }) => {
                                             name="priority"
                                             value={formData.priority}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="Low">Low</option>
                                             <option value="Medium">Medium</option>
@@ -254,7 +254,7 @@ const NewIssuesSidebar: FC<NewIssuesSidebarProps> = ({ isOpen, onClose }) => {
                                             name="status"
                                             value={formData.status}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="Pending">Pending</option>
                                             <option value="Open">Open</option>
@@ -277,7 +277,7 @@ const NewIssuesSidebar: FC<NewIssuesSidebarProps> = ({ isOpen, onClose }) => {
                                             onChange={handleInputChange}
                                             placeholder="Latitude"
                                             step="any"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                         <input
                                             type="number"
@@ -286,7 +286,7 @@ const NewIssuesSidebar: FC<NewIssuesSidebarProps> = ({ isOpen, onClose }) => {
                                             onChange={handleInputChange}
                                             placeholder="Longitude"
                                             step="any"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
                                     <button
@@ -324,7 +324,7 @@ const NewIssuesSidebar: FC<NewIssuesSidebarProps> = ({ isOpen, onClose }) => {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 border border-gray-300 !mr-3 rounded-md text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                            className="px-4 py-2 border border-theme !mr-3 rounded-md text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                         >
                             Cancel
                         </button>

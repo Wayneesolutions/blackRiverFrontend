@@ -148,7 +148,7 @@ const NewContactSidebar: FC<NewContactSidebarProps> = ({ isOpen, onClose }) => {
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder="Name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -162,7 +162,7 @@ const NewContactSidebar: FC<NewContactSidebarProps> = ({ isOpen, onClose }) => {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="Email"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -176,7 +176,7 @@ const NewContactSidebar: FC<NewContactSidebarProps> = ({ isOpen, onClose }) => {
                 value={formData.phone}
                 onChange={handleInputChange}
                 placeholder="Phone"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -190,7 +190,7 @@ const NewContactSidebar: FC<NewContactSidebarProps> = ({ isOpen, onClose }) => {
                 value={formData.internalId}
                 onChange={handleInputChange}
                 placeholder="Internal ID"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -204,7 +204,7 @@ const NewContactSidebar: FC<NewContactSidebarProps> = ({ isOpen, onClose }) => {
                 value={formData.country}
                 onChange={handleInputChange}
                 placeholder="Country"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -218,7 +218,7 @@ const NewContactSidebar: FC<NewContactSidebarProps> = ({ isOpen, onClose }) => {
                 value={formData.state}
                 onChange={handleInputChange}
                 placeholder="State"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -232,7 +232,7 @@ const NewContactSidebar: FC<NewContactSidebarProps> = ({ isOpen, onClose }) => {
                 value={formData.city}
                 onChange={handleInputChange}
                 placeholder="City"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -243,7 +243,7 @@ const NewContactSidebar: FC<NewContactSidebarProps> = ({ isOpen, onClose }) => {
           <div className="flex justify-end space-x-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 !mr-3 border border-gray-300 rounded-md text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+              className="px-4 py-2 !mr-3 border border-theme rounded-md text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               disabled={loading}
             >
               Cancel
@@ -251,7 +251,7 @@ const NewContactSidebar: FC<NewContactSidebarProps> = ({ isOpen, onClose }) => {
             <button
               onClick={handleSubmit}
               style={{
-                background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
               }}
               className="px-4 py-2  !text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
               disabled={loading}

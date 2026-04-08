@@ -546,7 +546,7 @@ export default function SettlementSystem() {
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Settlement Management</h1>
+                <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Settlement Management</h1>
                 <p className="text-sm text-secondary mt-1">
                   Manage driver settlements, deductions/additions, and miles tracking for IFTA reporting
                 </p>
@@ -570,7 +570,7 @@ export default function SettlementSystem() {
                   }}
 
                   className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2"
-                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                  style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                 >
                   <Plus className="w-4 h-4" />
                   New Settlement Generation
@@ -589,8 +589,8 @@ export default function SettlementSystem() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === tab.id
-                      ? 'border-[#42aeec] text-[#016ab2]'
-                      : 'border-transparent text-secondary hover:text-primary hover:border-gray-300'
+                      ? 'border-[var(--accent-blue)] text-[#016ab2]'
+                      : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                       }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -615,9 +615,9 @@ export default function SettlementSystem() {
                 }`}>
                 <div className="flex items-center justify-between mb-4">
                   <div className={`p-3 rounded-lg bg-card`}>
-                    <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[#42aeec]' :
-                      card.color === 'green' ? 'text-[#0ea3d8]' :
-                        card.color === 'purple' ? 'text-[#1db5f5]' :
+                    <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[var(--accent-blue)]' :
+                      card.color === 'green' ? 'text-[rgba(0,209,255,0.15)]' :
+                        card.color === 'purple' ? 'text-[var(--accent-blue)]' :
                           'text-orange-500'
                       }`} />
                   </div>
@@ -642,15 +642,15 @@ export default function SettlementSystem() {
                   placeholder="Search..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+                  className="pl-10 pr-4 py-2 border border-theme rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
                 />
               </div>
-              <button className="p-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+              <button className="p-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                 <Filter className="w-4 h-4 text-secondary" />
               </button>
             </div>
             <div className="flex items-center gap-2">
-              <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-2">
+              <button className="px-4 py-2 text-sm border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-2">
                 <Download className="w-4 h-4" />
                 Export
               </button>
@@ -671,7 +671,7 @@ export default function SettlementSystem() {
                     setShowDeductionModal(true);
                   }}
                   className="px-4 py-2 text-sm hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2"
-                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                  style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                 >
                   <Plus className="w-4 h-4" />
                   Add New
@@ -695,7 +695,7 @@ export default function SettlementSystem() {
                     setShowMilesModal(true);
                   }}
                   className="px-4 py-2 text-sm hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2"
-                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                  style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                 >
                   <Plus className="w-4 h-4" />
                   Add New
@@ -729,7 +729,7 @@ export default function SettlementSystem() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-theme">
                     {filteredSettlements.map(settlement => (
                       <tr 
                         key={settlement._id} 
@@ -817,7 +817,7 @@ export default function SettlementSystem() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-theme">
                     {filteredDeductions.map(item => (
                       <tr 
                         key={item._id} 
@@ -900,7 +900,7 @@ export default function SettlementSystem() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">IFTA Miles</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-theme">
                     {filteredMilesTracking.map(record => (
                       <tr 
                         key={record._id} 
@@ -955,7 +955,7 @@ export default function SettlementSystem() {
                   <select
                     value={settlementForm.driver}
                     onChange={(e) => setSettlementForm({ ...settlementForm, driver: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     required
                   >
                     <option value="">Select Driver</option>
@@ -977,7 +977,7 @@ export default function SettlementSystem() {
                       type="date"
                       value={settlementForm.payPeriod.startDate}
                       onChange={(e) => setSettlementForm({ ...settlementForm, payPeriod: { ...settlementForm.payPeriod, startDate: e.target.value } })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     />
                   </div>
@@ -987,7 +987,7 @@ export default function SettlementSystem() {
                       type="date"
                       value={settlementForm.payPeriod.endDate}
                       onChange={(e) => setSettlementForm({ ...settlementForm, payPeriod: { ...settlementForm.payPeriod, endDate: e.target.value } })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     />
                   </div>
@@ -999,7 +999,7 @@ export default function SettlementSystem() {
                       type="number"
                       value={settlementForm.grossPay}
                       onChange={(e) => setSettlementForm({ ...settlementForm, grossPay: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                       min="0"
                       step="0.01"
@@ -1011,7 +1011,7 @@ export default function SettlementSystem() {
                       type="number"
                       value={settlementForm.deductions}
                       onChange={(e) => setSettlementForm({ ...settlementForm, deductions: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       min="0"
                       step="0.01"
                     />
@@ -1022,7 +1022,7 @@ export default function SettlementSystem() {
                       type="number"
                       value={settlementForm.additions}
                       onChange={(e) => setSettlementForm({ ...settlementForm, additions: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       min="0"
                       step="0.01"
                     />
@@ -1033,7 +1033,7 @@ export default function SettlementSystem() {
                   <select
                     value={settlementForm.status}
                     onChange={(e) => setSettlementForm({ ...settlementForm, status: e.target.value as any })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Pending">Pending</option>
                     <option value="Processing">Processing</option>
@@ -1044,7 +1044,7 @@ export default function SettlementSystem() {
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={() => setShowSettlementModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                    className="flex-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                     disabled={submitting}
                   >
                     Cancel
@@ -1089,7 +1089,7 @@ export default function SettlementSystem() {
                       }
                     }}
                     style={{
-                      background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                      background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                     }}
                     className="flex-1 px-4 py-2 !text-white rounded-lg  disabled:opacity-50"
                     disabled={submitting}
@@ -1123,7 +1123,7 @@ export default function SettlementSystem() {
                     type="text"
                     value={deductionForm.name}
                     onChange={(e) => setDeductionForm({ ...deductionForm, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
@@ -1133,7 +1133,7 @@ export default function SettlementSystem() {
                     <select
                       value={deductionForm.type}
                       onChange={(e) => setDeductionForm({ ...deductionForm, type: e.target.value as any })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     >
                       <option value="Deduction">Deduction</option>
@@ -1145,7 +1145,7 @@ export default function SettlementSystem() {
                     <select
                       value={deductionForm.recurrence}
                       onChange={(e) => setDeductionForm({ ...deductionForm, recurrence: e.target.value as any })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     >
                       <option value="One-time">One-time</option>
@@ -1164,7 +1164,7 @@ export default function SettlementSystem() {
                       type="number"
                       value={deductionForm.amount}
                       onChange={(e) => setDeductionForm({ ...deductionForm, amount: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                       min="0"
                       step="0.01"
@@ -1175,7 +1175,7 @@ export default function SettlementSystem() {
                     <select
                       value={deductionForm.assignedTo}
                       onChange={(e) => setDeductionForm({ ...deductionForm, assignedTo: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     >
                       <option value="">Select Driver</option>
@@ -1190,14 +1190,14 @@ export default function SettlementSystem() {
                   <textarea
                     value={deductionForm.description}
                     onChange={(e) => setDeductionForm({ ...deductionForm, description: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     rows={3}
                   />
                 </div>
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={() => setShowDeductionModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                    className="flex-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                     disabled={submitting}
                   >
                     Cancel
@@ -1236,7 +1236,7 @@ export default function SettlementSystem() {
                         setSubmitting(false);
                       }
                     }}
-                    style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                    style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                     className="flex-1 px-4 py-2  !text-white rounded-lg  disabled:opacity-50"
                     disabled={submitting}
                   >
@@ -1270,7 +1270,7 @@ export default function SettlementSystem() {
                       type="date"
                       value={milesForm.date}
                       onChange={(e) => setMilesForm({ ...milesForm, date: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     />
                   </div>
@@ -1280,7 +1280,7 @@ export default function SettlementSystem() {
                       type="text"
                       value={milesForm.state}
                       onChange={(e) => setMilesForm({ ...milesForm, state: e.target.value.toUpperCase() })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       placeholder="e.g., CA, TX, NY"
                       maxLength={2}
                       required
@@ -1293,7 +1293,7 @@ export default function SettlementSystem() {
                     <select
                       value={milesForm.driver}
                       onChange={(e) => setMilesForm({ ...milesForm, driver: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     >
                       <option value="">Select Driver</option>
@@ -1307,7 +1307,7 @@ export default function SettlementSystem() {
                     <select
                       value={milesForm.vehicle}
                       onChange={(e) => setMilesForm({ ...milesForm, vehicle: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     >
                       <option value="">Select Vehicle</option>
@@ -1336,7 +1336,7 @@ export default function SettlementSystem() {
                       type="number"
                       value={milesForm.totalMiles}
                       onChange={(e) => setMilesForm({ ...milesForm, totalMiles: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                       min="0"
                       step="0.01"
@@ -1348,7 +1348,7 @@ export default function SettlementSystem() {
                       type="number"
                       value={milesForm.iftaMiles}
                       onChange={(e) => setMilesForm({ ...milesForm, iftaMiles: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                       min="0"
                       step="0.01"
@@ -1362,7 +1362,7 @@ export default function SettlementSystem() {
                       type="number"
                       value={milesForm.loadedMiles}
                       onChange={(e) => setMilesForm({ ...milesForm, loadedMiles: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       min="0"
                       step="0.01"
                     />
@@ -1373,7 +1373,7 @@ export default function SettlementSystem() {
                       type="number"
                       value={milesForm.emptyMiles}
                       onChange={(e) => setMilesForm({ ...milesForm, emptyMiles: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       min="0"
                       step="0.01"
                     />
@@ -1384,14 +1384,14 @@ export default function SettlementSystem() {
                   <textarea
                     value={milesForm.notes}
                     onChange={(e) => setMilesForm({ ...milesForm, notes: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     rows={3}
                   />
                 </div>
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={() => setShowMilesModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                    className="flex-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                     disabled={submitting}
                   >
                     Cancel
@@ -1432,7 +1432,7 @@ export default function SettlementSystem() {
                         setSubmitting(false);
                       }
                     }}
-                    style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                    style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                     className="flex-1 px-4 py-2  !text-white rounded-lg  disabled:opacity-50"
                     disabled={submitting}
                   >
@@ -1480,7 +1480,7 @@ export default function SettlementSystem() {
       {showDetailModal && selectedItem && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-card rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] p-6 flex justify-between items-center rounded-t-xl">
+            <div className="sticky top-0 bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] p-6 flex justify-between items-center rounded-t-xl">
               <div className="flex items-center gap-3">
                 {selectedItem.type === 'settlement' && <DollarSign className="w-7 h-7 text-white" />}
                 {selectedItem.type === 'deduction' && (selectedItem.type === 'Addition' ? <TrendingUp className="w-7 h-7 text-white" /> : <TrendingDown className="w-7 h-7 text-white" />)}
@@ -1559,15 +1559,15 @@ export default function SettlementSystem() {
                   <div className="bg-card rounded-lg p-4 border border-theme">
                     <h4 className="text-sm font-bold text-primary mb-3 uppercase tracking-wide">Payment Breakdown</h4>
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                      <div className="flex justify-between items-center py-2 border-b border-theme">
                         <span className="text-primary font-medium">Gross Pay</span>
                         <span className="text-lg font-bold text-green-600">${selectedItem.grossPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
-                      <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                      <div className="flex justify-between items-center py-2 border-b border-theme">
                         <span className="text-primary font-medium">Deductions</span>
                         <span className="text-lg font-bold text-[#A855F7]">-${selectedItem.deductions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
-                      <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                      <div className="flex justify-between items-center py-2 border-b border-theme">
                         <span className="text-primary font-medium">Additions</span>
                         <span className="text-lg font-bold text-[#00D1FF]">+${selectedItem.additions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
@@ -1681,15 +1681,15 @@ export default function SettlementSystem() {
                   <div className="bg-card rounded-lg p-4 border border-theme">
                     <h4 className="text-sm font-bold text-primary mb-3 uppercase tracking-wide">Miles Breakdown</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-card rounded-lg p-3 border border-gray-300">
+                      <div className="bg-card rounded-lg p-3 border border-theme">
                         <label className="text-xs text-secondary mb-1 block">Total Miles</label>
                         <p className="text-2xl font-bold text-primary">{selectedItem.totalMiles.toLocaleString()}</p>
                       </div>
-                      <div className="bg-card rounded-lg p-3 border border-gray-300">
+                      <div className="bg-card rounded-lg p-3 border border-theme">
                         <label className="text-xs text-secondary mb-1 block">Loaded Miles</label>
                         <p className="text-2xl font-bold text-green-600">{selectedItem.loadedMiles.toLocaleString()}</p>
                       </div>
-                      <div className="bg-card rounded-lg p-3 border border-gray-300">
+                      <div className="bg-card rounded-lg p-3 border border-theme">
                         <label className="text-xs text-secondary mb-1 block">Empty Miles</label>
                         <p className="text-2xl font-bold text-[#F59E0B]">{selectedItem.emptyMiles.toLocaleString()}</p>
                       </div>
@@ -1703,10 +1703,10 @@ export default function SettlementSystem() {
               )}
             </div>
 
-            <div className="sticky bottom-0 bg-gray-100 p-4 border-t border-gray-300 rounded-b-xl flex justify-end">
+            <div className="sticky bottom-0 bg-gray-100 p-4 border-t border-theme rounded-b-xl flex justify-end">
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="px-6 py-2.5 bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transform transition-all duration-200"
+                className="px-6 py-2.5 bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transform transition-all duration-200"
               >
                 Close
               </button>

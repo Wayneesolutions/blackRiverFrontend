@@ -183,7 +183,7 @@ const ScrollableTable = () => {
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-card divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-theme">
                             {tableData.map((row) => (
                                 <tr key={row.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                                     <td className="px-4 py-3 whitespace-nowrap text-sm text-primary min-w-32">

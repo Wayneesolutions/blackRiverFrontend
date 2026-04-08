@@ -531,7 +531,7 @@ const AttendanceTracking = () => {
             </div>
             <button
               onClick={() => setShowAddModal(true)}
-              style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+              style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
               className="px-4 py-2 !text-white rounded-lg transition-all font-medium flex items-center gap-2 shadow-sm hover:shadow-md"
             >
               <Plus size={20} />
@@ -607,7 +607,7 @@ const AttendanceTracking = () => {
                     placeholder="Search employee..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
@@ -624,7 +624,7 @@ const AttendanceTracking = () => {
                       setFilterYear(now.getFullYear());
                     }
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="month">Filter by Month</option>
                   <option value="date">Filter by Date</option>
@@ -636,7 +636,7 @@ const AttendanceTracking = () => {
                     type="date"
                     value={filterDate}
                     onChange={(e) => setFilterDate(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 )}
 
@@ -646,7 +646,7 @@ const AttendanceTracking = () => {
                     <select
                       value={filterMonth}
                       onChange={(e) => setFilterMonth(Number(e.target.value))}
-                      className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value={1}>January</option>
                       <option value={2}>February</option>
@@ -664,7 +664,7 @@ const AttendanceTracking = () => {
                     <select
                       value={filterYear}
                       onChange={(e) => setFilterYear(Number(e.target.value))}
-                      className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       {Array.from({ length: 10 }, (_, i) => {
                         const year = new Date().getFullYear() - 5 + i;
@@ -681,7 +681,7 @@ const AttendanceTracking = () => {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Status</option>
                   <option value="present">Present</option>
@@ -765,7 +765,7 @@ const AttendanceTracking = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-theme">
                 {filteredRecords.length > 0 ? (
                   filteredRecords.map((record, idx) => (
                     <tr 
@@ -913,7 +913,7 @@ const AttendanceTracking = () => {
                 <select
                   value={attendanceForm.employeeId}
                   onChange={(e) => setAttendanceForm({ ...attendanceForm, employeeId: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Employee</option>
                   {employees.map((emp) => (
@@ -928,7 +928,7 @@ const AttendanceTracking = () => {
                   type="date"
                   value={attendanceForm.date}
                   onChange={(e) => setAttendanceForm({ ...attendanceForm, date: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -937,7 +937,7 @@ const AttendanceTracking = () => {
                 <select
                   value={attendanceForm.status}
                   onChange={(e) => setAttendanceForm({ ...attendanceForm, status: e.target.value as any })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="present">Present</option>
                   <option value="absent">Absent</option>
@@ -954,7 +954,7 @@ const AttendanceTracking = () => {
                         type="time"
                         value={attendanceForm.checkIn}
                         onChange={(e) => setAttendanceForm({ ...attendanceForm, checkIn: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
@@ -963,7 +963,7 @@ const AttendanceTracking = () => {
                         type="time"
                         value={attendanceForm.checkOut}
                         onChange={(e) => setAttendanceForm({ ...attendanceForm, checkOut: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
@@ -999,7 +999,7 @@ const AttendanceTracking = () => {
                       : "Add any additional notes or remarks (optional)..."
                   }
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 />
                 {(attendanceForm.status === 'absent' || attendanceForm.status === 'leave') && !attendanceForm.notes && (
                   <p className="text-xs text-red-500 mt-1">Note is required for absent or leave status</p>
@@ -1023,7 +1023,7 @@ const AttendanceTracking = () => {
                       notes: ''
                     });
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                  className="flex-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                 >
                   Cancel
                 </button>
@@ -1070,7 +1070,7 @@ const AttendanceTracking = () => {
                     setShowDuplicateModal(false);
                     setDuplicateRecord(null);
                   }}
-                  className="p-1 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-colors"
+                  className="p-1 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1148,7 +1148,7 @@ const AttendanceTracking = () => {
                   setShowDuplicateModal(false);
                   setDuplicateRecord(null);
                 }}
-                className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-primary transition-colors hover:bg-[rgba(255,255,255,0.03)]"
+                className="flex-1 rounded-lg border border-theme px-4 py-2 font-medium text-primary transition-colors hover:bg-[rgba(255,255,255,0.03)]"
               >
                 Cancel
               </button>
@@ -1224,7 +1224,7 @@ const AttendanceTracking = () => {
                     setShowDetailsSidebar(false);
                     setTimeout(() => setSelectedRecord(null), 300);
                   }}
-                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
+                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                 >
                   <X size={24} />
                 </button>
@@ -1382,7 +1382,7 @@ const ConfirmationModal = ({
         <div className="flex gap-3 border-t border-theme px-6 py-4">
           <button
             onClick={onClose}
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-primary transition-colors hover:bg-[rgba(255,255,255,0.03)]"
+            className="flex-1 rounded-lg border border-theme px-4 py-2 font-medium text-primary transition-colors hover:bg-[rgba(255,255,255,0.03)]"
           >
             {cancelText}
           </button>

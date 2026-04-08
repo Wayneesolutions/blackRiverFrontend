@@ -623,7 +623,7 @@ export default function QuickStatsUI() {
 function InternalCard({ children, className = "", onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
   return (
     <div
-      className={`bg-card/90 backdrop-blur-md rounded-xl p-4 shadow-md border border-theme/50 hover:border-gray-300/50 ${className} border-2 border-green-700`}
+      className={`bg-card/90 backdrop-blur-md rounded-xl p-4 shadow-md border border-theme/50 hover:border-theme/50 ${className} border-2 border-green-700`}
       onClick={onClick}
     >
       {children}

@@ -255,7 +255,7 @@ const ELDDocuments = () => {
                     <button
                         onClick={() => setShowUploadModal(true)}
                         style={{
-                            background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                         }}
                         className="flex items-center gap-2 px-6 py-3 !text-white font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-md"
                     >
@@ -275,13 +275,13 @@ const ELDDocuments = () => {
                             placeholder="Search documents by name, title, or description..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
                     <button
                         onClick={fetchDocuments}
                         disabled={loading}
-                        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                         <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
                         Refresh
@@ -325,7 +325,7 @@ const ELDDocuments = () => {
                                     <th className="px-6 py-4 text-secondary uppercase text-xs font-semibold text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="divide-y divide-theme">
                                 {filteredDocuments.map((doc) => (
                                     <tr key={doc._id} className="hover:bg-blue-50/30 transition-colors border-b border-theme">
                                         <td className="px-6 py-4 border-r border-theme">
@@ -432,7 +432,7 @@ const ELDDocuments = () => {
                                             onChange={handleFileSelect}
                                             className="hidden"
                                         />
-                                        <div className="px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition-colors text-center">
+                                        <div className="px-4 py-6 border-2 border-dashed border-theme rounded-lg hover:border-blue-500 transition-colors text-center">
                                             {selectedFile ? (
                                                 <div className="flex items-center justify-center gap-3">
                                                     <FileText className="text-[#00D1FF]" size={24} />
@@ -474,7 +474,7 @@ const ELDDocuments = () => {
                                     value={uploadFormData.title}
                                     onChange={(e) => setUploadFormData(prev => ({ ...prev, title: e.target.value }))}
                                     placeholder="Enter document title (optional)"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
 
@@ -488,7 +488,7 @@ const ELDDocuments = () => {
                                     onChange={(e) => setUploadFormData(prev => ({ ...prev, description: e.target.value }))}
                                     placeholder="Enter document description (optional)"
                                     rows={4}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
 
@@ -500,7 +500,7 @@ const ELDDocuments = () => {
                                         setSelectedFile(null);
                                         setUploadFormData({ title: '', description: '' });
                                     }}
-                                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                                    className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                                 >
                                     Cancel
                                 </button>
@@ -508,7 +508,7 @@ const ELDDocuments = () => {
                                     onClick={handleUpload}
                                     disabled={!selectedFile || uploading}
                                     style={{
-                                        background: (!selectedFile || uploading) ? '#9CA3AF' : 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                        background: (!selectedFile || uploading) ? '#9CA3AF' : 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                                     }}
                                     className="px-6 py-2 !text-white font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
@@ -551,7 +551,7 @@ const ELDDocuments = () => {
                             <div className="flex justify-end gap-4">
                                 <button
                                     onClick={() => setDeleteConfirm({ show: false, documentId: null, fileName: '' })}
-                                    className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                                    className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                                 >
                                     Cancel
                                 </button>

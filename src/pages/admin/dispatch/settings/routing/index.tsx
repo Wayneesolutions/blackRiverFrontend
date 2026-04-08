@@ -103,7 +103,7 @@ export default function RoutingConfig() {
                   <select
                     value={service}
                     onChange={(e) => setService(e.target.value)}
-                    className="block w-full rounded-lg border border-gray-300 bg-card px-4 py-3 pr-10 text-sm text-primary shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    className="block w-full rounded-lg border border-theme bg-card px-4 py-3 pr-10 text-sm text-primary shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
                     aria-label="Routing Service"
                   >
                     <option value="">Select routing service...</option>
@@ -147,7 +147,7 @@ export default function RoutingConfig() {
                   <select
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
-                    className="block w-full rounded-lg border border-gray-300 bg-card px-4 py-3 pr-10 text-sm text-primary shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    className="block w-full rounded-lg border border-theme bg-card px-4 py-3 pr-10 text-sm text-primary shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
                     aria-label="Routing Distance Unit"
                   >
                     <option value="">Select routing unit...</option>

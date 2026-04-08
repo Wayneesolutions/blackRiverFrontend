@@ -968,7 +968,7 @@ const ExpensesPage = () => {
   if (loading && !emptyStateMessage) {
     return (
       <div className="min-h-screen bg-main flex flex-col items-center justify-center text-center space-y-4">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#42aeec]"></div>
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-blue)]"></div>
         <p className="text-[#063f6f]">Loading expenses...</p>
       </div>
     );
@@ -1008,7 +1008,7 @@ const ExpensesPage = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Expense Management</h1>
+              <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Expense Management</h1>
               <p className="text-[#063f6f] mt-2">Track and manage all expenses</p>
             </div>
             <button
@@ -1032,7 +1032,7 @@ const ExpensesPage = () => {
                 setActiveTab('create');
               }}
               className="!text-white px-4 py-2 rounded-lg hover:shadow-lg flex items-center gap-2 transition-all transform hover:scale-105"
-              style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+              style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
             >
               <Plus size={20} />
               Add Expense
@@ -1049,7 +1049,7 @@ const ExpensesPage = () => {
                 <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>${totalAmount.toLocaleString()}</p>
               </div>
               <div className="bg-card p-2.5 rounded-full shadow-sm flex-shrink-0">
-                <DollarSign className="text-[#42aeec]" size={20} />
+                <DollarSign className="text-[var(--accent-blue)]" size={20} />
               </div>
             </div>
           </div>
@@ -1109,7 +1109,7 @@ const ExpensesPage = () => {
                 </p>
               </div>
               <div className="bg-card p-2.5 rounded-full shadow-sm flex-shrink-0">
-                <Users className="text-[#42aeec]" size={20} />
+                <Users className="text-[var(--accent-blue)]" size={20} />
               </div>
             </div>
           </div>
@@ -1126,7 +1126,7 @@ const ExpensesPage = () => {
                   className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
                     selectedCategoryTab === 'all'
                       ? 'bg-card text-blue-700 border-2 border-blue-400 shadow-sm'
-                      : 'bg-card text-secondary hover:bg-gray-100 border-2 border-transparent hover:border-theme'
+                      : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)] border-2 border-transparent hover:border-theme'
                   }`}
                 >
                   All Expenses <span className="font-normal">({expenses.length})</span>
@@ -1166,7 +1166,7 @@ const ExpensesPage = () => {
                       className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
                         selectedCategoryTab === category._id
                           ? 'bg-card text-blue-700 border-2 border-blue-400 shadow-sm'
-                          : 'bg-card text-secondary hover:bg-gray-100 border-2 border-transparent hover:border-theme'
+                          : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)] border-2 border-transparent hover:border-theme'
                       }`}
                     >
                       {category.name} <span className="font-normal">({categoryExpenseCount})</span>
@@ -1180,7 +1180,7 @@ const ExpensesPage = () => {
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={() => handleOpenTypeModal()}
-                className="px-4 py-2.5 text-sm font-medium text-primary bg-card border border-gray-300 hover:bg-[rgba(255,255,255,0.03)] hover:border-gray-400 rounded-lg transition-all duration-200 flex items-center gap-2 shadow-sm"
+                className="px-4 py-2.5 text-sm font-medium text-primary bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)] hover:border-gray-400 rounded-lg transition-all duration-200 flex items-center gap-2 shadow-sm"
                 title="Add Expense Type"
               >
                 <Plus size={16} />
@@ -1189,7 +1189,7 @@ const ExpensesPage = () => {
               <button
                 onClick={() => handleOpenCategoryModal()}
                 className="px-4 py-2.5 text-sm font-medium !text-white rounded-lg transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg"
-                style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                 title="Manage Categories"
               >
                 <Settings size={16} />
@@ -1243,7 +1243,7 @@ const ExpensesPage = () => {
                       <select
                         value={filterType}
                         onChange={(e) => setFilterType(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="all">All Types</option>
                         {legacyExpenseTypes.map(type => (
@@ -1354,7 +1354,7 @@ const ExpensesPage = () => {
 
             {activeTab === 'create' && (
               <div className="max-w-2xl">
-                <h2 className="text-xl font-semibold mb-6" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <h2 className="text-xl font-semibold mb-6" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   {editingExpense ? 'Edit Expense' : 'Add New Expense'}
                 </h2>
 
@@ -1368,7 +1368,7 @@ const ExpensesPage = () => {
                         name="userId"
                         value={formData.userId}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="">Select Employee</option>
                         {employees.map(emp => (
@@ -1388,7 +1388,7 @@ const ExpensesPage = () => {
                         value={formData.categoryId}
                         onChange={handleInputChange}
                         required
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="">Select Category</option>
                         {categories.map(category => (
@@ -1418,7 +1418,7 @@ const ExpensesPage = () => {
                       }}
                       required
                       disabled={!formData.categoryId || loadingTypes}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
                       <option value="">
                         {loadingTypes 
@@ -1453,7 +1453,7 @@ const ExpensesPage = () => {
                         required
                         min="0"
                         step="0.01"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter amount"
                       />
                     </div>
@@ -1468,7 +1468,7 @@ const ExpensesPage = () => {
                         value={formData.date}
                         onChange={handleInputChange}
                         required
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -1482,7 +1482,7 @@ const ExpensesPage = () => {
                       value={formData.description}
                       onChange={handleInputChange}
                       rows={3}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Enter expense description..."
                     />
                   </div>
@@ -1497,7 +1497,7 @@ const ExpensesPage = () => {
                         value={formData.truckId}
                         onChange={handleInputChange}
                         disabled={loadingFleet}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                       >
                         <option value="">Select Truck (Optional)</option>
                         {trucks.map(truck => (
@@ -1518,7 +1518,7 @@ const ExpensesPage = () => {
                         value={formData.trailerId}
                         onChange={handleInputChange}
                         disabled={loadingFleet}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                       >
                         <option value="">Select Trailer (Optional)</option>
                         {trailers.map(trailer => (
@@ -1535,7 +1535,7 @@ const ExpensesPage = () => {
                     <label className="block text-sm font-medium text-primary mb-2">
                       Receipt Upload
                     </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+                    <div className="border-2 border-dashed border-theme rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
                       <Receipt className="mx-auto mb-2 text-secondary" size={32} />
                       <input
                         type="file"
@@ -1583,7 +1583,7 @@ const ExpensesPage = () => {
                       type="submit"
                       disabled={loading}
                       className="!text-white px-6 py-2 rounded-lg hover:shadow-lg flex items-center gap-2 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                      style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
                     >
                       <Plus size={16} />
                       {loading ? 'Saving...' : editingExpense ? 'Update Expense' : 'Add Expense'}
@@ -1592,7 +1592,7 @@ const ExpensesPage = () => {
                       type="button"
                       onClick={handleCancel}
                       disabled={loading}
-                      className="text-secondary hover:text-primary px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:cursor-not-allowed"
+                      className="text-secondary hover:text-primary px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>
@@ -1760,7 +1760,7 @@ const ExpensesPage = () => {
                           <button
                             onClick={() => window.open(receiptSignedUrl, '_blank')}
                             style={{
-                              background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                              background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                             }}
                             className=" !text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
                           >
@@ -1848,7 +1848,7 @@ const ExpensesPage = () => {
                   setReceiptSignedUrl(null);
                 }}
                 style={{
-                  background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                 }}
                 className=" !text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
               >
@@ -1861,7 +1861,7 @@ const ExpensesPage = () => {
                   setViewingExpense(null);
                   setReceiptSignedUrl(null);
                 }}
-                className="text-secondary hover:text-primary px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                className="text-secondary hover:text-primary px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 Close
               </button>
@@ -1913,7 +1913,7 @@ const ExpensesPage = () => {
                   setEditingCategory(null);
                   setCategoryFormData({ name: '', status: 'active' });
                 }}
-                className="p-2 text-secondary hover:text-secondary hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
               >
                 <X size={20} />
               </button>
@@ -1933,7 +1933,7 @@ const ExpensesPage = () => {
                       value={categoryFormData.name}
                       onChange={(e) => setCategoryFormData(prev => ({ ...prev, name: e.target.value }))}
                       placeholder="e.g., Office Expenses, Vehicle Expenses, Rental Expenses"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                       autoFocus
                     />
                   </div>
@@ -1951,7 +1951,7 @@ const ExpensesPage = () => {
                     {categories.map((category) => (
                       <div
                         key={category._id}
-                        className="flex items-center justify-between p-4 bg-card border border-theme rounded-lg hover:border-gray-300 hover:shadow-sm transition-all"
+                        className="flex items-center justify-between p-4 bg-card border border-theme rounded-lg hover:border-theme hover:shadow-sm transition-all"
                       >
                         <div className="flex-1">
                           <p className="text-sm font-semibold text-primary">{category.name}</p>
@@ -1981,7 +1981,7 @@ const ExpensesPage = () => {
                       </div>
                     ))}
                     {categories.length === 0 && (
-                      <div className="text-center py-8 bg-card rounded-lg border-2 border-dashed border-gray-300">
+                      <div className="text-center py-8 bg-card rounded-lg border-2 border-dashed border-theme">
                         <FileText className="mx-auto mb-2 text-secondary" size={32} />
                         <p className="text-sm text-secondary">No categories yet</p>
                         <p className="text-xs text-secondary mt-1">Create your first category above</p>
@@ -2000,7 +2000,7 @@ const ExpensesPage = () => {
                   setEditingCategory(null);
                   setCategoryFormData({ name: '', status: 'active' });
                 }}
-                className="px-5 py-2.5 text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                className="px-5 py-2.5 text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                 disabled={savingCategory}
               >
                 Cancel
@@ -2009,7 +2009,7 @@ const ExpensesPage = () => {
                 onClick={handleSaveCategory}
                 disabled={savingCategory || !categoryFormData.name.trim()}
                 className="px-5 py-2.5 !text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md hover:shadow-lg"
-                style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
               >
                 {savingCategory ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
               </button>
@@ -2038,7 +2038,7 @@ const ExpensesPage = () => {
                   setEditingType(null);
                   setTypeFormData({ name: '', categoryId: '', status: 'active' });
                 }}
-                className="p-2 text-secondary hover:text-secondary hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
               >
                 <X size={20} />
               </button>
@@ -2065,7 +2065,7 @@ const ExpensesPage = () => {
                           setExpenseTypes([]);
                         }
                       }}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                       required
                     >
                       <option value="">Select Category</option>
@@ -2089,7 +2089,7 @@ const ExpensesPage = () => {
                       value={typeFormData.name}
                       onChange={(e) => setTypeFormData(prev => ({ ...prev, name: e.target.value }))}
                       placeholder="e.g., Office Rent, Electricity, Fuel, Maintenance"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                       autoFocus
                     />
                   </div>
@@ -2101,7 +2101,7 @@ const ExpensesPage = () => {
                     <select
                       value={typeFormData.status}
                       onChange={(e) => setTypeFormData(prev => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     >
                       <option value="active">Active</option>
                       <option value="inactive">Inactive</option>
@@ -2142,7 +2142,7 @@ const ExpensesPage = () => {
                         .map((type) => (
                           <div
                             key={type._id}
-                            className="flex items-center justify-between p-4 bg-card border border-theme rounded-lg hover:border-gray-300 hover:shadow-sm transition-all"
+                            className="flex items-center justify-between p-4 bg-card border border-theme rounded-lg hover:border-theme hover:shadow-sm transition-all"
                           >
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
@@ -2179,7 +2179,7 @@ const ExpensesPage = () => {
                         const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
                         return typeCategoryId === formCategoryId;
                       }).length === 0 && (
-                        <div className="text-center py-8 bg-card rounded-lg border-2 border-dashed border-gray-300">
+                        <div className="text-center py-8 bg-card rounded-lg border-2 border-dashed border-theme">
                           <FileText className="mx-auto mb-2 text-secondary" size={32} />
                           <p className="text-sm text-secondary">No types in this category yet</p>
                           <p className="text-xs text-secondary mt-1">Create your first type above</p>
@@ -2199,7 +2199,7 @@ const ExpensesPage = () => {
                   setEditingType(null);
                   setTypeFormData({ name: '', categoryId: '', status: 'active' });
                 }}
-                className="px-5 py-2.5 text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                className="px-5 py-2.5 text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                 disabled={savingType}
               >
                 Cancel
@@ -2208,7 +2208,7 @@ const ExpensesPage = () => {
                 onClick={handleSaveType}
                 disabled={savingType || !typeFormData.name.trim() || !typeFormData.categoryId}
                 className="px-5 py-2.5 !text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md hover:shadow-lg"
-                style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
               >
                 {savingType ? 'Saving...' : editingType ? 'Update Type' : 'Create Type'}
               </button>

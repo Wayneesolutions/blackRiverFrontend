@@ -107,7 +107,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                           ? 'flex flex-col items-center justify-center px-2 py-2'
                           : 'flex items-center px-4 py-2 gap-3'
                           } ${openMenus.includes(link.key)
-                            ? 'bg-[#42aeec]/10'
+                            ? 'bg-[var(--accent-blue)]/10'
                             : 'hover:bg-[rgba(255,255,255,0.03)]'
                           }`}
                         title={link.label}
@@ -115,8 +115,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                         <span
                           className={`transition-all duration-200 ${isCollapsed ? 'text-2xl mb-1' : 'text-xl flex-shrink-0'
                             } ${openMenus.includes(link.key)
-                              ? 'text-[#42aeec]'
-                              : 'text-secondary group-hover:text-[#42aeec]'
+                              ? 'text-[var(--accent-blue)]'
+                              : 'text-secondary group-hover:text-[var(--accent-blue)]'
                             }`}
                         >
                           {link.icon}
@@ -124,8 +124,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                         {!isCollapsed && (
                           <>
                             <span className={`flex-1 text-sm font-medium transition-colors text-left ${openMenus.includes(link.key)
-                              ? 'text-[#42aeec]'
-                              : 'text-primary group-hover:text-[#42aeec]'
+                              ? 'text-[var(--accent-blue)]'
+                              : 'text-primary group-hover:text-[var(--accent-blue)]'
                               }`}>
                               {link.label}
                             </span>
@@ -158,8 +158,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                                 <NavLink
                                   to={`/admin/${child.key}`}
                                   className={`flex items-center px-4 py-2 pl-12 gap-3 text-sm font-medium transition-all duration-200 ease-in-out group ${activeState
-                                    ? "bg-[#42aeec]/10 text-[#42aeec]"
-                                    : "text-secondary hover:bg-gray-100 hover:text-[#42aeec]"
+                                    ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]"
+                                    : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[var(--accent-blue)]"
                                     }`}
                                 >
                                   <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60 flex-shrink-0"></span>
@@ -183,12 +183,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                     >
                       <span
                         className={`transition-all duration-200 ${isCollapsed ? 'text-2xl mb-1' : 'text-xl flex-shrink-0'
-                          } text-secondary group-hover:text-[#42aeec]`}
+                          } text-secondary group-hover:text-[var(--accent-blue)]`}
                       >
                         {link.icon}
                       </span>
                       {!isCollapsed && (
-                        <span className="flex-1 text-sm font-medium text-primary group-hover:text-[#42aeec] text-left">
+                        <span className="flex-1 text-sm font-medium text-primary group-hover:text-[var(--accent-blue)] text-left">
                           {link.label}
                         </span>
                       )}
@@ -210,8 +210,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                           ? 'flex flex-col items-center justify-center px-2 py-2'
                           : 'flex items-center px-4 py-2 gap-3'
                           } ${activeState
-                            ? "bg-[#42aeec]/10 text-[#42aeec]"
-                            : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[#42aeec]"
+                            ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]"
+                            : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[var(--accent-blue)]"
                           }`;
                       }}
                       title={link.label}
@@ -227,13 +227,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                           <>
                             <span
                               className={`transition-all duration-200 ${isCollapsed ? 'text-2xl mb-1' : 'text-xl flex-shrink-0'
-                                } ${activeState ? 'text-[#42aeec]' : 'text-secondary group-hover:text-[#42aeec]'
+                                } ${activeState ? 'text-[var(--accent-blue)]' : 'text-secondary group-hover:text-[var(--accent-blue)]'
                                 }`}
                             >
                               {link.icon}
                             </span>
                             {!isCollapsed && (
-                              <span className={`flex-1 text-sm font-medium text-left ${activeState ? 'text-[#42aeec]' : 'text-primary group-hover:text-[#42aeec]'
+                              <span className={`flex-1 text-sm font-medium text-left ${activeState ? 'text-[var(--accent-blue)]' : 'text-primary group-hover:text-[var(--accent-blue)]'
                                 }`}>
                                 {link.label}
                               </span>

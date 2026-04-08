@@ -370,7 +370,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                 </h2>
                 <button
                     onClick={onClose}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
                 >
                     <X className="w-5 h-5 text-secondary" />
                 </button>
@@ -388,7 +388,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                             <div className="relative">
                                 <div
                                     onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
-                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+                                    className="flex items-center gap-1 p-2 border border-theme rounded-lg bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
                                 >
                                     <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${customerDropdownOpen ? 'rotate-180' : ''}`} />
                                     <input
@@ -410,14 +410,14 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                 setSelectedCustomer(null);
                                                 setCustomerSearch("");
                                             }}
-                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                            className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                                         >
                                             <X className="w-4 h-4 text-secondary" />
                                         </button>
                                     )}
                                 </div>
                                 {customerDropdownOpen && (
-                                    <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                    <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                                         <div className="p-2 border-b border-theme">
                                             <div className="relative">
                                                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -426,7 +426,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                     value={customerSearch}
                                                     onChange={(e) => setCustomerSearch(e.target.value)}
                                                     placeholder="Search..."
-                                                    className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                                     autoFocus
                                                 />
                                             </div>
@@ -467,7 +467,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={commodity}
                                 onChange={(e) => setCommodity(e.target.value)}
                                 placeholder="Enter commodity"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                             />
                         </div>
 
@@ -509,7 +509,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                             <div className="relative">
                                 <div
                                     onClick={() => setPickupDropdownOpen(!pickupDropdownOpen)}
-                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+                                    className="flex items-center gap-1 p-2 border border-theme rounded-lg bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
                                 >
                                     <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${pickupDropdownOpen ? 'rotate-180' : ''}`} />
                                 <input
@@ -531,14 +531,14 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                 setSelectedPickupPlace(null);
                                                 setPickupSearch("");
                                             }}
-                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                            className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                                         >
                                         <X className="w-4 h-4 text-secondary" />
                                     </button>
                                     )}
                                 </div>
                                 {pickupDropdownOpen && (
-                                    <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                    <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                                         <div className="p-2 border-b border-theme">
                                             <div className="relative">
                                                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -547,7 +547,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                     value={pickupSearch}
                                                     onChange={(e) => setPickupSearch(e.target.value)}
                                                     placeholder="Search places..."
-                                                    className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                                     autoFocus
                                                 />
                                             </div>
@@ -589,7 +589,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                         type="date"
                                         value={pickupDate}
                                         onChange={(e) => setPickupDate(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                                     />
                                 </div>
                                 <div className="relative flex-1">
@@ -597,7 +597,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                         type="time"
                                         value={pickupTime}
                                         onChange={(e) => setPickupTime(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                                     />
                                 </div>
                             </div>
@@ -613,7 +613,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                             <div className="relative">
                                 <div
                                     onClick={() => setDeliveryDropdownOpen(!deliveryDropdownOpen)}
-                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+                                    className="flex items-center gap-1 p-2 border border-theme rounded-lg bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
                                 >
                                     <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${deliveryDropdownOpen ? 'rotate-180' : ''}`} />
                                 <input
@@ -635,14 +635,14 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                 setSelectedDeliveryPlace(null);
                                                 setDeliverySearch("");
                                             }}
-                                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                            className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                                         >
                                         <X className="w-4 h-4 text-secondary" />
                                     </button>
                                     )}
                                 </div>
                                 {deliveryDropdownOpen && (
-                                    <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                    <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
                                         <div className="p-2 border-b border-theme">
                                             <div className="relative">
                                                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -651,7 +651,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                     value={deliverySearch}
                                                     onChange={(e) => setDeliverySearch(e.target.value)}
                                                     placeholder="Search places..."
-                                                    className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                                     autoFocus
                                                 />
                                             </div>
@@ -693,7 +693,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                         type="date"
                                         value={deliveryDate}
                                         onChange={(e) => setDeliveryDate(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                                     />
                                 </div>
                                 <div className="relative flex-1">
@@ -701,7 +701,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                         type="time"
                                         value={deliveryTime}
                                         onChange={(e) => setDeliveryTime(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
+                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                                     />
                                 </div>
                             </div>
@@ -719,7 +719,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={pickupRefNo}
                                 onChange={(e) => setPickupRefNo(e.target.value)}
                                 placeholder="Enter reference"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                             />
                         </div>
 
@@ -732,7 +732,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={deliveryRefNo}
                                 onChange={(e) => setDeliveryRefNo(e.target.value)}
                                 placeholder="Enter reference"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                             />
                         </div>
 
@@ -744,7 +744,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 <select
                                     value={valueOfGoodsCurrency}
                                     onChange={(e) => setValueOfGoodsCurrency(e.target.value)}
-                                    className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
+                                    className="w-20 px-2 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                                 >
                                     <option>CAD</option>
                                     <option>USD</option>
@@ -771,7 +771,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                         }
                                     }}
                                     placeholder="0.00"
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
+                                    className="flex-1 px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                                 />
                             </div>
                         </div>
@@ -785,7 +785,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={customerOrderNo}
                                 onChange={(e) => setCustomerOrderNo(e.target.value)}
                                 placeholder="Order number"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                             />
                         </div>
                     </div>
@@ -799,7 +799,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                             <select
                                 value={taxBasedOn}
                                 onChange={(e) => setTaxBasedOn(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                             >
                                 <option>Delivery</option>
                                 <option>Pickup</option>
@@ -811,7 +811,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 Tax 1
                             </label>
                             <div className="flex items-center gap-2">
-                                <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-[rgba(255,255,255,0.03)] bg-card min-w-fit">
+                                <label className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg cursor-pointer hover:bg-[rgba(255,255,255,0.03)] bg-card min-w-fit">
                                     <input
                                         type="checkbox"
                                         checked={tax1}
@@ -840,7 +840,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             }
                                         }}
                                     placeholder="0.00"
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
+                                        className="flex-1 px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                                     />
                                     <span className="text-sm text-secondary flex-shrink-0">%</span>
                                 </div>
@@ -857,7 +857,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={totalTax}
                                 onChange={(e) => setTotalTax(e.target.value)}
                                 placeholder="0.00"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                                 readOnly
                             />
                         </div>
@@ -872,7 +872,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={grossTotalFreight}
                                 onChange={(e) => setGrossTotalFreight(e.target.value)}
                                 placeholder="0.00"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                                 readOnly
                             />
                         </div>
@@ -884,7 +884,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-theme bg-card">
                 <button
                     onClick={handleReset}
-                    className="px-6 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                    className="px-6 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                     Reset
                 </button>

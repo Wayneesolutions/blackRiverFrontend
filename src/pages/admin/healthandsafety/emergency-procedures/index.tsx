@@ -4,7 +4,7 @@ const CUSTOM_COLORS = {
   primary: '#016ab2',
   dark: '#063f6f',
   light: '#398bc3',
-  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
   gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
 };
 import {
@@ -834,7 +834,7 @@ const EmergencyProcedures: React.FC = () => {
                   type="submit"
                   disabled={submitting}
                   style={{
-                    background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
+                    background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
                   }}
                   className="px-4 py-2  !text-white rounded-xl font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -878,7 +878,7 @@ const EmergencyProcedures: React.FC = () => {
                 <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {firstAidLogs.map((log) => (
                 <tr 
                   key={log._id} 

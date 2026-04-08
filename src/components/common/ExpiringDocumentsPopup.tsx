@@ -283,7 +283,7 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
                 navigate('/Management/documents');
                 handleClose();
               }}
-              style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+              style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
               className="flex items-center gap-1 px-3 py-2  rounded-lg  transition-colors text-xs font-medium text-white"
             >
               <ExternalLink className="w-3 h-3 text-white stroke-white" />

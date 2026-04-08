@@ -343,7 +343,7 @@ const Dashboard = () => {
         <div
           className="absolute inset-x-0 top-0"
           style={{
-            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
+            background: `linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)`,
             height: '101px'
           }}
           aria-hidden="true"
@@ -377,7 +377,7 @@ const Dashboard = () => {
                         navigate(`${routePrefix}/expenses`);
                       }
                     }}
-                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       {/* Left side content */}
@@ -417,7 +417,7 @@ const Dashboard = () => {
                         navigate(`${routePrefix}/payroll`);
                       }
                     }}
-                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       {/* Left side content */}
@@ -454,7 +454,7 @@ const Dashboard = () => {
                     onClick={() => {
                       navigate(`${routePrefix}/payroll`);
                     }}
-                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       {/* Left side content */}
@@ -501,7 +501,7 @@ const Dashboard = () => {
                     onClick={() => {
                       navigate(`${routePrefix}/driverpayroll`);
                     }}
-                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       {/* Left side content */}
@@ -574,7 +574,7 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             {/* Settlement Module */}
             <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
-              <div className="p-4 border-b border-theme" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
+              <div className="p-4 border-b border-theme" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-card bg-opacity-20 rounded-lg">
@@ -615,7 +615,7 @@ const Dashboard = () => {
 
             {/* Expense Management */}
             <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
-              <div className="p-4 border-b border-theme" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
+              <div className="p-4 border-b border-theme" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-card bg-opacity-20 rounded-lg">

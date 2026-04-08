@@ -360,7 +360,7 @@ const Services: React.FC = () => {
     return (
       <div className="p-6 min-h-screen bg-main">
         <div className="flex items-center justify-center py-16">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#42aeec]" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--accent-blue)]" />
         </div>
       </div>
     );
@@ -441,7 +441,7 @@ const Services: React.FC = () => {
 
       {/* Filters */}
       <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden mb-6">
-        <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[#42aeec]/5 to-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-sm font-bold text-primary">Services</h2>
             <p className="text-xs text-secondary mt-0.5">
@@ -457,7 +457,7 @@ const Services: React.FC = () => {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search unit, description..."
-                className="pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg w-48 focus:border-[#42aeec] focus:ring-2 focus:ring-[#42aeec]/20"
+                className="pl-9 pr-3 py-2 text-sm border border-theme rounded-lg w-48 focus:border-[var(--accent-blue)] focus:ring-2 focus:ring-[var(--accent-blue)]/20"
               />
             </div>
             <select
@@ -466,7 +466,7 @@ const Services: React.FC = () => {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-[#42aeec] focus:ring-2 focus:ring-[#42aeec]/20"
+              className="px-3 py-2 text-sm border border-theme rounded-lg focus:border-[var(--accent-blue)] focus:ring-2 focus:ring-[var(--accent-blue)]/20"
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
@@ -479,7 +479,7 @@ const Services: React.FC = () => {
                 setPriorityFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-[#42aeec] focus:ring-2 focus:ring-[#42aeec]/20"
+              className="px-3 py-2 text-sm border border-theme rounded-lg focus:border-[var(--accent-blue)] focus:ring-2 focus:ring-[var(--accent-blue)]/20"
             >
               <option value="all">All Priorities</option>
               <option value="urgent">Urgent</option>
@@ -491,7 +491,7 @@ const Services: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-theme">
             <thead className="bg-card">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
@@ -523,7 +523,7 @@ const Services: React.FC = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-gray-200">
+            <tbody className="bg-card divide-y divide-theme">
               {services.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-6 py-12 text-center text-secondary">
@@ -590,7 +590,7 @@ const Services: React.FC = () => {
                             e.stopPropagation();
                             setSelectedService(service);
                           }}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-card border border-theme rounded-lg hover:bg-gray-100"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                         >
                           <FileText size={14} />
                           View
@@ -615,7 +615,7 @@ const Services: React.FC = () => {
                 type="button"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={pagination.page <= 1 || loading}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={16} />
                 Previous
@@ -627,7 +627,7 @@ const Services: React.FC = () => {
                 type="button"
                 onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                 disabled={pagination.page >= pagination.totalPages || loading}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
                 <ChevronRight size={16} />
@@ -641,10 +641,10 @@ const Services: React.FC = () => {
       {selectedService && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
           <div className="bg-card rounded-xl shadow-2xl w-full max-w-2xl my-8 max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-gradient-to-r from-[#42aeec]/5 to-transparent flex-shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-[#42aeec]/10">
-                  <Wrench className="text-[#42aeec]" size={24} />
+                <div className="p-2 rounded-lg bg-[var(--accent-blue)]/10">
+                  <Wrench className="text-[var(--accent-blue)]" size={24} />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-primary">Service Details</h3>
@@ -656,7 +656,7 @@ const Services: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedService(null)}
-                className="p-2 text-secondary hover:text-secondary hover:bg-gray-100 rounded-lg transition"
+                className="p-2 text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition"
               >
                 ×
               </button>
@@ -741,7 +741,7 @@ const Services: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedService(null)}
-                  className="px-4 py-2 text-sm font-medium text-primary bg-card border border-gray-300 hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
+                  className="px-4 py-2 text-sm font-medium text-primary bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
                 >
                   Close
                 </button>
@@ -755,7 +755,7 @@ const Services: React.FC = () => {
       {completeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
           <div className="bg-card rounded-xl shadow-2xl w-full max-w-3xl my-8 max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-gradient-to-r from-[#42aeec]/5 to-transparent flex-shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-green-100">
                   <CheckCircle className="text-green-600" size={24} />
@@ -773,7 +773,7 @@ const Services: React.FC = () => {
                   setCompleteModal(null);
                   setCompleteForm({ parts: [] });
                 }}
-                className="p-2 text-secondary hover:text-secondary hover:bg-gray-100 rounded-lg transition"
+                className="p-2 text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition"
               >
                 ×
               </button>
@@ -790,7 +790,7 @@ const Services: React.FC = () => {
                   <select
                     value={selectedPartId}
                     onChange={(e) => setSelectedPartId(e.target.value)}
-                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-[#42aeec] focus:ring-2 focus:ring-[#42aeec]/20"
+                    className="flex-1 px-3 py-2 text-sm border border-theme rounded-lg focus:border-[var(--accent-blue)] focus:ring-2 focus:ring-[var(--accent-blue)]/20"
                     disabled={sparePartsLoading}
                   >
                     <option value="">Select a part...</option>
@@ -804,7 +804,7 @@ const Services: React.FC = () => {
                     type="button"
                     onClick={addPart}
                     disabled={!selectedPartId || sparePartsLoading}
-                    className="px-4 py-2 text-sm font-medium text-white bg-[#42aeec] rounded-lg hover:bg-[#42aeec]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 text-sm font-medium text-white bg-[var(--accent-blue)] rounded-lg hover:bg-[var(--accent-blue)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Add
                   </button>
@@ -830,7 +830,7 @@ const Services: React.FC = () => {
                             min="1"
                             value={part.quantity}
                             onChange={(e) => updatePart(part.id, "quantity", parseInt(e.target.value) || 1)}
-                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-[#42aeec] focus:ring-1 focus:ring-[#42aeec]/20"
+                            className="w-full px-2 py-1 text-sm border border-theme rounded focus:border-[var(--accent-blue)] focus:ring-1 focus:ring-[var(--accent-blue)]/20"
                           />
                         </div>
                         <div className="col-span-2">
@@ -840,7 +840,7 @@ const Services: React.FC = () => {
                             step="0.01"
                             value={part.cost}
                             onChange={(e) => updatePart(part.id, "cost", parseFloat(e.target.value) || 0)}
-                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-[#42aeec] focus:ring-1 focus:ring-[#42aeec]/20"
+                            className="w-full px-2 py-1 text-sm border border-theme rounded focus:border-[var(--accent-blue)] focus:ring-1 focus:ring-[var(--accent-blue)]/20"
                           />
                         </div>
                         <div className="col-span-1 text-sm font-semibold text-primary">
@@ -875,7 +875,7 @@ const Services: React.FC = () => {
                     setCompleteModal(null);
                     setCompleteForm({ parts: [] });
                   }}
-                  className="px-4 py-2 text-sm font-medium text-primary bg-card border border-gray-300 hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
+                  className="px-4 py-2 text-sm font-medium text-primary bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
                 >
                   Cancel
                 </button>

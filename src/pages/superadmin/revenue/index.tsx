@@ -379,7 +379,7 @@ const RevenueDashboard = () => {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-theme">
                                 {filteredRevenue.map((revenue: any) => (
                                     <tr key={revenue.id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                         <td className="px-6 py-4 whitespace-nowrap w-64">
@@ -451,7 +451,7 @@ const RevenueDashboard = () => {
                                                                         handleCopyId(revenue.id);
                                                                         setActiveDropdown(null);
                                                                     }}
-                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
                                                                 >
                                                                     <Copy className="w-4 h-4" />
                                                                     <span>Copy Revenue ID</span>
@@ -462,7 +462,7 @@ const RevenueDashboard = () => {
                                                                         handleExport(revenue);
                                                                         setActiveDropdown(null);
                                                                     }}
-                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
                                                                 >
                                                                     <Download className="w-4 h-4" />
                                                                     <span>Export Details</span>
@@ -473,7 +473,7 @@ const RevenueDashboard = () => {
                                                                         handleCopyId(revenue.customerId);
                                                                         setActiveDropdown(null);
                                                                     }}
-                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
                                                                 >
                                                                     <Copy className="w-4 h-4" />
                                                                     <span>Copy Customer ID</span>
@@ -493,7 +493,7 @@ const RevenueDashboard = () => {
                                                                             });
                                                                         }, 300);
                                                                     }}
-                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
                                                                 >
                                                                     <ExternalLink className="w-4 h-4" />
                                                                     <span>View Customer Profile</span>
@@ -520,7 +520,7 @@ const RevenueDashboard = () => {
                         <button 
                             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                             disabled={currentPage === 1}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-2 border border-theme rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Previous
                         </button>
@@ -533,7 +533,7 @@ const RevenueDashboard = () => {
                                     className={`px-3 py-2 rounded-lg text-sm ${
                                         currentPage === pageNum
                                             ? 'bg-green-600 text-white hover:bg-green-700'
-                                            : 'border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                                            : 'border border-theme hover:bg-[rgba(255,255,255,0.03)]'
                                     }`}
                                 >
                                     {pageNum}
@@ -543,7 +543,7 @@ const RevenueDashboard = () => {
                         <button 
                             onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
                             disabled={currentPage >= pagination.totalPages}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-2 border border-theme rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Next
                         </button>

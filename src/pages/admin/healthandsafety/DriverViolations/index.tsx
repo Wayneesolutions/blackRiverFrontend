@@ -291,7 +291,7 @@ const DriverViolationsPage: React.FC = () => {
               value={filters.search || ''}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
               onKeyDown={(e) => e.key === 'Enter' && handleApplyFilters()}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
 
             <button
@@ -316,7 +316,7 @@ const DriverViolationsPage: React.FC = () => {
           <select
             value={filters.violationType || ''}
             onChange={(e) => setFilters({ ...filters, violationType: e.target.value || undefined })}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">All Types</option>
             <option value="speeding">Speeding</option>
@@ -332,7 +332,7 @@ const DriverViolationsPage: React.FC = () => {
           <select
             value={filters.severity || ''}
             onChange={(e) => setFilters({ ...filters, severity: e.target.value || undefined })}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">All Severities</option>
             <option value="minor">Minor</option>
@@ -344,7 +344,7 @@ const DriverViolationsPage: React.FC = () => {
           <select
             value={filters.status || ''}
             onChange={(e) => setFilters({ ...filters, status: e.target.value || undefined })}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">All Statuses</option>
             <option value="pending">Pending</option>
@@ -357,7 +357,7 @@ const DriverViolationsPage: React.FC = () => {
           <select
             value={filters.source || ''}
             onChange={(e) => setFilters({ ...filters, source: e.target.value || undefined })}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">All Sources</option>
             <option value="geotab">Geotab</option>
@@ -383,7 +383,7 @@ const DriverViolationsPage: React.FC = () => {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-theme">
                 <thead className="bg-card">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
@@ -415,7 +415,7 @@ const DriverViolationsPage: React.FC = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {violations.map((violation) => (
                     <tr key={violation._id} className="hover:bg-[rgba(255,255,255,0.03)] transition">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
@@ -490,14 +490,14 @@ const DriverViolationsPage: React.FC = () => {
                   <button
                     onClick={() => fetchViolations(pagination.page - 1)}
                     disabled={pagination.page === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:bg-gray-100 disabled:text-secondary disabled:cursor-not-allowed"
+                    className="px-4 py-2 border border-theme rounded-lg text-sm font-medium text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:bg-gray-100 disabled:text-secondary disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => fetchViolations(pagination.page + 1)}
                     disabled={pagination.page === pagination.totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:bg-gray-100 disabled:text-secondary disabled:cursor-not-allowed"
+                    className="px-4 py-2 border border-theme rounded-lg text-sm font-medium text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:bg-gray-100 disabled:text-secondary disabled:cursor-not-allowed"
                   >
                     Next
                   </button>

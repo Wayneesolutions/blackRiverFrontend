@@ -21,7 +21,7 @@ const CUSTOM_COLORS = {
   primary: '#016ab2',
   dark: '#063f6f',
   light: '#398bc3',
-  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
   gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
 };
 import type { LoadSecurementLog, ReeferFoodSafetyLog, WinterSafetyChecklist, FuelingSpillPreventionLog, DangerousGoodsLog } from '../../../../types';
@@ -675,7 +675,7 @@ const TruckingOperations: React.FC = () => {
 
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {loadSecurementLogs.map((log) => (
                 <tr key={log._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                   <td className="px-6 py-4 text-sm font-medium text-primary">{log.logNumber}</td>
@@ -759,7 +759,7 @@ const TruckingOperations: React.FC = () => {
 
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {reeferLogs.map((log) => (
                 <tr key={log._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                   <td className="px-6 py-4 text-sm font-medium text-primary">{log.logNumber}</td>
@@ -851,7 +851,7 @@ const TruckingOperations: React.FC = () => {
 
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {winterChecklists.map((checklist) => (
                 <tr key={checklist._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                   <td className="px-6 py-4 text-sm font-medium text-primary">{checklist.checklistNumber}</td>
@@ -931,7 +931,7 @@ const TruckingOperations: React.FC = () => {
 
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {fuelingLogs.map((log) => (
                 <tr key={log._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                   <td className="px-6 py-4 text-sm font-medium text-primary">{log.logNumber}</td>
@@ -1017,7 +1017,7 @@ const TruckingOperations: React.FC = () => {
 
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {tdgLogs.map((log) => (
                 <tr key={log._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                   <td className="px-6 py-4 text-sm font-medium text-primary">{log.logNumber}</td>
@@ -1250,7 +1250,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={loadSecurementForm.date}
                       onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1260,7 +1260,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={loadSecurementForm.time}
                       onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, time: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1269,7 +1269,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={loadSecurementForm.driverName}
                       onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, driverName: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select driver</option>
                       {drivers.map((d) => (
@@ -1283,7 +1283,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={loadSecurementForm.vehicleNumber}
                       onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, vehicleNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select vehicle</option>
                       {vehicles.map((v) => (
@@ -1298,7 +1298,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={loadSecurementForm.loadType}
                       onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, loadType: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1307,7 +1307,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={loadSecurementForm.securedBy}
                       onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, securedBy: e.target.value as any })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="straps">Straps</option>
                       <option value="chains">Chains</option>
@@ -1338,7 +1338,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={reeferForm.date}
                       onChange={(e) => setReeferForm({ ...reeferForm, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1348,7 +1348,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={reeferForm.time}
                       onChange={(e) => setReeferForm({ ...reeferForm, time: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1357,7 +1357,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={reeferForm.driverName}
                       onChange={(e) => setReeferForm({ ...reeferForm, driverName: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select driver</option>
                       {drivers.map((d) => (
@@ -1371,7 +1371,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={reeferForm.vehicleNumber}
                       onChange={(e) => setReeferForm({ ...reeferForm, vehicleNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select vehicle</option>
                       {vehicles.map((v) => (
@@ -1385,7 +1385,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={reeferForm.trailerNumber}
                       onChange={(e) => setReeferForm({ ...reeferForm, trailerNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select trailer</option>
                       {trailers.map((t) => (
@@ -1400,7 +1400,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={reeferForm.temperatureRecorded}
                       onChange={(e) => setReeferForm({ ...reeferForm, temperatureRecorded: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1410,7 +1410,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={reeferForm.targetTemperature}
                       onChange={(e) => setReeferForm({ ...reeferForm, targetTemperature: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1419,7 +1419,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={reeferForm.interiorCleanliness}
                       onChange={(e) => setReeferForm({ ...reeferForm, interiorCleanliness: e.target.value as any })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="excellent">Excellent</option>
                       <option value="good">Good</option>
@@ -1439,7 +1439,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={winterForm.date}
                       onChange={(e) => setWinterForm({ ...winterForm, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1449,7 +1449,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={winterForm.location}
                       onChange={(e) => setWinterForm({ ...winterForm, location: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1458,7 +1458,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={winterForm.performedBy}
                       onChange={(e) => setWinterForm({ ...winterForm, performedBy: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select driver</option>
                       {drivers.map((d) => (
@@ -1471,7 +1471,7 @@ const TruckingOperations: React.FC = () => {
                     <select
                       value={winterForm.vehicleNumber}
                       onChange={(e) => setWinterForm({ ...winterForm, vehicleNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select vehicle</option>
                       {vehicles.map((v) => (
@@ -1522,7 +1522,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={fuelingForm.date}
                       onChange={(e) => setFuelingForm({ ...fuelingForm, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1532,7 +1532,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={fuelingForm.location}
                       onChange={(e) => setFuelingForm({ ...fuelingForm, location: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1541,7 +1541,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={fuelingForm.performedBy}
                       onChange={(e) => setFuelingForm({ ...fuelingForm, performedBy: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select driver</option>
                       {drivers.map((d) => (
@@ -1554,7 +1554,7 @@ const TruckingOperations: React.FC = () => {
                     <select
                       value={fuelingForm.vehicleNumber}
                       onChange={(e) => setFuelingForm({ ...fuelingForm, vehicleNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select vehicle</option>
                       {vehicles.map((v) => (
@@ -1568,7 +1568,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={fuelingForm.fuelType}
                       onChange={(e) => setFuelingForm({ ...fuelingForm, fuelType: e.target.value as any })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="diesel">Diesel</option>
                       <option value="gasoline">Gasoline</option>
@@ -1620,7 +1620,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={tdgForm.date}
                       onChange={(e) => setTdgForm({ ...tdgForm, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1630,7 +1630,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={tdgForm.time}
                       onChange={(e) => setTdgForm({ ...tdgForm, time: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1639,7 +1639,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={tdgForm.driverName}
                       onChange={(e) => setTdgForm({ ...tdgForm, driverName: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select driver</option>
                       {drivers.map((d) => (
@@ -1652,7 +1652,7 @@ const TruckingOperations: React.FC = () => {
                     <select
                       value={tdgForm.vehicleNumber}
                       onChange={(e) => setTdgForm({ ...tdgForm, vehicleNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select vehicle</option>
                       {vehicles.map((v) => (
@@ -1665,7 +1665,7 @@ const TruckingOperations: React.FC = () => {
                     <select
                       value={tdgForm.trailerNumber}
                       onChange={(e) => setTdgForm({ ...tdgForm, trailerNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select trailer</option>
                       {trailers.map((t) => (
@@ -1684,7 +1684,7 @@ const TruckingOperations: React.FC = () => {
                           setShippingDocumentFile(file || null);
                           if (file) setTdgForm({ ...tdgForm, shippingDocument: file.name });
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:cursor-pointer"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:cursor-pointer"
                       />
                       {shippingDocumentFile && (
                         <span className="text-sm text-secondary">{shippingDocumentFile.name}</span>
@@ -1698,7 +1698,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={tdgForm.unNumber}
                       onChange={(e) => setTdgForm({ ...tdgForm, unNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1708,7 +1708,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={tdgForm.properShippingName}
                       onChange={(e) => setTdgForm({ ...tdgForm, properShippingName: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1718,7 +1718,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={tdgForm.class}
                       onChange={(e) => setTdgForm({ ...tdgForm, class: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -1728,7 +1728,7 @@ const TruckingOperations: React.FC = () => {
                       required
                       value={tdgForm.quantity}
                       onChange={(e) => setTdgForm({ ...tdgForm, quantity: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div className="col-span-2">
@@ -1833,7 +1833,7 @@ const TruckingOperations: React.FC = () => {
                           onChange={(e) => setTdgForm({ ...tdgForm, incidentDetails: e.target.value })}
                           rows={3}
                           placeholder="Describe the incident..."
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     )}
@@ -1845,7 +1845,7 @@ const TruckingOperations: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => { setShowModal(false); setShippingDocumentFile(null); }}
-                  className="px-6 py-2 !mr-3 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                  className="px-6 py-2 !mr-3 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   disabled={submitting}
                 >
                   Cancel

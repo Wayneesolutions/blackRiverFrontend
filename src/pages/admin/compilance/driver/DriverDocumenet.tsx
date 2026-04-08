@@ -291,7 +291,7 @@ function DriverDocument() {
           </h3>
           <button
             onClick={() => setShowDocModal(false)}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
             disabled={submitting}
           >
             <FaTimes className="text-secondary" size={20} />
@@ -306,7 +306,7 @@ function DriverDocument() {
             </label>
             <select
               name="documentType"
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+              className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
               value={formData.documentType}
               onChange={handleInputChange}
             >
@@ -330,7 +330,7 @@ function DriverDocument() {
             <input
               type="text"
               name="documentNumber"
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+              className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
               value={formData.documentNumber}
               onChange={handleInputChange}
               placeholder="Enter document number"
@@ -346,7 +346,7 @@ function DriverDocument() {
               <input
                 type="date"
                 name="issuedAt"
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                 value={formData.issuedAt}
                 onChange={handleInputChange}
                 required
@@ -360,7 +360,7 @@ function DriverDocument() {
               <input
                 type="date"
                 name="expiryDate"
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                 value={formData.expiryDate}
                 onChange={handleInputChange}
                 required
@@ -375,7 +375,7 @@ function DriverDocument() {
             <div className="relative">
               <input
                 type="file"
-                className="w-full border border-gray-300 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#9793E4]/10 file:text-[#9793E4] hover:file:bg-[#9793E4]/20 transition-all"
+                className="w-full border border-theme rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#9793E4]/10 file:text-[#9793E4] hover:file:bg-[#9793E4]/20 transition-all"
                 onChange={handleFileChange}
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
               />
@@ -392,7 +392,7 @@ function DriverDocument() {
         <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
           <button
             type="button"
-            className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+            className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
             onClick={() => setShowDocModal(false)}
             disabled={submitting}
           >
@@ -433,7 +433,7 @@ function DriverDocument() {
         <div className="bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
           <button
             type="button"
-            className="px-6 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+            className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
             onClick={cancelDelete}
           >
             Cancel
@@ -478,7 +478,7 @@ function DriverDocument() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {drivers.length === 0 ? (
-                <div className="bg-card rounded-2xl shadow-lg border border-dashed border-gray-300 p-10 flex flex-col items-center justify-center text-secondary">
+                <div className="bg-card rounded-2xl shadow-lg border border-dashed border-theme p-10 flex flex-col items-center justify-center text-secondary">
                   <FaUser size={48} className="mb-3" />
                   <p className="text-sm">No drivers available yet.</p>
                 </div>
@@ -524,7 +524,7 @@ function DriverDocument() {
         <div className="space-y-6">
           <button
             onClick={handleBackToDrivers}
-            className="flex items-center gap-2 !mb-3 px-5 py-3 bg-card border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-all shadow-md"
+            className="flex items-center gap-2 !mb-3 px-5 py-3 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-all shadow-md"
           >
             <FaArrowLeft /> Back to Drivers
           </button>
@@ -592,7 +592,7 @@ function DriverDocument() {
                         <tr
                           key={doc._id}
                           className={`${index % 2 === 0 ? "bg-card" : "bg-card"
-                            } border-t hover:bg-gray-100 transition-colors`}
+                            } border-t hover:bg-[rgba(255,255,255,0.03)] transition-colors`}
                         >
                           <td className="p-4">
                             <span className="font-semibold text-primary capitalize">{doc.documentType}</span>

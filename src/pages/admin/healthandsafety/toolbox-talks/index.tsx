@@ -247,7 +247,7 @@ const ToolboxTalks: React.FC = () => {
               placeholder="Search by talk number, title, or topic..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -255,7 +255,7 @@ const ToolboxTalks: React.FC = () => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Status</option>
               <option value="scheduled">Scheduled</option>
@@ -265,7 +265,7 @@ const ToolboxTalks: React.FC = () => {
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Categories</option>
               <option value="Safety">Safety</option>
@@ -303,7 +303,7 @@ const ToolboxTalks: React.FC = () => {
                 <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {loading ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-8 text-center text-secondary">Loading...</td>

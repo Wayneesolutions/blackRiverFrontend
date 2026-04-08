@@ -227,7 +227,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
           >
             <FaTimes className="text-secondary" size={20} />
           </button>
@@ -425,7 +425,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
                     <select
                       value={selectedDriver}
                       onChange={(e) => setSelectedDriver(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-3 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                       disabled={drivers.length === 0}
                     >
@@ -444,7 +444,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
                     <select
                       value={selectedTruck}
                       onChange={(e) => setSelectedTruck(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-3 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                       disabled={trucks.length === 0 || loading}
                     >
@@ -467,7 +467,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
                     <select
                       value={selectedTrailer}
                       onChange={(e) => setSelectedTrailer(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-3 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       disabled={trailers.length === 0}
                     >
                       <option value="">{trailers.length === 0 ? 'No trailers available' : 'No Trailer'}</option>
@@ -486,7 +486,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
                       type="date"
                       value={planDate}
                       onChange={(e) => setPlanDate(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-3 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -535,7 +535,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
             <>
               <button
                 onClick={onClose}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
+                className="px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
               >
                 Cancel
               </button>

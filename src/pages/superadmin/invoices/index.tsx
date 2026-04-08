@@ -709,7 +709,7 @@ const InvoicesPage = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-card divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-theme">
                 {filteredInvoices.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
@@ -853,7 +853,7 @@ const InvoicesPage = () => {
                                       handleCopyInvoiceNumber(invoice.invoiceNumber);
                                       setActiveDropdown(null);
                                     }}
-                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
                                   >
                                     <Copy className="w-4 h-4" />
                                     <span>Copy Invoice #</span>
@@ -864,7 +864,7 @@ const InvoicesPage = () => {
                                       handleCopyId(invoice._id);
                                       setActiveDropdown(null);
                                     }}
-                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
                                   >
                                     <Copy className="w-4 h-4" />
                                     <span>Copy Invoice ID</span>
@@ -875,7 +875,7 @@ const InvoicesPage = () => {
                                       handleExport(invoice);
                                       setActiveDropdown(null);
                                     }}
-                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
                                   >
                                     <Download className="w-4 h-4" />
                                     <span>Export Invoice</span>
@@ -895,7 +895,7 @@ const InvoicesPage = () => {
                                             });
                                           }, 300);
                                         }}
-                                        className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                                        className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
                                       >
                                         <ExternalLink className="w-4 h-4" />
                                         <span>View Admin Profile</span>

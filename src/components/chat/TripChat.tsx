@@ -503,7 +503,7 @@ const TripChat: React.FC<TripChatProps> = ({ tripId, tripNumber, onClose }) => {
                 }
               }}
               placeholder="Type a message..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-card text-primary placeholder-gray-400 transition-all"
+              className="w-full px-4 py-3 border border-theme rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-card text-primary placeholder-gray-400 transition-all"
               rows={1}
               style={{ maxHeight: "120px" }}
             />

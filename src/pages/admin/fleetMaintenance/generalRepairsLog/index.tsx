@@ -829,7 +829,7 @@ const GeneralRepairsLog: React.FC = () => {
                 placeholder="Search by unit number, make/model, invoice, or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                className="pl-10 pr-4 py-2 w-full border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                 onFocus={(e) => {
                   e.target.style.borderColor = '#016ab2';
@@ -848,7 +848,7 @@ const GeneralRepairsLog: React.FC = () => {
                 className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
                   filterMechanicType === 'all'
                     ? 'bg-gray-800 !text-white border-gray-800'
-                    : 'bg-card text-secondary border-gray-300 hover:border-gray-400'
+                    : 'bg-card text-secondary border-theme hover:border-gray-400'
                 }`}
               >
                 All Mechanics
@@ -858,7 +858,7 @@ const GeneralRepairsLog: React.FC = () => {
                 className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
                   filterMechanicType === 'internal'
                     ? 'bg-blue-600 !text-white border-blue-600'
-                    : 'bg-card text-secondary border-gray-300 hover:border-blue-300'
+                    : 'bg-card text-secondary border-theme hover:border-blue-300'
                 }`}
               >
                 Internal
@@ -868,7 +868,7 @@ const GeneralRepairsLog: React.FC = () => {
                 className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors flex items-center gap-1.5 ${
                   filterMechanicType === 'external'
                     ? 'bg-orange-500 !text-white border-orange-500'
-                    : 'bg-card text-secondary border-gray-300 hover:border-orange-300'
+                    : 'bg-card text-secondary border-theme hover:border-orange-300'
                 }`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${filterMechanicType === 'external' ? 'bg-card' : 'bg-orange-400'}`} />
@@ -934,7 +934,7 @@ const GeneralRepairsLog: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-theme">
                   {loading ? (
                     <tr>
                       <td colSpan={12} className="px-6 py-12 text-center text-secondary">
@@ -1094,7 +1094,7 @@ const GeneralRepairsLog: React.FC = () => {
                         setShowRepairDetails(false);
                         setTimeout(() => setSelectedRepair(null), 300);
                       }}
-                      className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
+                      className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                     >
                       <X size={24} />
                     </button>
@@ -1312,7 +1312,7 @@ const GeneralRepairsLog: React.FC = () => {
                           type="date"
                           value={formData.serviceDate}
                           onChange={(e) => setFormData({ ...formData, serviceDate: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => {
                             e.target.style.borderColor = '#016ab2';
@@ -1326,7 +1326,7 @@ const GeneralRepairsLog: React.FC = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-primary mb-2">Status</label>
-                        <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-card">
+                        <div className="w-full px-4 py-2 border border-theme rounded-lg bg-card">
                           <span className={`font-medium ${
                             formData.status === 'Assigned' ? 'text-green-600' : 'text-secondary'
                           }`}>
@@ -1339,7 +1339,7 @@ const GeneralRepairsLog: React.FC = () => {
                         <select
                           value={formData.unitNumber}
                           onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => {
                             e.target.style.borderColor = '#016ab2';
@@ -1364,7 +1364,7 @@ const GeneralRepairsLog: React.FC = () => {
                           type="number"
                           value={formData.odometer}
                           onChange={(e) => setFormData({ ...formData, odometer: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => {
                             e.target.style.borderColor = '#016ab2';
@@ -1380,7 +1380,7 @@ const GeneralRepairsLog: React.FC = () => {
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-primary mb-2">Service Provider *</label>
                         {/* Toggle */}
-                        <div className="flex rounded-lg border border-gray-300 overflow-hidden mb-3 w-fit">
+                        <div className="flex rounded-lg border border-theme overflow-hidden mb-3 w-fit">
                           <button
                             type="button"
                             onClick={() => setFormData((prev) => ({ ...prev, mechanicType: 'internal', serviceProvider: '', serviceProviderId: undefined }))}
@@ -1391,7 +1391,7 @@ const GeneralRepairsLog: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setFormData((prev) => ({ ...prev, mechanicType: 'external', serviceProviderId: undefined }))}
-                            className={`px-5 py-2 text-sm font-medium border-l border-gray-300 transition-colors ${formData.mechanicType === 'external' ? 'bg-[#016ab2] !text-white' : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
+                            className={`px-5 py-2 text-sm font-medium border-l border-theme transition-colors ${formData.mechanicType === 'external' ? 'bg-[#016ab2] !text-white' : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
                           >
                             External Mechanic
                           </button>
@@ -1414,7 +1414,7 @@ const GeneralRepairsLog: React.FC = () => {
                                   serviceProvider: provider?.name || ''
                                 }));
                               }}
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                              className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                               style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                               onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                               onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -1439,7 +1439,7 @@ const GeneralRepairsLog: React.FC = () => {
                                 type="text"
                                 value={formData.serviceProvider}
                                 onChange={(e) => setFormData({ ...formData, serviceProvider: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                                 placeholder="Mechanic / Shop name"
                               />
@@ -1450,7 +1450,7 @@ const GeneralRepairsLog: React.FC = () => {
                                 type="text"
                                 value={formData.externalMechanicCompany}
                                 onChange={(e) => setFormData({ ...formData, externalMechanicCompany: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                                 placeholder="Company / Shop"
                               />
@@ -1461,7 +1461,7 @@ const GeneralRepairsLog: React.FC = () => {
                                 type="tel"
                                 value={formData.externalMechanicPhone}
                                 onChange={(e) => setFormData({ ...formData, externalMechanicPhone: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                                 placeholder="+1 (555) 000-0000"
                               />
@@ -1472,7 +1472,7 @@ const GeneralRepairsLog: React.FC = () => {
                                 type="email"
                                 value={formData.externalMechanicEmail}
                                 onChange={(e) => setFormData({ ...formData, externalMechanicEmail: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:border-transparent"
                                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                                 placeholder="email@shop.com"
                               />
@@ -1489,7 +1489,7 @@ const GeneralRepairsLog: React.FC = () => {
                           value={formData.description}
                           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                           rows={3}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => {
                             e.target.style.borderColor = '#016ab2';
@@ -1508,7 +1508,7 @@ const GeneralRepairsLog: React.FC = () => {
                           value={formData.notes}
                           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                           rows={2}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => {
                             e.target.style.borderColor = '#016ab2';
@@ -1543,7 +1543,7 @@ const GeneralRepairsLog: React.FC = () => {
                     <div className="flex gap-3 ml-auto">
                       <button
                         onClick={closeModals}
-                        className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                        className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                       >
                         Cancel
                       </button>
@@ -1592,7 +1592,7 @@ const GeneralRepairsLog: React.FC = () => {
                         setShowDeleteModal(false);
                         setSelectedRepair(null);
                       }}
-                      className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                      className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     >
                       Cancel
                     </button>

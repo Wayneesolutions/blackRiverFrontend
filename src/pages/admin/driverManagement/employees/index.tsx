@@ -1161,7 +1161,7 @@ const EmployeesPage = () => {
               </button>
               <button
                 onClick={() => setShowNewEmployeeModal(true)}
-                className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
+                className="w-10 h-10 bg-[var(--accent-blue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-blue)] transition-colors shadow-md"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -1173,7 +1173,7 @@ const EmployeesPage = () => {
             <button
               onClick={() => setActiveTab('users')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'users'
-                  ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
+                  ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] -mb-[2px]'
                   : 'text-secondary hover:text-primary'
                 }`}
             >
@@ -1182,7 +1182,7 @@ const EmployeesPage = () => {
             <button
               onClick={() => setActiveTab('nonSignin')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'nonSignin'
-                  ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
+                  ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] -mb-[2px]'
                   : 'text-secondary hover:text-primary'
                 }`}
             >
@@ -1191,7 +1191,7 @@ const EmployeesPage = () => {
             <button
               onClick={() => setActiveTab('advanced')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'advanced'
-                  ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
+                  ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] -mb-[2px]'
                   : 'text-secondary hover:text-primary'
                 }`}
             >
@@ -1233,7 +1233,7 @@ const EmployeesPage = () => {
               placeholder="Employees Name or Email"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+              className="flex-1 px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
             />
 
           </div>
@@ -1244,7 +1244,7 @@ const EmployeesPage = () => {
               <select
                 value={filterBy}
                 onChange={(e) => setFilterBy(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
               >
                 <option value="All">All</option>
                 <option value="Active">Active</option>
@@ -1262,7 +1262,7 @@ const EmployeesPage = () => {
                     handleSort(e.target.value as keyof Employee);
                   }
                 }}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
               >
                 <option value="">Select</option>
                 <option value="firstName">First Name</option>
@@ -1285,7 +1285,7 @@ const EmployeesPage = () => {
                     Image
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-[rgba(255,255,255,0.03)]"
                     onClick={() => handleSort('firstName')}
                   >
                     <div className="flex items-center gap-2">
@@ -1294,7 +1294,7 @@ const EmployeesPage = () => {
                     </div>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-[rgba(255,255,255,0.03)]"
                     onClick={() => handleSort('lastName')}
                   >
                     <div className="flex items-center gap-2">
@@ -1303,7 +1303,7 @@ const EmployeesPage = () => {
                     </div>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-[rgba(255,255,255,0.03)]"
                     onClick={() => handleSort('email')}
                   >
                     <div className="flex items-center gap-2">
@@ -1312,7 +1312,7 @@ const EmployeesPage = () => {
                     </div>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-[rgba(255,255,255,0.03)]"
                     onClick={() => handleSort('role')}
                   >
                     <div className="flex items-center gap-2">
@@ -1321,7 +1321,7 @@ const EmployeesPage = () => {
                     </div>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-[rgba(255,255,255,0.03)]"
                     onClick={() => handleSort('status')}
                   >
                     <div className="flex items-center gap-2">
@@ -1340,7 +1340,7 @@ const EmployeesPage = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-card divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-theme">
                 {loading ? (
                   <tr>
                     <td colSpan={9} className="px-4 py-8 text-center text-secondary">
@@ -1474,7 +1474,7 @@ const EmployeesPage = () => {
             <div className="p-6 border-t border-theme flex items-center justify-end gap-3">
               <button
                 onClick={() => setDeleteConfirmation({ show: false, employeeId: null, employeeName: '' })}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                className="px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
               >
                 Cancel
               </button>
@@ -1508,7 +1508,7 @@ const EmployeesPage = () => {
               {/* Image Upload Area */}
               <div className="p-4 border-b border-theme">
                 <div
-                  className="border-2 border-dashed border-gray-300 p-8 text-center mb-3 cursor-pointer hover:border-[#42aeec] transition-colors"
+                  className="border-2 border-dashed border-theme p-8 text-center mb-3 cursor-pointer hover:border-[var(--accent-blue)] transition-colors"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {profileImagePreview ? (
@@ -1573,7 +1573,7 @@ const EmployeesPage = () => {
                         key={tab.id}
                         onClick={() => setActiveFormTab(tab.id as any)}
                         className={`w-full flex items-center gap-2 px-3 py-2 transition-colors text-left ${isActive
-                            ? 'bg-[#0ea3d8] !text-white shadow-md'
+                            ? 'bg-[rgba(0,209,255,0.15)] !text-white shadow-md'
                             : 'bg-gray-700 !text-white hover:bg-gray-600'
                           }`}
                       >
@@ -1625,7 +1625,7 @@ const EmployeesPage = () => {
                           placeholder="First Name"
                           value={basicData.firstName}
                           onChange={(e) => setBasicData({ ...basicData, firstName: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -1637,7 +1637,7 @@ const EmployeesPage = () => {
                           placeholder="Last Name"
                           value={basicData.lastName}
                           onChange={(e) => setBasicData({ ...basicData, lastName: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -1649,7 +1649,7 @@ const EmployeesPage = () => {
                           placeholder="Email"
                           value={basicData.email}
                           onChange={(e) => setBasicData({ ...basicData, email: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         />
                       </div>
                       {/* Only show password field for roles that require sign-in (mechanics need password) */}
@@ -1668,7 +1668,7 @@ const EmployeesPage = () => {
                                   setPasswordIsExisting(false);
                                   setBasicData({ ...basicData, password: '' });
                                 }}
-                                className="w-full px-3 py-2 pr-20 border border-gray-300 rounded-lg bg-card cursor-text focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                className="w-full px-3 py-2 pr-20 border border-theme rounded-lg bg-card cursor-text focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                               />
                               <button
                                 type="button"
@@ -1676,7 +1676,7 @@ const EmployeesPage = () => {
                                   setPasswordIsExisting(false);
                                   setBasicData({ ...basicData, password: '' });
                                 }}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#42aeec] hover:text-blue-700 font-medium"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--accent-blue)] hover:text-blue-700 font-medium"
                                 tabIndex={-1}
                               >
                                 Change
@@ -1689,7 +1689,7 @@ const EmployeesPage = () => {
                                 placeholder="Enter new password"
                                 value={basicData.password}
                                 onChange={(e) => setBasicData({ ...basicData, password: e.target.value })}
-                                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                className="w-full px-3 py-2 pr-10 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                                 autoFocus
                               />
                               <button
@@ -1715,7 +1715,7 @@ const EmployeesPage = () => {
                         <select
                           value={basicData.status}
                           onChange={(e) => setBasicData({ ...basicData, status: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         >
                           <option value="">Select</option>
                           <option value="active">Active</option>
@@ -1729,7 +1729,7 @@ const EmployeesPage = () => {
                         <select
                           value={basicData.role}
                           onChange={(e) => setBasicData({ ...basicData, role: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         >
                           <option value="">Select</option>
                           {roles.map((role) => (
@@ -1754,7 +1754,7 @@ const EmployeesPage = () => {
                           placeholder="Title"
                           value={personalData.title}
                           onChange={(e) => setPersonalData({ ...personalData, title: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -1762,7 +1762,7 @@ const EmployeesPage = () => {
                         <select
                           value={personalData.payType}
                           onChange={(e) => setPersonalData({ ...personalData, payType: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         >
                           <option value="">Select</option>
                           <option value="Hourly">Hourly</option>
@@ -1789,7 +1789,7 @@ const EmployeesPage = () => {
                                 setPersonalData({ ...personalData, payRate: value });
                               }
                             }}
-                            className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full pl-7 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -1800,7 +1800,7 @@ const EmployeesPage = () => {
                           placeholder="Vacation Pay %"
                           value={personalData.vacationPay}
                           onChange={(e) => setPersonalData({ ...personalData, vacationPay: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -1812,7 +1812,7 @@ const EmployeesPage = () => {
                         <select
                           value={personalData.department}
                           onChange={(e) => setPersonalData({ ...personalData, department: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         >
                           <option value="">Select</option>
                           {departments.map((dept) => (
@@ -1825,7 +1825,7 @@ const EmployeesPage = () => {
                         <select
                           value={personalData.employmentType}
                           onChange={(e) => setPersonalData({ ...personalData, employmentType: e.target.value as 'FULL-TIME' | 'PART-TIME' | 'CONTRACT BASIS' })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         >
                           <option value="FULL-TIME">Full-time</option>
                           <option value="PART-TIME">Part-time</option>
@@ -1834,7 +1834,7 @@ const EmployeesPage = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">Phone #</label>
-                        <div className="flex items-center border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
+                        <div className="flex items-center border border-theme rounded-lg focus-within:ring-2 focus-within:ring-[var(--accent-blue)] focus-within:border-transparent">
                           <div className="relative" ref={phoneCountryDropdownRef}>
                             <button
                               type="button"
@@ -1856,7 +1856,7 @@ const EmployeesPage = () => {
                               <ChevronDown className="w-3 h-3 text-secondary ml-auto" />
                             </button>
                             {phoneCountryDropdownOpen && (
-                              <div className="absolute top-full left-0 z-50 bg-card border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                              <div className="absolute top-full left-0 z-50 bg-card border border-theme rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
                                 {/* Search Input */}
                                 <div className="p-2 border-b border-theme sticky top-0 bg-card">
                                   <input
@@ -1865,7 +1865,7 @@ const EmployeesPage = () => {
                                     value={phoneCountrySearch}
                                     onChange={(e) => setPhoneCountrySearch(e.target.value)}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                    className="w-full px-3 py-1.5 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                                   />
                                 </div>
                                 {/* Countries List */}
@@ -1890,7 +1890,7 @@ const EmployeesPage = () => {
                                           // Don't auto-fill dial code - let user type the number without country code
                                           // The dial code will be prepended when saving
                                         }}
-                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${phoneCountry === country.code ? 'bg-card' : ''
+                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-[rgba(255,255,255,0.03)] transition-colors ${phoneCountry === country.code ? 'bg-card' : ''
                                           }`}
                                       >
                                         <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
@@ -1965,7 +1965,7 @@ const EmployeesPage = () => {
                           placeholder="Address"
                           value={personalData.address}
                           onChange={(e) => setPersonalData({ ...personalData, address: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -1990,7 +1990,7 @@ const EmployeesPage = () => {
                               stateProvince: '' 
                             });
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         >
                           <option value="">Select Country</option>
                           {countries.map((country) => (
@@ -2010,7 +2010,7 @@ const EmployeesPage = () => {
                           onChange={(e) => setPersonalData({ ...personalData, stateProvince: e.target.value })}
                           disabled={!personalData.country}
                           placeholder={personalData.country ? "Enter Province/State" : "Select country first"}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                         />
                       </div>
                     </div>
@@ -2023,7 +2023,7 @@ const EmployeesPage = () => {
                           type="date"
                           value={personalData.dateOfBirth}
                           onChange={(e) => setPersonalData({ ...personalData, dateOfBirth: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -2032,7 +2032,7 @@ const EmployeesPage = () => {
                           type="date"
                           value={personalData.hireDate}
                           onChange={(e) => setPersonalData({ ...personalData, hireDate: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -2041,7 +2041,7 @@ const EmployeesPage = () => {
                           type="date"
                           value={personalData.terminationDate}
                           onChange={(e) => setPersonalData({ ...personalData, terminationDate: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -2057,7 +2057,7 @@ const EmployeesPage = () => {
                           placeholder="SIN Number"
                           value={personalData.sinNo}
                           onChange={(e) => setPersonalData({ ...personalData, sinNo: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                           required
                         />
                       </div>
@@ -2090,7 +2090,7 @@ const EmployeesPage = () => {
                                 type="date"
                                 value={newDocument.expiryDate}
                                 onChange={(e) => setNewDocument({ ...newDocument, expiryDate: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                               />
                             </td>
                             <td className="px-4 py-3">
@@ -2099,7 +2099,7 @@ const EmployeesPage = () => {
                                 placeholder="Description"
                                 value={newDocument.description}
                                 onChange={(e) => setNewDocument({ ...newDocument, description: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
                               />
                             </td>
                             <td className="px-4 py-3">
@@ -2115,7 +2115,7 @@ const EmployeesPage = () => {
                                     };
                                     input.click();
                                   }}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center justify-center gap-2 text-sm"
+                                  className="w-full px-3 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center justify-center gap-2 text-sm"
                                 >
                                   <Upload className="w-4 h-4" />
                                   Select File
@@ -2136,7 +2136,7 @@ const EmployeesPage = () => {
                                   type="checkbox"
                                   checked={newDocument.ignoreExpiration}
                                   onChange={(e) => setNewDocument({ ...newDocument, ignoreExpiration: e.target.checked })}
-                                  className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                                  className="w-4 h-4 text-[var(--accent-blue)] border-theme rounded focus:ring-[var(--accent-blue)]"
                                 />
                                 <span className="text-sm text-primary">Ignore Expiration</span>
                               </label>
@@ -2181,7 +2181,7 @@ const EmployeesPage = () => {
                               <th className="w-[120px] px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                             </tr>
                           </thead>
-                          <tbody className="bg-card divide-y divide-gray-200">
+                          <tbody className="bg-card divide-y divide-theme">
                             {documents.map((doc) => (
                               <tr key={doc.id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                 <td className="px-4 py-3">
@@ -2190,7 +2190,7 @@ const EmployeesPage = () => {
                                       type="date"
                                       value={editingDocument.expiryDate}
                                       onChange={(e) => setEditingDocument({ ...editingDocument, expiryDate: e.target.value })}
-                                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                                      className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]"
                                     />
                                   ) : (
                                     <span className="text-sm text-primary">{doc.expiryDate || '-'}</span>
@@ -2203,7 +2203,7 @@ const EmployeesPage = () => {
                                       value={editingDocument.description}
                                       onChange={(e) => setEditingDocument({ ...editingDocument, description: e.target.value })}
                                       placeholder="Description"
-                                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
+                                      className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]"
                                     />
                                   ) : (
                                     <span className="text-sm text-primary">{doc.description || doc.documentType || '-'}</span>
@@ -2233,7 +2233,7 @@ const EmployeesPage = () => {
                                           };
                                           input.click();
                                         }}
-                                        className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-1 w-fit"
+                                        className="px-2 py-1 text-xs border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-1 w-fit"
                                       >
                                         <Upload className="w-3 h-3" />
                                         {editingDocument.file ? editingDocument.file.name : 'Change File'}
@@ -2265,7 +2265,7 @@ const EmployeesPage = () => {
                                         type="checkbox"
                                         checked={editingDocument.ignoreExpiration}
                                         onChange={(e) => setEditingDocument({ ...editingDocument, ignoreExpiration: e.target.checked })}
-                                        className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                                        className="w-4 h-4 text-[var(--accent-blue)] border-theme rounded focus:ring-[var(--accent-blue)]"
                                       />
                                       <span className="text-xs text-primary">Ignore</span>
                                     </label>
@@ -2416,7 +2416,7 @@ const EmployeesPage = () => {
                       onChange={(e) => setNotesBenefits(e.target.value)}
                       placeholder="Enter notes and benefits information..."
                       rows={15}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent resize-none"
+                      className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent resize-none"
                     />
 
                   </div>
@@ -2436,7 +2436,7 @@ const EmployeesPage = () => {
                             type="date"
                             value={newDeduction.startDate}
                             onChange={(e) => setNewDeduction({ ...newDeduction, startDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -2447,7 +2447,7 @@ const EmployeesPage = () => {
                           placeholder="Description"
                           value={newDeduction.description}
                           onChange={(e) => setNewDeduction({ ...newDeduction, description: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         />
                       </div>
                       <div className="flex-1">
@@ -2457,7 +2457,7 @@ const EmployeesPage = () => {
                           placeholder="0"
                           value={newDeduction.amount}
                           onChange={(e) => setNewDeduction({ ...newDeduction, amount: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         />
                       </div>
                       <div className="flex-1">
@@ -2465,7 +2465,7 @@ const EmployeesPage = () => {
                         <select
                           value={newDeduction.interval}
                           onChange={(e) => setNewDeduction({ ...newDeduction, interval: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         >
                           <option value="">Interval</option>
                           <option value="Weekly">Weekly</option>
@@ -2479,7 +2479,7 @@ const EmployeesPage = () => {
                         <select
                           value={newDeduction.currency}
                           onChange={(e) => setNewDeduction({ ...newDeduction, currency: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         >
                           <option value="CAD">CAD</option>
                           <option value="USD">USD</option>
@@ -2543,7 +2543,7 @@ const EmployeesPage = () => {
                             <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-card divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-theme">
                           {deductions.length === 0 ? (
                             <tr>
                               <td colSpan={5} className="px-4 py-8 text-center text-secondary">
@@ -2638,7 +2638,7 @@ const EmployeesPage = () => {
                             type="date"
                             value={newAddition.startDate}
                             onChange={(e) => setNewAddition({ ...newAddition, startDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -2649,7 +2649,7 @@ const EmployeesPage = () => {
                           placeholder="Description"
                           value={newAddition.description}
                           onChange={(e) => setNewAddition({ ...newAddition, description: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         />
                       </div>
                       <div className="flex-1">
@@ -2659,7 +2659,7 @@ const EmployeesPage = () => {
                           placeholder="0"
                           value={newAddition.amount}
                           onChange={(e) => setNewAddition({ ...newAddition, amount: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         />
                       </div>
                       <div className="flex-1">
@@ -2667,7 +2667,7 @@ const EmployeesPage = () => {
                         <select
                           value={newAddition.interval}
                           onChange={(e) => setNewAddition({ ...newAddition, interval: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         >
                           <option value="">Interval</option>
                           <option value="Weekly">Weekly</option>
@@ -2681,7 +2681,7 @@ const EmployeesPage = () => {
                         <select
                           value={newAddition.currency}
                           onChange={(e) => setNewAddition({ ...newAddition, currency: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                         >
                           <option value="CAD">CAD</option>
                           <option value="USD">USD</option>
@@ -2745,7 +2745,7 @@ const EmployeesPage = () => {
                             <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-card divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-theme">
                           {additions.length === 0 ? (
                             <tr>
                               <td colSpan={5} className="px-4 py-8 text-center text-secondary">
@@ -2847,7 +2847,7 @@ const EmployeesPage = () => {
                       <button
                         type="button"
                         onClick={() => setActiveFormTab(prevTab.id as any)}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg shadow-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg shadow-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                       >
                         <span aria-hidden>←</span> {prevTab.label}
                       </button>
@@ -2856,7 +2856,7 @@ const EmployeesPage = () => {
                       <button
                         type="button"
                         onClick={() => setActiveFormTab(nextTab.id as any)}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg shadow-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg shadow-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                       >
                         {nextTab.label} <span aria-hidden>→</span>
                       </button>

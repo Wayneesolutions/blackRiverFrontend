@@ -294,7 +294,7 @@ const ProfessionalTruckTracker: React.FC = () => {
             >
                 <div className="h-full flex flex-col">
                     {/* Header */}
-                    <div className="bg-[linear-gradient(90deg,#42aeec_0%,#1db5f5_40%,#0ea3d8_100%)] p-4 text-white">
+                    <div className="bg-[linear-gradient(90deg,var(--accent-blue)_0%,var(--accent-blue)_40%,rgba(0,209,255,0.15)_100%)] p-4 text-white">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-bold flex items-center gap-2">
                                 <Truck className="w-5 h-5" />
@@ -334,7 +334,7 @@ const ProfessionalTruckTracker: React.FC = () => {
                                         key={v._id}
                                         onClick={() => handleVehicleClick(v)}
                                         className={`p-3 rounded-xl cursor-pointer transition-all duration-200 border-2 ${selectedVehicle?._id === v._id
-                                            ? "bg-main border-[#42aeec] shadow-md"
+                                            ? "bg-main border-[var(--accent-blue)] shadow-md"
                                             : "bg-card border-theme hover:border-blue-300 hover:shadow-sm"
                                             }`}
                                     >
@@ -476,7 +476,7 @@ const ProfessionalTruckTracker: React.FC = () => {
                             <h3 className="text-base font-bold text-primary">{selectedVehicle.plateNumber}</h3>
                             <button
                                 onClick={() => setSelectedVehicle(null)}
-                                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded transition-colors"
                             >
                                 <X className="w-4 h-4" />
                             </button>

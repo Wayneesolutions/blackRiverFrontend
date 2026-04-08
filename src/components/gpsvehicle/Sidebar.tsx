@@ -94,13 +94,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                     {/* Parent Item */}
                     <button
                       onClick={() => toggleMenu(link.key)}
-                      className={`w-full transition flex items-center justify-start px-4 py-2 gap-3 ${openMenus.includes(link.key) ? "bg-[#42aeec]/10" : "hover:bg-[rgba(255,255,255,0.03)]"
+                      className={`w-full transition flex items-center justify-start px-4 py-2 gap-3 ${openMenus.includes(link.key) ? "bg-[var(--accent-blue)]/10" : "hover:bg-[rgba(255,255,255,0.03)]"
                         }`}
                     >
                       <span
                         className={`text-xl ${openMenus.includes(link.key)
-                            ? "text-[#42aeec]"
-                            : "text-secondary group-hover:text-[#42aeec]"
+                            ? "text-[var(--accent-blue)]"
+                            : "text-secondary group-hover:text-[var(--accent-blue)]"
                           }`}
                       >
                         {link.icon}
@@ -137,8 +137,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                               <NavLink
                                 to={child.key}
                                 className={`flex items-center px-4 py-1 pl-4 text-sm transition ${activeState
-                                    ? "text-[#42aeec] bg-[#42aeec]/10"
-                                    : "text-secondary hover:bg-gray-100 hover:text-[#42aeec]"
+                                    ? "text-[var(--accent-blue)] bg-[var(--accent-blue)]/10"
+                                    : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[var(--accent-blue)]"
                                   }`}
                               >
                                 {/* Bullet for sub-menu */}
@@ -159,8 +159,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                       const pathname = window.location.pathname;
                       const activeState = isActiveLink(link.key, isActive, pathname);
                       return `flex items-center justify-start px-4 py-2 gap-3 text-sm transition ${activeState
-                          ? "text-[#42aeec] bg-[#42aeec]/10"
-                          : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[#42aeec]"
+                          ? "text-[var(--accent-blue)] bg-[var(--accent-blue)]/10"
+                          : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[var(--accent-blue)]"
                         }`;
                     }}
                   >

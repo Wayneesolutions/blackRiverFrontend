@@ -246,7 +246,7 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({
                   value={formData.internalId}
                   onChange={handleInputChange}
                   placeholder="Internal ID"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -257,7 +257,7 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({
                   value={formData.plateNumber}
                   onChange={handleInputChange}
                   placeholder="Plate Number"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -271,7 +271,7 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({
                   value={formData.vinNumber}
                   onChange={handleInputChange}
                   placeholder="VIN Number"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -282,7 +282,7 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({
                   value={formData.make}
                   onChange={handleInputChange}
                   placeholder="Vehicle make"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -296,7 +296,7 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({
                   value={formData.model}
                   onChange={handleInputChange}
                   placeholder="Vehicle model"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -307,7 +307,7 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({
                   value={formData.year}
                   onChange={handleInputChange}
                   placeholder="Vehicle year"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -318,7 +318,7 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({
                 name="status"
                 value={formData.status}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="stopped">Stopped</option>
                 <option value="moving">Moving</option>
@@ -335,13 +335,13 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({
                 value={formData.address}
                 onChange={handleInputChange}
                 placeholder="Enter vehicle address"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-primary mb-1">Vehicle Images</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+              <div className="border-2 border-dashed border-theme rounded-lg p-4">
                 <div className="text-center">
                   <ImageIcon className="mx-auto h-12 w-12 text-secondary" />
                   <label htmlFor="vehicle-images" className="cursor-pointer mt-2 block text-sm text-primary">
@@ -388,7 +388,7 @@ const NewVehicleSidebar: FC<NewVehicleSidebarProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 !mr-3 border border-gray-300 rounded-md text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+              className="px-4 py-2 !mr-3 border border-theme rounded-md text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
             >
               Cancel
             </button>

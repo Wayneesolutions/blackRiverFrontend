@@ -158,7 +158,7 @@ const LandingSection = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Delivered</option>
               <option value="delivered">Delivered (Due)</option>
@@ -179,7 +179,7 @@ const LandingSection = () => {
                 <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase">Payment Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {filteredLoads.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-secondary">

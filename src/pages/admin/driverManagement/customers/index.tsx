@@ -36,7 +36,7 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
   };
 
   const bgColors = {
-    success: 'bg-green-50 border-green-200',
+    success: 'bg-[var(--accent-green)]/10 border-[var(--accent-green)]/30',
     error: 'bg-card border-red-200',
     warning: 'bg-card border-yellow-200'
   };
@@ -106,10 +106,10 @@ const CustomersPage = () => {
   // Helper function to parse phone number and extract country code
   const parsePhoneNumber = (phone: string | undefined | null, countriesList: Country[] = countries): { countryCode: string; phoneNumber: string } => {
     if (!phone) return { countryCode: 'US', phoneNumber: '' };
-    
+
     const cleanPhone = phone.trim();
     const sortedCountries = [...countriesList].sort((a, b) => b.dialCode.length - a.dialCode.length);
-    
+
     for (const country of sortedCountries) {
       if (cleanPhone.startsWith(country.dialCode)) {
         return {
@@ -118,7 +118,7 @@ const CustomersPage = () => {
         };
       }
     }
-    
+
     return { countryCode: 'US', phoneNumber: cleanPhone.replace(/^\+1/, '').trim() };
   };
 
@@ -186,7 +186,7 @@ const CustomersPage = () => {
       if (match) {
         const fieldName = match[1];
         const fieldValue = match[2];
-        
+
         // Convert field names to user-friendly names
         const fieldDisplayNames: { [key: string]: string } = {
           'internalId': 'Customer ID',
@@ -194,7 +194,7 @@ const CustomersPage = () => {
           'phone': 'Phone Number',
           'customerId': 'Customer ID'
         };
-        
+
         const displayName = fieldDisplayNames[fieldName] || fieldName;
         return `${displayName} "${fieldValue}" already exists. Please use a different value.`;
       }
@@ -261,9 +261,9 @@ const CustomersPage = () => {
       const search = searchTerm || customerIdSearch || undefined;
       const status = statusFilter !== 'All' ? statusFilter : undefined;
       const type = typeFilter !== 'All' ? typeFilter : undefined;
-      
+
       const response = await customerApi.getAllCustomers(1, 1000, search, status, type, sortBy || undefined, sortOrder);
-      
+
       if (response?.success && response.data) {
         const mappedCustomers = response.data.map((cust: any) => ({
           _id: cust._id,
@@ -293,31 +293,31 @@ const CustomersPage = () => {
     const sheet = workbook.addWorksheet('Customers', { views: [{ state: 'frozen', ySplit: 1 }] });
 
     sheet.columns = [
-      { header: 'Customer Name',  key: 'name',          width: 28 },
-      { header: 'Type',           key: 'type',          width: 18 },
-      { header: 'Address',        key: 'address',       width: 30 },
-      { header: 'City',           key: 'city',          width: 16 },
-      { header: 'Email',          key: 'email',         width: 28 },
-      { header: 'Phone',          key: 'phone',         width: 18 },
-      { header: 'Status',         key: 'status',        width: 14 },
-      { header: 'Last Load Date', key: 'lastLoadDate',  width: 18 },
+      { header: 'Customer Name', key: 'name', width: 28 },
+      { header: 'Type', key: 'type', width: 18 },
+      { header: 'Address', key: 'address', width: 30 },
+      { header: 'City', key: 'city', width: 16 },
+      { header: 'Email', key: 'email', width: 28 },
+      { header: 'Phone', key: 'phone', width: 18 },
+      { header: 'Status', key: 'status', width: 14 },
+      { header: 'Last Load Date', key: 'lastLoadDate', width: 18 },
     ];
 
     const headerRow = sheet.getRow(1);
     headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
-    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF42AEEC' } };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF00D1FF' } };
     headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
     headerRow.height = 22;
 
     filteredCustomers.forEach((c: any) => {
       const row = sheet.addRow({
-        name:         c.name         || '',
-        type:         c.type         || '',
-        address:      c.address      || c.customerDetails?.address || '',
-        city:         c.city         || '',
-        email:        c.customerDetails?.emailPrimary || '',
-        phone:        c.customerDetails?.phonePrimary || '',
-        status:       c.status       || '',
+        name: c.name || '',
+        type: c.type || '',
+        address: c.address || c.customerDetails?.address || '',
+        city: c.city || '',
+        email: c.customerDetails?.emailPrimary || '',
+        phone: c.customerDetails?.phonePrimary || '',
+        status: c.status || '',
         lastLoadDate: c.lastLoadDate ? new Date(c.lastLoadDate).toLocaleDateString() : '',
       });
       row.alignment = { vertical: 'middle' };
@@ -344,7 +344,7 @@ const CustomersPage = () => {
     const newDirection = sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc';
     setSortConfig({ key, direction: newDirection });
     setSortOrder(newDirection);
-    
+
     // Map frontend keys to backend sort keys
     let backendSortKey = '';
     if (key === 'name') backendSortKey = 'name';
@@ -352,7 +352,7 @@ const CustomersPage = () => {
     else if (key === 'address') backendSortKey = 'address';
     else if (key === 'city') backendSortKey = 'city';
     else if (key === 'lastLoadDate') backendSortKey = 'lastLoadDate';
-    
+
     setSortBy(backendSortKey);
   };
 
@@ -374,7 +374,7 @@ const CustomersPage = () => {
 
   const handleConfirmDelete = async () => {
     if (!deleteConfirmation.customerId) return;
-    
+
     try {
       const response = await customerApi.deleteCustomer(deleteConfirmation.customerId);
       if (response?.success) {
@@ -648,14 +648,14 @@ const CustomersPage = () => {
               <p className="text-primary font-semibold">
                 {deleteConfirmation.customerName}
               </p>
-              <p className="text-sm text-[#A855F7] mt-4">
+              <p className="text-sm text-[var(--accent-purple)] mt-4">
                 This action cannot be undone.
               </p>
             </div>
             <div className="p-6 border-t border-theme flex items-center justify-end gap-3">
               <button
                 onClick={() => setDeleteConfirmation({ show: false, customerId: null, customerName: '' })}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                className="px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
               >
                 Cancel
               </button>
@@ -684,12 +684,12 @@ const CustomersPage = () => {
               >
                 <FileDown className="w-5 h-5" />
               </button>
-              <button 
+              <button
                 onClick={() => {
                   resetForm();
                   setShowNewCustomerModal(true);
                 }}
-                className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
+                className="w-10 h-10 bg-[bg-[var(--accent-green)]/10] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-blue)] transition-colors shadow-md"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -708,9 +708,9 @@ const CustomersPage = () => {
                 placeholder="Customer, Phone #, Email, Address"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                className="flex-1 px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
               />
-             
+
             </div>
 
             <div className="flex items-center gap-2 flex-1 min-w-[250px]">
@@ -720,9 +720,9 @@ const CustomersPage = () => {
                 placeholder="Customer ID"
                 value={customerIdSearch}
                 onChange={(e) => setCustomerIdSearch(e.target.value)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                className="flex-1 px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
               />
-            
+
             </div>
           </div>
 
@@ -733,7 +733,7 @@ const CustomersPage = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
               >
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
@@ -746,7 +746,7 @@ const CustomersPage = () => {
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
               >
                 <option value="All">All</option>
                 <option value="Customer">Customer</option>
@@ -764,7 +764,7 @@ const CustomersPage = () => {
                     handleSort(e.target.value as keyof Customer);
                   }
                 }}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
               >
                 <option value="">Select</option>
                 <option value="name">Customer</option>
@@ -783,8 +783,8 @@ const CustomersPage = () => {
             <table className="w-full">
               <thead className="bg-card border-b border-theme">
                 <tr>
-                  <th 
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
+                  <th
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-card"
                     onClick={() => handleSort('name')}
                   >
                     <div className="flex items-center gap-2">
@@ -792,8 +792,8 @@ const CustomersPage = () => {
                       {getSortIcon('name')}
                     </div>
                   </th>
-                  <th 
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
+                  <th
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-card"
                     onClick={() => handleSort('type')}
                   >
                     <div className="flex items-center gap-2">
@@ -801,8 +801,8 @@ const CustomersPage = () => {
                       {getSortIcon('type')}
                     </div>
                   </th>
-                  <th 
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
+                  <th
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-card"
                     onClick={() => handleSort('address')}
                   >
                     <div className="flex items-center gap-2">
@@ -810,8 +810,8 @@ const CustomersPage = () => {
                       {getSortIcon('address')}
                     </div>
                   </th>
-                  <th 
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
+                  <th
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-card"
                     onClick={() => handleSort('city')}
                   >
                     <div className="flex items-center gap-2">
@@ -819,8 +819,8 @@ const CustomersPage = () => {
                       {getSortIcon('city')}
                     </div>
                   </th>
-                  <th 
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
+                  <th
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-card"
                     onClick={() => handleSort('lastLoadDate')}
                   >
                     <div className="flex items-center gap-2">
@@ -831,7 +831,7 @@ const CustomersPage = () => {
                   <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Action</th>
                 </tr>
               </thead>
-              <tbody className="bg-card divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-theme">
                 {loading ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-secondary">
@@ -846,8 +846,8 @@ const CustomersPage = () => {
                   </tr>
                 ) : (
                   filteredCustomers.map((customer, index) => (
-                    <tr 
-                      key={customer._id || index} 
+                    <tr
+                      key={customer._id || index}
                       className="hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                       onClick={() => {
                         if (customer._id) {
@@ -868,7 +868,7 @@ const CustomersPage = () => {
                                 loadCustomerForEdit(customer._id);
                               }
                             }}
-                            className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-2 text-accent hover:bg-blue-50 rounded-lg transition-colors border ' '"
                             title="Edit Customer"
                           >
                             <Edit className="w-4 h-4" />
@@ -883,7 +883,7 @@ const CustomersPage = () => {
                                 });
                               }
                             }}
-                            className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-[var(--accent-purple)] hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete Customer"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -901,15 +901,15 @@ const CustomersPage = () => {
 
       {/* New Customer Modal */}
       {showNewCustomerModal && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 border-2 ' '"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowNewCustomerModal(false);
             }
           }}
         >
-          <div 
+          <div
             className="bg-card rounded-lg shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
@@ -918,7 +918,7 @@ const CustomersPage = () => {
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-theme bg-card">
                 <h2 className="text-2xl font-bold text-primary">
-                  {editingId 
+                  {editingId
                     ? (customerType === 'CUSTOMER' ? 'Edit Customer' : 'Edit Shipper Receiver')
                     : (customerType === 'CUSTOMER' ? 'New Customer' : 'New Shipper Receiver')
                   }
@@ -935,671 +935,664 @@ const CustomersPage = () => {
               </div>
 
               {/* Basic Tab Bar */}
-              <div className="bg-[#42aeec] px-6 py-3 border-b border-[#42aeec]/20">
+              <div className="bg-var(--accent-blue) px-6 py-3 border-b border-var(--accent-blue)/20">
                 <span className="text-white font-medium text-sm">Basic</span>
               </div>
 
               {/* Form Content */}
               <div className="p-6 bg-card">
-              <div className="grid grid-cols-2 gap-8">
-                {/* Left Column - Basic Information */}
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-primary mb-4">Basic Information</h3>
-                    
-                    {/* Customer Type Toggle */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-2">Customer Type</label>
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setCustomerType('CUSTOMER')}
-                          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                            customerType === 'CUSTOMER'
-                              ? 'bg-[#42aeec] !text-white shadow-sm'
-                              : 'bg-gray-100 text-secondary hover:bg-gray-200'
-                          }`}
-                        >
-                          CUSTOMER
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setCustomerType('SHIPPER AND RECEIVER')}
-                          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                            customerType === 'SHIPPER AND RECEIVER'
-                              ? 'bg-[#42aeec] !text-white shadow-sm'
-                              : 'bg-gray-100 text-secondary hover:bg-gray-200'
-                          }`}
-                        >
-                          SHIPPER AND RECEIVER
-                        </button>
-                      </div>
-                      <button 
-                        onClick={() => setShowBatchBilling(!showBatchBilling)}
-                        className="mt-2 text-sm text-[#42aeec] hover:underline"
-                      >
-                        {showBatchBilling ? 'Hide Batch Billing' : 'Show Batch Billing'}
-                      </button>
-                    </div>
+                <div className="grid grid-cols-2 gap-8">
+                  {/* Left Column - Basic Information */}
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-primary mb-4">Basic Information</h3>
 
-                    {/* Billing Configuration - Shown when Show Batch Billing is clicked */}
-                    {showBatchBilling && (
+                      {/* Customer Type Toggle */}
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-primary mb-2">Billing Configuration</label>
+                        <label className="block text-sm font-medium text-primary mb-2">Customer Type</label>
                         <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={() => setBillingType('DEFAULT / LOAD')}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
-                              billingType === 'DEFAULT / LOAD'
-                                ? 'bg-[#42aeec] !text-white shadow-sm'
-                                : 'bg-gray-100 text-secondary hover:bg-gray-200'
-                            }`}
+                            onClick={() => setCustomerType('CUSTOMER')}
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${customerType === 'CUSTOMER'
+                              ? 'bg-var(--accent-blue) !text-white shadow-sm'
+                              : 'bg-card text-secondary hover:bg-gray-200'
+                              }`}
                           >
-                            DEFAULT / LOAD
+                            CUSTOMER
                           </button>
                           <button
                             type="button"
-                            onClick={() => setBillingType('BATCH WEEKLY')}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
-                              billingType === 'BATCH WEEKLY'
-                                ? 'bg-[#42aeec] !text-white shadow-sm'
-                                : 'bg-gray-100 text-secondary hover:bg-gray-200'
-                            }`}
+                            onClick={() => setCustomerType('SHIPPER AND RECEIVER')}
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${customerType === 'SHIPPER AND RECEIVER'
+                              ? 'bg-var(--accent-blue) !text-white shadow-sm'
+                              : 'bg-card text-secondary hover:bg-gray-200'
+                              }`}
                           >
-                            BATCH WEEKLY
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setBillingType('BATCH MONTHLY')}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
-                              billingType === 'BATCH MONTHLY'
-                                ? 'bg-[#42aeec] !text-white shadow-sm'
-                                : 'bg-gray-100 text-secondary hover:bg-gray-200'
-                            }`}
-                          >
-                            BATCH MONTHLY
+                            SHIPPER AND RECEIVER
                           </button>
                         </div>
+                        <button
+                          onClick={() => setShowBatchBilling(!showBatchBilling)}
+                          className="mt-2 text-sm text-[bg-[var(--accent-green)]/10] hover:underline"
+                        >
+                          {showBatchBilling ? 'Hide Batch Billing' : 'Show Batch Billing'}
+                        </button>
                       </div>
-                    )}
 
-                    {/* Customer */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">
-                        Customer<span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Customer"
-                        value={formData.customer}
-                        onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      />
-                    </div>
+                      {/* Billing Configuration - Shown when Show Batch Billing is clicked */}
+                      {showBatchBilling && (
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-primary mb-2">Billing Configuration</label>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setBillingType('DEFAULT / LOAD')}
+                              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${billingType === 'DEFAULT / LOAD'
+                                ? 'bg-[bg-[var(--accent-green)]/10] !text-white shadow-sm'
+                                : 'bg-card text-secondary hover:bg-gray-200'
+                                }`}
+                            >
+                              DEFAULT / LOAD
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setBillingType('BATCH WEEKLY')}
+                              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${billingType === 'BATCH WEEKLY'
+                                ? 'bg-[bg-[var(--accent-green)]/10] !text-white shadow-sm'
+                                : 'bg-card text-secondary hover:bg-gray-200'
+                                }`}
+                            >
+                              BATCH WEEKLY
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setBillingType('BATCH MONTHLY')}
+                              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${billingType === 'BATCH MONTHLY'
+                                ? 'bg-[bg-[var(--accent-green)]/10] !text-white shadow-sm'
+                                : 'bg-card text-secondary hover:bg-gray-200'
+                                }`}
+                            >
+                              BATCH MONTHLY
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
-                    {/* Customer ID */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">
-                        Customer ID<span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="E.G., CUST001, ABC123"
-                        value={formData.customerId}
-                        onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      />
-                    </div>
+                      {/* Customer */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Customer<span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Customer"
+                          value={formData.customer}
+                          onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                        />
+                      </div>
 
-                    {/* Email Address */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">
-                        Email Address<span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="email"
-                        placeholder="Email Address"
-                        value={formData.emailAddress}
-                        onChange={(e) => setFormData({ ...formData, emailAddress: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      />
-                    </div>
+                      {/* Customer ID */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Customer ID<span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="E.G., CUST001, ABC123"
+                          value={formData.customerId}
+                          onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                        />
+                      </div>
 
-                    {/* Secondary Email */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">Secondary Email</label>
-                      <input
-                        type="email"
-                        placeholder="Secondary Email"
-                        value={formData.secondaryEmail}
-                        onChange={(e) => setFormData({ ...formData, secondaryEmail: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      />
-                    </div>
+                      {/* Email Address */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Email Address<span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="email"
+                          placeholder="Email Address"
+                          value={formData.emailAddress}
+                          onChange={(e) => setFormData({ ...formData, emailAddress: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                        />
+                      </div>
 
-                    {/* Tracking Email */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">Tracking Email</label>
-                      <input
-                        type="email"
-                        placeholder="Email For Tracking Up"
-                        value={formData.trackingEmail}
-                        onChange={(e) => setFormData({ ...formData, trackingEmail: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      />
-                    </div>
+                      {/* Secondary Email */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-primary mb-1">Secondary Email</label>
+                        <input
+                          type="email"
+                          placeholder="Secondary Email"
+                          value={formData.secondaryEmail}
+                          onChange={(e) => setFormData({ ...formData, secondaryEmail: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                        />
+                      </div>
 
-                    {/* Tax ID */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">Tax ID</label>
-                      <input
-                        type="text"
-                        placeholder="Tax ID Or Business Nu"
-                        value={formData.taxId}
-                        onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      />
-                    </div>
+                      {/* Tracking Email */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-primary mb-1">Tracking Email</label>
+                        <input
+                          type="email"
+                          placeholder="Email For Tracking Up"
+                          value={formData.trackingEmail}
+                          onChange={(e) => setFormData({ ...formData, trackingEmail: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                        />
+                      </div>
 
-                    {/* Assigned Salesperson */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">Assigned Salesperson</label>
-                      <select
-                        value={formData.assignedSalesperson}
-                        onChange={(e) => setFormData({ ...formData, assignedSalesperson: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      >
-                        <option value="">Select Salesperson</option>
-                        <option value="salesperson1">Salesperson 1</option>
-                        <option value="salesperson2">Salesperson 2</option>
-                      </select>
-                    </div>
+                      {/* Tax ID */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-primary mb-1">Tax ID</label>
+                        <input
+                          type="text"
+                          placeholder="Tax ID Or Business Nu"
+                          value={formData.taxId}
+                          onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                        />
+                      </div>
 
-                    {/* Primary Phone # */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">
-                        Primary Phone #<span className="text-red-500">*</span>
-                      </label>
-                      <div className="flex items-center border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
-                        <div className="relative" ref={primaryCountryDropdownRef}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPrimaryCountryDropdownOpen(!primaryCountryDropdownOpen);
-                              if (!primaryCountryDropdownOpen) {
-                                setPrimaryCountrySearch('');
-                              }
-                            }}
-                            className="flex items-center gap-1.5 px-2 py-2 text-sm bg-card border-none outline-none cursor-pointer h-full"
-                            style={{ minWidth: '85px' }}
-                          >
-                            {countries.find(c => c.code === primaryPhoneCountry) && (
-                              <>
-                                <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === primaryPhoneCountry)?.flag}</span>
-                                <span className="text-xs text-secondary font-medium">{countries.find(c => c.code === primaryPhoneCountry)?.dialCode}</span>
-                              </>
-                            )}
-                            <ChevronDown className="w-3 h-3 text-secondary ml-auto" />
-                          </button>
-                          {primaryCountryDropdownOpen && (
-                            <div className="absolute top-full left-0 z-50 bg-card border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
-                              {/* Search Input */}
-                              <div className="p-2 border-b border-theme sticky top-0 bg-card">
-                                <input
-                                  type="text"
-                                  placeholder="Search country..."
-                                  value={primaryCountrySearch}
-                                  onChange={(e) => setPrimaryCountrySearch(e.target.value)}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                                />
-                              </div>
-                              {/* Countries List */}
-                              <div className="max-h-60 overflow-y-auto">
-                                {countries
-                                  .filter((country) => {
+                      {/* Assigned Salesperson */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-primary mb-1">Assigned Salesperson</label>
+                        <select
+                          value={formData.assignedSalesperson}
+                          onChange={(e) => setFormData({ ...formData, assignedSalesperson: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                        >
+                          <option value="">Select Salesperson</option>
+                          <option value="salesperson1">Salesperson 1</option>
+                          <option value="salesperson2">Salesperson 2</option>
+                        </select>
+                      </div>
+
+                      {/* Primary Phone # */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Primary Phone #<span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex items-center border border-theme rounded-lg focus-within:ring-2 focus-within:ring-[bg-[var(--accent-green)]/10] focus-within:border-transparent">
+                          <div className="relative" ref={primaryCountryDropdownRef}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPrimaryCountryDropdownOpen(!primaryCountryDropdownOpen);
+                                if (!primaryCountryDropdownOpen) {
+                                  setPrimaryCountrySearch('');
+                                }
+                              }}
+                              className="flex items-center gap-1.5 px-2 py-2 text-sm bg-card border-none outline-none cursor-pointer h-full"
+                              style={{ minWidth: '85px' }}
+                            >
+                              {countries.find(c => c.code === primaryPhoneCountry) && (
+                                <>
+                                  <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === primaryPhoneCountry)?.flag}</span>
+                                  <span className="text-xs text-secondary font-medium">{countries.find(c => c.code === primaryPhoneCountry)?.dialCode}</span>
+                                </>
+                              )}
+                              <ChevronDown className="w-3 h-3 text-secondary ml-auto" />
+                            </button>
+                            {primaryCountryDropdownOpen && (
+                              <div className="absolute top-full left-0 z-50 bg-card border border-theme rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                                {/* Search Input */}
+                                <div className="p-2 border-b border-theme sticky top-0 bg-card">
+                                  <input
+                                    type="text"
+                                    placeholder="Search country..."
+                                    value={primaryCountrySearch}
+                                    onChange={(e) => setPrimaryCountrySearch(e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="w-full px-3 py-1.5 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                                  />
+                                </div>
+                                {/* Countries List */}
+                                <div className="max-h-60 overflow-y-auto">
+                                  {countries
+                                    .filter((country) => {
+                                      const searchLower = primaryCountrySearch.toLowerCase();
+                                      return (
+                                        country.name.toLowerCase().includes(searchLower) ||
+                                        country.code.toLowerCase().includes(searchLower) ||
+                                        country.dialCode.includes(searchLower)
+                                      );
+                                    })
+                                    .map((country) => (
+                                      <button
+                                        key={country.code}
+                                        type="button"
+                                        onClick={() => {
+                                          setPrimaryPhoneCountry(country.code);
+                                          setPrimaryCountryDropdownOpen(false);
+                                          setPrimaryCountrySearch('');
+                                          // Don't auto-fill dial code - let user type the number without country code
+                                          // The dial code will be prepended when saving
+                                        }}
+                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-card transition-colors ${primaryPhoneCountry === country.code ? 'bg-card' : ''
+                                          }`}
+                                      >
+                                        <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
+                                        <span className="flex-1 truncate">{country.name}</span>
+                                        <span className="text-secondary font-medium">{country.dialCode}</span>
+                                      </button>
+                                    ))}
+                                  {countries.filter((country) => {
                                     const searchLower = primaryCountrySearch.toLowerCase();
                                     return (
                                       country.name.toLowerCase().includes(searchLower) ||
                                       country.code.toLowerCase().includes(searchLower) ||
                                       country.dialCode.includes(searchLower)
                                     );
-                                  })
-                                  .map((country) => (
-                                    <button
-                                      key={country.code}
-                                      type="button"
-                                      onClick={() => {
-                                        setPrimaryPhoneCountry(country.code);
-                                        setPrimaryCountryDropdownOpen(false);
-                                        setPrimaryCountrySearch('');
-                                        // Don't auto-fill dial code - let user type the number without country code
-                                        // The dial code will be prepended when saving
-                                      }}
-                                      className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
-                                        primaryPhoneCountry === country.code ? 'bg-card' : ''
-                                      }`}
-                                    >
-                                      <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
-                                      <span className="flex-1 truncate">{country.name}</span>
-                                      <span className="text-secondary font-medium">{country.dialCode}</span>
-                                    </button>
-                                  ))}
-                                {countries.filter((country) => {
-                                  const searchLower = primaryCountrySearch.toLowerCase();
-                                  return (
-                                    country.name.toLowerCase().includes(searchLower) ||
-                                    country.code.toLowerCase().includes(searchLower) ||
-                                    country.dialCode.includes(searchLower)
-                                  );
-                                }).length === 0 && (
-                                  <div className="px-3 py-4 text-xs text-secondary text-center">
-                                    No countries found
-                                  </div>
-                                )}
+                                  }).length === 0 && (
+                                      <div className="px-3 py-4 text-xs text-secondary text-center">
+                                        No countries found
+                                      </div>
+                                    )}
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                        <div className="h-6 w-px bg-gray-300"></div>
-                        <input
-                          type="tel"
-                          placeholder=""
-                          value={formData.primaryPhone}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, '');
-                            setFormData({ ...formData, primaryPhone: value });
-                          }}
-                          className="flex-1 px-3 py-2 text-sm border-none outline-none focus:outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Secondary Phone # */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">Secondary Phone #</label>
-                      <div className="flex items-center border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
-                        <div className="relative" ref={secondaryCountryDropdownRef}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSecondaryCountryDropdownOpen(!secondaryCountryDropdownOpen);
-                              if (!secondaryCountryDropdownOpen) {
-                                setSecondaryCountrySearch('');
-                              }
-                            }}
-                            className="flex items-center gap-1.5 px-2 py-2 text-sm bg-card border-none outline-none cursor-pointer h-full"
-                            style={{ minWidth: '85px' }}
-                          >
-                            {countries.find(c => c.code === secondaryPhoneCountry) && (
-                              <>
-                                <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === secondaryPhoneCountry)?.flag}</span>
-                                <span className="text-xs text-secondary font-medium">{countries.find(c => c.code === secondaryPhoneCountry)?.dialCode}</span>
-                              </>
                             )}
-                            <ChevronDown className="w-3 h-3 text-secondary ml-auto" />
-                          </button>
-                          {secondaryCountryDropdownOpen && (
-                            <div className="absolute top-full left-0 z-50 bg-card border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
-                              {/* Search Input */}
-                              <div className="p-2 border-b border-theme sticky top-0 bg-card">
-                                <input
-                                  type="text"
-                                  placeholder="Search country..."
-                                  value={secondaryCountrySearch}
-                                  onChange={(e) => setSecondaryCountrySearch(e.target.value)}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                                />
-                              </div>
-                              {/* Countries List */}
-                              <div className="max-h-60 overflow-y-auto">
-                                {countries
-                                  .filter((country) => {
+                          </div>
+                          <div className="h-6 w-px bg-gray-300"></div>
+                          <input
+                            type="tel"
+                            placeholder=""
+                            value={formData.primaryPhone}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '');
+                              setFormData({ ...formData, primaryPhone: value });
+                            }}
+                            className="flex-1 px-3 py-2 text-sm border-none outline-none focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Secondary Phone # */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-primary mb-1">Secondary Phone #</label>
+                        <div className="flex items-center border border-theme rounded-lg focus-within:ring-2 focus-within:ring-[bg-[var(--accent-green)]/10] focus-within:border-transparent">
+                          <div className="relative" ref={secondaryCountryDropdownRef}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSecondaryCountryDropdownOpen(!secondaryCountryDropdownOpen);
+                                if (!secondaryCountryDropdownOpen) {
+                                  setSecondaryCountrySearch('');
+                                }
+                              }}
+                              className="flex items-center gap-1.5 px-2 py-2 text-sm bg-card border-none outline-none cursor-pointer h-full"
+                              style={{ minWidth: '85px' }}
+                            >
+                              {countries.find(c => c.code === secondaryPhoneCountry) && (
+                                <>
+                                  <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === secondaryPhoneCountry)?.flag}</span>
+                                  <span className="text-xs text-secondary font-medium">{countries.find(c => c.code === secondaryPhoneCountry)?.dialCode}</span>
+                                </>
+                              )}
+                              <ChevronDown className="w-3 h-3 text-secondary ml-auto" />
+                            </button>
+                            {secondaryCountryDropdownOpen && (
+                              <div className="absolute top-full left-0 z-50 bg-card border border-theme rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                                {/* Search Input */}
+                                <div className="p-2 border-b border-theme sticky top-0 bg-card">
+                                  <input
+                                    type="text"
+                                    placeholder="Search country..."
+                                    value={secondaryCountrySearch}
+                                    onChange={(e) => setSecondaryCountrySearch(e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="w-full px-3 py-1.5 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                                  />
+                                </div>
+                                {/* Countries List */}
+                                <div className="max-h-60 overflow-y-auto">
+                                  {countries
+                                    .filter((country) => {
+                                      const searchLower = secondaryCountrySearch.toLowerCase();
+                                      return (
+                                        country.name.toLowerCase().includes(searchLower) ||
+                                        country.code.toLowerCase().includes(searchLower) ||
+                                        country.dialCode.includes(searchLower)
+                                      );
+                                    })
+                                    .map((country) => (
+                                      <button
+                                        key={country.code}
+                                        type="button"
+                                        onClick={() => {
+                                          setSecondaryPhoneCountry(country.code);
+                                          setSecondaryCountryDropdownOpen(false);
+                                          setSecondaryCountrySearch('');
+                                          // Don't auto-fill dial code - let user type the number without country code
+                                          // The dial code will be prepended when saving
+                                        }}
+                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-card transition-colors ${secondaryPhoneCountry === country.code ? 'bg-card' : ''
+                                          }`}
+                                      >
+                                        <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
+                                        <span className="flex-1 truncate">{country.name}</span>
+                                        <span className="text-secondary font-medium">{country.dialCode}</span>
+                                      </button>
+                                    ))}
+                                  {countries.filter((country) => {
                                     const searchLower = secondaryCountrySearch.toLowerCase();
                                     return (
                                       country.name.toLowerCase().includes(searchLower) ||
                                       country.code.toLowerCase().includes(searchLower) ||
                                       country.dialCode.includes(searchLower)
                                     );
-                                  })
-                                  .map((country) => (
-                                    <button
-                                      key={country.code}
-                                      type="button"
-                                      onClick={() => {
-                                        setSecondaryPhoneCountry(country.code);
-                                        setSecondaryCountryDropdownOpen(false);
-                                        setSecondaryCountrySearch('');
-                                        // Don't auto-fill dial code - let user type the number without country code
-                                        // The dial code will be prepended when saving
-                                      }}
-                                      className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
-                                        secondaryPhoneCountry === country.code ? 'bg-card' : ''
-                                      }`}
-                                    >
-                                      <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
-                                      <span className="flex-1 truncate">{country.name}</span>
-                                      <span className="text-secondary font-medium">{country.dialCode}</span>
-                                    </button>
-                                  ))}
-                                {countries.filter((country) => {
-                                  const searchLower = secondaryCountrySearch.toLowerCase();
-                                  return (
-                                    country.name.toLowerCase().includes(searchLower) ||
-                                    country.code.toLowerCase().includes(searchLower) ||
-                                    country.dialCode.includes(searchLower)
-                                  );
-                                }).length === 0 && (
-                                  <div className="px-3 py-4 text-xs text-secondary text-center">
-                                    No countries found
-                                  </div>
-                                )}
+                                  }).length === 0 && (
+                                      <div className="px-3 py-4 text-xs text-secondary text-center">
+                                        No countries found
+                                      </div>
+                                    )}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
+                          <div className="h-6 w-px bg-gray-300"></div>
+                          <input
+                            type="tel"
+                            placeholder=""
+                            value={formData.secondaryPhone}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '');
+                              setFormData({ ...formData, secondaryPhone: value });
+                            }}
+                            className="flex-1 px-3 py-2 text-sm border-none outline-none focus:outline-none"
+                          />
                         </div>
-                        <div className="h-6 w-px bg-gray-300"></div>
+                      </div>
+
+                      {/* Contact */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-primary mb-1">Contact</label>
                         <input
-                          type="tel"
-                          placeholder=""
-                          value={formData.secondaryPhone}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, '');
-                            setFormData({ ...formData, secondaryPhone: value });
-                          }}
-                          className="flex-1 px-3 py-2 text-sm border-none outline-none focus:outline-none"
+                          type="text"
+                          placeholder="Contact"
+                          value={formData.contact}
+                          onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
                         />
                       </div>
                     </div>
-
-                    {/* Contact */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">Contact</label>
-                      <input
-                        type="text"
-                        placeholder="Contact"
-                        value={formData.contact}
-                        onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column - Address and Additional Sections */}
-                <div className="space-y-6">
-                  {/* Address Section */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-primary mb-4">Address</h3>
-                    
-                    <div className="mb-4">
-                      <AddressSearch
-                        label="Search Address"
-                        placeholder="Search For An Address..."
-                        onAddressSelect={(addressData) => {
-                          // Find matching country by name or code
-                          let countryName = '';
-                          if (addressData.country) {
-                            const countryFromAddress = countries.find(
-                              c => c.name.toLowerCase() === addressData.country.toLowerCase() ||
-                                   c.code.toLowerCase() === addressData.country.toLowerCase()
-                            );
-                            countryName = countryFromAddress ? countryFromAddress.name : addressData.country;
-                          }
-
-                          // Populate all address fields
-                          setFormData({
-                            ...formData,
-                            address: addressData.address || '',
-                            city: addressData.city || '',
-                            zipCode: addressData.postalCode || '',
-                            stateProvince: addressData.state || '',
-                            country: countryName,
-                            searchAddress: addressData.fullAddress || ''
-                          });
-                        }}
-                        className=""
-                      />
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">
-                        Address<span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Address"
-                        value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      />
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">
-                        City<span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="City"
-                        value={formData.city}
-                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      />
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">Unit</label>
-                      <input
-                        type="text"
-                        placeholder="Unit"
-                        value={formData.unit}
-                        onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      />
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">
-                        Country<span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={(() => {
-                          // Find country by name (formData.country stores the name)
-                          const foundCountry = countries.find(c => c.name === formData.country);
-                          return foundCountry ? foundCountry.code : '';
-                        })()}
-                        onChange={(e) => {
-                          const selectedCountry = countries.find(c => c.code === e.target.value);
-                          setFormData({ 
-                            ...formData, 
-                            country: selectedCountry ? selectedCountry.name : '', 
-                            stateProvince: '' 
-                          });
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      >
-                        <option value="">Select Country</option>
-                        {countries.map((country) => (
-                          <option key={country.code} value={country.code}>
-                            {country.flag} {country.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">
-                        Province/State<span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.stateProvince}
-                        onChange={(e) => setFormData({ ...formData, stateProvince: e.target.value })}
-                        disabled={!formData.country}
-                        placeholder={formData.country ? "Enter Province/State" : "Select country first"}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                      />
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">ZIP Code</label>
-                      <input
-                        type="text"
-                        placeholder="ZIP Code"
-                        value={formData.zipCode}
-                        onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      />
-                    </div>
                   </div>
 
-                  {/* Finance Section - Only for CUSTOMER type */}
-                  {customerType === 'CUSTOMER' && (
+                  {/* Right Column - Address and Additional Sections */}
+                  <div className="space-y-6">
+                    {/* Address Section */}
                     <div>
-                      <h3 className="text-lg font-semibold text-primary mb-4">Finance</h3>
-                      
+                      <h3 className="text-lg font-semibold text-primary mb-4">Address</h3>
+
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-primary mb-1">Credit Limit</label>
-                        <input
-                          type="text"
-                          placeholder="Credit Limit"
-                          value={formData.creditLimit}
-                          onChange={(e) => setFormData({ ...formData, creditLimit: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        <AddressSearch
+                          label="Search Address"
+                          placeholder="Search For An Address..."
+                          onAddressSelect={(addressData) => {
+                            // Find matching country by name or code
+                            let countryName = '';
+                            if (addressData.country) {
+                              const countryFromAddress = countries.find(
+                                c => c.name.toLowerCase() === addressData.country.toLowerCase() ||
+                                  c.code.toLowerCase() === addressData.country.toLowerCase()
+                              );
+                              countryName = countryFromAddress ? countryFromAddress.name : addressData.country;
+                            }
+
+                            // Populate all address fields
+                            setFormData({
+                              ...formData,
+                              address: addressData.address || '',
+                              city: addressData.city || '',
+                              zipCode: addressData.postalCode || '',
+                              stateProvince: addressData.state || '',
+                              country: countryName,
+                              searchAddress: addressData.fullAddress || ''
+                            });
+                          }}
+                          className=""
                         />
                       </div>
 
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-primary mb-1">Invoice Net</label>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Address<span className="text-red-500">*</span>
+                        </label>
                         <input
                           type="text"
-                          value={formData.invoiceNet}
-                          onChange={(e) => setFormData({ ...formData, invoiceNet: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          placeholder="Address"
+                          value={formData.address}
+                          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
                         />
                       </div>
 
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-primary mb-1">Default Quick Pay Discount (%)</label>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          City<span className="text-red-500">*</span>
+                        </label>
                         <input
                           type="text"
-                          placeholder="Default Quick Pay Discount (%)"
-                          value={formData.defaultQuickPayDiscount}
-                          onChange={(e) => setFormData({ ...formData, defaultQuickPayDiscount: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          placeholder="City"
+                          value={formData.city}
+                          onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                        />
+                      </div>
+
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-primary mb-1">Unit</label>
+                        <input
+                          type="text"
+                          placeholder="Unit"
+                          value={formData.unit}
+                          onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                        />
+                      </div>
+
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Country<span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={(() => {
+                            // Find country by name (formData.country stores the name)
+                            const foundCountry = countries.find(c => c.name === formData.country);
+                            return foundCountry ? foundCountry.code : '';
+                          })()}
+                          onChange={(e) => {
+                            const selectedCountry = countries.find(c => c.code === e.target.value);
+                            setFormData({
+                              ...formData,
+                              country: selectedCountry ? selectedCountry.name : '',
+                              stateProvince: ''
+                            });
+                          }}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                        >
+                          <option value="">Select Country</option>
+                          {countries.map((country) => (
+                            <option key={country.code} value={country.code}>
+                              {country.flag} {country.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Province/State<span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.stateProvince}
+                          onChange={(e) => setFormData({ ...formData, stateProvince: e.target.value })}
+                          disabled={!formData.country}
+                          placeholder={formData.country ? "Enter Province/State" : "Select country first"}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent disabled:bg-card disabled:cursor-not-allowed"
+                        />
+                      </div>
+
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-primary mb-1">ZIP Code</label>
+                        <input
+                          type="text"
+                          placeholder="ZIP Code"
+                          value={formData.zipCode}
+                          onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
                         />
                       </div>
                     </div>
-                  )}
 
-                  {/* Additional Settings Section */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-primary mb-4">
-                      {customerType === 'CUSTOMER' ? 'Additional Settings' : 'Additional Settings'}
-                    </h3>
-                    
+                    {/* Finance Section - Only for CUSTOMER type */}
                     {customerType === 'CUSTOMER' && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-primary mb-4">Finance</h3>
+
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-primary mb-1">Credit Limit</label>
+                          <input
+                            type="text"
+                            placeholder="Credit Limit"
+                            value={formData.creditLimit}
+                            onChange={(e) => setFormData({ ...formData, creditLimit: e.target.value })}
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                          />
+                        </div>
+
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-primary mb-1">Invoice Net</label>
+                          <input
+                            type="text"
+                            value={formData.invoiceNet}
+                            onChange={(e) => setFormData({ ...formData, invoiceNet: e.target.value })}
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                          />
+                        </div>
+
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-primary mb-1">Default Quick Pay Discount (%)</label>
+                          <input
+                            type="text"
+                            placeholder="Default Quick Pay Discount (%)"
+                            value={formData.defaultQuickPayDiscount}
+                            onChange={(e) => setFormData({ ...formData, defaultQuickPayDiscount: e.target.value })}
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Additional Settings Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-primary mb-4">
+                        {customerType === 'CUSTOMER' ? 'Additional Settings' : 'Additional Settings'}
+                      </h3>
+
+                      {customerType === 'CUSTOMER' && (
+                        <div className="mb-4">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.useFactoringCompany}
+                              onChange={(e) => setFormData({ ...formData, useFactoringCompany: e.target.checked })}
+                              className="w-4 h-4 text-[bg-[var(--accent-green)]/10] border-theme rounded focus:ring-[bg-[var(--accent-green)]/10]"
+                            />
+                            <span className="text-sm text-primary">Use Factoring Company</span>
+                          </label>
+                        </div>
+                      )}
+
                       <div className="mb-4">
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={formData.useFactoringCompany}
-                            onChange={(e) => setFormData({ ...formData, useFactoringCompany: e.target.checked })}
-                            className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                            checked={formData.csaFastApproved}
+                            onChange={(e) => setFormData({ ...formData, csaFastApproved: e.target.checked })}
+                            className="w-4 h-4 text-[bg-[var(--accent-green)]/10] border-theme rounded focus:ring-[bg-[var(--accent-green)]/10]"
                           />
-                          <span className="text-sm text-primary">Use Factoring Company</span>
+                          <span className="text-sm text-primary">CSA/FAST Approved</span>
                         </label>
                       </div>
-                    )}
 
-                    <div className="mb-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.csaFastApproved}
-                          onChange={(e) => setFormData({ ...formData, csaFastApproved: e.target.checked })}
-                          className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
-                        />
-                        <span className="text-sm text-primary">CSA/FAST Approved</span>
-                      </label>
-                    </div>
+                      {customerType === 'SHIPPER AND RECEIVER' && (
+                        <>
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium text-primary mb-1">
+                              Preset Notes
+                              <HelpCircle className="w-4 h-4 inline-block ml-1 text-secondary" />
+                            </label>
+                            <textarea
+                              value={formData.presetNotes}
+                              onChange={(e) => setFormData({ ...formData, presetNotes: e.target.value })}
+                              placeholder="Enter preset notes..."
+                              rows={4}
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent resize-none"
+                            />
+                          </div>
 
-                    {customerType === 'SHIPPER AND RECEIVER' && (
-                      <>
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-primary mb-1">
-                            Preset Notes
-                            <HelpCircle className="w-4 h-4 inline-block ml-1 text-secondary" />
-                          </label>
-                          <textarea
-                            value={formData.presetNotes}
-                            onChange={(e) => setFormData({ ...formData, presetNotes: e.target.value })}
-                            placeholder="Enter preset notes..."
-                            rows={4}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent resize-none"
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium text-primary mb-1">
+                              Default Drop Type
+                              <HelpCircle className="w-4 h-4 inline-block ml-1 text-secondary" />
+                            </label>
+                            <select
+                              value={formData.defaultDropType}
+                              onChange={(e) => setFormData({ ...formData, defaultDropType: e.target.value })}
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/10] focus:border-transparent"
+                            >
+                              <option value="">Select</option>
+                              <option value="live">Live</option>
+                              <option value="drop">Drop</option>
+                              <option value="both">Both</option>
+                            </select>
+                          </div>
+                        </>
+                      )}
+
+                      <div className="mb-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.softBlock}
+                            onChange={(e) => setFormData({ ...formData, softBlock: e.target.checked })}
+                            className="w-4 h-4 text-[bg-[var(--accent-green)]/10] border-theme rounded focus:ring-[bg-[var(--accent-green)]/10]"
                           />
-                        </div>
-
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-primary mb-1">
-                            Default Drop Type
+                          <span className="text-sm text-primary">
+                            Soft Block
                             <HelpCircle className="w-4 h-4 inline-block ml-1 text-secondary" />
-                          </label>
-                          <select
-                            value={formData.defaultDropType}
-                            onChange={(e) => setFormData({ ...formData, defaultDropType: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                          >
-                            <option value="">Select</option>
-                            <option value="live">Live</option>
-                            <option value="drop">Drop</option>
-                            <option value="both">Both</option>
-                          </select>
-                        </div>
-                      </>
-                    )}
+                          </span>
+                        </label>
+                      </div>
 
-                    <div className="mb-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.softBlock}
-                          onChange={(e) => setFormData({ ...formData, softBlock: e.target.checked })}
-                          className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
-                        />
-                        <span className="text-sm text-primary">
-                          Soft Block
-                          <HelpCircle className="w-4 h-4 inline-block ml-1 text-secondary" />
-                        </span>
-                      </label>
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.hardBlock}
-                          onChange={(e) => setFormData({ ...formData, hardBlock: e.target.checked })}
-                          className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
-                        />
-                        <span className="text-sm text-primary">
-                          Hard Block
-                          <HelpCircle className="w-4 h-4 inline-block ml-1 text-secondary" />
-                        </span>
-                      </label>
+                      <div className="mb-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.hardBlock}
+                            onChange={(e) => setFormData({ ...formData, hardBlock: e.target.checked })}
+                            className="w-4 h-4 text-[bg-[var(--accent-green)]/10] border-theme rounded focus:ring-[bg-[var(--accent-green)]/10]"
+                          />
+                          <span className="text-sm text-primary">
+                            Hard Block
+                            <HelpCircle className="w-4 h-4 inline-block ml-1 text-secondary" />
+                          </span>
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-              </div>
             </div>
 
             {/* Footer with Save Button */}
-            <div className="bg-[#0ea3d8] px-6 py-4 flex justify-center">
-              <button 
+            <div className="bg-[rgba(0,209,255,0.15)] px-6 py-4 flex justify-center">
+              <button
                 onClick={handleSaveCustomer}
                 disabled={
                   !formData.customer || !formData.customer.trim() ||
@@ -1607,7 +1600,7 @@ const CustomersPage = () => {
                   !formData.emailAddress || !formData.emailAddress.trim() ||
                   !formData.primaryPhone || !formData.primaryPhone.trim()
                 }
-                className="px-8 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#1db5f5] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#42aeec]"
+                className="px-8 py-2 bg-[bg-[var(--accent-green)]/10] !text-white rounded-lg hover:bg-[var(--accent-blue)] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[bg-[var(--accent-green)]/10]"
               >
                 {editingId ? 'Update' : 'Save'}
               </button>

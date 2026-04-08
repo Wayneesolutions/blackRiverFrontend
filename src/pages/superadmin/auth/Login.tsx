@@ -175,7 +175,7 @@ export default function SuperAdminLogin() {
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className={`block w-full rounded-xl border pl-12 pr-4 py-4 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.email ? "border-red-400 bg-card" : "border-theme hover:border-gray-300 bg-card"
+                                    className={`block w-full rounded-xl border pl-12 pr-4 py-4 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.email ? "border-red-400 bg-card" : "border-theme hover:border-theme bg-card"
                                         }`}
                                     placeholder="superadmin@logistics.com"
                                 />
@@ -192,7 +192,7 @@ export default function SuperAdminLogin() {
                                     type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className={`block w-full rounded-xl border pl-12 pr-12 py-4 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.password ? "border-red-400 bg-card" : "border-theme hover:border-gray-300 bg-card"
+                                    className={`block w-full rounded-xl border pl-12 pr-12 py-4 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.password ? "border-red-400 bg-card" : "border-theme hover:border-theme bg-card"
                                         }`}
                                     placeholder="Enter your secure password"
                                 />

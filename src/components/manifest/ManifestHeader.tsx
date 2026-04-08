@@ -121,7 +121,7 @@ const ManifestHeader: React.FC<ManifestHeaderProps> = ({
     <>
       <header
         className="flex items-center justify-between px-6 py-4 shadow-sm relative z-20"
-        style={{ background: "linear-gradient(135deg, #42aeec 0%, #0ea3d8 100%)" }}
+        style={{ background: "linear-gradient(135deg, var(--accent-blue) 0%, rgba(0,209,255,0.15) 100%)" }}
       >
         <div className="flex items-center gap-4">
           <button
@@ -200,12 +200,12 @@ const ManifestHeader: React.FC<ManifestHeaderProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full pl-12 pr-12 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                  className="w-full pl-12 pr-12 py-3 text-base border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                 />
                 <button
                   type="button"
                   onClick={() => { setIsSearchOpen(false); setSearchQuery(""); setSelectedIndex(0); }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                 >
                   <X className="text-secondary" size={20} />
                 </button>
@@ -220,16 +220,16 @@ const ManifestHeader: React.FC<ManifestHeaderProps> = ({
                       key={action.id}
                       onClick={() => handleActionSelect(action)}
                       className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all border-l-2 ${
-                        index === selectedIndex ? "bg-card border-[#42aeec]" : "border-transparent hover:border-blue-300"
+                        index === selectedIndex ? "bg-card border-[var(--accent-blue)]" : "border-transparent hover:border-blue-300"
                       }`}
                     >
-                      <div className="flex-shrink-0 p-2 rounded-lg bg-[#42aeec]/10 text-[#42aeec]">{action.icon}</div>
+                      <div className="flex-shrink-0 p-2 rounded-lg bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">{action.icon}</div>
                       <div className="flex-1 text-left min-w-0">
                         <div className="font-semibold text-primary truncate">{action.title}</div>
                         <p className="text-sm text-secondary truncate">{action.description}</p>
                       </div>
                       <ArrowRight
-                        className={`flex-shrink-0 transition-all ${index === selectedIndex ? "text-[#42aeec] opacity-100" : "text-gray-300 opacity-0"}`}
+                        className={`flex-shrink-0 transition-all ${index === selectedIndex ? "text-[var(--accent-blue)] opacity-100" : "text-gray-300 opacity-0"}`}
                         size={18}
                       />
                     </button>

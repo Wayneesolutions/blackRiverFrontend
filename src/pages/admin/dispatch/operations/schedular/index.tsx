@@ -263,7 +263,7 @@ const SchedulerPage = () => {
                         ${hasTrip && !isSelected ? "bg-green-100" : ""}
                         ${isToday && !isSelected ? "bg-yellow-100 text-yellow-800" : ""}
                         ${draggedTrip ? "bg-card border-2 border-dashed border-blue-300" : ""}
-                        hover:bg-gray-100
+                        hover:bg-[rgba(255,255,255,0.03)]
                     `}
                 >
                     <div className="flex flex-col items-center">
@@ -489,7 +489,7 @@ const SchedulerPage = () => {
                     <div className="flex items-center justify-between mb-6">
                         <button
                             onClick={() => navigateMonth("prev")}
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                         >
                             <ChevronLeft className="w-5 h-5" />
                         </button>
@@ -511,7 +511,7 @@ const SchedulerPage = () => {
 
                         <button
                             onClick={() => navigateMonth("next")}
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                         >
                             <ChevronRight className="w-5 h-5" />
                         </button>
@@ -629,7 +629,7 @@ const SchedulerPage = () => {
                                         setSelectedDate(new Date(e.target.value));
                                     }
                                 }}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
 
@@ -641,7 +641,7 @@ const SchedulerPage = () => {
                                 type="time"
                                 value={selectedTime}
                                 onChange={(e) => setSelectedTime(e.target.value || DEFAULT_SCHEDULE_TIME)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
 
@@ -652,7 +652,7 @@ const SchedulerPage = () => {
                                     setSelectedTrip(null);
                                     setSelectedTime(DEFAULT_SCHEDULE_TIME);
                                 }}
-                                className="px-4 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="px-4 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-md hover:bg-[rgba(255,255,255,0.03)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 Cancel
                             </button>

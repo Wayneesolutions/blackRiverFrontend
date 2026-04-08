@@ -119,7 +119,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
         <>
             <header
                 className="flex items-center justify-between px-6 py-3 shadow-sm relative z-20 fleet-header"
-                style={{ background: "linear-gradient(135deg, #42aeec 0%, #31a2d4 100%)" }}
+                style={{ background: "linear-gradient(135deg, var(--accent-blue) 0%, #31a2d4 100%)" }}
             >
                 {/* LEFT */}
                 <div className="flex items-center gap-3">
@@ -205,9 +205,9 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                                     value={searchQuery}
                                     onChange={e => setSearchQuery(e.target.value)}
                                     onKeyDown={handleKeyDown}
-                                    className="w-full pl-12 pr-12 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                    className="w-full pl-12 pr-12 py-3 text-lg border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                                 />
-                                <button type="button" onClick={() => { setIsSearchOpen(false); setSearchQuery(""); setSelectedIndex(0); }} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full">
+                                <button type="button" onClick={() => { setIsSearchOpen(false); setSearchQuery(""); setSelectedIndex(0); }} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-[rgba(255,255,255,0.03)] rounded-full">
                                     <X className="text-secondary" size={20} />
                                 </button>
                             </div>
