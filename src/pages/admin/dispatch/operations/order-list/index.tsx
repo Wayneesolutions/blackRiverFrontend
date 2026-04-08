@@ -12,9 +12,9 @@ import { createPortal } from "react-dom";
 import { socketService } from "../../../../../services/socketService";
 
 // Color constants
-const PRIMARY_GRADIENT = 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)';
-const PRIMARY_COLOR = '#016ab2';
-const PRIMARY_LIGHT_BG = 'rgba(66, 174, 236, 0.1)';
+const PRIMARY_GRADIENT = 'linear-gradient(90deg, #0ea5c0 0%, #1e3a8a 100%)';
+const PRIMARY_COLOR = '#0ea5c0';
+const PRIMARY_LIGHT_BG = 'rgba(14, 165, 192, 0.08)';
 
 
 interface Place {
@@ -40,8 +40,8 @@ interface ToastNotification {
   driverName?: string;
 }
 
-const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick }: { 
-  notification: ToastNotification; 
+const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick }: {
+  notification: ToastNotification;
   onClose: (id: number) => void;
   onChatClick?: (orderId: string) => void;
   onDocumentClick?: (orderId: string) => void;
@@ -103,7 +103,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
                 <strong>{notification.driverName || 'Driver'}</strong> has uploaded POD and Manifest documents
               </p>
               <div className="flex items-center gap-2 mb-3">
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] text-xs font-semibold rounded-full">
                   <FaTruck className="w-3 h-3" />
                   Order #{notification.orderNumber}
                 </span>
@@ -122,7 +122,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
                 e.stopPropagation();
                 onClose(notification.id);
               }}
-              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-secondary hover:text-secondary transition-all"
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:hover:bg-[rgba(255,255,255,0.05)] flex items-center justify-center text-secondary hover:text-secondary transition-all"
             >
               <X size={18} />
             </button>
@@ -153,7 +153,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
                 <h4 className="font-bold text-primary text-base">
                   {notification.driverName || 'Driver'}
                 </h4>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] text-xs font-semibold rounded-full">
                   <FaTruck className="w-3 h-3" />
                   {notification.orderNumber}
                 </span>
@@ -175,7 +175,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
                 e.stopPropagation();
                 onClose(notification.id);
               }}
-              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-secondary hover:text-secondary transition-all"
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:hover:bg-[rgba(255,255,255,0.05)] flex items-center justify-center text-secondary hover:text-secondary transition-all"
             >
               <X size={18} />
             </button>
@@ -203,7 +203,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
   };
 
   return (
-    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in min-w-[300px] max-w-[500px]`}>
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in min-w-[300px] max-w-[500px] border-2 border-red-700`}>
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
@@ -336,7 +336,7 @@ const OrderList = () => {
       if (showChat && chatOrderId === orderId) {
         return; // Chat already open, no need to do anything
       }
-      
+
       // Open chat (URL will be updated by useEffect only if needed)
       setChatOrderId(order.id);
       setChatOrderNumber(order.orderNo);
@@ -358,7 +358,7 @@ const OrderList = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const orderIdFromQuery = searchParams.get('orderId');
-    
+
     if (orderIdFromQuery && orders.length > 0) {
       const order = orders.find(o => o.id === orderIdFromQuery);
       if (order) {
@@ -373,11 +373,11 @@ const OrderList = () => {
 
   // Update URL only when chat state changes (not on every render to prevent blinking)
   const prevChatStateRef = useRef({ showChat: false, chatOrderId: null as string | null });
-  
+
   useEffect(() => {
     const prevState = prevChatStateRef.current;
     const currentState = { showChat, chatOrderId };
-    
+
     // Only update URL if state actually changed
     if (prevState.showChat !== currentState.showChat || prevState.chatOrderId !== currentState.chatOrderId) {
       if (showChat && chatOrderId) {
@@ -385,7 +385,7 @@ const OrderList = () => {
         if (!prevState.showChat || prevState.chatOrderId !== chatOrderId) {
           const currentParams = new URLSearchParams(location.search);
           const currentOrderId = currentParams.get('orderId');
-          
+
           // Only navigate if URL doesn't already have the correct orderId
           if (currentOrderId !== chatOrderId) {
             navigate(`${location.pathname}?orderId=${encodeURIComponent(chatOrderId)}`, { replace: true });
@@ -398,7 +398,7 @@ const OrderList = () => {
           navigate(location.pathname, { replace: true });
         }
       }
-      
+
       prevChatStateRef.current = currentState;
     }
   }, [showChat, chatOrderId, navigate, location.pathname, location.search]);
@@ -420,11 +420,11 @@ const OrderList = () => {
   const ordersRef = useRef(orders);
   const showChatRef = useRef(showChat);
   const chatOrderIdRef = useRef(chatOrderId);
-  
+
   useEffect(() => {
     ordersRef.current = orders;
   }, [orders]);
-  
+
   useEffect(() => {
     showChatRef.current = showChat;
     chatOrderIdRef.current = chatOrderId;
@@ -434,12 +434,12 @@ const OrderList = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const currentUserId = localStorage.getItem('userId');
-    
+
     if (!token) {
       console.log('⚠️ No token found for socket connection');
       return;
     }
-    
+
     if (orders.length === 0) {
       console.log('⏳ Waiting for orders to load...');
       return;
@@ -452,9 +452,9 @@ const OrderList = () => {
       .connect(token)
       .then(async () => {
         if (!isMounted) return;
-        
+
         console.log('✅ Socket connected for order chat notifications');
-        
+
         // Wait for socket to be authenticated
         let retries = 0;
         while (!socketService.getIsAuthenticated() && retries < 20 && isMounted) {
@@ -474,11 +474,11 @@ const OrderList = () => {
         // Join all order chat rooms to receive messages
         const ordersToJoin = ordersRef.current;
         console.log(`🔌 Joining ${ordersToJoin.length} order chat rooms...`);
-        
+
         let joinedCount = 0;
         for (const order of ordersToJoin) {
           if (!isMounted) break;
-          
+
           try {
             await socketService.joinTripChat(order.id);
             joinedCount++;
@@ -490,10 +490,10 @@ const OrderList = () => {
           }
         }
         console.log(`✅ Successfully joined ${joinedCount}/${ordersToJoin.length} order chat rooms`);
-        
+
         messageHandler = (message: any) => {
           if (!isMounted) return;
-          
+
           console.log('📨 New message received:', {
             messageId: message._id,
             orderId: message.orderId,
@@ -502,13 +502,13 @@ const OrderList = () => {
             senderName: message.senderId?.name,
             message: message.message?.substring(0, 50)
           });
-          
+
           // Only show notification if message is NOT from current user
           const senderId = message.senderId?._id?.toString() || message.senderId?._id || message.senderId;
           const currentUserIdStr = currentUserId?.toString() || currentUserId;
-          
+
           console.log('🔍 Checking sender:', { senderId, currentUserIdStr, areEqual: senderId === currentUserIdStr });
-          
+
           if (senderId === currentUserIdStr) {
             console.log('⚠️ Message is from current user, skipping notification');
             return; // Don't show notification for own messages
@@ -522,11 +522,11 @@ const OrderList = () => {
           }
 
           console.log('🔍 Looking for order:', messageOrderId);
-          
+
           // Use ref to get latest orders
           const currentOrders = ordersRef.current;
           const order = currentOrders.find(o => o.id === messageOrderId);
-          
+
           if (!order) {
             console.log('⚠️ Order not found in current orders list:', messageOrderId, 'Total orders:', currentOrders.length);
             return;
@@ -537,7 +537,7 @@ const OrderList = () => {
           // Use refs to check current chat state
           const currentShowChat = showChatRef.current;
           const currentChatOrderId = chatOrderIdRef.current;
-          
+
           // Don't show popup if chat is already open for this order
           if (currentShowChat && currentChatOrderId === messageOrderId) {
             console.log('ℹ️ Chat already open for this order, just updating unread count');
@@ -551,13 +551,13 @@ const OrderList = () => {
 
           // Show popup notification
           const driverName = message.senderId?.name || message.senderName || 'Driver';
-          console.log('📢 Showing popup notification for:', { 
-            orderId: messageOrderId, 
-            orderNumber: order.orderNo, 
+          console.log('📢 Showing popup notification for:', {
+            orderId: messageOrderId,
+            orderNumber: order.orderNo,
             driverName,
             message: message.message?.substring(0, 50)
           });
-          
+
           addNotification('chat', message.message || 'New message', {
             orderId: messageOrderId,
             orderNumber: order.orderNo,
@@ -787,7 +787,7 @@ const OrderList = () => {
       if (response?.success && response?.data) {
         console.log('📋 Raw orders from backend:', response.data);
         console.log('📎 First order attachments:', response.data[0]?.attachments);
-        
+
         const formattedOrders = response.data.map((order: any) => ({
           id: order._id,
           orderNo: order.orderNumber || order._id,
@@ -970,9 +970,9 @@ const OrderList = () => {
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case "quoted":
-        return "bg-orange-100 text-orange-800";
+        return "bg-[var(--accent-yellow)]/10 text-[var(--accent-yellow)]";
       case "confirmed":
-        return "bg-green-100 text-green-800";
+        return "bg-[var(--accent-green)]/10 text-[var(--accent-green)]";
       case "in_progress":
       case "in-progress":
       case "in-delivery":
@@ -1096,7 +1096,7 @@ const OrderList = () => {
         <select
           value={loadBoard}
           onChange={(e) => setLoadBoard(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded text-sm bg-card font-medium text-primary"
+          className="px-4 py-2 border border-theme rounded text-sm bg-card font-medium text-primary"
         >
           <option value="LOAD BOARD">LOAD BOARD</option>
           <option value="CITY LOAD BOARD">CITY LOAD BOARD</option>
@@ -1108,7 +1108,7 @@ const OrderList = () => {
         <select
           value={dispatcher}
           onChange={(e) => setDispatcher(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded text-sm bg-card font-medium text-primary"
+          className="px-4 py-2 border border-theme rounded text-sm bg-card font-medium text-primary"
         >
           <option value="">DISPATCHER</option>
           <option value="all">All Dispatchers</option>
@@ -1117,12 +1117,14 @@ const OrderList = () => {
       </div>
 
       {/* Top Filter Bar */}
-      <div style={{ backgroundColor: PRIMARY_LIGHT_BG }} className="p-3 rounded-lg mb-4 flex flex-wrap gap-3">
+      <div
+        className="p-3 rounded-lg mb-4 flex flex-wrap gap-3 bg-card border border-theme"
+      >
 
         <select
           value={createdDate}
           onChange={(e) => setCreatedDate(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-card"
+          className="px-3 py-1.5 border border-theme rounded text-sm bg-card"
         >
           <option value="">Created Date</option>
           <option value="today">Today</option>
@@ -1132,7 +1134,7 @@ const OrderList = () => {
         <select
           value={byDays}
           onChange={(e) => setByDays(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-card"
+          className="px-3 py-1.5 border border-theme rounded text-sm bg-card"
         >
           <option value="">By Days</option>
           <option value="7">Last 7 Days</option>
@@ -1142,7 +1144,7 @@ const OrderList = () => {
         <select
           value={orderStatus}
           onChange={(e) => setOrderStatus(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-card"
+          className="px-3 py-1.5 border border-theme rounded text-sm bg-card"
         >
           <option value="">By Order Status</option>
           <option value="QUOTED">Quoted</option>
@@ -1154,7 +1156,7 @@ const OrderList = () => {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-card"
+          className="px-3 py-1.5 border border border-theme rounded text-sm bg-card"
         >
           <option value="">By Sort</option>
           <option value="date-asc">Date (Ascending)</option>
@@ -1174,10 +1176,10 @@ const OrderList = () => {
             height: 8px;
           }
           .top-scrollbar-container::-webkit-scrollbar-track {
-            background: #f7fafc;
+            background: var(--bg-card);
           }
           .top-scrollbar-container::-webkit-scrollbar-thumb {
-            background: #cbd5e0;
+            background: rgba(255,255,255,0.1);
             border-radius: 4px;
           }
           .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
@@ -1318,7 +1320,7 @@ const OrderList = () => {
                   const receiveDateTime = formatDateAndTime(order.deliveryDate || '');
 
 
-                 
+
 
                   // Get load number
                   const loadNumber = getLoadNumber(order);
@@ -1415,7 +1417,7 @@ const OrderList = () => {
                             e.stopPropagation();
                             const newStatus = e.target.value;
                             const previousStatus = order.status || 'quoted';
-                            
+
                             try {
                               const res = await updateOrder(order.id, { status: newStatus });
                               if (res?.success) {
@@ -1434,13 +1436,13 @@ const OrderList = () => {
                             }
                           }}
                           onClick={(e) => e.stopPropagation()}
-                          className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${order.status?.toLowerCase() === 'quoted' ? 'bg-orange-100 text-orange-800 ring-orange-600/20' :
+                          className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${order.status?.toLowerCase() === 'quoted' ? 'bg-[var(--accent-yellow)]/10 text-[var(--accent-yellow)]' :
                             order.status?.toLowerCase() === 'planned' ? 'bg-blue-100 text-blue-800 ring-blue-600/20' :
-                              order.status?.toLowerCase() === 'completed' ? 'bg-gray-100 text-primary ring-gray-600/20' :
-                                order.status?.toLowerCase() === 'delivered' ? 'bg-purple-100 text-purple-800 ring-purple-600/20' :
-                                  order.status?.toLowerCase() === 'in-delivery' ? 'bg-yellow-100 text-yellow-800 ring-yellow-600/20' :
+                              order.status?.toLowerCase() === 'completed' ? 'bg-card text-primary ring-gray-600/20' :
+                                order.status?.toLowerCase() === 'delivered' ? 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)]' :
+                                  order.status?.toLowerCase() === 'in-delivery' ? 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]' :
                                     order.status?.toLowerCase() === 'pending_review' || order.status?.toLowerCase() === 'verification_pending' ? 'bg-amber-100 text-amber-800 ring-amber-600/20' :
-                                      order.status?.toLowerCase() === 'canceled' ? 'bg-red-100 text-red-800 ring-red-600/20' :
+                                      order.status?.toLowerCase() === 'canceled' ? 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)]' :
                                         'bg-gray-100 text-primary ring-gray-500/10'
                             }`}
                         >
@@ -1474,9 +1476,9 @@ const OrderList = () => {
                             }
                           }}
                           onClick={(e) => e.stopPropagation()}
-                          className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${(order.accountingStatus || 'pending') === 'paid' ? 'bg-green-100 text-green-800 ring-green-600/20' :
-                              (order.accountingStatus || 'pending') === 'unpaid' ? 'bg-red-100 text-red-800 ring-red-600/20' :
-                                'bg-yellow-100 text-yellow-800 ring-yellow-600/20'
+                          className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${(order.accountingStatus || 'pending') === 'paid' ? 'bg-[var(--accent-green)]/10 text-[var(--accent-green)] ring-green-600/20' :
+                            (order.accountingStatus || 'pending') === 'unpaid' ? 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)]' :
+                              'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)]'
                             }`}
                         >
                           <option value="pending">Pending</option>
@@ -1548,9 +1550,9 @@ const OrderList = () => {
                         {(() => {
                           // Get actual attachment count from order
                           const attachmentCount = order.attachments?.length || 0;
-                          
+
                           console.log(`📎 Order ${order.orderNo} - Attachments:`, order.attachments, 'Count:', attachmentCount);
-                          
+
                           return (
                             <button
                               onClick={async (e) => {
@@ -1573,7 +1575,7 @@ const OrderList = () => {
                                   addNotification('error', 'Error loading documents');
                                 }
                               }}
-                              className="flex items-center justify-center gap-2 px-3 py-2 bg-card hover:bg-blue-50 border border-gray-300 rounded transition-colors cursor-pointer"
+                              className="flex items-center justify-center gap-2 px-3 py-2 bg-card hover:bg-blue-50 border border-theme rounded transition-colors cursor-pointer"
                               title={`Click to view ${attachmentCount} document${attachmentCount !== 1 ? 's' : ''}`}
                             >
                               <File className={attachmentCount > 0 ? "text-[#00D1FF]" : "text-secondary"} size={16} />
@@ -1601,7 +1603,7 @@ const OrderList = () => {
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.03)]"
+              className="px-3 py-1 border border-theme rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.03)]"
             >
               Previous
             </button>
@@ -1609,7 +1611,7 @@ const OrderList = () => {
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.03)]"
+              className="px-3 py-1 border border-theme rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.03)]"
             >
               Next
             </button>
@@ -1619,7 +1621,7 @@ const OrderList = () => {
                 setItemsPerPage(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="px-2 py-1 border border-gray-300 rounded text-sm"
+              className="px-2 py-1 border border-theme rounded text-sm"
             >
               <option value={10}>10</option>
               <option value={25}>25</option>
@@ -1656,29 +1658,29 @@ const OrderList = () => {
                 {(() => {
                   const orderData = selectedOrderForDocuments as any;
                   const attachments = orderData?.attachments || [];
-                  
+
                   console.log('📋 Modal - Order Data:', orderData);
                   console.log('📎 Modal - Attachments:', attachments);
                   console.log('📎 Modal - Attachments length:', attachments.length);
-                  
+
                   // Check for POD
-                  const hasPOD = attachments.some((att: any) => 
-                    att.type === 'pod' || 
+                  const hasPOD = attachments.some((att: any) =>
+                    att.type === 'pod' ||
                     att.type === 'proof_of_delivery' ||
                     att.name?.toLowerCase().includes('pod')
                   );
-                  
+
                   // Check for Manifest
-                  const hasManifest = attachments.some((att: any) => 
-                    att.type === 'border_manifest' || 
+                  const hasManifest = attachments.some((att: any) =>
+                    att.type === 'border_manifest' ||
                     att.type === 'manifest' ||
                     att.type === 'stamped_manifest' ||
                     att.name?.toLowerCase().includes('manifest')
                   );
-                  
+
                   console.log('✅ Has POD:', hasPOD);
                   console.log('✅ Has Manifest:', hasManifest);
-                  
+
                   return (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
@@ -1712,10 +1714,10 @@ const OrderList = () => {
                 {(() => {
                   const orderData = selectedOrderForDocuments as any;
                   const attachments = orderData?.attachments || [];
-                  
+
                   console.log('📄 Uploaded Documents Section - Attachments:', attachments);
                   console.log('📄 Uploaded Documents Section - Count:', attachments.length);
-                  
+
                   if (attachments.length > 0) {
                     console.log('✅ Showing attachments list');
                     return (
@@ -1725,10 +1727,10 @@ const OrderList = () => {
                           const docType = attachment.type || 'other';
                           const docName = attachment.name || 'Document';
                           const docUrl = attachment.url;
-                          
+
                           let displayName = docName;
                           let typeLabel = docType.toUpperCase();
-                          
+
                           if (docType === 'pod' || docType === 'proof_of_delivery') {
                             displayName = 'Proof of Delivery (POD)';
                             typeLabel = 'POD';
@@ -1736,7 +1738,7 @@ const OrderList = () => {
                             displayName = 'Border Manifest';
                             typeLabel = 'Manifest';
                           }
-                          
+
                           return (
                             <div key={attachment.id || index} className="p-3 bg-card border border-theme rounded-lg">
                               <div className="flex items-start justify-between gap-3">
@@ -1793,7 +1795,7 @@ const OrderList = () => {
                 const isNotCompleted = orderData?.status !== 'completed';
                 const isNotApproved = !orderData?.documentsApproved;
                 const shouldShow = isNotCompleted && isNotApproved;
-                
+
                 if (!shouldShow) {
                   // Show approval status if approved
                   if (orderData?.documentsApproved) {
@@ -1818,10 +1820,10 @@ const OrderList = () => {
                   }
                   return null;
                 }
-                
+
                 const attachments = orderData?.attachments || [];
                 const hasDocuments = attachments.length > 0;
-                
+
                 return (
                   <div className="mt-4 p-4 bg-card border border-yellow-200 rounded-lg">
                     <div className="text-sm font-semibold text-primary mb-3">Document Approval</div>
@@ -1848,11 +1850,10 @@ const OrderList = () => {
                         }
                       }}
                       disabled={!hasDocuments}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
-                        hasDocuments
-                          ? 'bg-green-600 !text-white hover:bg-green-700 hover:shadow-md cursor-pointer'
-                          : 'bg-gray-300 text-secondary cursor-not-allowed'
-                      }`}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${hasDocuments
+                        ? 'bg-green-600 !text-white hover:bg-green-700 hover:shadow-md cursor-pointer'
+                        : 'bg-gray-300 text-secondary cursor-not-allowed'
+                        }`}
                       title={!hasDocuments ? 'No documents to approve' : 'Approve Documents'}
                     >
                       Approve Documents
