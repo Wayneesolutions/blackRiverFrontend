@@ -80,9 +80,9 @@ const DriversOnLeavePage = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
            
-                <h1 className="text-xl font-bold text-black">Drivers on Leave</h1>
+                <h1 className="text-xl font-bold text-[var(--accent-navyblue)]">Drivers on Leave</h1>
               </div>
-              <div className="text-black/90 text-sm">
+              <div className="text-[var(--accent-navyblue)] text-sm">
                 Total: {drivers.length} drivers
               </div>
             </div>
@@ -110,25 +110,25 @@ const DriversOnLeavePage = () => {
               <table className="w-full">
                 <thead className="bg-card border-b border-theme">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Driver Name
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Employee Code
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Contact
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Leave Period
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Days Remaining
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Notes
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Status
                     </th>
                   </tr>
@@ -138,7 +138,7 @@ const DriversOnLeavePage = () => {
                     <tr>
                       <td colSpan={7} className="px-6 py-8 text-center">
                         <div className="flex items-center justify-center">
-                          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                          <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-navyblue)]" />
                           <span className="ml-2 text-secondary">Loading drivers on leave...</span>
                         </div>
                       </td>
@@ -155,7 +155,7 @@ const DriversOnLeavePage = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                              <User className="w-5 h-5 text-indigo-600" />
+                              <User className="w-5 h-5 text-[var(--accent-navyblue)]" />
                             </div>
                             <div className="ml-4">
                               <div className="text-sm font-medium text-primary">{driver.name}</div>
@@ -206,7 +206,7 @@ const DriversOnLeavePage = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-[var(--accent-navyblue)]">
                             {driver.status}
                           </span>
                         </td>

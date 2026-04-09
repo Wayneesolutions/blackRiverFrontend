@@ -166,7 +166,7 @@ const RevenuePerMilePage = () => {
                   <p className="text-2xl font-bold text-primary">${totalRevenue.toLocaleString()}</p>
                 </div>
                 <div className="bg-card rounded-lg p-3">
-                  <TrendingUp className="w-6 h-6 text-[#00D1FF]" />
+                  <TrendingUp className="w-6 h-6 text-[var(--accent-navyblue)]" />
                 </div>
               </div>
             </div>
@@ -371,19 +371,19 @@ const RevenuePerMilePage = () => {
               <table className="w-full">
                 <thead className="bg-card border-b border-theme">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Truck ID
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Plate Number
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Revenue Per Mile
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Total Miles
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Total Revenue
                     </th>
                   </tr>

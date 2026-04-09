@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Loader2, Calendar, TrendingUp, MapPin, Truck, User } from "lucide-react";
+import { Loader2, Calendar, TrendingUp, MapPin, Truck, User, Package, Route, Users } from "lucide-react";
 import { getGpsVehicleDashboardStats, getTodayDeliveries, getTomorrowPickups } from "../../../axios/api/distapcher";
 import { listFleetUnits } from "../../../axios/api/fleet.units";
 
@@ -104,8 +104,7 @@ interface Pickup {
 
 const Dashboard = () => {
 
-
-  const [, setDashboardData] = useState<any>(null);
+  const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [, setFleetUnits] = useState<FleetUnit[]>([]);
   const [, setFleetLoading] = useState(false);
@@ -231,6 +230,77 @@ const Dashboard = () => {
     );
   };
 
+  const getSafePercentage = (value: number) => {
+    if (!value || isNaN(value)) return 0;
+    return Math.max(8, Math.min(92, value));
+  };
+
+  const getGradient = (type: string) => {
+    switch (type) {
+      case "blue": return "linear-gradient(90deg, #00D1FF, #0066FF)";
+      case "green": return "linear-gradient(90deg, #00FFA3, #00C853)";
+      case "purple": return "linear-gradient(90deg, #A855F7, #6D28D9)";
+      case "orange": return "linear-gradient(90deg, #F59E0B, #F97316)";
+      default: return "linear-gradient(90deg, #00D1FF, #0066FF)";
+    }
+  };
+
+  const totalTrucks = dashboardData?.totalVehicles ?? dashboardData?.trucks?.total ?? 0;
+  const activeTrucks = dashboardData?.activeVehicles ?? dashboardData?.trucks?.active ?? 0;
+  const totalTrailers = dashboardData?.totalTrailers ?? dashboardData?.trailers?.total ?? 0;
+  const activeTrailers = dashboardData?.activeTrailers ?? dashboardData?.trailers?.active ?? 0;
+  const totalDrivers = dashboardData?.totalDrivers ?? dashboardData?.drivers?.total ?? 0;
+  const activeDrivers = dashboardData?.activeDrivers ?? dashboardData?.drivers?.active ?? 0;
+  const totalTrips = dashboardData?.totalTrips ?? dashboardData?.trips?.total ?? 0;
+  const inProgressTrips = dashboardData?.inProgressTrips ?? dashboardData?.trips?.inProgress ?? 0;
+
+  const statCards = [
+    {
+      id: "trucks",
+      title: "Total Trucks",
+      value: totalTrucks,
+      subtitle: `Active: ${activeTrucks}`,
+      icon: Truck,
+      iconColor: "text-[#00D1FF]",
+      accentColor: "bg-blue-600",
+      gradient: "blue",
+      percentage: totalTrucks ? Math.min(100, (activeTrucks / totalTrucks) * 100) : 0,
+    },
+    {
+      id: "trailers",
+      title: "Total Trailers",
+      value: totalTrailers,
+      subtitle: `Active: ${activeTrailers}`,
+      icon: Package,
+      iconColor: "text-purple-400",
+      accentColor: "bg-purple-600",
+      gradient: "purple",
+      percentage: totalTrailers ? Math.min(100, (activeTrailers / totalTrailers) * 100) : 0,
+    },
+    {
+      id: "drivers",
+      title: "Total Drivers",
+      value: totalDrivers,
+      subtitle: `Active: ${activeDrivers}`,
+      icon: Users,
+      iconColor: "text-[#00FFA3]",
+      accentColor: "bg-green-600",
+      gradient: "green",
+      percentage: totalDrivers ? Math.min(100, (activeDrivers / totalDrivers) * 100) : 0,
+    },
+    {
+      id: "trips",
+      title: "Active Trips",
+      value: totalTrips,
+      subtitle: `In Progress: ${inProgressTrips}`,
+      icon: Route,
+      iconColor: "text-[#F59E0B]",
+      accentColor: "bg-orange-600",
+      gradient: "orange",
+      percentage: totalTrips ? Math.min(100, (inProgressTrips / totalTrips) * 100) : 0,
+    },
+  ];
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" >
@@ -246,13 +316,6 @@ const Dashboard = () => {
     <>
       <div className="min-h-screen" >
         <div className="relative w-full mx-auto p-2">
-          {/* Gradient band */}
-          <div
-            className="absolute inset-x-0 top-0"
-
-            aria-hidden="true"
-          />
-
           {/* Main content */}
           <div className="relative z-10 px-4 pt-3 pb-6">
             {/* Header Section */}
@@ -265,8 +328,52 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Pickups Today and Deliveries Today Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 -mt-2 mb-3">
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 -mt-2 mb-4">
+              {statCards.map((card) => {
+                const Icon = card.icon;
+                return (
+                  <div
+                    key={card.id}
+                    className="relative overflow-hidden rounded-xl p-4
+                      bg-gradient-to-br from-[#0B1A2A] to-[#0F2A44]
+                      border border-white/10
+                      hover:scale-[1.03] transition-all duration-300
+                      shadow-md hover:shadow-[0_0_12px_rgba(0,209,255,0.15)]"
+                  >
+                    <div className="absolute inset-0 opacity-0 hover:opacity-100 transition duration-500">
+                      <div className={`absolute inset-0 blur-2xl opacity-10 ${card.accentColor}`} />
+                    </div>
+                    <div className="flex items-start justify-between mb-3 relative z-10">
+                      <div>
+                        <h3 className="text-sm text-white/70">{card.title}</h3>
+                        <div className="text-2xl font-bold text-white">{card.value}</div>
+                        <p className="text-xs text-white/60">{card.subtitle}</p>
+                      </div>
+                      <div className="relative">
+                        <div className={`absolute inset-0 blur-lg opacity-25 ${card.accentColor}`} />
+                        <div className="relative bg-white/5 p-2 rounded-lg">
+                          <Icon className={card.iconColor} size={22} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden relative">
+                      <div
+                        className="absolute inset-0 blur-md opacity-30"
+                        style={{ width: `${getSafePercentage(card.percentage)}%`, background: getGradient(card.gradient) }}
+                      />
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${getSafePercentage(card.percentage)}%`, background: getGradient(card.gradient) }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Deliveries Today and Pickups Today summary cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
               {/* Deliveries Today */}
               <div
                 onClick={scrollToDeliveries}
@@ -293,7 +400,7 @@ const Dashboard = () => {
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <h3 className="text-sm font-bold text-primary mb-1">Pickups Today</h3>
+                    <h3 className="text-sm font-bold text-primary mb-1">Pickups Tomorrow</h3>
                     <div className="flex items-baseline gap-2 mb-0.5">
                       <span className="text-xl font-bold text-primary">{pickupsTomorrow.length}</span>
                     </div>

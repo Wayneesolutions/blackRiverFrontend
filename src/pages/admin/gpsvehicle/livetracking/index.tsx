@@ -349,7 +349,7 @@ const ProfessionalFleetTracker: React.FC = () => {
 
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-main">
       {/* Left Sidebar */}
       <div
         className={`bg-card shadow-xl transition-all duration-300 ease-in-out ${isSidebarOpen ? "w-96" : "w-0"
@@ -357,27 +357,27 @@ const ProfessionalFleetTracker: React.FC = () => {
       >
         <div className="h-full flex flex-col">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+          <div className="bg-gradient-to-r from-[rgba(0,209,255,0.2)] via-[rgba(0,209,255,0.15)] to-[rgba(168,85,247,0.2)] p-4 border border-theme rounded-lg">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Activity className="w-6 h-6" />
+              <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
+                <Activity className="w-5 h-5 text-accent" />
                 Fleet Tracker
               </h2>
               <button
                 onClick={() => setIsSidebarOpen(false)}
-                className="p-1 hover:bg-card/20 rounded-lg transition-colors"
+                className="p-1 hover:bg-[rgba(255,255,255,0.08)] rounded-lg transition-colors"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-5 h-5 text-secondary hover:text-primary" />
               </button>
             </div>
 
             {/* Search Bar */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-secondary" />
               <input
                 type="text"
                 placeholder="Search by plate number..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-card/90 text-primary placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
+                className="w-full pl-10 pr-4 py-1.5 text-sm rounded-lg bg-card text-primary placeholder:text-secondary border border-theme focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -385,7 +385,7 @@ const ProfessionalFleetTracker: React.FC = () => {
           </div>
 
           {/* Vehicle List */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-3 bg-main">
             {filteredVehicles.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-secondary">No vehicles found</p>
@@ -395,8 +395,8 @@ const ProfessionalFleetTracker: React.FC = () => {
                 {filteredVehicles.map((v) => (
                   <div
                     key={v._id}
-                    className={`p-4 rounded-xl cursor-pointer transition-all duration-200 border-2 relative group ${selectedVehicle?._id === v._id
-                        ? "bg-card border-blue-400 shadow-md"
+                    className={`p-3 rounded-xl cursor-pointer transition-all duration-200 border-2 relative group ${selectedVehicle?._id === v._id
+                        ? "bg-main border-[var(--accent-blue)] shadow-md"
                         : "bg-card border-theme hover:border-blue-300 hover:shadow-sm"
                       }`}
                   >
@@ -406,7 +406,7 @@ const ProfessionalFleetTracker: React.FC = () => {
                         e.stopPropagation();
                         openVehicleInNewTab(v);
                       }}
-                      className="absolute top-2 right-2 p-2 bg-card rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-50 z-10"
+                      className="absolute top-2 right-2 p-2 bg-card rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[rgba(0,209,255,0.1)] z-10"
                       title="Open in new tab"
                     >
                       <ExternalLink className="w-4 h-4 text-[#00D1FF]" />
@@ -415,11 +415,11 @@ const ProfessionalFleetTracker: React.FC = () => {
                     <div onClick={() => handleVehicleClick(v)}>
                       {/* Plate Number & Status */}
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-bold text-lg text-primary">
+                        <h3 className="font-bold text-base text-primary">
                           {v.plateNumber}
                         </h3>
                         <span
-                          className="px-3 py-1 rounded-full text-xs font-semibold"
+                          className="px-2 py-0.5 rounded-full text-xs font-semibold"
                           style={{
                             backgroundColor: statusBgColors[v.status],
                             color: statusColors[v.status],
@@ -430,24 +430,24 @@ const ProfessionalFleetTracker: React.FC = () => {
                       </div>
 
                       {/* Vehicle Details */}
-                      <div className="space-y-2 text-sm">
+                      <div className="space-y-2 text-xs">
                         <div className="flex items-center gap-2 text-secondary">
-                          <User className="w-4 h-4" />
+                          <User className="w-3 h-3" />
                           <span>
                             {v?.driver ? v?.driver?.name : "No driver assigned"}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-secondary">
-                          <MapPin className="w-4 h-4" />
-                          <span className="truncate">{v.currentLocation?.address}</span>
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate">{v.currentLocation?.address || 'Location unavailable'}</span>
                         </div>
                         <div className="flex items-center justify-between text-secondary mt-2 pt-2 border-t border-theme">
                           <span className="flex items-center gap-1">
-                            <Gauge className="w-4 h-4" />
+                            <Gauge className="w-3 h-3" />
                             {v.speed} km/h
                           </span>
                           <span className="flex items-center gap-1">
-                            <Fuel className="w-4 h-4" />
+                            <Fuel className="w-3 h-3" />
                             {v.fuelLevel}%
                           </span>
                         </div>
@@ -465,7 +465,7 @@ const ProfessionalFleetTracker: React.FC = () => {
       {!isSidebarOpen && (
         <button
           onClick={() => setIsSidebarOpen(true)}
-          className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white p-3 rounded-r-lg shadow-lg hover:bg-blue-700 transition-colors z-10"
+          className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-[rgba(0,209,255,0.15)] text-white p-2 rounded-r-lg shadow-lg hover:bg-[rgba(0,209,255,0.25)] transition-colors z-10"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
@@ -517,7 +517,7 @@ const ProfessionalFleetTracker: React.FC = () => {
 
         {/* Advanced Info Panel */}
         {selectedVehicle && isInfoPanelOpen && (
-          <div className="absolute top-6 right-6 bg-card rounded-2xl shadow-2xl w-96 overflow-hidden border border-theme">
+          <div className="absolute top-4 right-4 bg-card rounded-xl shadow-2xl w-80 overflow-hidden border border-theme z-[1000]">
             {/* Header */}
             <div
               className="p-4 text-white"
@@ -567,7 +567,7 @@ const ProfessionalFleetTracker: React.FC = () => {
 
               {/* Metrics Grid */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-card rounded-lg">
+                <div className="p-3 bg-card rounded-lg border border-theme">
                   <div className="flex items-center gap-2 text-[#00D1FF] mb-1">
                     <Gauge className="w-4 h-4" />
                     <span className="text-xs font-medium">Speed</span>
@@ -577,8 +577,8 @@ const ProfessionalFleetTracker: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center gap-2 text-green-600 mb-1">
+                <div className="p-3 bg-card rounded-lg border border-theme">
+                  <div className="flex items-center gap-2 text-[#00FFA3] mb-1">
                     <Fuel className="w-4 h-4" />
                     <span className="text-xs font-medium">Fuel</span>
                   </div>
@@ -632,11 +632,34 @@ const ProfessionalFleetTracker: React.FC = () => {
           </div>
         )}
 
+        {/* Status Legend */}
+        <div className="absolute bottom-4 left-4 bg-card p-2 rounded-lg shadow-lg text-xs z-[1000]">
+          <div className="font-semibold mb-2 text-primary">Vehicle Status:</div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-primary">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#10b981' }}></div>
+              <span>Moving</span>
+            </div>
+            <div className="flex items-center gap-2 text-primary">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
+              <span>Idle</span>
+            </div>
+            <div className="flex items-center gap-2 text-primary">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
+              <span>Stopped</span>
+            </div>
+            <div className="flex items-center gap-2 text-primary">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#6b7280' }}></div>
+              <span>Maintenance</span>
+            </div>
+          </div>
+        </div>
+
         {/* Reopen Info Panel Button */}
         {selectedVehicle && !isInfoPanelOpen && (
           <button
             onClick={() => setIsInfoPanelOpen(true)}
-            className="absolute top-6 right-6 bg-card p-3 rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-theme"
+            className="absolute top-4 right-4 bg-card p-2 rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-theme z-[1000]"
             title="Show vehicle info"
           >
             <Activity className="w-5 h-5 text-[#00D1FF]" />
