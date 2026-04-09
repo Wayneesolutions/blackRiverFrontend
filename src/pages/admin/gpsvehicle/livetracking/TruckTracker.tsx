@@ -395,7 +395,7 @@ const ProfessionalTruckTracker: React.FC = () => {
             {sidebarCollapsed && (
                 <button
                     onClick={() => setSidebarCollapsed(false)}
-                    className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white p-2 rounded-r-lg shadow-lg hover:bg-blue-700 transition-colors z-10"
+                    className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-[rgba(0,209,255,0.15)] text-white p-2 rounded-r-lg shadow-lg hover:bg-[rgba(0,209,255,0.25)] transition-colors z-10"
                 >
                     <ChevronRight className="w-5 h-5" />
                 </button>

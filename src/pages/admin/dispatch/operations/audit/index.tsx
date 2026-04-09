@@ -128,7 +128,7 @@ const AuditTrail = () => {
       case "Created":
         return <FaPlus className="text-green-600" />;
       case "Updated":
-        return <FaEdit className="text-[#00D1FF]" />;
+        return <FaEdit className="text-[var(--accent-navyblue)]" />;
       case "Deleted":
         return <FaTrash className="text-[#A855F7]" />;
       case "Assigned":
@@ -143,7 +143,7 @@ const AuditTrail = () => {
   const getEntityIcon = (entityType: string) => {
     switch (entityType) {
       case "Order":
-        return <FaFileAlt className="text-blue-500" />;
+        return <FaFileAlt className="text-[var(--accent-navyblue)]" />;
       case "Trip":
         return <FaRoute className="text-green-500" />;
       case "Driver":
@@ -299,7 +299,7 @@ const AuditTrail = () => {
         <div className="space-y-4">
           {loading ? (
             <div className="bg-card rounded-lg shadow-sm p-12 text-center">
-              <Loader2 className="mx-auto w-8 h-8 animate-spin text-blue-500 mb-4" />
+              <Loader2 className="mx-auto w-8 h-8 animate-spin text-[var(--accent-navyblue)] mb-4" />
               <h3 className="text-lg font-semibold text-primary mb-2">Loading audit trail...</h3>
               <p className="text-secondary">Please wait while we fetch the audit trail entries.</p>
             </div>
@@ -349,7 +349,7 @@ const AuditTrail = () => {
 
                     <div className="mb-3">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-[var(--accent-blue)]/10 text-blue-800">
+                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-[var(--accent-blue)]/10 text-[var(--accent-navyblue)]">
                           {entry.action}
                         </span>
                         <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-card border border-theme text-primary">

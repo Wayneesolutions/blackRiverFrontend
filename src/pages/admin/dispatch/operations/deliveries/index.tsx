@@ -145,9 +145,9 @@ const DeliveriesPage = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 
-                <h1 className="text-xl font-bold text-black">Deliveries</h1>
+                <h1 className="text-xl font-bold text-[var(--accent-navyblue)]">Deliveries</h1>
               </div>
-              <div className="text-black/90 text-sm">
+              <div className="text-[var(--accent-navyblue)] text-sm">
                 Total: {deliveries.length} deliveries
               </div>
             </div>
@@ -190,28 +190,28 @@ const DeliveriesPage = () => {
               <table className="w-full">
                 <thead className="bg-card border-b border-theme">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Order Number
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Customer
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Delivery Location
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Delivery Date & Time
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Driver
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Truck
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Items
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Status
                     </th>
                   </tr>
@@ -221,7 +221,7 @@ const DeliveriesPage = () => {
                     <tr>
                       <td colSpan={8} className="px-6 py-8 text-center">
                         <div className="flex items-center justify-center">
-                          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                          <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-navyblue)]" />
                           <span className="ml-2 text-secondary">Loading deliveries...</span>
                         </div>
                       </td>
@@ -241,7 +241,7 @@ const DeliveriesPage = () => {
                             <div className="text-xs text-secondary">Cust: {delivery.customerOrderNo}</div>
                           )}
                           {delivery.tripNo && (
-                            <div className="text-xs text-[#00D1FF]">Trip: {delivery.tripNo}</div>
+                            <div className="text-xs text-[var(--accent-navyblue)]">Trip: {delivery.tripNo}</div>
                           )}
                         </td>
                         <td className="px-6 py-4">

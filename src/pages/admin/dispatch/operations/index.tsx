@@ -854,12 +854,12 @@ const Index = () => {
           bg-gradient-to-br from-[#0B1A2A] to-[#0F2A44]
           border border-white/10
           hover:scale-[1.03] transition-all duration-300
-          shadow-lg hover:shadow-[0_0_20px_rgba(0,209,255,0.3)]
+          shadow-md hover:shadow-[0_0_12px_rgba(0,209,255,0.15)]
         "
                   >
                     {/* Glow */}
                     <div className="absolute inset-0 opacity-0 hover:opacity-100 transition duration-500">
-                      <div className={`absolute inset-0 blur-2xl opacity-20 ${feature.accentColor}`} />
+                      <div className={`absolute inset-0 blur-2xl opacity-10 ${feature.accentColor}`} />
                     </div>
 
                     <div className="flex items-start justify-between mb-3 relative z-10">
@@ -870,7 +870,7 @@ const Index = () => {
                       </div>
 
                       <div className="relative">
-                        <div className={`absolute inset-0 blur-lg opacity-50 ${feature.accentColor}`} />
+                        <div className={`absolute inset-0 blur-lg opacity-25 ${feature.accentColor}`} />
                         <div className="relative bg-white/5 p-2 rounded-lg">
                           <Icon className={feature.iconColor} size={22} />
                         </div>
@@ -987,12 +987,12 @@ const Index = () => {
           bg-gradient-to-br from-[#0B1A2A] to-[#0F2A44]
           border border-white/10
           hover:scale-[1.03] transition-all duration-300
-          shadow-lg hover:shadow-[0_0_20px_rgba(0,209,255,0.25)]
+          shadow-md hover:shadow-[0_0_12px_rgba(0,209,255,0.12)]
         "
                   >
                     {/* Glow Background */}
                     <div className="absolute inset-0 opacity-0 hover:opacity-100 transition duration-500">
-                      <div className="absolute inset-0 blur-2xl opacity-20" style={{ background: gradient }} />
+                      <div className="absolute inset-0 blur-2xl opacity-10" style={{ background: gradient }} />
                     </div>
 
                     {/* Content */}
@@ -1006,7 +1006,7 @@ const Index = () => {
                       {/* Icon Glow */}
                       <div className="relative">
                         <div
-                          className="absolute inset-0 blur-lg opacity-50 rounded-full"
+                          className="absolute inset-0 blur-lg opacity-25 rounded-full"
                           style={{ background: gradient }}
                         />
                         <div className="relative bg-white/5 p-2 rounded-lg">
@@ -1110,7 +1110,7 @@ const Index = () => {
                   maxHeight: '20px',
                   marginBottom: '2px',
                   scrollbarWidth: 'thin',
-                  scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                  scrollbarColor: '#224c75 #111c24' /* Firefox */
                 }}
               >
                 <div className="top-scroll-content" style={{ height: '1px' }}></div>
@@ -1192,32 +1192,57 @@ const Index = () => {
                             <div className="text-sm text-primary">{order.orderDate}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <select
-                              value={order.paymentStatus || 'PENDING'}
-                              onChange={async (e) => {
-                                const newPaymentStatus = e.target.value;
-                                try {
-                                  const res = await updateOrder(order.id, { paymentStatus: newPaymentStatus });
-                                  if (res?.success) {
-                                    fetchOrders(); // Refresh orders to show updated status
-                                  } else {
-                                    console.error('Failed to update payment status');
+                            <div className="relative">
+                              <select
+                                value={order.paymentStatus || 'PENDING'}
+                                onChange={async (e) => {
+                                  const newPaymentStatus = e.target.value;
+                                  try {
+                                    const res = await updateOrder(order.id, { paymentStatus: newPaymentStatus });
+                                    if (res?.success) {
+                                      fetchOrders();
+                                    }
+                                  } catch (err) {
+                                    console.error('Error updating payment status:', err);
                                   }
-                                } catch (err) {
-                                  console.error('Error updating payment status:', err);
-                                }
-                              }}
-                              onClick={(e) => e.stopPropagation()} // Prevent row click from opening sidebar
-                              className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 ${order.paymentStatus === 'PAID' ? 'bg-[var(--accent-green)]/10 text-[var(--accent-green)] ring-[var(--accent-green)]/20' :
-                                order.paymentStatus === 'PENDING' ? 'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] ring-[var(--accent-orange)]/20' :
-                                  order.paymentStatus === 'OVERDUE' ? 'bg-red-500/10 text-red-400 ring-red-500/20' :
-                                    'bg-white/5 text-secondary ring-white/10'
-                                }`}
-                            >
-                              <option value="PENDING">Pending</option>
-                              <option value="PAID">Paid</option>
-                              <option value="OVERDUE">Overdue</option>
-                            </select>
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                  backgroundColor: "#0F1F2E",
+                                  color: "#fff"
+                                }}
+                                className={`
+        text-xs font-medium rounded-full px-3 py-1.5 pr-8
+        border appearance-none cursor-pointer outline-none
+        bg-[#0F1F2E] border-white/10
+        focus:ring-2 focus:ring-[#00D1FF]
+
+        ${order.paymentStatus === 'PAID'
+                                    ? 'text-green-400 border-green-400/30'
+                                    : order.paymentStatus === 'PENDING'
+                                      ? 'text-orange-400 border-orange-400/30'
+                                      : order.paymentStatus === 'OVERDUE'
+                                        ? 'text-red-400 border-red-400/30'
+                                        : 'text-white/80 border-white/10'
+                                  }
+      `}
+                              >
+                                <option value="PENDING" className="bg-[#0F1F2E] text-orange-400">
+                                  Pending
+                                </option>
+                                <option value="PAID" className="bg-[#0F1F2E] text-green-400">
+                                  Paid
+                                </option>
+                                <option value="OVERDUE" className="bg-[#0F1F2E] text-red-400">
+                                  Overdue
+                                </option>
+                              </select>
+
+                              {/* Arrow */}
+                              <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-white/60">
+                                ▼
+                              </div>
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                             {order.companyName}
@@ -1295,39 +1320,60 @@ const Index = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <select
-                              value={order.status || 'QUOTED'}
-                              onChange={async (e) => {
-                                const newStatus = e.target.value;
-                                try {
-                                  const res = await updateOrder(order.id, { status: newStatus });
-                                  if (res?.success) {
-                                    // Refresh orders
-                                    fetchOrders();
-                                  } else {
-                                    console.error('Failed to update status');
+                            <div className="relative">
+                              <select
+                                value={order.status || 'quoted'}
+                                onChange={async (e) => {
+                                  const newStatus = e.target.value;
+                                  try {
+                                    const res = await updateOrder(order.id, { status: newStatus });
+                                    if (res?.success) {
+                                      fetchOrders();
+                                    }
+                                  } catch (err) {
+                                    console.error('Error updating status:', err);
                                   }
-                                } catch (err) {
-                                  console.error('Error updating status:', err);
-                                }
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 ${order.status === 'quoted' ? 'bg-[var(--accent-yellow)]/10 text-[var(--accent-yellow)] ring-[var(--accent-yellow)]/20' :
-                                order.status === 'planned' ? 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] ring-[var(--accent-blue)]/20' :
-                                  order.status === 'completed' ? 'bg-[var(--accent-green)]/10 text-[var(--accent-green)] ring-[var(--accent-green)]/20' :
-                                    order.status === 'delivered' ? 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)] ring-[var(--accent-purple)]/20' :
-                                      order.status === 'in-delivery' ? 'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] ring-[var(--accent-orange)]/20' :
-                                        order.status === 'canceled' ? 'bg-red-500/10 text-red-400 ring-red-500/20' :
-                                          'bg-white/5 text-secondary ring-white/10'
-                                }`}
-                            >
-                              <option value="planned">Planned</option>
-                              <option value="quoted">Quoted</option>
-                              <option value="in-delivery">In Delivery</option>
-                              <option value="delivered">Delivered</option>
-                              <option value="completed">Completed</option>
-                              <option value="canceled">Canceled</option>
-                            </select>
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                  backgroundColor: "#0F1F2E",
+                                  color: "#fff"
+                                }}
+                                className={`
+        text-xs font-medium rounded-full px-3 py-1.5 pr-8
+        border appearance-none cursor-pointer outline-none
+        bg-[#0F1F2E] border-white/10
+        focus:ring-2 focus:ring-[#00D1FF]
+
+        ${order.status === 'quoted'
+                                    ? 'text-yellow-400 border-yellow-400/30'
+                                    : order.status === 'planned'
+                                      ? 'text-blue-400 border-blue-400/30'
+                                      : order.status === 'completed'
+                                        ? 'text-green-400 border-green-400/30'
+                                        : order.status === 'delivered'
+                                          ? 'text-purple-400 border-purple-400/30'
+                                          : order.status === 'in-delivery'
+                                            ? 'text-orange-400 border-orange-400/30'
+                                            : order.status === 'canceled'
+                                              ? 'text-red-400 border-red-400/30'
+                                              : 'text-white/80 border-white/10'
+                                  }
+      `}
+                              >
+                                <option value="planned" className="bg-[#0F1F2E] text-white">Planned</option>
+                                <option value="quoted" className="bg-[#0F1F2E] text-white">Quoted</option>
+                                <option value="in-delivery" className="bg-[#0F1F2E] text-orange-400">In Delivery</option>
+                                <option value="delivered" className="bg-[#0F1F2E] text-purple-400">Delivered</option>
+                                <option value="completed" className="bg-[#0F1F2E] text-green-400">Completed</option>
+                                <option value="canceled" className="bg-[#0F1F2E] text-red-400">Canceled</option>
+                              </select>
+
+                              {/* Custom Arrow */}
+                              <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-white/60">
+                                ▼
+                              </div>
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                             <div className="flex flex-col">

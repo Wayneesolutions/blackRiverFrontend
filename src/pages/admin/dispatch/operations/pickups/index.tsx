@@ -147,9 +147,9 @@ const PickupsPage = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
              
-                <h1 className="text-xl font-bold text-black">Pickups</h1>
+                <h1 className="text-xl font-bold text-[var(--accent-navyblue)]">Pickups</h1>
               </div>
-              <div className="text-black/90 text-sm">
+              <div className="text-[var(--accent-navyblue)] text-sm">
                 Total: {pickups.length} pickups
               </div>
             </div>
@@ -192,28 +192,28 @@ const PickupsPage = () => {
               <table className="w-full">
                 <thead className="bg-card border-b border-theme">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Order Number
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Customer
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Pickup Location
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Pickup Date & Time
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Driver
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Truck
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Items
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Status
                     </th>
                   </tr>
@@ -223,7 +223,7 @@ const PickupsPage = () => {
                     <tr>
                       <td colSpan={8} className="px-6 py-8 text-center">
                         <div className="flex items-center justify-center">
-                          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                          <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-navyblue)]" />
                           <span className="ml-2 text-secondary">Loading pickups...</span>
                         </div>
                       </td>
@@ -243,7 +243,7 @@ const PickupsPage = () => {
                             <div className="text-xs text-secondary">Cust: {pickup.customerOrderNo}</div>
                           )}
                           {pickup.tripNo && (
-                            <div className="text-xs text-[#00D1FF]">Trip: {pickup.tripNo}</div>
+                            <div className="text-xs text-[var(--accent-navyblue)]">Trip: {pickup.tripNo}</div>
                           )}
                         </td>
                         <td className="px-6 py-4">

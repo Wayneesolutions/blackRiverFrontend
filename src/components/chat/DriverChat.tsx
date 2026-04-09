@@ -798,7 +798,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
               <MessageCircle className="w-4 h-4" />
               Drivers
               {Object.values(unreadCounts).reduce((s, n) => s + n, 0) > 0 && (
-                <span className="bg-card text-blue-700 text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                <span className="bg-card text-[var(--accent-navyblue)] text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
                   {Object.values(unreadCounts).reduce((s, n) => s + n, 0)}
                 </span>
               )}
@@ -836,7 +836,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                   <button
                     key={driver._id}
                     onClick={() => setSelectedDriver(driver)}
-                    className={`w-full px-3 py-2.5 text-left transition-colors border-b border-gray-50 ${isSelected ? 'bg-card border-l-2 border-l-blue-600' : 'hover:bg-[rgba(255,255,255,0.03)]'
+                    className={`w-full px-3 py-2.5 text-left transition-colors border-b border-gray-50 ${isSelected ? 'bg-card border-l-2 border-l-[var(--accent-navyblue)]' : 'hover:bg-[rgba(255,255,255,0.03)]'
                       }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -856,11 +856,11 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1">
-                          <p className={`text-xs font-semibold truncate ${isSelected ? 'text-blue-700' : 'text-primary'}`}>
+                          <p className={`text-xs font-semibold truncate ${isSelected ? 'text-[var(--accent-navyblue)]' : 'text-primary'}`}>
                             {driver.name}
                           </p>
                           {lastMsg && (
-                            <span className={`text-[10px] flex-shrink-0 whitespace-nowrap ${unreadCount > 0 ? 'text-[#00D1FF] font-semibold' : 'text-secondary'}`}>
+                            <span className={`text-[10px] flex-shrink-0 whitespace-nowrap ${unreadCount > 0 ? 'text-[var(--accent-navyblue)] font-semibold' : 'text-secondary'}`}>
                               {formatSidebarTime(lastMsg.time)}
                             </span>
                           )}
@@ -918,7 +918,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
               {loading ? (
                 <div className="flex items-center justify-center h-full min-h-[200px]">
                   <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-navyblue)] mb-3"></div>
                     <p className="text-secondary">Loading messages...</p>
                   </div>
                 </div>
@@ -926,7 +926,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                 <div className="flex items-center justify-center h-full min-h-[200px]">
                   <div className="text-center">
                     <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-                      <MessageCircle className="w-8 h-8 text-[#00D1FF]" />
+                      <MessageCircle className="w-8 h-8 text-[var(--accent-navyblue)]" />
                     </div>
                     <p className="text-primary font-semibold text-lg mb-1">No messages yet</p>
                     <p className="text-sm text-secondary">Start the conversation with {selectedDriver.name}!</p>
@@ -1002,7 +1002,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                               <div className="font-medium mb-2 flex items-center gap-2">
                                                 <span>Trip {trip.tripNumber}</span>
                                                 {trip.driverRole && (
-                                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                                                  <span className="px-2 py-0.5 bg-blue-100 text-[var(--accent-navyblue)] rounded text-xs">
                                                     {trip.driverRole}
                                                   </span>
                                                 )}
@@ -1063,7 +1063,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                                 <span>Order {order.orderNumber}</span>
                                                 <span className={`px-2 py-0.5 rounded text-xs ${order.status === 'in-delivery' ? 'bg-yellow-100 text-yellow-700' :
                                                   order.status === 'delivered' ? 'bg-purple-100 text-purple-700' :
-                                                    order.status === 'planned' ? 'bg-blue-100 text-blue-700' :
+                                                    order.status === 'planned' ? 'bg-blue-100 text-[var(--accent-navyblue)]' :
                                                       order.status === 'quoted' ? 'bg-orange-100 text-orange-700' :
                                                         'bg-gray-100 text-primary'
                                                   }`}>
@@ -1126,7 +1126,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                               <div className="font-medium mb-2 flex items-center gap-2">
                                                 <span>Trip {trip.tripNumber}</span>
                                                 {trip.driverRole && (
-                                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                                                  <span className="px-2 py-0.5 bg-blue-100 text-[var(--accent-navyblue)] rounded text-xs">
                                                     {trip.driverRole}
                                                   </span>
                                                 )}
@@ -1170,7 +1170,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                             <div key={idx} className="text-xs text-secondary bg-card/60 rounded p-2 mb-2 border border-theme">
                                               <div className="font-medium mb-2 flex items-center gap-2">
                                                 <span>Order {order.orderNumber}</span>
-                                                <span className={`px-2 py-0.5 rounded text-xs ${order.status === 'planned' ? 'bg-blue-100 text-blue-700' :
+                                                <span className={`px-2 py-0.5 rounded text-xs ${order.status === 'planned' ? 'bg-blue-100 text-[var(--accent-navyblue)]' :
                                                   order.status === 'quoted' ? 'bg-orange-100 text-orange-700' :
                                                     'bg-gray-100 text-primary'
                                                   }`}>
@@ -1277,7 +1277,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                     }}
                                     className={`flex items-center gap-2 p-2 rounded-lg transition-all hover:opacity-80 ${isRightSide
                                       ? "bg-card/20 hover:bg-card/30 text-white"
-                                      : "bg-gray-100 hover:bg-gray-200 text-[#00D1FF]"
+                                      : "bg-gray-100 hover:bg-gray-200 text-[var(--accent-navyblue)]"
                                       }`}
                                   >
                                     {message.fileType === "image" ? (
@@ -1351,7 +1351,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
               <div className="flex-shrink-0 px-4 py-3 bg-card border-t border-theme flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="p-2 bg-blue-100 rounded-lg">
-                    <File className="w-4 h-4 text-[#00D1FF]" />
+                    <File className="w-4 h-4 text-[var(--accent-navyblue)]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-primary truncate">{selectedFile.name}</p>
@@ -1379,7 +1379,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
               <div className="flex items-end gap-2">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-2.5 text-secondary hover:text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-all duration-200 flex-shrink-0"
+                  className="p-2.5 text-secondary hover:text-[var(--accent-navyblue)] hover:bg-blue-50 rounded-lg transition-all duration-200 flex-shrink-0"
                   title="Attach file"
                 >
                   <Paperclip className="w-5 h-5" />
@@ -1426,7 +1426,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
           <div className="flex-1 flex items-center justify-center bg-card">
             <div className="text-center">
               <div className="w-14 h-14 mx-auto mb-3 rounded-full flex items-center justify-center bg-card">
-                <MessageCircle className="w-7 h-7 text-[#00D1FF]" />
+                <MessageCircle className="w-7 h-7 text-[var(--accent-navyblue)]" />
               </div>
               <p className="text-primary font-semibold text-sm mb-1">Select a driver to chat</p>
               <p className="text-xs text-secondary">Choose from the list on the left</p>
