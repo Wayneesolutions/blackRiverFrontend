@@ -30,15 +30,15 @@ interface ToastNotification {
 
 const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
   const icons = {
-    success: <FaCheckCircle className="text-green-500" size={24} />,
-    error: <FaExclamationTriangle className="text-red-500" size={24} />,
-    warning: <FaExclamationTriangle className="text-yellow-500" size={24} />
+    success: <FaCheckCircle className="text-[var(--accent-green)]" size={24} />,
+    error: <FaExclamationTriangle className="text-[var(--accent-red)]" size={24} />,
+    warning: <FaExclamationTriangle className="text-[var(--accent-amber)]" size={24} />
   };
 
   const bgColors = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-card border-red-200',
-    warning: 'bg-card border-yellow-200'
+    success: 'bg-[var(--accent-green)]/10 border-theme',
+    error: 'bg-[var(--accent-red)]/10 border-theme',
+    warning: 'bg-[var(--accent-amber)]/10 border-theme'
   };
 
   useEffect(() => {
@@ -488,7 +488,7 @@ const EmployeesPage = () => {
     // Check if password is required for this role (mechanics need password to sign in)
     const nonSigninRoles = ['reporter', 'operator', 'salesperson'];
     const isNonSigninRole = nonSigninRoles.includes(basicData.role);
-    
+
     if (!isNonSigninRole && !editingId && !basicData.password) {
       showNotification('error', 'Password is required for this role');
       return;
@@ -527,7 +527,7 @@ const EmployeesPage = () => {
 
       if (editingId && originalEmployeeData) {
         // UPDATE MODE - Only send changed values
-        
+
         // Basic data - only if changed
         const currentName = `${basicData.firstName} ${basicData.lastName}`.trim();
         const originalName = originalEmployeeData.name || '';
@@ -684,7 +684,7 @@ const EmployeesPage = () => {
         // CREATE MODE - Send all required fields
         formData.append('name', `${basicData.firstName} ${basicData.lastName}`.trim());
         formData.append('email', basicData.email);
-        
+
         // Only include password if it's provided or if it's a non-signin role
         if (basicData.password) {
           formData.append('password', basicData.password);
@@ -693,7 +693,7 @@ const EmployeesPage = () => {
         } else {
           formData.append('password', 'TempPassword123!');
         }
-        
+
         formData.append('status', basicData.status.toLowerCase());
         if (basicData.role) formData.append('role', basicData.role);
 
@@ -841,7 +841,7 @@ const EmployeesPage = () => {
       }
     } catch (error: any) {
       console.error(`Error ${editingId ? 'updating' : 'creating'} employee:`, error);
-      
+
       // Handle validation errors from catch block
       const errorData = error.response?.data;
       if (errorData?.errors && Array.isArray(errorData.errors)) {
@@ -866,14 +866,14 @@ const EmployeesPage = () => {
     const sheet = workbook.addWorksheet('Employees', { views: [{ state: 'frozen', ySplit: 1 }] });
 
     sheet.columns = [
-      { header: 'First Name',  key: 'firstName',  width: 18 },
-      { header: 'Last Name',   key: 'lastName',   width: 18 },
-      { header: 'Email',       key: 'email',      width: 30 },
-      { header: 'Phone',       key: 'phone',      width: 18 },
-      { header: 'Role',        key: 'role',       width: 22 },
-      { header: 'Department',  key: 'department', width: 20 },
-      { header: 'Status',      key: 'status',     width: 12 },
-      { header: 'Created At',  key: 'createdAt',  width: 18 },
+      { header: 'First Name', key: 'firstName', width: 18 },
+      { header: 'Last Name', key: 'lastName', width: 18 },
+      { header: 'Email', key: 'email', width: 30 },
+      { header: 'Phone', key: 'phone', width: 18 },
+      { header: 'Role', key: 'role', width: 22 },
+      { header: 'Department', key: 'department', width: 20 },
+      { header: 'Status', key: 'status', width: 12 },
+      { header: 'Created At', key: 'createdAt', width: 18 },
     ];
 
     const headerRow = sheet.getRow(1);
@@ -885,14 +885,14 @@ const EmployeesPage = () => {
     filteredEmployees.forEach((emp: any) => {
       const nameParts = (emp.name || '').split(' ');
       const row = sheet.addRow({
-        firstName:  emp.firstName || nameParts[0] || '',
-        lastName:   emp.lastName  || nameParts.slice(1).join(' ') || '',
-        email:      emp.email     || '',
-        phone:      emp.phone     || '',
-        role:       emp.role      || '',
+        firstName: emp.firstName || nameParts[0] || '',
+        lastName: emp.lastName || nameParts.slice(1).join(' ') || '',
+        email: emp.email || '',
+        phone: emp.phone || '',
+        role: emp.role || '',
         department: emp.department || '',
-        status:     emp.status    || '',
-        createdAt:  emp.createdAt ? new Date(emp.createdAt).toLocaleDateString() : '',
+        status: emp.status || '',
+        createdAt: emp.createdAt ? new Date(emp.createdAt).toLocaleDateString() : '',
       });
       row.alignment = { vertical: 'middle' };
     });
@@ -990,7 +990,7 @@ const EmployeesPage = () => {
         const emp = response.data;
         console.log('📋 Loading employee for edit:', emp);
         console.log('📋 Employee details:', emp.details);
-        
+
         // Store original employee data for comparison
         setOriginalEmployeeData(emp);
 
@@ -1118,7 +1118,7 @@ const EmployeesPage = () => {
 
   const handleConfirmDelete = async () => {
     if (!deleteConfirmation.employeeId) return;
-    
+
     try {
       const response = await employeeApi.deleteEmployee(deleteConfirmation.employeeId);
       if (response?.success) {
@@ -1155,7 +1155,7 @@ const EmployeesPage = () => {
               <button
                 onClick={handleExportEmployees}
                 title="Export to Excel"
-                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+                className="w-10 h-10  !text-white rounded-lg flex items-center justify-center bg-[var(--accent-green)] hover:bg-[var(--accent-green)] transition-colors shadow-md"
               >
                 <FileDown className="w-5 h-5" />
               </button>
@@ -1173,8 +1173,8 @@ const EmployeesPage = () => {
             <button
               onClick={() => setActiveTab('users')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'users'
-                  ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] -mb-[2px]'
-                  : 'text-secondary hover:text-primary'
+                ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] -mb-[2px]'
+                : 'text-secondary hover:text-primary'
                 }`}
             >
               Users
@@ -1182,8 +1182,8 @@ const EmployeesPage = () => {
             <button
               onClick={() => setActiveTab('nonSignin')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'nonSignin'
-                  ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] -mb-[2px]'
-                  : 'text-secondary hover:text-primary'
+                ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] -mb-[2px]'
+                : 'text-secondary hover:text-primary'
                 }`}
             >
               Non Signin Employees
@@ -1191,8 +1191,8 @@ const EmployeesPage = () => {
             <button
               onClick={() => setActiveTab('advanced')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'advanced'
-                  ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] -mb-[2px]'
-                  : 'text-secondary hover:text-primary'
+                ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] -mb-[2px]'
+                : 'text-secondary hover:text-primary'
                 }`}
             >
               Advanced Permissions
@@ -1212,7 +1212,7 @@ const EmployeesPage = () => {
               {roleBadges.map((role, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-full"
+                  className="px-3 py-1 bg-[var(--accent-green)]/10 text-[var(--accent-green)] text-sm font-medium rounded-full"
                 >
                   {role}
                 </span>
@@ -1383,7 +1383,7 @@ const EmployeesPage = () => {
                             />
                           ) : null}
                           <div
-                            className={`w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-theme ${employee.profileImageUrl || employee.profileImage ? 'hidden' : ''}`}
+                            className={`w-10 h-10 rounded-full bg-card flex items-center justify-center border-2 border-theme ${employee.profileImageUrl || employee.profileImage ? 'hidden' : ''}`}
                           >
                             <User className="w-6 h-6 text-secondary" />
                           </div>
@@ -1395,8 +1395,8 @@ const EmployeesPage = () => {
                       <td className="px-4 py-3 text-sm text-primary">{getRoleDisplayName(employee.role)}</td>
                       <td className="px-4 py-3">
                         <span className={`px-3 py-1 rounded text-xs font-medium ${(employee.status === 'ACTIVE' || employee.status === 'active')
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                          ? 'bg-[var(--accent-green)]/10 text-[var(--accent-green)]'
+                          : 'bg-[var(--accent-red)]/10 text-[var(--accent-red)]'
                           }`}>
                           {employee.status}
                         </span>
@@ -1419,7 +1419,7 @@ const EmployeesPage = () => {
                                 setShowNewEmployeeModal(true);
                               }
                             }}
-                            className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-2 text-accent hover:bg-[rgba(255,255,255,0.05)] rounded-lg transition-colors"
                             title="Edit Employee"
                           >
                             <Edit className="w-4 h-4" />
@@ -1435,7 +1435,7 @@ const EmployeesPage = () => {
                                 });
                               }
                             }}
-                            className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-[var(--accent-purple)] hover:bg-[rgba(168,85,247,0.1)] rounded-lg transition-colors"
                             title="Delete Employee"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -1467,7 +1467,7 @@ const EmployeesPage = () => {
               <p className="text-primary font-semibold">
                 {deleteConfirmation.employeeName}
               </p>
-              <p className="text-sm text-[#A855F7] mt-4">
+              <p className="text-sm text-[var(--accent-purple)] mt-4">
                 This action cannot be undone.
               </p>
             </div>
@@ -1480,7 +1480,7 @@ const EmployeesPage = () => {
               </button>
               <button
                 onClick={handleConfirmDelete}
-                className="px-6 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                className="px-6 py-2 bg-[var(--accent-red)] hover:bg-[var(--accent-red)] !text-white rounded-lg transition-colors font-medium"
               >
                 Delete
               </button>
@@ -1573,8 +1573,8 @@ const EmployeesPage = () => {
                         key={tab.id}
                         onClick={() => setActiveFormTab(tab.id as any)}
                         className={`w-full flex items-center gap-2 px-3 py-2 transition-colors text-left ${isActive
-                            ? 'bg-[rgba(0,209,255,0.15)] !text-white shadow-md'
-                            : 'bg-gray-700 !text-white hover:bg-gray-600'
+                          ? 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] shadow-md'
+                          : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.05)]'
                           }`}
                       >
                         <Icon className="w-4 h-4" />
@@ -1595,7 +1595,7 @@ const EmployeesPage = () => {
                   <button
                     onClick={handleSaveEmployee}
                     disabled={isSubmitting}
-                    className="px-6 py-2 bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors font-medium disabled:opacity-50"
+                    className="px-6 py-2  !text-white rounded-lg bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] transition-colors font-medium disabled:opacity-50"
                   >
                     {isSubmitting ? 'SAVING...' : editingId ? 'UPDATE' : 'SAVE'}
                   </button>
@@ -1618,7 +1618,7 @@ const EmployeesPage = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">
-                          First Name<span className="text-red-500">*</span>
+                          First Name<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <input
                           type="text"
@@ -1630,7 +1630,7 @@ const EmployeesPage = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">
-                          Last Name<span className="text-red-500">*</span>
+                          Last Name<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <input
                           type="text"
@@ -1642,7 +1642,7 @@ const EmployeesPage = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">
-                          Email<span className="text-red-500">*</span>
+                          Email<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <input
                           type="email"
@@ -1656,7 +1656,7 @@ const EmployeesPage = () => {
                       {!['reporter', 'operator', 'salesperson'].includes(basicData.role) && (
                         <div>
                           <label className="block text-sm font-medium text-primary mb-1">
-                            Password{!editingId && <span className="text-red-500">*</span>}
+                            Password{!editingId && <span className="text-[var(--accent-red)]">*</span>}
                           </label>
                           {passwordIsExisting ? (
                             <div className="relative">
@@ -1676,7 +1676,7 @@ const EmployeesPage = () => {
                                   setPasswordIsExisting(false);
                                   setBasicData({ ...basicData, password: '' });
                                 }}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--accent-blue)] hover:text-blue-700 font-medium"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--accent-blue)] hover:text-[var(--accent-blue)] font-medium"
                                 tabIndex={-1}
                               >
                                 Change
@@ -1710,7 +1710,7 @@ const EmployeesPage = () => {
                     <div className="grid grid-cols-4 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">
-                          Status<span className="text-red-500">*</span>
+                          Status<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <select
                           value={basicData.status}
@@ -1724,7 +1724,7 @@ const EmployeesPage = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">
-                          Role<span className="text-red-500">*</span>
+                          Role<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <select
                           value={basicData.role}
@@ -1941,7 +1941,7 @@ const EmployeesPage = () => {
                             if (addressData.country) {
                               const countryFromAddress = countries.find(
                                 c => c.name.toLowerCase() === addressData.country.toLowerCase() ||
-                                     c.code.toLowerCase() === addressData.country.toLowerCase()
+                                  c.code.toLowerCase() === addressData.country.toLowerCase()
                               );
                               countryName = countryFromAddress ? countryFromAddress.name : addressData.country;
                             }
@@ -1974,7 +1974,7 @@ const EmployeesPage = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">
-                          Country<span className="text-red-500">*</span>
+                          Country<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <select
                           value={(() => {
@@ -1984,10 +1984,10 @@ const EmployeesPage = () => {
                           })()}
                           onChange={(e) => {
                             const selectedCountry = countries.find(c => c.code === e.target.value);
-                            setPersonalData({ 
-                              ...personalData, 
-                              country: selectedCountry ? selectedCountry.name : '', 
-                              stateProvince: '' 
+                            setPersonalData({
+                              ...personalData,
+                              country: selectedCountry ? selectedCountry.name : '',
+                              stateProvince: ''
                             });
                           }}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
@@ -2002,7 +2002,7 @@ const EmployeesPage = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">
-                          Province/State<span className="text-red-500">*</span>
+                          Province/State<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <input
                           type="text"
@@ -2050,7 +2050,7 @@ const EmployeesPage = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">
-                          SIN Number<span className="text-red-500">*</span>
+                          SIN Number<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <input
                           type="text"
@@ -2158,7 +2158,7 @@ const EmployeesPage = () => {
                                     });
                                   }
                                 }}
-                                className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                                className="w-10 h-10 bg-card border border-theme text-primary rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.05)] transition-colors"
                               >
                                 <Plus className="w-5 h-5" />
                               </button>
@@ -2217,7 +2217,7 @@ const EmployeesPage = () => {
                                           href={doc.fileUrl}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="text-[#00D1FF] hover:underline text-xs"
+                                          className="text-accent hover:underline text-xs"
                                         >
                                           Current: {doc.fileName || 'View File'}
                                         </a>
@@ -2246,7 +2246,7 @@ const EmployeesPage = () => {
                                           href={doc.fileUrl}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="text-[#00D1FF] hover:underline text-sm"
+                                          className="text-accent hover:underline text-sm"
                                         >
                                           {doc.fileName || 'View File'}
                                         </a>
@@ -2317,7 +2317,7 @@ const EmployeesPage = () => {
                                             alert(error.response?.data?.message || 'Failed to update document');
                                           }
                                         }}
-                                        className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
+                                        className="p-1.5 text-[var(--accent-*)] hover:bg-green-50 rounded transition-colors"
                                         title="Save"
                                       >
                                         <Save className="w-4 h-4" />
@@ -2348,7 +2348,7 @@ const EmployeesPage = () => {
                                               file: null
                                             });
                                           }}
-                                          className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                                          className="p-1.5 text-accent hover:bg-[rgba(255,255,255,0.05)] rounded transition-colors"
                                           title="Edit Document"
                                         >
                                           <Edit className="w-4 h-4" />
@@ -2379,7 +2379,7 @@ const EmployeesPage = () => {
                                             }
                                           }
                                         }}
-                                        className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                                        className="p-1.5 text-[var(--accent-purple)] hover:bg-[rgba(168,85,247,0.1)] rounded transition-colors"
                                         title="Delete Document"
                                       >
                                         <Trash2 className="w-4 h-4" />
@@ -2491,16 +2491,16 @@ const EmployeesPage = () => {
                             if (newDeduction.startDate || newDeduction.description) {
                               if (editingDeductionId) {
                                 // Update existing deduction in the list
-                                setDeductions(deductions.map(d => 
-                                  d.id === editingDeductionId 
+                                setDeductions(deductions.map(d =>
+                                  d.id === editingDeductionId
                                     ? {
-                                        ...d,
-                                        startDate: newDeduction.startDate,
-                                        description: newDeduction.description,
-                                        amount: newDeduction.amount,
-                                        interval: newDeduction.interval,
-                                        currency: newDeduction.currency
-                                      }
+                                      ...d,
+                                      startDate: newDeduction.startDate,
+                                      description: newDeduction.description,
+                                      amount: newDeduction.amount,
+                                      interval: newDeduction.interval,
+                                      currency: newDeduction.currency
+                                    }
                                     : d
                                 ));
                                 setEditingDeductionId(null);
@@ -2571,7 +2571,7 @@ const EmployeesPage = () => {
                                         });
                                         setEditingDeductionId(deduction.id);
                                       }}
-                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-accent hover:bg-[rgba(255,255,255,0.05)] rounded transition-colors"
                                       title="Edit deduction"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -2607,7 +2607,7 @@ const EmployeesPage = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-purple)] hover:bg-[rgba(168,85,247,0.1)] rounded transition-colors"
                                       title="Delete deduction"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -2693,16 +2693,16 @@ const EmployeesPage = () => {
                             if (newAddition.startDate || newAddition.description) {
                               if (editingAdditionId) {
                                 // Update existing addition in the list
-                                setAdditions(additions.map(a => 
-                                  a.id === editingAdditionId 
+                                setAdditions(additions.map(a =>
+                                  a.id === editingAdditionId
                                     ? {
-                                        ...a,
-                                        startDate: newAddition.startDate,
-                                        description: newAddition.description,
-                                        amount: newAddition.amount,
-                                        interval: newAddition.interval,
-                                        currency: newAddition.currency
-                                      }
+                                      ...a,
+                                      startDate: newAddition.startDate,
+                                      description: newAddition.description,
+                                      amount: newAddition.amount,
+                                      interval: newAddition.interval,
+                                      currency: newAddition.currency
+                                    }
                                     : a
                                 ));
                                 setEditingAdditionId(null);
@@ -2773,7 +2773,7 @@ const EmployeesPage = () => {
                                         });
                                         setEditingAdditionId(addition.id);
                                       }}
-                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-accent hover:bg-[rgba(255,255,255,0.05)] rounded transition-colors"
                                       title="Edit addition"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -2809,7 +2809,7 @@ const EmployeesPage = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-purple)] hover:bg-[rgba(168,85,247,0.1)] rounded transition-colors"
                                       title="Delete addition"
                                     >
                                       <Trash2 className="w-4 h-4" />

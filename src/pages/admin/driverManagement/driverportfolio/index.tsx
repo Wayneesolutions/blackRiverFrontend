@@ -72,7 +72,7 @@ const DrugTestUploadModal: React.FC<{
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4 ">
             <div className="bg-card rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
                     <h2 className="text-xl font-bold text-primary">
@@ -217,7 +217,7 @@ const DriverPortfolio: React.FC = () => {
     const [showDrugTestModal, setShowDrugTestModal] = useState(false);
     const [editingDrugTest, setEditingDrugTest] = useState<any | null>(null);
     const PAGE_SIZE = 100;
-    
+
     // Refs for scrollbar synchronization
     const topScrollRef = useRef<HTMLDivElement>(null);
     const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -313,7 +313,7 @@ const DriverPortfolio: React.FC = () => {
                     const driverId = selectedProfile._id.toString();
                     console.log('🔍 [Driver Portfolio] Fetching orders for driver:', driverId);
                     console.log('📦 [Driver Portfolio] Total orders fetched:', response.data.length);
-                    
+
                     // Filter orders by driver (check both driver and coDriver)
                     const driverOrders = response.data.filter((order: any) => {
                         const orderDriverId = order.driver?._id?.toString() || order.driver?.toString() || '';
@@ -323,8 +323,8 @@ const DriverPortfolio: React.FC = () => {
                     });
 
                     console.log('👤 [Driver Portfolio] Orders for this driver:', driverOrders.length);
-                    console.log('📊 [Driver Portfolio] Sample order statuses:', driverOrders.slice(0, 5).map((o: any) => ({ 
-                        orderNumber: o.orderNumber, 
+                    console.log('📊 [Driver Portfolio] Sample order statuses:', driverOrders.slice(0, 5).map((o: any) => ({
+                        orderNumber: o.orderNumber,
                         status: o.status,
                         driver: o.driver?._id || o.driver,
                         coDriver: o.coDriver?._id || o.coDriver
@@ -506,8 +506,8 @@ const DriverPortfolio: React.FC = () => {
 
         const bottomTable = bottomScroll.querySelector('table');
         if (bottomTable) {
-            tableObserver.observe(bottomTable, { 
-                childList: true, 
+            tableObserver.observe(bottomTable, {
+                childList: true,
                 subtree: true,
                 attributes: true,
                 attributeFilter: ['style', 'class']
@@ -889,10 +889,10 @@ const DriverPortfolio: React.FC = () => {
                             display: none; /* Chrome, Safari, Opera */
                         }
                     `}</style>
-                    <div 
+                    <div
                         ref={topScrollRef}
                         className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-                        style={{ 
+                        style={{
                             maxHeight: '20px',
                             marginBottom: '2px',
                             scrollbarWidth: 'thin',
@@ -902,7 +902,7 @@ const DriverPortfolio: React.FC = () => {
                         <div className="top-scroll-content" style={{ height: '1px' }}></div>
                     </div>
                     {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-                    <div 
+                    <div
                         ref={bottomScrollRef}
                         className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
                     >
@@ -937,8 +937,8 @@ const DriverPortfolio: React.FC = () => {
                                     </tr>
                                 ) : (
                                     filteredProfiles.map((profile) => (
-                                        <tr 
-                                            key={profile._id} 
+                                        <tr
+                                            key={profile._id}
                                             className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                                             onClick={() => {
                                                 setSelectedProfile(profile);
@@ -1085,11 +1085,10 @@ const DriverPortfolio: React.FC = () => {
                                                 {(() => {
                                                     const crossBorderEligible = profile.cross_border_eligible === true || String(profile.cross_border_eligible) === 'true';
                                                     return (
-                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${
-                                                            crossBorderEligible 
-                                                                ? 'bg-green-100 text-green-800 border border-green-200' 
-                                                                : 'bg-gray-100 text-secondary border border-theme'
-                                                        }`}>
+                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${crossBorderEligible
+                                                            ? 'bg-green-100 text-green-800 border border-green-200'
+                                                            : 'bg-gray-100 text-secondary border border-theme'
+                                                            }`}>
                                                             {crossBorderEligible ? (
                                                                 <>
                                                                     <CheckCircle2 className="w-3 h-3" />
@@ -1124,474 +1123,474 @@ const DriverPortfolio: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
-                    </div>
                 </div>
+            </div>
 
-                {/* Profile Detail Sidebar */}
-                {showProfileSidebar && selectedProfile && (
-                    <>
-                        {/* Backdrop */}
-                        <div
-                            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998] transition-opacity"
-                            onClick={() => setShowProfileSidebar(false)}
-                        />
+            {/* Profile Detail Sidebar */}
+            {showProfileSidebar && selectedProfile && (
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998] transition-opacity"
+                        onClick={() => setShowProfileSidebar(false)}
+                    />
 
-                        {/* Sidebar */}
-                        <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-card shadow-2xl z-[9999] transform transition-transform duration-300 ease-out overflow-y-auto">
-                            {/* Header */}
-                            <div className="sticky top-0  text-white p-6 z-10"
-                                style={{
-                                    background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)"
-                                }}>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 rounded-full bg-card/20 flex items-center justify-center text-white text-2xl font-bold">
-                                            {selectedProfile.name.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <h2 className="text-2xl font-bold">{selectedProfile.name}</h2>
-                                            <p className="text-orange-100 flex items-center gap-2 mt-1">
-                                                <Truck className="w-4 h-4" />
-                                                Driver
-                                            </p>
-                                            {/* Current Order Status */}
-                                            {loadingOrder ? (
-                                                <div className="mt-3 bg-card/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
-                                                    <div className="flex items-center gap-2 text-white/90">
-                                                        <Clock className="w-4 h-4 animate-spin" />
-                                                        <span className="text-sm font-medium">Loading order status...</span>
-                                                    </div>
+                    {/* Sidebar */}
+                    <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-card shadow-2xl z-[9999] transform transition-transform duration-300 ease-out overflow-y-auto">
+                        {/* Header */}
+                        <div className="sticky top-0  text-white p-6 z-10"
+                            style={{
+                                background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)"
+                            }}>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-16 h-16 rounded-full bg-card/20 flex items-center justify-center text-white text-2xl font-bold">
+                                        {selectedProfile.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-bold">{selectedProfile.name}</h2>
+                                        <p className="text-orange-100 flex items-center gap-2 mt-1">
+                                            <Truck className="w-4 h-4" />
+                                            Driver
+                                        </p>
+                                        {/* Current Order Status */}
+                                        {loadingOrder ? (
+                                            <div className="mt-3 bg-card/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
+                                                <div className="flex items-center gap-2 text-white/90">
+                                                    <Clock className="w-4 h-4 animate-spin" />
+                                                    <span className="text-sm font-medium">Loading order status...</span>
                                                 </div>
-                                            ) : currentOrder ? (
-                                                (() => {
-                                                    const status = (currentOrder.status || '').toLowerCase();
-                                                    const statusConfig: Record<string, { bg: string; border: string; text: string; badge: string; icon: any; label: string }> = {
-                                                        'planned': { 
-                                                            bg: 'bg-blue-500/20', 
-                                                            border: 'border-blue-400/30', 
-                                                            text: 'text-blue-100', 
-                                                            badge: 'bg-blue-500/30 text-blue-100 border-blue-400/50',
-                                                            icon: Circle,
-                                                            label: 'Planned'
-                                                        },
-                                                        'quoted': { 
-                                                            bg: 'bg-purple-500/20', 
-                                                            border: 'border-purple-400/30', 
-                                                            text: 'text-purple-100', 
-                                                            badge: 'bg-purple-500/30 text-purple-100 border-purple-400/50',
-                                                            icon: FileText,
-                                                            label: 'Quoted'
-                                                        },
-                                                        'in-delivery': { 
-                                                            bg: 'bg-yellow-500/20', 
-                                                            border: 'border-yellow-400/30', 
-                                                            text: 'text-yellow-100', 
-                                                            badge: 'bg-yellow-500/30 text-yellow-100 border-yellow-400/50',
-                                                            icon: Truck,
-                                                            label: 'In Delivery'
-                                                        },
-                                                        'delivered': { 
-                                                            bg: 'bg-indigo-500/20', 
-                                                            border: 'border-indigo-400/30', 
-                                                            text: 'text-indigo-100', 
-                                                            badge: 'bg-indigo-500/30 text-indigo-100 border-indigo-400/50',
-                                                            icon: CheckCircle2,
-                                                            label: 'Delivered'
-                                                        },
-                                                        'completed': { 
-                                                            bg: 'bg-green-500/20', 
-                                                            border: 'border-green-400/30', 
-                                                            text: 'text-green-100', 
-                                                            badge: 'bg-green-500/30 text-green-100 border-green-400/50',
-                                                            icon: CheckCircle2,
-                                                            label: 'Completed'
-                                                        },
-                                                        'verification_pending': { 
-                                                            bg: 'bg-amber-500/20', 
-                                                            border: 'border-amber-400/30', 
-                                                            text: 'text-amber-100', 
-                                                            badge: 'bg-amber-500/30 text-amber-100 border-amber-400/50',
-                                                            icon: AlertCircleIcon,
-                                                            label: 'Verification Pending'
-                                                        },
-                                                        'pending_review': { 
-                                                            bg: 'bg-amber-500/20', 
-                                                            border: 'border-amber-400/30', 
-                                                            text: 'text-amber-100', 
-                                                            badge: 'bg-amber-500/30 text-amber-100 border-amber-400/50',
-                                                            icon: AlertCircleIcon,
-                                                            label: 'Pending Review'
-                                                        },
-                                                        'canceled': { 
-                                                            bg: 'bg-red-500/20', 
-                                                            border: 'border-red-400/30', 
-                                                            text: 'text-red-100', 
-                                                            badge: 'bg-red-500/30 text-red-100 border-red-400/50',
-                                                            icon: X,
-                                                            label: 'Canceled'
-                                                        }
-                                                    };
-                                                    const config = statusConfig[status] || { 
-                                                        bg: 'bg-gray-500/20', 
-                                                        border: 'border-gray-400/30', 
-                                                        text: 'text-gray-100', 
-                                                        badge: 'bg-gray-500/30 text-gray-100 border-gray-400/50',
-                                                        icon: Package,
-                                                        label: status.replace(/_/g, ' ').replace(/-/g, ' ')
-                                                    };
-                                                    const StatusIcon = config.icon;
-                                                    return (
-                                                        <div className={`mt-3 ${config.bg} rounded-xl p-4 backdrop-blur-sm border ${config.border} shadow-lg`}>
-                                                            <div className="flex items-start justify-between gap-3">
-                                                                <div className="flex-1">
-                                                                    <div className="flex items-center gap-2 mb-2">
-                                                                        <StatusIcon className={`w-5 h-5 ${config.text}`} />
-                                                                        <span className={`text-xs font-semibold uppercase tracking-wider ${config.text}`}>
-                                                                            Current Order
-                                                                        </span>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-2 mb-3">
-                                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold border ${config.badge} backdrop-blur-sm`}>
-                                                                            {config.label}
-                                                                        </span>
-                                                                    </div>
-                                                                    {currentOrder.orderNumber && (
-                                                                        <div className="flex items-center gap-2">
-                                                                            <Package className="w-4 h-4 text-white/70" />
-                                                                            <span className="text-white/90 text-sm font-mono font-semibold">
-                                                                                {currentOrder.orderNumber}
-                                                                            </span>
-                                                                        </div>
-                                                                    )}
+                                            </div>
+                                        ) : currentOrder ? (
+                                            (() => {
+                                                const status = (currentOrder.status || '').toLowerCase();
+                                                const statusConfig: Record<string, { bg: string; border: string; text: string; badge: string; icon: any; label: string }> = {
+                                                    'planned': {
+                                                        bg: 'bg-blue-500/20',
+                                                        border: 'border-blue-400/30',
+                                                        text: 'text-blue-100',
+                                                        badge: 'bg-blue-500/30 text-blue-100 border-blue-400/50',
+                                                        icon: Circle,
+                                                        label: 'Planned'
+                                                    },
+                                                    'quoted': {
+                                                        bg: 'bg-purple-500/20',
+                                                        border: 'border-purple-400/30',
+                                                        text: 'text-purple-100',
+                                                        badge: 'bg-purple-500/30 text-purple-100 border-purple-400/50',
+                                                        icon: FileText,
+                                                        label: 'Quoted'
+                                                    },
+                                                    'in-delivery': {
+                                                        bg: 'bg-yellow-500/20',
+                                                        border: 'border-yellow-400/30',
+                                                        text: 'text-yellow-100',
+                                                        badge: 'bg-yellow-500/30 text-yellow-100 border-yellow-400/50',
+                                                        icon: Truck,
+                                                        label: 'In Delivery'
+                                                    },
+                                                    'delivered': {
+                                                        bg: 'bg-indigo-500/20',
+                                                        border: 'border-indigo-400/30',
+                                                        text: 'text-indigo-100',
+                                                        badge: 'bg-indigo-500/30 text-indigo-100 border-indigo-400/50',
+                                                        icon: CheckCircle2,
+                                                        label: 'Delivered'
+                                                    },
+                                                    'completed': {
+                                                        bg: 'bg-green-500/20',
+                                                        border: 'border-green-400/30',
+                                                        text: 'text-green-100',
+                                                        badge: 'bg-green-500/30 text-green-100 border-green-400/50',
+                                                        icon: CheckCircle2,
+                                                        label: 'Completed'
+                                                    },
+                                                    'verification_pending': {
+                                                        bg: 'bg-amber-500/20',
+                                                        border: 'border-amber-400/30',
+                                                        text: 'text-amber-100',
+                                                        badge: 'bg-amber-500/30 text-amber-100 border-amber-400/50',
+                                                        icon: AlertCircleIcon,
+                                                        label: 'Verification Pending'
+                                                    },
+                                                    'pending_review': {
+                                                        bg: 'bg-amber-500/20',
+                                                        border: 'border-amber-400/30',
+                                                        text: 'text-amber-100',
+                                                        badge: 'bg-amber-500/30 text-amber-100 border-amber-400/50',
+                                                        icon: AlertCircleIcon,
+                                                        label: 'Pending Review'
+                                                    },
+                                                    'canceled': {
+                                                        bg: 'bg-red-500/20',
+                                                        border: 'border-red-400/30',
+                                                        text: 'text-red-100',
+                                                        badge: 'bg-red-500/30 text-red-100 border-red-400/50',
+                                                        icon: X,
+                                                        label: 'Canceled'
+                                                    }
+                                                };
+                                                const config = statusConfig[status] || {
+                                                    bg: 'bg-gray-500/20',
+                                                    border: 'border-gray-400/30',
+                                                    text: 'text-gray-100',
+                                                    badge: 'bg-gray-500/30 text-gray-100 border-gray-400/50',
+                                                    icon: Package,
+                                                    label: status.replace(/_/g, ' ').replace(/-/g, ' ')
+                                                };
+                                                const StatusIcon = config.icon;
+                                                return (
+                                                    <div className={`mt-3 ${config.bg} rounded-xl p-4 backdrop-blur-sm border ${config.border} shadow-lg`}>
+                                                        <div className="flex items-start justify-between gap-3">
+                                                            <div className="flex-1">
+                                                                <div className="flex items-center gap-2 mb-2">
+                                                                    <StatusIcon className={`w-5 h-5 ${config.text}`} />
+                                                                    <span className={`text-xs font-semibold uppercase tracking-wider ${config.text}`}>
+                                                                        Current Order
+                                                                    </span>
                                                                 </div>
-                                                                <div className="flex-shrink-0">
-                                                                    <div className={`w-12 h-12 rounded-full ${config.bg} border-2 ${config.border} flex items-center justify-center backdrop-blur-sm`}>
-                                                                        <StatusIcon className={`w-6 h-6 ${config.text}`} />
+                                                                <div className="flex items-center gap-2 mb-3">
+                                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold border ${config.badge} backdrop-blur-sm`}>
+                                                                        {config.label}
+                                                                    </span>
+                                                                </div>
+                                                                {currentOrder.orderNumber && (
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Package className="w-4 h-4 text-white/70" />
+                                                                        <span className="text-white/90 text-sm font-mono font-semibold">
+                                                                            {currentOrder.orderNumber}
+                                                                        </span>
                                                                     </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <div className={`w-12 h-12 rounded-full ${config.bg} border-2 ${config.border} flex items-center justify-center backdrop-blur-sm`}>
+                                                                    <StatusIcon className={`w-6 h-6 ${config.text}`} />
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    );
-                                                })()
-                                            ) : (
-                                                <div className="mt-3 bg-card/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
-                                                    <div className="flex items-center gap-2 text-white/80">
-                                                        <Package className="w-4 h-4" />
-                                                        <span className="text-sm font-medium">No active order</span>
                                                     </div>
+                                                );
+                                            })()
+                                        ) : (
+                                            <div className="mt-3 bg-card/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
+                                                <div className="flex items-center gap-2 text-white/80">
+                                                    <Package className="w-4 h-4" />
+                                                    <span className="text-sm font-medium">No active order</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setShowProfileSidebar(false)}
+                                    className="p-2 hover:bg-card/20 rounded-lg transition-colors"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 space-y-6">
+                            {/* Basic Information */}
+                            <div className="bg-card border border-theme rounded-xl p-6">
+                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                                    <UserIcon className="w-5 h-5 text-purple-600" />
+                                    Basic Information
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <Mail className="w-5 h-5 text-secondary" />
+                                        <div>
+                                            <p className="text-sm text-secondary">Email</p>
+                                            <p className="text-primary font-medium">{selectedProfile.email}</p>
+                                        </div>
+                                    </div>
+                                    {selectedProfile.phone && (
+                                        <div className="flex items-center gap-3">
+                                            <Clock className="w-5 h-5 text-secondary" />
+                                            <div>
+                                                <p className="text-sm text-secondary">Phone</p>
+                                                <p className="text-primary font-medium">{selectedProfile.phone}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {selectedProfile.joinDate && (
+                                        <div className="flex items-center gap-3">
+                                            <Calendar className="w-5 h-5 text-secondary" />
+                                            <div>
+                                                <p className="text-sm text-secondary">Join Date</p>
+                                                <p className="text-primary font-medium">{new Date(selectedProfile.joinDate).toLocaleDateString()}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {selectedProfile.dateOfBirth && (
+                                        <div className="flex items-center gap-3">
+                                            <Calendar className="w-5 h-5 text-secondary" />
+                                            <div>
+                                                <p className="text-sm text-secondary">Date of Birth</p>
+                                                <p className="text-primary font-medium">{new Date(selectedProfile.dateOfBirth).toLocaleDateString()}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Address Information */}
+                                {(selectedProfile.address || selectedProfile.city || selectedProfile.province || selectedProfile.postalCode) && (
+                                    <div className="mt-4 pt-4 border-t border-theme">
+                                        <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+                                            <MapPin className="w-4 h-4" />
+                                            Address
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {selectedProfile.address && (
+                                                <div>
+                                                    <p className="text-xs text-secondary">Street Address</p>
+                                                    <p className="text-primary font-medium">{selectedProfile.address}</p>
+                                                </div>
+                                            )}
+                                            {selectedProfile.city && (
+                                                <div>
+                                                    <p className="text-xs text-secondary">City</p>
+                                                    <p className="text-primary font-medium">{selectedProfile.city}</p>
+                                                </div>
+                                            )}
+                                            {selectedProfile.province && (
+                                                <div>
+                                                    <p className="text-xs text-secondary">Province</p>
+                                                    <p className="text-primary font-medium">{selectedProfile.province}</p>
+                                                </div>
+                                            )}
+                                            {selectedProfile.postalCode && (
+                                                <div>
+                                                    <p className="text-xs text-secondary">Postal Code</p>
+                                                    <p className="text-primary font-medium">{selectedProfile.postalCode}</p>
+                                                </div>
+                                            )}
+                                            {selectedProfile.country && (
+                                                <div>
+                                                    <p className="text-xs text-secondary">Country</p>
+                                                    <p className="text-primary font-medium">{selectedProfile.country}</p>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={() => setShowProfileSidebar(false)}
-                                        className="p-2 hover:bg-card/20 rounded-lg transition-colors"
-                                    >
-                                        <X className="w-6 h-6" />
-                                    </button>
-                                </div>
-                            </div>
+                                )}
 
-                            {/* Content */}
-                            <div className="p-6 space-y-6">
-                                {/* Basic Information */}
-                                <div className="bg-card border border-theme rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                                        <UserIcon className="w-5 h-5 text-purple-600" />
-                                        Basic Information
-                                    </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="flex items-center gap-3">
-                                            <Mail className="w-5 h-5 text-secondary" />
-                                            <div>
-                                                <p className="text-sm text-secondary">Email</p>
-                                                <p className="text-primary font-medium">{selectedProfile.email}</p>
-                                            </div>
-                                        </div>
-                                        {selectedProfile.phone && (
-                                            <div className="flex items-center gap-3">
-                                                <Clock className="w-5 h-5 text-secondary" />
+                                {/* Citizenship & Legal Information */}
+                                {(selectedProfile.citizenshipStatus || selectedProfile.sinNumber) && (
+                                    <div className="mt-4 pt-4 border-t border-theme">
+                                        <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+                                            <FileText className="w-4 h-4" />
+                                            Citizenship & Legal Information
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {selectedProfile.citizenshipStatus && (
                                                 <div>
-                                                    <p className="text-sm text-secondary">Phone</p>
-                                                    <p className="text-primary font-medium">{selectedProfile.phone}</p>
+                                                    <p className="text-xs text-secondary">Citizenship Status</p>
+                                                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full mt-1 ${selectedProfile.citizenshipStatus === 'Citizen' ? 'bg-green-100 text-green-800' :
+                                                        selectedProfile.citizenshipStatus === 'Permanent Resident' ? 'bg-blue-100 text-blue-800' :
+                                                            'bg-yellow-100 text-yellow-800'
+                                                        }`}>
+                                                        {selectedProfile.citizenshipStatus}
+                                                    </span>
                                                 </div>
-                                            </div>
-                                        )}
-                                        {selectedProfile.joinDate && (
-                                            <div className="flex items-center gap-3">
-                                                <Calendar className="w-5 h-5 text-secondary" />
+                                            )}
+                                            {selectedProfile.sinNumber && (
                                                 <div>
-                                                    <p className="text-sm text-secondary">Join Date</p>
-                                                    <p className="text-primary font-medium">{new Date(selectedProfile.joinDate).toLocaleDateString()}</p>
+                                                    <p className="text-xs text-secondary">SIN Number</p>
+                                                    <p className="text-primary font-medium">{selectedProfile.sinNumber}</p>
                                                 </div>
-                                            </div>
-                                        )}
-                                        {selectedProfile.dateOfBirth && (
-                                            <div className="flex items-center gap-3">
-                                                <Calendar className="w-5 h-5 text-secondary" />
-                                                <div>
-                                                    <p className="text-sm text-secondary">Date of Birth</p>
-                                                    <p className="text-primary font-medium">{new Date(selectedProfile.dateOfBirth).toLocaleDateString()}</p>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Address Information */}
-                                    {(selectedProfile.address || selectedProfile.city || selectedProfile.province || selectedProfile.postalCode) && (
-                                        <div className="mt-4 pt-4 border-t border-theme">
-                                            <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
-                                                <MapPin className="w-4 h-4" />
-                                                Address
-                                            </h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                {selectedProfile.address && (
-                                                    <div>
-                                                        <p className="text-xs text-secondary">Street Address</p>
-                                                        <p className="text-primary font-medium">{selectedProfile.address}</p>
-                                                    </div>
-                                                )}
-                                                {selectedProfile.city && (
-                                                    <div>
-                                                        <p className="text-xs text-secondary">City</p>
-                                                        <p className="text-primary font-medium">{selectedProfile.city}</p>
-                                                    </div>
-                                                )}
-                                                {selectedProfile.province && (
-                                                    <div>
-                                                        <p className="text-xs text-secondary">Province</p>
-                                                        <p className="text-primary font-medium">{selectedProfile.province}</p>
-                                                    </div>
-                                                )}
-                                                {selectedProfile.postalCode && (
-                                                    <div>
-                                                        <p className="text-xs text-secondary">Postal Code</p>
-                                                        <p className="text-primary font-medium">{selectedProfile.postalCode}</p>
-                                                    </div>
-                                                )}
-                                                {selectedProfile.country && (
-                                                    <div>
-                                                        <p className="text-xs text-secondary">Country</p>
-                                                        <p className="text-primary font-medium">{selectedProfile.country}</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Citizenship & Legal Information */}
-                                    {(selectedProfile.citizenshipStatus || selectedProfile.sinNumber) && (
-                                        <div className="mt-4 pt-4 border-t border-theme">
-                                            <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
-                                                <FileText className="w-4 h-4" />
-                                                Citizenship & Legal Information
-                                            </h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                {selectedProfile.citizenshipStatus && (
-                                                    <div>
-                                                        <p className="text-xs text-secondary">Citizenship Status</p>
-                                                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full mt-1 ${selectedProfile.citizenshipStatus === 'Citizen' ? 'bg-green-100 text-green-800' :
-                                                            selectedProfile.citizenshipStatus === 'Permanent Resident' ? 'bg-blue-100 text-blue-800' :
-                                                                'bg-yellow-100 text-yellow-800'
-                                                            }`}>
-                                                            {selectedProfile.citizenshipStatus}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                {selectedProfile.sinNumber && (
-                                                    <div>
-                                                        <p className="text-xs text-secondary">SIN Number</p>
-                                                        <p className="text-primary font-medium">{selectedProfile.sinNumber}</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Payment Breakdown by Period */}
-                                <div className="bg-card border border-theme rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                                        <DollarSign className="w-5 h-5 text-green-600" />
-                                        Payment Breakdown - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
-                                    </h3>
-                                    {(() => {
-                                        const multipliers: Record<ProfileTimePeriod, number> = {
-                                            '1week': 0.25,
-                                            '2weeks': 0.5,
-                                            '1month': 1.0,
-                                            '6months': 6.0,
-                                            '1year': 12.0,
-                                            '2years': 24.0
-                                        };
-                                        const multiplier = multipliers[profileTimePeriod];
-                                        const periodEarnings = selectedProfile.totalEarnings * multiplier;
-                                        const periodBase = selectedProfile.baseSalary * multiplier;
-                                        const periodBonus = selectedProfile.bonus * multiplier;
-                                        const periodDeductions = selectedProfile.deductions * multiplier;
-
-                                        return (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                                                    <p className="text-sm font-medium text-green-600 mb-2">Total Earnings</p>
-                                                    <p className="text-2xl font-bold text-green-700 mb-2">{formatCurrency(periodEarnings)}</p>
-                                                </div>
-                                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                                                    <p className="text-sm font-medium text-[#00D1FF] mb-2">Base Salary</p>
-                                                    <p className="text-2xl font-bold text-blue-700 mb-2">{formatCurrency(periodBase)}</p>
-                                                </div>
-                                                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-                                                    <p className="text-sm font-medium text-purple-600 mb-2">Bonus</p>
-                                                    <p className="text-2xl font-bold text-purple-700 mb-2">{formatCurrency(periodBonus)}</p>
-                                                </div>
-                                                <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
-                                                    <p className="text-sm font-medium text-[#A855F7] mb-2">Deductions</p>
-                                                    <p className="text-2xl font-bold text-red-700 mb-2">{formatCurrency(periodDeductions)}</p>
-                                                </div>
-                                            </div>
-                                        );
-                                    })()}
-                                </div>
-
-                                {/* Driver Performance */}
-                                <div className="bg-card border border-theme rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                                        <MapPin className="w-5 h-5 text-[#F59E0B]" />
-                                        Driver Performance - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
-                                    </h3>
-                                    {(() => {
-                                        const multipliers: Record<ProfileTimePeriod, number> = {
-                                            '1week': 0.25,
-                                            '2weeks': 0.5,
-                                            '1month': 1.0,
-                                            '6months': 6.0,
-                                            '1year': 12.0,
-                                            '2years': 24.0
-                                        };
-                                        const multiplier = multipliers[profileTimePeriod];
-                                        const periodMiles = selectedProfile.milesDriven ? selectedProfile.milesDriven * multiplier : 0;
-                                        const periodTrips = selectedProfile.tripsCompleted ? Math.round(selectedProfile.tripsCompleted * multiplier) : 0;
-                                        const periodInvoices = Math.round(selectedProfile.invoices * multiplier);
-
-                                        return (
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                <div className="bg-card rounded-lg p-4 border border-orange-200">
-                                                    <p className="text-sm text-[#F59E0B] mb-1">Miles Driven</p>
-                                                    <p className="text-2xl font-bold text-orange-700">{formatNumber(periodMiles)}</p>
-                                                </div>
-                                                <div className="bg-card rounded-lg p-4 border border-blue-200">
-                                                    <p className="text-sm text-[#00D1FF] mb-1">Trips Completed</p>
-                                                    <p className="text-2xl font-bold text-blue-700">{periodTrips}</p>
-                                                </div>
-                                                <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-                                                    <p className="text-sm text-indigo-600 mb-1">Invoices</p>
-                                                    <p className="text-2xl font-bold text-indigo-700">{periodInvoices}</p>
-                                                </div>
-                                            </div>
-                                        );
-                                    })()}
-                                </div>
-
-                                {/* Attendance Details */}
-                                <div className="bg-card border border-theme rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                                        <Clock className="w-5 h-5 text-[#00D1FF]" />
-                                        Attendance & Working Hours - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
-                                    </h3>
-                                    {(() => {
-                                        const multipliers: Record<ProfileTimePeriod, number> = {
-                                            '1week': 0.25,
-                                            '2weeks': 0.5,
-                                            '1month': 1.0,
-                                            '6months': 6.0,
-                                            '1year': 12.0,
-                                            '2years': 24.0
-                                        };
-                                        const multiplier = multipliers[profileTimePeriod];
-                                        const periodDaysWorked = Math.round(selectedProfile.daysWorked * multiplier);
-                                        const periodPresentDays = Math.round(selectedProfile.presentDays * multiplier);
-                                        const periodAbsentDays = Math.round(selectedProfile.absentDays * multiplier);
-                                        const periodLateDays = Math.round(selectedProfile.lateDays * multiplier);
-                                        const periodLeaveDays = Math.round(selectedProfile.leaveDays * multiplier);
-                                        const periodTotalHours = selectedProfile.totalHours * multiplier;
-
-                                        return (
-                                            <>
-                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                    <div className="bg-card rounded-lg p-4 border border-blue-200">
-                                                        <p className="text-sm text-[#00D1FF] mb-1">Working Days</p>
-                                                        <p className="text-2xl font-bold text-blue-700">{periodDaysWorked}</p>
-                                                    </div>
-                                                    <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                                                        <p className="text-sm text-green-600 mb-1">Present Days</p>
-                                                        <p className="text-2xl font-bold text-green-700">{periodPresentDays}</p>
-                                                    </div>
-                                                    <div className="bg-card rounded-lg p-4 border border-red-200">
-                                                        <p className="text-sm text-[#A855F7] mb-1">Absent Days</p>
-                                                        <p className="text-2xl font-bold text-red-700">{periodAbsentDays}</p>
-                                                    </div>
-                                                    <div className="bg-card rounded-lg p-4 border border-yellow-200">
-                                                        <p className="text-sm text-[#00FFA3] mb-1">Late Days</p>
-                                                        <p className="text-2xl font-bold text-yellow-700">{periodLateDays}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div className="bg-card rounded-lg p-4 border border-purple-200">
-                                                        <p className="text-sm text-purple-600 mb-1">Total Hours</p>
-                                                        <p className="text-2xl font-bold text-purple-700">{formatNumber(periodTotalHours)} hrs</p>
-                                                    </div>
-                                                    <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-                                                        <p className="text-sm text-indigo-600 mb-1">Leave Days</p>
-                                                        <p className="text-2xl font-bold text-indigo-700">{periodLeaveDays}</p>
-                                                    </div>
-                                                </div>
-                                            </>
-                                        );
-                                    })()}
-                                </div>
-
-                                {/* Notes */}
-                                {selectedProfile.notes && (
-                                    <div className="bg-card border border-theme rounded-xl p-6">
-                                        <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                                            <AlertCircle className="w-5 h-5 text-amber-600" />
-                                            Notes
-                                        </h3>
-                                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                                            <p className="text-primary leading-relaxed">{selectedProfile.notes}</p>
+                                            )}
                                         </div>
                                     </div>
                                 )}
                             </div>
+
+                            {/* Payment Breakdown by Period */}
+                            <div className="bg-card border border-theme rounded-xl p-6">
+                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                                    <DollarSign className="w-5 h-5 text-green-600" />
+                                    Payment Breakdown - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
+                                </h3>
+                                {(() => {
+                                    const multipliers: Record<ProfileTimePeriod, number> = {
+                                        '1week': 0.25,
+                                        '2weeks': 0.5,
+                                        '1month': 1.0,
+                                        '6months': 6.0,
+                                        '1year': 12.0,
+                                        '2years': 24.0
+                                    };
+                                    const multiplier = multipliers[profileTimePeriod];
+                                    const periodEarnings = selectedProfile.totalEarnings * multiplier;
+                                    const periodBase = selectedProfile.baseSalary * multiplier;
+                                    const periodBonus = selectedProfile.bonus * multiplier;
+                                    const periodDeductions = selectedProfile.deductions * multiplier;
+
+                                    return (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                                                <p className="text-sm font-medium text-green-600 mb-2">Total Earnings</p>
+                                                <p className="text-2xl font-bold text-green-700 mb-2">{formatCurrency(periodEarnings)}</p>
+                                            </div>
+                                            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                                                <p className="text-sm font-medium text-[#00D1FF] mb-2">Base Salary</p>
+                                                <p className="text-2xl font-bold text-blue-700 mb-2">{formatCurrency(periodBase)}</p>
+                                            </div>
+                                            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                                                <p className="text-sm font-medium text-purple-600 mb-2">Bonus</p>
+                                                <p className="text-2xl font-bold text-purple-700 mb-2">{formatCurrency(periodBonus)}</p>
+                                            </div>
+                                            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
+                                                <p className="text-sm font-medium text-[#A855F7] mb-2">Deductions</p>
+                                                <p className="text-2xl font-bold text-red-700 mb-2">{formatCurrency(periodDeductions)}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+
+                            {/* Driver Performance */}
+                            <div className="bg-card border border-theme rounded-xl p-6">
+                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                                    <MapPin className="w-5 h-5 text-[#F59E0B]" />
+                                    Driver Performance - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
+                                </h3>
+                                {(() => {
+                                    const multipliers: Record<ProfileTimePeriod, number> = {
+                                        '1week': 0.25,
+                                        '2weeks': 0.5,
+                                        '1month': 1.0,
+                                        '6months': 6.0,
+                                        '1year': 12.0,
+                                        '2years': 24.0
+                                    };
+                                    const multiplier = multipliers[profileTimePeriod];
+                                    const periodMiles = selectedProfile.milesDriven ? selectedProfile.milesDriven * multiplier : 0;
+                                    const periodTrips = selectedProfile.tripsCompleted ? Math.round(selectedProfile.tripsCompleted * multiplier) : 0;
+                                    const periodInvoices = Math.round(selectedProfile.invoices * multiplier);
+
+                                    return (
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div className="bg-card rounded-lg p-4 border border-orange-200">
+                                                <p className="text-sm text-[#F59E0B] mb-1">Miles Driven</p>
+                                                <p className="text-2xl font-bold text-orange-700">{formatNumber(periodMiles)}</p>
+                                            </div>
+                                            <div className="bg-card rounded-lg p-4 border border-blue-200">
+                                                <p className="text-sm text-[#00D1FF] mb-1">Trips Completed</p>
+                                                <p className="text-2xl font-bold text-blue-700">{periodTrips}</p>
+                                            </div>
+                                            <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+                                                <p className="text-sm text-indigo-600 mb-1">Invoices</p>
+                                                <p className="text-2xl font-bold text-indigo-700">{periodInvoices}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+
+                            {/* Attendance Details */}
+                            <div className="bg-card border border-theme rounded-xl p-6">
+                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                                    <Clock className="w-5 h-5 text-[#00D1FF]" />
+                                    Attendance & Working Hours - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
+                                </h3>
+                                {(() => {
+                                    const multipliers: Record<ProfileTimePeriod, number> = {
+                                        '1week': 0.25,
+                                        '2weeks': 0.5,
+                                        '1month': 1.0,
+                                        '6months': 6.0,
+                                        '1year': 12.0,
+                                        '2years': 24.0
+                                    };
+                                    const multiplier = multipliers[profileTimePeriod];
+                                    const periodDaysWorked = Math.round(selectedProfile.daysWorked * multiplier);
+                                    const periodPresentDays = Math.round(selectedProfile.presentDays * multiplier);
+                                    const periodAbsentDays = Math.round(selectedProfile.absentDays * multiplier);
+                                    const periodLateDays = Math.round(selectedProfile.lateDays * multiplier);
+                                    const periodLeaveDays = Math.round(selectedProfile.leaveDays * multiplier);
+                                    const periodTotalHours = selectedProfile.totalHours * multiplier;
+
+                                    return (
+                                        <>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <div className="bg-card rounded-lg p-4 border border-blue-200">
+                                                    <p className="text-sm text-[#00D1FF] mb-1">Working Days</p>
+                                                    <p className="text-2xl font-bold text-blue-700">{periodDaysWorked}</p>
+                                                </div>
+                                                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                                                    <p className="text-sm text-green-600 mb-1">Present Days</p>
+                                                    <p className="text-2xl font-bold text-green-700">{periodPresentDays}</p>
+                                                </div>
+                                                <div className="bg-card rounded-lg p-4 border border-red-200">
+                                                    <p className="text-sm text-[#A855F7] mb-1">Absent Days</p>
+                                                    <p className="text-2xl font-bold text-red-700">{periodAbsentDays}</p>
+                                                </div>
+                                                <div className="bg-card rounded-lg p-4 border border-yellow-200">
+                                                    <p className="text-sm text-[#00FFA3] mb-1">Late Days</p>
+                                                    <p className="text-2xl font-bold text-yellow-700">{periodLateDays}</p>
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="bg-card rounded-lg p-4 border border-purple-200">
+                                                    <p className="text-sm text-purple-600 mb-1">Total Hours</p>
+                                                    <p className="text-2xl font-bold text-purple-700">{formatNumber(periodTotalHours)} hrs</p>
+                                                </div>
+                                                <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+                                                    <p className="text-sm text-indigo-600 mb-1">Leave Days</p>
+                                                    <p className="text-2xl font-bold text-indigo-700">{periodLeaveDays}</p>
+                                                </div>
+                                            </div>
+                                        </>
+                                    );
+                                })()}
+                            </div>
+
+                            {/* Notes */}
+                            {selectedProfile.notes && (
+                                <div className="bg-card border border-theme rounded-xl p-6">
+                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                                        <AlertCircle className="w-5 h-5 text-amber-600" />
+                                        Notes
+                                    </h3>
+                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                        <p className="text-primary leading-relaxed">{selectedProfile.notes}</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    </>
-                )}
-                {showDrugTestModal && selectedProfile && (
-                    <DrugTestUploadModal
-                        driverId={selectedProfile._id}
-                        driverName={selectedProfile.name}
-                        onClose={() => {
-                            setShowDrugTestModal(false);
-                            setEditingDrugTest(null);
-                        }}
-                        onSuccess={async () => {
-                            try {
-                                const response = await getDriverById(selectedProfile._id);
-                                if (response?.success && response.data) {
-                                    setDriverDetails(response.data);
-                                    const tests = response.data.details?.drug_tests || response.data.drug_tests || [];
-                                    setDrugTests(Array.isArray(tests) ? tests : []);
-                                }
-                            } catch (error) {
-                                console.error('Error refreshing driver details:', error);
+                    </div>
+                </>
+            )}
+            {showDrugTestModal && selectedProfile && (
+                <DrugTestUploadModal
+                    driverId={selectedProfile._id}
+                    driverName={selectedProfile.name}
+                    onClose={() => {
+                        setShowDrugTestModal(false);
+                        setEditingDrugTest(null);
+                    }}
+                    onSuccess={async () => {
+                        try {
+                            const response = await getDriverById(selectedProfile._id);
+                            if (response?.success && response.data) {
+                                setDriverDetails(response.data);
+                                const tests = response.data.details?.drug_tests || response.data.drug_tests || [];
+                                setDrugTests(Array.isArray(tests) ? tests : []);
                             }
-                            setShowDrugTestModal(false);
-                            setEditingDrugTest(null);
-                        }}
-                        editingTest={editingDrugTest}
-                    />
-                )}
-            </div>
+                        } catch (error) {
+                            console.error('Error refreshing driver details:', error);
+                        }
+                        setShowDrugTestModal(false);
+                        setEditingDrugTest(null);
+                    }}
+                    editingTest={editingDrugTest}
+                />
+            )}
+        </div>
     );
 };
 
