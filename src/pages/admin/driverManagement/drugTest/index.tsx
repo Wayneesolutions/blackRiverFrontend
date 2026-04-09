@@ -492,8 +492,8 @@ const DrugTest = () => {
             <div className="mb-6">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
-                            <FlaskConical className="text-[#00D1FF]" size={32} />
+                        <h1 className="text-3xl font-bold text-[var(--accent-navyblue)] flex items-center gap-3">
+                            <FlaskConical className="text-[var(--accent-navyblue)]" size={32} />
                             Drug Test Management
                         </h1>
                         <p className="text-secondary mt-2">Manage driver drug test requests and tracking</p>
@@ -501,7 +501,7 @@ const DrugTest = () => {
                     <button
                         onClick={handleCreateRequestClick}
                         style={{
-                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                            background: 'linear-gradient(90deg, var(--accent-navyblue) 0%, var(--accent-navyblue) 40%, rgba(0,209,255,0.15) 100%)',
                         }}
                         className="flex items-center gap-2 px-6 py-3 !text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
                     >
@@ -628,7 +628,7 @@ const DrugTest = () => {
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-theme">
+                            <tbody className="bg-card divide-y divide-theme divide-white/5">
                                 {filteredRequests.map((request) => (
                                     <tr
                                         key={request._id}
