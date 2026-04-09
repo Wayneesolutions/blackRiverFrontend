@@ -195,11 +195,11 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
   };
 
   const bgColors = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-card border-red-200',
-    warning: 'bg-card border-yellow-200',
-    chat: 'bg-card border-blue-200',
-    document_upload: 'bg-green-50 border-green-200',
+    success: 'bg-card border-[var(--accent-green)]/20',
+    error: 'bg-card border-red-500/20',
+    warning: 'bg-card border-[var(--accent-orange)]/20',
+    chat: 'bg-card border-[var(--accent-blue)]/20',
+    document_upload: 'bg-card border-[var(--accent-green)]/20',
   };
 
   return (
@@ -1017,11 +1017,11 @@ const OrderList = () => {
         return "text-white";
       case "pending_review":
       case "verification_pending":
-        return "bg-amber-100 text-amber-800";
+        return "bg-[var(--accent-orange)]/10 text-[var(--accent-orange)]";
       case "completed":
-        return "bg-gray-100 text-primary";
+        return "bg-white/5 text-primary";
       default:
-        return "bg-gray-100 text-primary";
+        return "bg-white/5 text-primary";
     }
   };
 
@@ -1118,7 +1118,7 @@ const OrderList = () => {
   return (
     <div className="p-6 bg-main min-h-screen">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-primary">Order List</h1>
+        <h1 className="text-2xl font-bold text-[var(--accent-navyblue)]">Order List</h1>
         <button
           onClick={handleCreateOrder}
           style={{ background: PRIMARY_GRADIENT }}
@@ -1238,7 +1238,7 @@ const OrderList = () => {
             maxHeight: '20px',
             marginBottom: '2px',
             scrollbarWidth: 'thin',
-            scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+            scrollbarColor: '#224c75 #111c24' /* Firefox */
           }}
         >
           <div className="top-scroll-content" style={{ height: '1px' }}></div>
@@ -1252,85 +1252,85 @@ const OrderList = () => {
             <thead className="bg-card border-b border-theme">
               <tr>
 
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Load #
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Order #
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Rate
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Payment
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Customer
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Shipper City
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Shipper State
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Ship Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Time
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Receiver City
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Receiver State
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Receive Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Time
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Truck
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Trailer
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Driver/Carrier
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Co-Driver
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Booked
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Entry
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Temp.
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Hazmat
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Dispatcher
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Driver
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Driver Response
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Carrier
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Documents
                 </th>
               </tr>
@@ -1454,6 +1454,10 @@ const OrderList = () => {
                       <td className="px-4 py-4 whitespace-nowrap">
                         <select
                           value={order.status || 'quoted'}
+                          style={{
+                            backgroundColor: "#0F1F2E",
+                            color: "#fff"
+                          }}
                           onChange={async (e) => {
                             e.stopPropagation();
                             const newStatus = e.target.value;
@@ -1477,24 +1481,31 @@ const OrderList = () => {
                             }
                           }}
                           onClick={(e) => e.stopPropagation()}
-                          className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${order.status?.toLowerCase() === 'quoted' ? 'bg-[var(--accent-yellow)]/10 text-[var(--accent-yellow)]' :
-                            order.status?.toLowerCase() === 'planned' ? 'bg-blue-100 text-blue-800 ring-blue-600/20' :
-                              order.status?.toLowerCase() === 'completed' ? 'bg-card text-primary ring-gray-600/20' :
-                                order.status?.toLowerCase() === 'delivered' ? 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)]' :
-                                  order.status?.toLowerCase() === 'in-delivery' ? 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]' :
-                                    order.status?.toLowerCase() === 'pending_review' || order.status?.toLowerCase() === 'verification_pending' ? 'bg-amber-100 text-amber-800 ring-amber-600/20' :
-                                      order.status?.toLowerCase() === 'canceled' ? 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)]' :
-                                        'bg-gray-100 text-primary ring-gray-500/10'
+                          className={`text-xs font-medium rounded-full px-3 py-1.5 border 
+bg-[#0F1F2E] text-white 
+border-white/20 
+focus:ring-2 focus:ring-blue-500 
+cursor-pointer outline-none appearance-none
+${order.status?.toLowerCase() === 'quoted' ? 'text-yellow-400 border-yellow-400/30' :
+                              order.status?.toLowerCase() === 'planned' ? 'text-blue-400 border-blue-400/30' :
+                                order.status?.toLowerCase() === 'completed' ? 'text-green-400 border-green-400/30' :
+                                  order.status?.toLowerCase() === 'delivered' ? 'text-purple-400 border-purple-400/30' :
+                                    order.status?.toLowerCase() === 'in-delivery' ? 'text-blue-400 border-blue-400/30' :
+                                      order.status?.toLowerCase() === 'pending_review' || order.status?.toLowerCase() === 'verification_pending'
+                                        ? 'text-orange-400 border-orange-400/30' :
+                                        order.status?.toLowerCase() === 'canceled'
+                                          ? 'text-red-400 border-red-400/30' :
+                                          'text-white border-white/20'
                             }`}
                         >
-                          <option value="planned">Planned</option>
-                          <option value="quoted">Quoted</option>
-                          <option value="in-delivery">In Delivery</option>
-                          <option value="delivered">Delivered</option>
-                          <option value="pending_review">Pending Review</option>
-                          <option value="verification_pending">Verification Pending</option>
-                          <option value="completed">Completed</option>
-                          <option value="canceled">Canceled</option>
+                          <option value="planned" className="bg-[#0F1F2E] text-white">Planned</option>
+                          <option value="quoted" className="bg-[#0F1F2E] text-white">Quoted</option>
+                          <option value="in-delivery" className="bg-[#0F1F2E] text-white">In Delivery</option>
+                          <option value="delivered" className="bg-[#0F1F2E] text-white">Delivered</option>
+                          <option value="pending_review" className="bg-[#0F1F2E] text-white">Pending Review</option>
+                          <option value="verification_pending" className="bg-[#0F1F2E] text-white">Verification Pending</option>
+                          <option value="completed" className="bg-[#0F1F2E] text-white">Completed</option>
+                          <option value="canceled" className="bg-[#0F1F2E] text-red-400">Canceled</option>
                         </select>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
@@ -1517,14 +1528,32 @@ const OrderList = () => {
                             }
                           }}
                           onClick={(e) => e.stopPropagation()}
-                          className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${(order.accountingStatus || 'pending') === 'paid' ? 'bg-[var(--accent-green)]/10 text-[var(--accent-green)]' :
-                            (order.accountingStatus || 'pending') === 'unpaid' ? 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)]' :
-                              'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)]'
-                            }`}
+                          style={{
+                            backgroundColor: "#0F1F2E",
+                            color: "#fff"
+                          }}
+                          className={`
+      text-xs font-medium rounded-full px-3 py-1.5 border
+      bg-[#0F1F2E] border-white/20
+      focus:ring-2 focus:ring-blue-500
+      cursor-pointer outline-none appearance-none
+      ${(order.accountingStatus || 'pending') === 'paid'
+                              ? 'text-green-400 border-green-400/30'
+                              : (order.accountingStatus || 'pending') === 'unpaid'
+                                ? 'text-purple-400 border-purple-400/30'
+                                : 'text-orange-400 border-orange-400/30'
+                            }
+    `}
                         >
-                          <option value="pending">Pending</option>
-                          <option value="paid">Paid</option>
-                          <option value="unpaid">Unpaid</option>
+                          <option value="pending" className="bg-[#0F1F2E] text-orange-400">
+                            Pending
+                          </option>
+                          <option value="paid" className="bg-[#0F1F2E] text-green-400">
+                            Paid
+                          </option>
+                          <option value="unpaid" className="bg-[#0F1F2E] text-purple-400">
+                            Unpaid
+                          </option>
                         </select>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
@@ -1586,7 +1615,7 @@ const OrderList = () => {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         {(order as any).driverAcceptanceStatus === 'accepted' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700" title="Driver accepted this assignment">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-[var(--accent-green)]/10 text-[var(--accent-green)]" title="Driver accepted this assignment">
                             <FaCheckCircle size={10} /> Accepted
                           </span>
                         ) : (order as any).driverAcceptanceStatus === 'rejected' ? (

@@ -21,11 +21,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   const userRole = getUserRole();
   const isDispatcher = userRole === "dispatcher";
 
-  /** Role-based path transformer */
   const transformPath = (path: string): string =>
     isDispatcher ? path.replace(/^\/admin\//, "/") : path;
 
-  /** Build transformed sidebar links */
   const sidebarLinks = useMemo(() => {
     const mapLink = (link: any): any => {
       const updated = {
@@ -49,14 +47,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
     return links;
   }, [isDispatcher]);
 
-  /** Parent menu toggle */
   const toggleMenu = useCallback((key: string) => {
     setOpenMenus((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
   }, []);
 
-  /** Active route logic */
   const isActiveLink = (linkKey: string, isActive: boolean, pathname: string) => {
     const base = isDispatcher ? "/dispatch" : "/admin/dispatch";
     if (linkKey === base || linkKey === `${base}/operations`) {
@@ -89,10 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
 
         {/* Logo */}
         <div className="flex-shrink-0 flex justify-center items-center py-4 border-b border-theme">
-          <div
-            className="cursor-pointer flex items-center justify-center"
-            onClick={() => navigate(getDashboardRoute())}
-          >
+          <div className="cursor-pointer flex items-center justify-center" onClick={() => navigate(getDashboardRoute())}>
             {isCollapsed ? (
               <img src={Logo} alt="FleetGo Logo" className="h-auto w-6 transition-all duration-300" />
             ) : (
@@ -106,28 +99,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
           className="flex-1 flex flex-col relative overflow-y-auto overflow-x-hidden sidebar-scroll min-h-0"
           style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.08) transparent' }}
         >
-          <ul className="space-y-0 py-2">
-            {sidebarLinks.map((link) => (
-              <li key={link.key || link.label}>
-                {link.children ? (
-                  <>
-                    {/* PARENT ITEM */}
-                    <button
-                      onClick={() => toggleMenu(link.key)}
-                      className={`w-full transition group ${isCollapsed
-                          ? "flex flex-col items-center justify-center px-2 py-2"
-                          : "flex items-center px-4 py-2 gap-3"
-                        } ${openMenus.includes(link.key)
-                          ? "bg-[var(--accent-blue)]/10"
-                          : "hover:bg-[rgba(255,255,255,0.03)]"
-                        }`}
-                      title={link.label}
-                    >
-                      <span
-                        className={`${isCollapsed ? "text-2xl" : "text-xl"} ${openMenus.includes(link.key)
-                            ? "text-[var(--accent-blue)]"
-                            : "text-secondary group-hover:text-[var(--accent-blue)]"
-                          }`}
+          <div className="flex-1">
+            <ul className="py-2 space-y-0.5">
+              {sidebarLinks.map((link) => (
+                <li key={link.key || link.label} className="px-2">
+                  {link.children ? (
+                    <>
+                      {/* PARENT ITEM */}
+                      <button
+                        onClick={() => toggleMenu(link.key)}
+                        className={`w-full transition-all duration-200 group rounded-lg sidebar-item-hover ${
+                          isCollapsed
+                            ? 'flex flex-col items-center justify-center px-2 py-2'
+                            : 'flex items-center px-3 py-2 gap-3'
+                        } ${openMenus.includes(link.key) ? 'sidebar-item-active' : ''}`}
+                        title={link.label}
                       >
                         <span className={`transition-all duration-200 flex-shrink-0 ${isCollapsed ? 'text-2xl mb-1' : 'text-xl'} ${
                           openMenus.includes(link.key) ? 'text-white sidebar-icon-active' : 'text-secondary group-hover:text-white'
@@ -148,44 +134,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                         )}
                       </button>
 
-                      {!isCollapsed && (
-                        <>
-                          <span
-                            className={`flex-1 text-sm ${openMenus.includes(link.key)
-                                ? "text-[var(--accent-blue)]"
-                                : "text-primary group-hover:text-[var(--accent-blue)]"
-                              }`}
-                          >
-                            {link.label}
-                          </span>
-
-                          {openMenus.includes(link.key) ? (
-                            <FaChevronDown className="text-xs text-secondary" />
-                          ) : (
-                            <FaChevronRight className="text-xs text-secondary" />
-                          )}
-                        </>
-                      )}
-                    </button>
-
-                    {/* CHILD LINKS */}
-                    {!isCollapsed && openMenus.includes(link.key) && (
-                      <ul className="bg-card">
-                        {link.children.map((child: any) => {
-                          const pathname = window.location.pathname;
-                          const activeState = isActiveLink(
-                            child.key,
-                            pathname.includes(child.key),
-                            pathname
-                          );
-
-                          return (
-                            <li key={child.key}>
-                              <NavLink
-                                to={child.key}
-                                className={`flex items-center px-4 py-2 pl-12 text-sm transition ${activeState
-                                    ? "text-[var(--accent-blue)] bg-[var(--accent-blue)]/10"
-                                    : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[var(--accent-blue)]"
+                      {/* CHILD LINKS */}
+                      {!isCollapsed && openMenus.includes(link.key) && (
+                        <ul className="mt-0.5 space-y-0.5">
+                          {link.children.map((child: any) => {
+                            const pathname = window.location.pathname;
+                            const activeState = isActiveLink(child.key, pathname.includes(child.key), pathname);
+                            return (
+                              <li key={child.key} className="px-1">
+                                <NavLink
+                                  to={child.key}
+                                  className={`flex items-center w-full px-3 py-1.5 pl-9 gap-3 text-sm font-medium rounded-lg transition-all duration-200 sidebar-item-hover ${
+                                    activeState ? 'sidebar-item-active text-white' : 'text-secondary'
                                   }`}
                                 >
                                   <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60 flex-shrink-0" />
@@ -240,26 +200,36 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
           </div>
         </div>
 
-                      return `transition group ${isCollapsed
-                          ? "flex flex-col items-center justify-center px-2 py-2"
-                          : "flex items-center px-4 py-2 gap-3"
-                        } ${activeState
-                          ? "text-[var(--accent-blue)] bg-[var(--accent-blue)]/10"
-                          : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[var(--accent-blue)]"
-                        }`;
-                    }}
-                  >
-                    <span className={`${isCollapsed ? "text-2xl" : "text-xl"}`}>
-                      {link.icon}
-                    </span>
-                    {!isCollapsed && (
-                      <span className="text-sm font-medium">{link.label}</span>
-                    )}
-                  </NavLink>
-                )}
-              </li>
-            ))}
-          </ul>
+        {/* Profile section — fixed at bottom */}
+        <div className="flex-shrink-0 border-t border-[rgba(255,255,255,0.08)]">
+          {isCollapsed ? (
+            <div className="flex flex-col items-center gap-2 py-3 px-2">
+              <button
+                onClick={() => navigate(isDispatcher ? '/dispatch/profile' : '/admin/profile')}
+                className="w-9 h-9 rounded-full bg-[#42aeec]/20 flex items-center justify-center text-[#42aeec] hover:bg-[#42aeec]/30 transition-all"
+                title={userInfo?.userData?.name || 'Profile'}
+              >
+                <FaUser size={14} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 px-4 py-3">
+              <div className="w-9 h-9 rounded-full bg-[#42aeec]/20 flex-shrink-0 flex items-center justify-center text-[#42aeec]">
+                <FaUser size={14} />
+              </div>
+              <button
+                onClick={() => navigate(isDispatcher ? '/dispatch/profile' : '/admin/profile')}
+                className="flex-1 text-left min-w-0 hover:opacity-80 transition-opacity"
+              >
+                <p className="text-sm font-semibold text-primary truncate">
+                  {userInfo?.userData?.name || 'User'}
+                </p>
+                <p className="text-xs text-secondary truncate">
+                  {isDispatcher ? 'Dispatcher' : 'Admin'}
+                </p>
+              </button>
+            </div>
+          )}
         </div>
       </aside>
     </>
