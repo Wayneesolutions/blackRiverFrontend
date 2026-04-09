@@ -49,7 +49,7 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
   }, [notification.id, onClose]);
 
   return (
-    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg ' '  shadow-lg z-[10003] ${bgColors[notification.type]} min-w-[320px] max-w-[520px] animate-slide-in border-2 border-red-700`}>
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg ' '  shadow-lg z-[10003] ${bgColors[notification.type]} min-w-[320px] max-w-[520px] animate-slide-in `}>
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
@@ -670,7 +670,7 @@ const CustomersPage = () => {
         </div>
       )}
 
-      <div className="max-w-full mx-auto border-2 border-red-700">
+      <div className="max-w-full mx-auto ">
         {/* Header Section */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -680,7 +680,7 @@ const CustomersPage = () => {
               <button
                 onClick={handleExportCustomers}
                 title="Export to Excel"
-                className="w-10 h-10 !text-white rounded-lg flex items-center justify-center bg-[var(--accent-green)] hover:bg-[var(--accent-green)] transition-colors shadow-md"
+                className="w-10 h-10 !text-white rounded-lg flex items-center justify-center bg-[var(--accent-teal)] hover:bg-[var(--accent-green)] transition-colors shadow-md"
               >
                 <FileDown className="w-5 h-5" />
               </button>
