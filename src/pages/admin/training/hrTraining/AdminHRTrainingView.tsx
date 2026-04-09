@@ -536,10 +536,17 @@ const AdminHRTrainingView: React.FC = () => {
     <div className="p-6 bg-main min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-primary mb-2">HR Training Content</h1>
-          <p className="text-secondary">
-            View all training materials and Q&A content managed by HR
-          </p>
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-2xl shadow-lg bg-[rgba(17,131,224,0.1)]">
+              <FileText className="w-8 h-8 text-[var(--accent-navyblue)]" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-primary">HR Training Content</h1>
+              <p className="text-secondary mt-1">
+                View all training materials and Q&A content managed by HR
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="flex gap-6">
@@ -626,7 +633,7 @@ const AdminHRTrainingView: React.FC = () => {
                         {/* Dropdown Toggle Button */}
                         <button
                           onClick={() => setOpenDropdown(isDropdownOpen ? null : 'hr')}
-                          className="w-full mt-3 flex items-center justify-between px-2 py-1.5 text-xs font-medium text-[#8B9BB4] bg-[rgba(0,209,255,0.05)] rounded-lg border border-[rgba(0,209,255,0.2)] hover:bg-[rgba(0,209,255,0.1)] hover:text-[#00D1FF] transition-colors"
+                          className="w-full !mt-3 flex items-center justify-between px-2 py-1.5 text-xs font-medium text-[#8B9BB4] bg-[rgba(17,131,224,0.08)] rounded-lg border border-[rgba(17,131,224,0.2)] hover:bg-[rgba(17,131,224,0.15)] hover:text-[var(--accent-navyblue)] transition-colors"
                         >
                           <span>View Users ({roleUsers.length})</span>
                           <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
@@ -1052,7 +1059,7 @@ const AdminHRTrainingView: React.FC = () => {
                     type="button"
                     onClick={() => setShowAddTestTypeModal(true)}
                     disabled={uploading}
-                    className="px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    className="px-4 py-2 bg-[rgba(255,255,255,0.06)] text-primary border border-[rgba(255,255,255,0.1)] rounded-lg hover:bg-[rgba(255,255,255,0.1)] transition-colors disabled:opacity-50 flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add Type
@@ -1234,7 +1241,7 @@ const AdminHRTrainingView: React.FC = () => {
                     type="button"
                     onClick={() => setShowAddTestTypeModal(true)}
                     disabled={creatingQA}
-                    className="px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    className="px-4 py-2 bg-[rgba(255,255,255,0.06)] text-primary border border-[rgba(255,255,255,0.1)] rounded-lg hover:bg-[rgba(255,255,255,0.1)] transition-colors disabled:opacity-50 flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add Type
@@ -1273,7 +1280,7 @@ const AdminHRTrainingView: React.FC = () => {
                             type="button"
                             onClick={() => handleRemoveQuestionFromQA(index)}
                             disabled={creatingQA}
-                            className="text-[#A855F7] hover:text-red-700 ml-2 disabled:opacity-50"
+                            className="text-secondary hover:text-rose-400 ml-2 disabled:opacity-50"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -1287,7 +1294,7 @@ const AdminHRTrainingView: React.FC = () => {
                                 readOnly
                                 className="w-4 h-4"
                               />
-                              <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-green-600 font-medium' : 'text-secondary'}`}>
+                              <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-[#00FFA3] font-medium' : 'text-secondary'}`}>
                                 {String.fromCharCode(65 + optIdx)}. {option}
                                 {q.correctAnswer === optIdx && ' ✓ (Correct)'}
                               </span>
@@ -1364,7 +1371,7 @@ const AdminHRTrainingView: React.FC = () => {
                     type="button"
                     onClick={handleAddQuestionToQA}
                     disabled={creatingQA || !currentQQuestion.trim() || currentQOptions.filter(opt => opt.trim()).length < 2}
-                    className="w-full px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full px-4 py-2 bg-[rgba(255,255,255,0.06)] text-primary border border-[rgba(255,255,255,0.1)] rounded-lg hover:bg-[rgba(255,255,255,0.1)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add Question

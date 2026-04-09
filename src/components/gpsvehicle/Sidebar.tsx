@@ -1,11 +1,13 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback, memo } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { GpsSidebarLinks } from "../../utils/GpsSidebarlinks";
-import { FaChevronDown, FaChevronRight } from "react-icons/fa";
+import { FaChevronDown, FaChevronRight, FaUser } from "react-icons/fa";
 import { MdLocalShipping } from "react-icons/md";
 import Logo from "../../assets/images/LI.png";
 import FullLogo from "../../assets/FleetGo.png";
 import { getUserRole, getDashboardRoute } from "../../utils/auth";
+import { useSelector, shallowEqual } from "react-redux";
+import type { RootState } from "../../redux/store";
 
 interface SidebarProps {
   isCollapsed?: boolean;
@@ -14,6 +16,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const navigate = useNavigate();
+  const { userInfo } = useSelector((state: RootState) => state.userAuth, shallowEqual);
 
   const userRole = getUserRole();
   const isDispatcher = userRole === "dispatcher";
@@ -44,11 +47,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
     return links;
   }, [isDispatcher]);
 
-  const toggleMenu = (key: string) => {
+  const toggleMenu = useCallback((key: string) => {
     setOpenMenus((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
-  };
+  }, []);
 
   const isActiveLink = (linkKey: string, isActive: boolean, pathname: string) => {
     const base = isDispatcher ? "/gpsvehicle" : "/admin/gpsvehicle";
@@ -62,14 +65,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
     <>
       <style>{`
         .sidebar-scroll::-webkit-scrollbar { width: 4px; }
-        .sidebar-scroll::-webkit-scrollbar-track { background: #F3F4F6; }
-        .sidebar-scroll::-webkit-scrollbar-thumb { background: #9CA3AF; border-radius: 2px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+        .sidebar-item-active {
+          background: linear-gradient(to right, #06377a 0%, #06377a 55%, #121A2B 100%);
+          border-radius: 8px;
+        }
+        .sidebar-item-hover:hover:not(.sidebar-item-active) {
+          background: rgba(13, 71, 200, 0.15);
+          border-radius: 8px;
+        }
+        .sidebar-icon-active {
+          filter: drop-shadow(0 0 5px rgba(255,255,255,0.7)) brightness(1.3);
+        }
       `}</style>
 
-      <aside
-        className={`h-screen flex flex-col bg-card shadow-sm transition-all duration-300 ${isCollapsed ? "w-20" : "w-56"
-          }`}
-      >
+      <aside className={`h-screen flex flex-col bg-[var(--bg-card)] text-[var(--text-primary)] relative z-10 shadow-sm transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-56'}`}>
+
         {/* Logo */}
         <div className="flex-shrink-0 flex justify-center items-center py-4 border-b border-theme">
           <div
@@ -77,9 +90,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
             onClick={() => navigate(getDashboardRoute())}
           >
             {isCollapsed ? (
-              <img src={Logo} alt="Logo" className="w-6 h-auto" />
+              <img src={Logo} alt="Logo" className="w-6 h-auto transition-all duration-300" />
             ) : (
-              <img src={FullLogo} alt="Logo" className="max-h-10 h-auto" />
+              <img src={FullLogo} alt="Logo" className="max-h-10 h-auto transition-all duration-300" />
             )}
           </div>
         </div>
@@ -103,23 +116,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                             : "text-secondary group-hover:text-[var(--accent-blue)]"
                           }`}
                       >
-                        {link.icon}
-                      </span>
-                      {!isCollapsed && (
-                        <span className="flex-1 text-sm text-primary text-left">
-                          {link.label}
+                        <span className={`transition-all duration-200 flex-shrink-0 ${isCollapsed ? 'text-2xl mb-1' : 'text-xl'} ${
+                          openMenus.includes(link.key) ? 'text-white sidebar-icon-active' : 'text-secondary group-hover:text-white'
+                        }`}>
+                          {link.icon}
                         </span>
-                      )}
-                      {!isCollapsed && (
-                        <>
-                          {openMenus.includes(link.key) ? (
-                            <FaChevronDown className="text-xs text-secondary" />
-                          ) : (
-                            <FaChevronRight className="text-xs text-secondary" />
-                          )}
-                        </>
-                      )}
-                    </button>
+                        {!isCollapsed && (
+                          <>
+                            <span className={`flex-1 text-sm font-medium text-left transition-colors ${
+                              openMenus.includes(link.key) ? 'text-white' : 'text-primary group-hover:text-white'
+                            }`}>
+                              {link.label}
+                            </span>
+                            <span className={`flex-shrink-0 text-xs ${openMenus.includes(link.key) ? 'text-white/70' : 'text-secondary'}`}>
+                              {openMenus.includes(link.key) ? <FaChevronDown /> : <FaChevronRight />}
+                            </span>
+                          </>
+                        )}
+                      </button>
 
                     {/* Child Links */}
                     {!isCollapsed && openMenus.includes(link.key) && (
@@ -177,4 +191,4 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   );
 };
 
-export default Sidebar;
+export default memo(Sidebar);

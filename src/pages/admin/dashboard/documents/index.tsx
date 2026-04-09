@@ -123,7 +123,7 @@ const DocumentManagement: React.FC = () => {
       rgba(0,209,255,0.15) 100%
     )`,
     color: "#fff",
-    boxShadow: `0 12px 24px ${FLEET_COLORS.focusRing}`,
+    boxShadow: `0 12px 24px rgba(17, 131, 224, 0.25)`,
   };
 
   const getExtension = (doc: Document) => {
@@ -421,7 +421,7 @@ const DocumentManagement: React.FC = () => {
     switch (type.toLowerCase()) {
       case 'pdf': return <FileText className="text-[#A855F7]" size={24} />;
       case 'doc':
-      case 'docx': return <FileText className="text-[#00D1FF]" size={24} />;
+      case 'docx': return <FileText className="text-[#1183e0]" size={24} />;
       case 'xls':
       case 'xlsx': return <Sheet className="text-green-600" size={24} />;
       case 'jpg':
@@ -576,7 +576,7 @@ const DocumentManagement: React.FC = () => {
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 placeholder="e.g. Insurance, Maintenance, Training"
-                className="w-full px-4 py-2 bg-[#0B1220] border border-[rgba(0,209,255,0.15)] text-[#E6EDF3] placeholder-[#8B9BB4] rounded-lg focus:outline-none focus:border-[#00D1FF] focus:ring-1 focus:ring-[rgba(0,209,255,0.3)] transition-colors"
+                className="w-full px-4 py-2 bg-[#0B1220] border border-[rgba(17,131,224,0.2)] text-[#E6EDF3] placeholder-[#8B9BB4] rounded-lg focus:outline-none focus:border-[#1183e0] focus:ring-1 focus:ring-[rgba(17,131,224,0.3)] transition-colors"
               />
               <div className="flex gap-3 pt-2">
                 <button
@@ -626,7 +626,7 @@ const DocumentManagement: React.FC = () => {
               <input
                 value={editCategoryName}
                 onChange={(e) => setEditCategoryName(e.target.value)}
-                className="w-full px-4 py-2 bg-[#0B1220] border border-[rgba(0,209,255,0.15)] text-[#E6EDF3] rounded-lg focus:outline-none focus:border-[#00D1FF] focus:ring-1 focus:ring-[rgba(0,209,255,0.3)] transition-colors"
+                className="w-full px-4 py-2 bg-[#0B1220] border border-[rgba(17,131,224,0.2)] text-[#E6EDF3] rounded-lg focus:outline-none focus:border-[#1183e0] focus:ring-1 focus:ring-[rgba(17,131,224,0.3)] transition-colors"
               />
               <div className="flex gap-3 pt-2">
                 <button
@@ -702,14 +702,14 @@ const DocumentManagement: React.FC = () => {
         <div
           className="bg-card rounded-2xl shadow-md border p-5 mb-6"
           style={{
-            borderColor: FLEET_COLORS.focusRing,
-            boxShadow: `0 4px 20px ${FLEET_COLORS.focusRing}15`
+            borderColor: 'rgba(17, 131, 224, 0.2)',
+            boxShadow: `0 4px 20px rgba(17, 131, 224, 0.1)`
           }}
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold mb-1.5" style={{ color: FLEET_COLORS.dark }}>Company Documents</h1>
-              <p className="text-xs text-secondary" style={{ color: FLEET_COLORS.light }}>Manage and organize your company documents in one place</p>
+              <h1 className="text-2xl font-bold mb-1.5" style={{ color: '#1183e0' }}>Company Documents</h1>
+              <p className="text-xs text-secondary">Manage and organize your company documents in one place</p>
             </div>
             <button
               onClick={() => {
@@ -746,7 +746,7 @@ const DocumentManagement: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setErrorMessage(null)}
-                  className="inline-flex text-red-400 hover:text-[#A855F7] focus:outline-none transition-colors"
+                  className="inline-flex text-red-400 hover:text-[#1183e0] focus:outline-none transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -760,16 +760,16 @@ const DocumentManagement: React.FC = () => {
           <div className="lg:col-span-1">
             <div
               className="bg-card rounded-2xl shadow-sm border sticky top-6"
-              style={{ borderColor: FLEET_COLORS.focusRing }}
+              style={{ borderColor: 'rgba(17, 131, 224, 0.2)' }}
             >
               <div className="p-4 border-b border-theme">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-semibold text-sm" style={{ color: FLEET_COLORS.dark }}>Categories</h3>
+                  <h3 className="font-semibold text-sm" style={{ color: '#1183e0' }}>Categories</h3>
                   <button
                     type="button"
                     onClick={() => setShowCreateCategory(true)}
                     className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold border hover:bg-[rgba(255,255,255,0.03)]"
-                    style={{ borderColor: FLEET_COLORS.focusRing, color: FLEET_COLORS.dark }}
+                    style={{ borderColor: 'rgba(17, 131, 224, 0.25)', color: '#1183e0' }}
                     title="Create category"
                   >
                     <Plus size={14} />
@@ -786,13 +786,13 @@ const DocumentManagement: React.FC = () => {
                       key={category.key}
                       onClick={() => setSelectedCategory(category.key)}
                       className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-xs font-medium ${isActive
-                        ? 'bg-[#182235] border border-[rgba(0,209,255,0.25)] text-[#00D1FF]'
+                        ? 'bg-[#182235] border border-[rgba(17,131,224,0.3)] text-[#1183e0]'
                         : 'text-[#8B9BB4] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#E6EDF3]'
                         }`}
                     >
                       <Icon size={17} />
                       <span className="flex-1 text-left">{category.name}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${isActive ? 'bg-[#00D1FF]/20 text-[#00D1FF]' : 'bg-[rgba(255,255,255,0.08)] text-[#8B9BB4]'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${isActive ? 'bg-[#1183e0]/20 text-[#1183e0]' : 'bg-[rgba(255,255,255,0.08)] text-[#8B9BB4]'}`}>
                         {category.count}
                       </span>
                       {category.key !== "all" && category.id && (
@@ -800,7 +800,7 @@ const DocumentManagement: React.FC = () => {
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); openEditCategory(category); }}
-                            className="p-1 rounded hover:bg-[rgba(0,209,255,0.1)] hover:text-[#00D1FF] transition-colors"
+                            className="p-1 rounded hover:bg-[rgba(17,131,224,0.12)] hover:text-[#1183e0] transition-colors"
                             title="Edit category"
                           >
                             <Edit size={14} />
@@ -827,7 +827,7 @@ const DocumentManagement: React.FC = () => {
             {/* Search and Filter */}
             <div
               className="bg-card rounded-2xl shadow-sm border p-4 mb-5"
-              style={{ borderColor: FLEET_COLORS.focusRing }}
+              style={{ borderColor: 'rgba(17, 131, 224, 0.2)' }}
             >
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
@@ -837,13 +837,13 @@ const DocumentManagement: React.FC = () => {
                     placeholder="Search documents by name or description..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none bg-[#0B1220] border border-[rgba(0,209,255,0.15)] text-[#E6EDF3] placeholder-[#8B9BB4] focus:border-[#00D1FF] focus:ring-1 focus:ring-[rgba(0,209,255,0.3)] text-sm transition-all"
+                    className="w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none bg-[#0B1220] border border-[rgba(17,131,224,0.2)] text-[#E6EDF3] placeholder-[#8B9BB4] focus:border-[#1183e0] focus:ring-1 focus:ring-[rgba(17,131,224,0.3)] text-sm transition-all"
                     {...focusHandlers}
                   />
                 </div>
                 <button
                   className="px-4 py-2 border rounded-lg transition-all duration-200 font-medium flex items-center gap-2 text-sm hover:shadow-sm"
-                  style={{ borderColor: FLEET_COLORS.focusRing, color: FLEET_COLORS.dark }}
+                  style={{ borderColor: 'rgba(17, 131, 224, 0.25)', color: '#1183e0' }}
                 >
                   <Filter size={17} />
                   Filter
@@ -854,7 +854,7 @@ const DocumentManagement: React.FC = () => {
             {/* Documents Grid */}
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1183e0]"></div>
               </div>
             ) : errorMessage && requiresCompanySetup ? (
               <div className="bg-card rounded-xl shadow-sm border border-theme p-12 text-center">
@@ -874,7 +874,7 @@ const DocumentManagement: React.FC = () => {
                 {filteredDocuments.map((doc) => (
                   <div
                     key={doc._id}
-                    className="bg-card rounded-xl shadow-sm border border-theme hover:shadow-md hover:border-blue-300 transition-all duration-200 p-4 cursor-pointer group"
+                    className="bg-card rounded-xl shadow-sm border border-theme hover:shadow-md hover:border-[#1183e0]/40 transition-all duration-200 p-4 cursor-pointer group"
                     onClick={(e) => {
                       // Only open modal if clicking on the card itself, not on buttons
                       if ((e.target as HTMLElement).closest('button')) {
@@ -884,11 +884,11 @@ const DocumentManagement: React.FC = () => {
                     }}
                   >
                     <div className="flex items-start gap-3 mb-3">
-                      <div className="p-2 bg-card rounded-lg flex-shrink-0 group-hover:bg-blue-50 transition-colors">
+                      <div className="p-2 bg-card rounded-lg flex-shrink-0 group-hover:bg-[#1183e0]/10 transition-colors">
                         {getFileIcon(doc.type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sm text-primary truncate group-hover:text-[#00D1FF] transition-colors">{doc.name}</h4>
+                        <h4 className="font-semibold text-sm text-primary truncate group-hover:text-[#1183e0] transition-colors">{doc.name}</h4>
                         <p className="text-xs text-secondary mt-1">
                           {formatFileSize(doc.size)} • {doc.type.toUpperCase()}
                         </p>
@@ -922,7 +922,7 @@ const DocumentManagement: React.FC = () => {
                         style={{
                           background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)",
                           color: "#fff",
-                          boxShadow: `0 4px 12px ${FLEET_COLORS.focusRing}30`,
+                          boxShadow: `0 4px 12px rgba(17, 131, 224, 0.25)`,
                         }}
                       >
                         <Eye size={15} />
@@ -940,9 +940,9 @@ const DocumentManagement: React.FC = () => {
                           className="px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center justify-center 
                  hover:bg-[rgba(255,255,255,0.03)]"
                           style={{
-                            border: `1px solid ${FLEET_COLORS.focusRing}`,
-                            color: FLEET_COLORS.dark,
-                            background: "#fff",
+                            border: `1px solid rgba(17, 131, 224, 0.25)`,
+                            color: '#1183e0',
+                            background: "rgba(17, 131, 224, 0.08)",
                           }}
                           title="Download"
                         >
@@ -974,13 +974,13 @@ const DocumentManagement: React.FC = () => {
               </div>
             ) : (
               <div className="bg-card rounded-xl shadow-sm border border-theme p-12 text-center">
-                <FolderOpen size={60} className="mx-auto text-gray-300 mb-4" />
+                <FolderOpen size={60} className="mx-auto text-secondary mb-4" />
                 <h3 className="text-base font-semibold text-primary mb-2">No documents found</h3>
                 <p className="text-sm text-secondary mb-4">Try adjusting your search or filters</p>
                 <button
                   onClick={() => setUploadDialog(true)}
                   style={primaryButtonStyle}
-                  className="px-4 py-2  !text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm hover:shadow-lg"
+                  className="px-4 py-2 !text-white rounded-lg transition-all duration-200 font-medium text-sm hover:shadow-lg"
                 >
                   Upload First Document
                 </button>
@@ -1030,7 +1030,7 @@ const DocumentManagement: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setUploadModalError(null)}
-                        className="inline-flex text-red-400 hover:text-[#A855F7] focus:outline-none"
+                        className="inline-flex text-red-400 hover:text-[#1183e0] focus:outline-none"
                       >
                         <X size={16} />
                       </button>
@@ -1169,7 +1169,7 @@ const DocumentManagement: React.FC = () => {
             <div className="p-4 overflow-auto bg-card modal-content-iframe-container">
               {loadingSignedUrl ? (
                 <div className="flex flex-col items-center justify-center h-[70vh]">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mb-4"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-[#1183e0] mb-4"></div>
                   <p className="text-secondary">Loading document...</p>
                 </div>
               ) : (() => {
@@ -1221,7 +1221,7 @@ const DocumentManagement: React.FC = () => {
                               message.error('Download failed. Please try again.');
                             }
                           }}
-                          className="px-3 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                          className="px-3 py-2 bg-[#1183e0] !text-white rounded-lg hover:bg-[#0d6bc7] transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
                         >
                           <Download size={16} className="text-white" />
                           <span className="text-white">Download</span>
@@ -1234,7 +1234,7 @@ const DocumentManagement: React.FC = () => {
                             <p className="text-sm text-secondary mb-3">PDF could not be displayed in viewer.</p>
                             <button
                               onClick={() => window.open(docUrl, '_blank', 'noopener,noreferrer')}
-                              className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                              className="px-4 py-2 bg-[#1183e0] !text-white rounded-lg hover:bg-[#0d6bc7] transition-colors text-sm font-medium"
                             >
                               <span className="text-white">Open in New Tab</span>
                             </button>
@@ -1270,7 +1270,7 @@ const DocumentManagement: React.FC = () => {
                             a.click();
                             document.body.removeChild(a);
                           }}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                          className="px-4 py-2 bg-[#1183e0] text-white rounded-lg hover:bg-[#0d6bc7] transition-colors font-medium flex items-center gap-2"
                         >
                           <Download size={18} />
                           Download
@@ -1334,7 +1334,7 @@ const DocumentManagement: React.FC = () => {
                                 message.error('Download failed. Please try again.');
                               }
                             }}
-                            className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                            className="px-4 py-2 bg-[#1183e0] !text-white rounded-lg hover:bg-[#0d6bc7] transition-colors font-medium flex items-center gap-2"
                           >
                             <Download size={18} className="text-white" />
                             <span className="text-white">Download</span>
@@ -1375,7 +1375,7 @@ const DocumentManagement: React.FC = () => {
                               a.click();
                               document.body.removeChild(a);
                             }}
-                            className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                            className="px-4 py-2 bg-[#1183e0] !text-white rounded-lg hover:bg-[#0d6bc7] transition-colors font-medium flex items-center gap-2"
                           >
                             <Download size={18} className="text-white" />
                             <span className="text-white">Download</span>
@@ -1429,7 +1429,7 @@ const DocumentManagement: React.FC = () => {
                             a.click();
                             document.body.removeChild(a);
                           }}
-                          className="px-3 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                          className="px-3 py-2 bg-[#1183e0] !text-white rounded-lg hover:bg-[#0d6bc7] transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
                         >
                           <Download size={16} className="text-white" />
                           <span className="text-white">Download</span>
@@ -1485,7 +1485,7 @@ const DocumentManagement: React.FC = () => {
                             a.click();
                             document.body.removeChild(a);
                           }}
-                          className="px-3 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                          className="px-3 py-2 bg-[#1183e0] !text-white rounded-lg hover:bg-[#0d6bc7] transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
                         >
                           <Download size={16} className="text-white" />
                           <span className="text-white">Download</span>
@@ -1527,7 +1527,7 @@ const DocumentManagement: React.FC = () => {
                             a.click();
                             document.body.removeChild(a);
                           }}
-                          className="px-3 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                          className="px-3 py-2 bg-[#1183e0] !text-white rounded-lg hover:bg-[#0d6bc7] transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
                         >
                           <Download size={16} className="text-white" />
                           <span className="text-white">Download</span>
@@ -1569,7 +1569,7 @@ const DocumentManagement: React.FC = () => {
                               a.click();
                               document.body.removeChild(a);
                             }}
-                            className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                            className="px-4 py-2 bg-[#1183e0] !text-white rounded-lg hover:bg-[#0d6bc7] transition-colors font-medium flex items-center gap-2"
                           >
                             <Download size={18} className="text-white" />
                             <span className="text-white">Download</span>
@@ -1613,7 +1613,7 @@ const DocumentManagement: React.FC = () => {
                             a.click();
                             document.body.removeChild(a);
                           }}
-                          className="px-3 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                          className="px-3 py-2 bg-[#1183e0] !text-white rounded-lg hover:bg-[#0d6bc7] transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
                         >
                           <Download size={16} className="text-white" />
                           <span className="text-white">Download</span>
@@ -1638,7 +1638,7 @@ const DocumentManagement: React.FC = () => {
                           setForceDirectView(true);
                           setViewMode('iframe'); // Start with iframe view
                         }}
-                        className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                        className="px-4 py-2 bg-[#1183e0] !text-white rounded-lg hover:bg-[#0d6bc7] transition-colors font-medium flex items-center gap-2"
                       >
                         <Eye size={18} className="text-white" />
                         <span className="text-white">Try to View</span>

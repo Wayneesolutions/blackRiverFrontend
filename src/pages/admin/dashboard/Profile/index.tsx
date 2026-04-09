@@ -47,15 +47,15 @@ const ToastNotificationComponent = ({ notifications, removeNotification }: { not
   const icons = {
     success: <CheckCircle className="text-green-500" size={24} />,
     error: <XCircle className="text-red-500" size={24} />,
-    info: <User className="text-blue-500" size={24} />,
+    info: <User className="text-[#1183e0]" size={24} />,
     warning: <XCircle className="text-yellow-500" size={24} />
   };
 
   const bgColors = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-card border-red-200',
-    info: 'bg-card border-blue-200',
-    warning: 'bg-card border-yellow-200'
+    success: 'bg-[#00FFA3]/10 border-[#00FFA3]/30',
+    error: 'bg-card border-red-500/30',
+    info: 'bg-[rgba(17,131,224,0.08)] border-[rgba(17,131,224,0.25)]',
+    warning: 'bg-card border-yellow-500/30'
   };
 
   return (
@@ -114,17 +114,17 @@ const ProfilePage = () => {
   const focusHandlers = getFocusStyles();
   const sharedInputProps = {
     ...focusHandlers,
-    style: { border: `1px solid ${FLEET_COLORS.focusRing}` }
+    style: { border: `1px solid rgba(17, 131, 224, 0.2)`, background: '#0B1220', color: '#E6EDF3' }
   };
   const cardStyle: React.CSSProperties = {
-    borderColor: FLEET_COLORS.focusRing,
-    boxShadow: `0 25px 45px ${FLEET_COLORS.focusRing}`,
+    border: '1px solid rgba(17, 131, 224, 0.2)',
+    boxShadow: `0 4px 20px rgba(17, 131, 224, 0.08)`,
     borderRadius: "20px",
   };
   const primaryButtonStyle: React.CSSProperties = {
-    background: FLEET_COLORS.gradient,
+    background: 'linear-gradient(90deg, #1a8ee8 0%, #1183e0 40%, #0d6bc7 100%)',
     color: "#fff",
-    boxShadow: `0 15px 30px ${FLEET_COLORS.focusRing}`,
+    boxShadow: `0 8px 20px rgba(17, 131, 224, 0.25)`,
   };
 
   // Fetch user profile on mount
@@ -256,24 +256,24 @@ const ProfilePage = () => {
 
   if (fetchLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#EDF8FF" }}>
+      <div className="min-h-screen flex items-center justify-center bg-main">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: FLEET_COLORS.primary }}></div>
-          <p className="text-white">Loading profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: '#1183e0' }}></div>
+          <p className="text-primary">Loading profile...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen px-4" style={{ background: "#EDF8FF" }}>
+    <div className="min-h-screen px-4 bg-main">
       <div className="py-4">
         {/* Header */}
         <div className="bg-card p-4 mb-4" style={cardStyle}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold mb-1" style={{ color: FLEET_COLORS.dark }}>My Profile</h1>
-              <p className="text-sm" style={{ color: FLEET_COLORS.light }}>Manage your account information and preferences</p>
+              <h1 className="text-2xl font-bold mb-1" style={{ color: '#1183e0' }}>My Profile</h1>
+              <p className="text-sm text-secondary">Manage your account information and preferences</p>
             </div>
             {!isEditing && (
               <button
@@ -293,10 +293,10 @@ const ProfilePage = () => {
           <div className="space-y-4">
             {/* Profile Information */}
             <div className="bg-card" style={cardStyle}>
-              <div className="p-4 border-b" style={{ borderColor: FLEET_COLORS.focusRing }}>
+              <div className="p-4 border-b border-[rgba(17,131,224,0.15)]">
                 <div className="flex items-center gap-2">
-                  <User style={{ color: FLEET_COLORS.primary }} size={20} />
-                  <h2 className="text-lg font-bold" style={{ color: FLEET_COLORS.dark }}>Personal Information</h2>
+                  <User style={{ color: '#1183e0' }} size={20} />
+                  <h2 className="text-lg font-bold" style={{ color: '#1183e0' }}>Personal Information</h2>
                 </div>
               </div>
 
@@ -365,7 +365,7 @@ const ProfilePage = () => {
                 <div>
                   <label className="block text-xs font-semibold text-primary mb-1">Role</label>
                   <div className="px-3 py-2 bg-card rounded-lg">
-                    <span className="px-3 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium capitalize">
+                    <span className="px-3 py-0.5 bg-[rgba(17,131,224,0.15)] text-[#1183e0] rounded-full text-xs font-medium capitalize border border-[rgba(17,131,224,0.25)]">
                       {profile.role || 'Not set'}
                     </span>
                   </div>
@@ -377,10 +377,10 @@ const ProfilePage = () => {
             {/* Company Information */}
             {profile.company && (
               <div className="bg-card" style={cardStyle}>
-                <div className="p-4 border-b" style={{ borderColor: FLEET_COLORS.focusRing }}>
+                <div className="p-4 border-b border-[rgba(17,131,224,0.15)]">
                   <div className="flex items-center gap-2">
-                    <Building style={{ color: FLEET_COLORS.primary }} size={20} />
-                    <h2 className="text-lg font-bold" style={{ color: FLEET_COLORS.dark }}>Company Information</h2>
+                    <Building style={{ color: '#1183e0' }} size={20} />
+                    <h2 className="text-lg font-bold" style={{ color: '#1183e0' }}>Company Information</h2>
                   </div>
                 </div>
                 <div className="p-4">
@@ -398,10 +398,10 @@ const ProfilePage = () => {
           <div className="space-y-4">
             {/* Location Information */}
             <div className="bg-card" style={cardStyle}>
-              <div className="p-4 border-b" style={{ borderColor: FLEET_COLORS.focusRing }}>
+              <div className="p-4 border-b border-[rgba(17,131,224,0.15)]">
                 <div className="flex items-center gap-2">
-                  <MapPin style={{ color: FLEET_COLORS.primary }} size={20} />
-                  <h2 className="text-lg font-bold" style={{ color: FLEET_COLORS.dark }}>Location Information</h2>
+                  <MapPin style={{ color: '#1183e0' }} size={20} />
+                  <h2 className="text-lg font-bold" style={{ color: '#1183e0' }}>Location Information</h2>
                 </div>
               </div>
 
@@ -490,17 +490,17 @@ const ProfilePage = () => {
 
             {/* Password Section */}
             <div className="bg-card" style={cardStyle}>
-              <div className="p-4 border-b" style={{ borderColor: FLEET_COLORS.focusRing }}>
+              <div className="p-4 border-b border-[rgba(17,131,224,0.15)]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Key style={{ color: FLEET_COLORS.primary }} size={20} />
-                    <h2 className="text-lg font-bold" style={{ color: FLEET_COLORS.dark }}>Password</h2>
+                    <Key style={{ color: '#1183e0' }} size={20} />
+                    <h2 className="text-lg font-bold" style={{ color: '#1183e0' }}>Password</h2>
                   </div>
                   {!showPasswordSection && (
                     <button
                       onClick={() => setShowPasswordSection(true)}
                       className="px-3 py-1.5 rounded-lg transition-colors font-medium flex items-center gap-2 text-sm"
-                      style={{ border: `1px solid ${FLEET_COLORS.primary}`, color: FLEET_COLORS.primary }}
+                      style={{ border: `1px solid rgba(17, 131, 224, 0.35)`, color: '#1183e0' }}
                     >
                       <Key size={14} />
                       Change Password
@@ -561,7 +561,7 @@ const ProfilePage = () => {
                         ) : (
                           <>
                             <XCircle size={16} className="text-red-500" />
-                            <span className="text-xs text-[#A855F7]">Passwords do not match</span>
+                            <span className="text-xs text-red-400">Passwords do not match</span>
                           </>
                         )}
                       </div>
@@ -572,7 +572,7 @@ const ProfilePage = () => {
                     <button
                       onClick={handleCancelPassword}
                       disabled={loading}
-                      className="px-3 py-1.5 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 text-sm disabled:opacity-50"
+                      className="px-3 py-1.5 text-secondary bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] rounded-lg transition-colors font-medium flex items-center gap-2 text-sm disabled:opacity-50"
                     >
                       <X size={14} />
                       Cancel
@@ -609,7 +609,7 @@ const ProfilePage = () => {
               <button
                 onClick={handleCancelEdit}
                 disabled={loading}
-                className="px-3 py-1.5 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 text-sm disabled:opacity-50"
+                className="px-3 py-1.5 text-secondary bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] rounded-lg transition-colors font-medium flex items-center gap-2 text-sm disabled:opacity-50"
               >
                 <X size={14} />
                 Cancel

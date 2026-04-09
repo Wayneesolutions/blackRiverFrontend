@@ -1,11 +1,13 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback, memo } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { DispatchSidebarLinks } from "../../utils/DispatchSidebarLinks";
-import { FaChevronDown, FaChevronRight } from "react-icons/fa";
+import { FaChevronDown, FaChevronRight, FaUser } from "react-icons/fa";
 import Logo from "../../assets/images/LI.png";
 import FullLogo from "../../assets/FleetGo.png";
 import { MdOutlineMap } from "react-icons/md";
 import { getUserRole, getDashboardRoute } from "../../utils/auth";
+import { useSelector, shallowEqual } from "react-redux";
+import type { RootState } from "../../redux/store";
 
 interface SidebarProps {
   isCollapsed?: boolean;
@@ -14,6 +16,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const navigate = useNavigate();
+  const { userInfo } = useSelector((state: RootState) => state.userAuth, shallowEqual);
 
   const userRole = getUserRole();
   const isDispatcher = userRole === "dispatcher";
@@ -47,21 +50,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   }, [isDispatcher]);
 
   /** Parent menu toggle */
-  const toggleMenu = (key: string) => {
+  const toggleMenu = useCallback((key: string) => {
     setOpenMenus((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
-  };
+  }, []);
 
   /** Active route logic */
   const isActiveLink = (linkKey: string, isActive: boolean, pathname: string) => {
     const base = isDispatcher ? "/dispatch" : "/admin/dispatch";
-
     if (linkKey === base || linkKey === `${base}/operations`) {
-      return (
-        pathname === base ||
-        pathname === `${base}/operations/dashboard`
-      );
+      return pathname === base || pathname === `${base}/operations/dashboard`;
     }
     return isActive;
   };
@@ -70,43 +69,42 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
     <>
       <style>{`
         .sidebar-scroll::-webkit-scrollbar { width: 4px; }
-        .sidebar-scroll::-webkit-scrollbar-track { background: #F3F4F6; }
-        .sidebar-scroll::-webkit-scrollbar-thumb { background: #9CA3AF; border-radius: 2px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+        .sidebar-item-active {
+          background: linear-gradient(to right, #06377a 0%, #06377a 55%, #121A2B 100%);
+          border-radius: 8px;
+        }
+        .sidebar-item-hover:hover:not(.sidebar-item-active) {
+          background: rgba(13, 71, 200, 0.15);
+          border-radius: 8px;
+        }
+        .sidebar-icon-active {
+          filter: drop-shadow(0 0 5px rgba(255,255,255,0.7)) brightness(1.3);
+        }
       `}</style>
 
-      <aside
-        className={`h-screen flex flex-col bg-card shadow-sm transition-all duration-300 ${isCollapsed ? "w-20" : "w-56"
-          }`}
-      >
-        {/* --- LOGO SECTION --- */}
+      <aside className={`h-screen flex flex-col bg-[var(--bg-card)] text-[var(--text-primary)] relative z-10 shadow-sm transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-56'}`}>
 
+        {/* Logo */}
         <div className="flex-shrink-0 flex justify-center items-center py-4 border-b border-theme">
           <div
             className="cursor-pointer flex items-center justify-center"
             onClick={() => navigate(getDashboardRoute())}
           >
             {isCollapsed ? (
-              <img
-                src={Logo}
-                alt="FleetGo Logo"
-                className="h-auto w-6 transition-all duration-300"
-              />
+              <img src={Logo} alt="FleetGo Logo" className="h-auto w-6 transition-all duration-300" />
             ) : (
-              <img
-                src={FullLogo}
-                alt="FleetGo Logo"
-                className="h-auto max-h-10 transition-all duration-300"
-              />
+              <img src={FullLogo} alt="FleetGo Logo" className="h-auto max-h-10 transition-all duration-300" />
             )}
           </div>
         </div>
 
-
-
-        {/* --- SIDEBAR MENU --- */}
+        {/* Menu with scroll */}
         <div
-          className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scroll"
-          style={{ scrollbarWidth: "thin", scrollbarColor: "#9CA3AF #F3F4F6" }}
+          className="flex-1 flex flex-col relative overflow-y-auto overflow-x-hidden sidebar-scroll min-h-0"
+          style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.08) transparent' }}
         >
           <ul className="space-y-0 py-2">
             {sidebarLinks.map((link) => (
@@ -131,8 +129,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                             : "text-secondary group-hover:text-[var(--accent-blue)]"
                           }`}
                       >
-                        {link.icon}
-                      </span>
+                        <span className={`transition-all duration-200 flex-shrink-0 ${isCollapsed ? 'text-2xl mb-1' : 'text-xl'} ${
+                          openMenus.includes(link.key) ? 'text-white sidebar-icon-active' : 'text-secondary group-hover:text-white'
+                        }`}>
+                          {link.icon}
+                        </span>
+                        {!isCollapsed && (
+                          <>
+                            <span className={`flex-1 text-sm font-medium text-left transition-colors ${
+                              openMenus.includes(link.key) ? 'text-white' : 'text-primary group-hover:text-white'
+                            }`}>
+                              {link.label}
+                            </span>
+                            <span className={`flex-shrink-0 text-xs ${openMenus.includes(link.key) ? 'text-white/70' : 'text-secondary'}`}>
+                              {openMenus.includes(link.key) ? <FaChevronDown /> : <FaChevronRight />}
+                            </span>
+                          </>
+                        )}
+                      </button>
 
                       {!isCollapsed && (
                         <>
@@ -173,28 +187,58 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                                     ? "text-[var(--accent-blue)] bg-[var(--accent-blue)]/10"
                                     : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[var(--accent-blue)]"
                                   }`}
-                              >
-                                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>
-                                {child.label}
-                              </NavLink>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </>
-                ) : (
-                  /* NORMAL LINK */
-                  <NavLink
-                    to={link.key}
-                    title={link.label}
-                    className={({ isActive }) => {
-                      const pathname = window.location.pathname;
-                      const activeState = isActiveLink(
-                        link.key,
-                        isActive,
-                        pathname
-                      );
+                                >
+                                  <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60 flex-shrink-0" />
+                                  <span className="flex-1 text-left">{child.label}</span>
+                                </NavLink>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </>
+                  ) : (
+                    /* NORMAL LINK */
+                    <NavLink
+                      to={link.key}
+                      title={link.label}
+                      className={({ isActive }) => {
+                        const pathname = window.location.pathname;
+                        const activeState = isActiveLink(link.key, isActive, pathname);
+                        return `w-full transition-all duration-200 group rounded-lg sidebar-item-hover ${
+                          isCollapsed
+                            ? 'flex flex-col items-center justify-center px-2 py-2'
+                            : 'flex items-center px-3 py-2 gap-3'
+                        } ${activeState ? 'sidebar-item-active' : ''}`;
+                      }}
+                    >
+                      {({ isActive }) => {
+                        const pathname = window.location.pathname;
+                        const activeState = isActiveLink(link.key, isActive, pathname);
+                        return (
+                          <>
+                            <span className={`transition-all duration-200 flex-shrink-0 ${isCollapsed ? 'text-2xl mb-1' : 'text-xl'} ${
+                              activeState ? 'text-white sidebar-icon-active' : 'text-secondary group-hover:text-white'
+                            }`}>
+                              {link.icon}
+                            </span>
+                            {!isCollapsed && (
+                              <span className={`flex-1 text-sm font-medium text-left ${
+                                activeState ? 'text-white' : 'text-primary group-hover:text-white'
+                              }`}>
+                                {link.label}
+                              </span>
+                            )}
+                          </>
+                        );
+                      }}
+                    </NavLink>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
 
                       return `transition group ${isCollapsed
                           ? "flex flex-col items-center justify-center px-2 py-2"
@@ -222,4 +266,4 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   );
 };
 
-export default Sidebar;
+export default memo(Sidebar);
