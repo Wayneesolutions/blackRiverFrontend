@@ -260,7 +260,7 @@ const UserProfilesPortfolio: React.FC = () => {
             'Fleet Maintenance Manager': 'bg-indigo-100 text-indigo-800',
             'Compliance Manager': 'bg-pink-100 text-pink-800'
         };
-        return colors[role] || 'bg-gray-100 text-primary';
+        return colors[role] || 'text-[var(--accent-orange)]text-primary';
     };
 
     const handleExportToExcel = async () => {
@@ -514,7 +514,9 @@ const UserProfilesPortfolio: React.FC = () => {
                                 placeholder="Search by name or email..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 w-full border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                                className="pl-10 pr-4 py-2 w-full border bg-card text-primary border border-theme rounded-lg
+focus:ring-2 focus:ring-[var(--accent-blue)]/30
+focus:border-[var(--accent-blue)] focus:border-transparent"
                                 style={focusRingStyle}
                             />
                         </div>
@@ -528,7 +530,7 @@ const UserProfilesPortfolio: React.FC = () => {
                                     <button
                                         key={period}
                                         onClick={() => setTimePeriod(period)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timePeriod === period ? '!text-white shadow-md' : 'bg-gray-100 text-primary hover:bg-gray-200'
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timePeriod === period ? '!text-white shadow-md' : 'text-[var(--accent-orange)]text-primary bg-card border border-theme hover:bg-[rgba(255,255,255,0.05)]'
                                             }`}
                                         style={timePeriod === period ? { background: ACCENT_GRADIENT } : undefined}
                                     >
@@ -545,7 +547,8 @@ const UserProfilesPortfolio: React.FC = () => {
                             <select
                                 value={selectedRole}
                                 onChange={(e) => setSelectedRole(e.target.value as UserRole)}
-                                className="px-4 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                                className="px-4 py-2 border border-theme rounded-lg text-sm focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                 style={focusRingStyle}
                             >
                                 <option value="all">All Roles</option>
@@ -561,7 +564,7 @@ const UserProfilesPortfolio: React.FC = () => {
                 </div>
 
                 {loading && (
-                    <div className="mb-4 rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-indigo-700">
+                    <div className="mb-4 rounded-lg border bg-[var(--accent-indigo)] p-3 text-[var(--accent-indigo)]">
                         Loading employee profiles...
                     </div>
                 )}
