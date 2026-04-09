@@ -347,7 +347,7 @@ const DriversTable = () => {
                 <div className="px-6 py-4">
                     <div className="flex items-center justify-between">
                         {/* Left side: Title */}
-                        <h1 className="text-2xl font-semibold text-primary">
+                        <h1 className="text-2xl font-semibold text-[var(--accent-navyblue)]">
                             Drivers
                         </h1>
 
@@ -503,7 +503,7 @@ const DriversTable = () => {
                                 maxHeight: '20px',
                                 marginBottom: '2px',
                                 scrollbarWidth: 'thin',
-                                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                                scrollbarColor: '#224c75 #111c24'  /* Firefox */
                             }}
                         >
                             <div className="top-scroll-content" style={{ height: '1px' }}></div>
@@ -516,34 +516,34 @@ const DriversTable = () => {
                             <table className="w-full" style={{ minWidth: '1000px' }}>
                                 <thead className="bg-card border-b border-theme">
                                     <tr>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-secondary uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Name
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-secondary uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Email
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-secondary uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Internal ID
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-secondary uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Phone
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-secondary uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Country
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-secondary uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Current Assignment
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-secondary uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Route
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-secondary uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Miles / Loads
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-secondary uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Status
                                         </th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-secondary uppercase tracking-wider">
+                                        <th className="text-left px-6 py-3 text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                             Join Date
                                         </th>
                                     </tr>
@@ -810,7 +810,7 @@ const DriversTable = () => {
 
                                 <div className="space-y-6">
                                     {/* Driver Header */}
-                                    <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                                    <div className=" text-white p-6 rounded-lg border border-blue-200">
                                         <div className="flex items-center gap-4">
                                             <div className="h-20 w-20 flex-shrink-0">
                                                 <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600">
@@ -874,7 +874,7 @@ const DriversTable = () => {
                                     </div>
 
                                     {/* Professional Information */}
-                                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+                                    <div className=" p-6 rounded-lg ">
                                         <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
                                             <Briefcase size={20} className="text-[#00D1FF]" />
                                             Professional Information
@@ -1015,7 +1015,7 @@ const DriversTable = () => {
                                                 setShowDriverDetails(false);
                                                 setTimeout(() => setSelectedDriver(null), 300);
                                             }}
-                                            className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
+                                            className="px-6 py-2.5 bg-gray-200 !text-black font-medium rounded-lg hover:bg-gray-300 transition-all"
                                         >
                                             Close
                                         </button>

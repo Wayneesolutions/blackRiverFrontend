@@ -462,7 +462,7 @@ const Index = () => {
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase text-secondary">Dispatch Fleet</p>
-            <h1 className="text-3xl font-bold text-primary">Fleet Units</h1>
+            <h1 className="text-3xl font-bold text-[var(--accent-navyblue)]">Fleet Units</h1>
             <p className="text-sm text-secondary">
               View the same truck and trailer roster configured inside Fleet Maintenance.
             </p>
@@ -477,7 +477,7 @@ const Index = () => {
                   setSearchTerm("");
                   setStatusFilter("all");
                 }}
-                className={`px-4 py-2 text-sm font-semibold rounded-2xl transition-colors ${fleetTab === tab ? "bg-card text-accent shadow" : "text-secondary"
+                className={`px-4 py-2 text-sm font-semibold rounded-2xl transition-colors ${fleetTab === tab ? "bg-card !text-[var(--accent-navyblue)] shadow" : "text-secondary"
                   }`}
               >
                 {tab === "trucks" ? "Trucks" : "Trailers"}
@@ -551,7 +551,7 @@ const Index = () => {
             </select>
           </div>
 
-          <div className="rounded-2xl bg-card shadow-sm ring-1 ring-gray-100">
+          <div className=" bg-card">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
             <style>{`
               .top-scrollbar-container::-webkit-scrollbar {
@@ -582,7 +582,7 @@ const Index = () => {
                 maxHeight: '20px',
                 marginBottom: '2px',
                 scrollbarWidth: 'thin',
-                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                scrollbarColor: '#224c75 #111c24' /* Firefox */
               }}
             >
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
@@ -596,24 +596,24 @@ const Index = () => {
                 {/* Header */}
                 <thead className="bg-card">
                   <tr className="border-b border-theme">
-                    <th className="px-6 py-3 text-left font-semibold text-secondary">Unit No.</th>
-                    <th className="px-6 py-3 text-left font-semibold text-secondary">Type</th>
-                    <th className="px-6 py-3 text-left font-semibold text-secondary">Make / Model</th>
-                    <th className="px-6 py-3 text-left font-semibold text-secondary">VIN</th>
-                    <th className="px-6 py-3 text-left font-semibold text-secondary">License Plate</th>
-                    <th className="px-6 py-3 text-left font-semibold text-secondary">Year</th>
-                    <th className="px-6 py-3 text-left font-semibold text-secondary">Odometer</th>
+                    <th className="px-6 py-3 text-left font-semibold text-[var(--accent-navyblue)]">Unit No.</th>
+                    <th className="px-6 py-3 text-left font-semibold text-[var(--accent-navyblue)]">Type</th>
+                    <th className="px-6 py-3 text-left font-semibold text-[var(--accent-navyblue)]">Make / Model</th>
+                    <th className="px-6 py-3 text-left font-semibold text-[var(--accent-navyblue)]">VIN</th>
+                    <th className="px-6 py-3 text-left font-semibold text-[var(--accent-navyblue)]">License Plate</th>
+                    <th className="px-6 py-3 text-left font-semibold text-[var(--accent-navyblue)]">Year</th>
+                    <th className="px-6 py-3 text-left font-semibold text-[var(--accent-navyblue)]">Odometer</th>
                     {fleetTab === "trailers" && (
-                      <th className="px-6 py-3 text-left font-semibold text-secondary">Capacity</th>
+                      <th className="px-6 py-3 text-left font-semibold text-[var(--accent-navyblue)]">Capacity</th>
                     )}
-                    <th className="px-6 py-3 text-left font-semibold text-secondary">Dispatch Snapshot</th>
-                    <th className="px-6 py-3 text-left font-semibold text-secondary">Status</th>
-                    <th className="px-6 py-3 text-left font-semibold text-secondary">Comment</th>
+                    <th className="px-6 py-3 text-left font-semibold text-[var(--accent-navyblue)]">Dispatch Snapshot</th>
+                    <th className="px-6 py-3 text-left font-semibold text-[var(--accent-navyblue)]">Status</th>
+                    <th className="px-6 py-3 text-left font-semibold text-[var(--accent-navyblue)]">Comment</th>
                   </tr>
                 </thead>
 
                 {/* Body */}
-                <tbody className="divide-y divide-theme">
+                <tbody className="divide-theme">
                   {fleetUnitsLoading ? (
                     <tr>
                       <td
@@ -922,7 +922,7 @@ const Index = () => {
                     if (!assignment && !loadStats) return null;
 
                     return (
-                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-theme">
+                      <div className=" p-6 rounded-lg border border-theme">
                         <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
                           <MapPin size={20} className="text-accent" />
                           Dispatch Snapshot

@@ -108,22 +108,22 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const addAuditTrailEntry = useCallback((action: string) => {
         // Get current user from localStorage
         const userInfo = getUserInfo();
-        const userName = userInfo?.userData?.name || 
-                        userInfo?.userData?.email || 
-                        userInfo?.name || 
-                        'System';
-        
+        const userName = userInfo?.userData?.name ||
+            userInfo?.userData?.email ||
+            userInfo?.name ||
+            'System';
+
         const newEntry = {
             id: Date.now(),
             user: userName,
             action: action,
-            date: new Date().toLocaleString('en-US', { 
-                month: '2-digit', 
-                day: '2-digit', 
+            date: new Date().toLocaleString('en-US', {
+                month: '2-digit',
+                day: '2-digit',
                 year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
-                hour12: true 
+                hour12: true
             })
         };
         setAuditTrail(prev => [newEntry, ...prev]);
@@ -297,7 +297,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [pickupEndTime, setPickupEndTime] = useState("TBA");
     const [pickupSpecialInstructions, setPickupSpecialInstructions] = useState("");
     const [pickupGatePass, setPickupGatePass] = useState("");
-    
+
     // Goods and Pick Up Details
     const [goods, setGoods] = useState("");
     const [pickUpNotes, setPickUpNotes] = useState("");
@@ -381,25 +381,25 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [truckSearch, setTruckSearch] = useState("");
     const [truckDropdownOpen, setTruckDropdownOpen] = useState(false);
     const [trucks, setTrucks] = useState<any[]>([]);
-    
+
     const [selectedTrailer, setSelectedTrailer] = useState<any>(null);
     const [trailerSearch, setTrailerSearch] = useState("");
     const [trailerDropdownOpen, setTrailerDropdownOpen] = useState(false);
     const [trailers, setTrailers] = useState<any[]>([]);
-    
+
     const [selectedDriver, setSelectedDriver] = useState<any>(null);
     const [driverSearch, setDriverSearch] = useState("");
     const [driverDropdownOpen, setDriverDropdownOpen] = useState(false);
     const [drivers, setDrivers] = useState<any[]>([]);
-    
+
     const [selectedCoDriver, setSelectedCoDriver] = useState<any>(null);
     const [coDriverSearch, setCoDriverSearch] = useState("");
     const [coDriverDropdownOpen, setCoDriverDropdownOpen] = useState(false);
     const [coDrivers, setCoDrivers] = useState<any[]>([]);
-    
+
     // Drug test statuses for drivers (key: driverId, value: 'pending' | 'completed' | 'not-created')
     const [driverDrugTestStatuses, setDriverDrugTestStatuses] = useState<Record<string, 'pending' | 'completed' | 'not-created'>>({});
-    
+
     const [selectedCarrier, setSelectedCarrier] = useState<any>(null);
     const [carrierSearch, setCarrierSearch] = useState("");
     const [carrierDropdownOpen, setCarrierDropdownOpen] = useState(false);
@@ -436,7 +436,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [deductionMemo, setDeductionMemo] = useState("");
     const [deductionGst, setDeductionGst] = useState(false);
     const [deductionPresetMemo, setDeductionPresetMemo] = useState("");
-    
+
     // Miles section states
     const [routeSegments, setRouteSegments] = useState<Array<{
         from: string;
@@ -472,7 +472,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     // const [receiverNotes, setReceiverNotes] = useState("");
     // const [yardNotes2, setYardNotes2] = useState("");
     // const [smsPhoneNumber, setSmsPhoneNumber] = useState("+1 (647) 451-8874");
-    
+
     // Notes/Audit states
     const [noteType, setNoteType] = useState<"public" | "private">("public");
     const [noteText, setNoteText] = useState("");
@@ -506,7 +506,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
     const [podFile, setPodFile] = useState<File | null>(null);
     const [stampedManifestFile, setStampedManifestFile] = useState<File | null>(null);
-    
+
     // Existing document URLs (from database when editing)
     const [, setExistingDocuments] = useState<{
         bol?: string | null;
@@ -533,7 +533,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         try {
             setLoadingSalespersons(true);
             const response = await getAllEmployees(1, 100, undefined, 'salesperson', 'active');
-            
+
             if (response?.success && response.data) {
                 // Filter and map salespersons
                 const salespersonList = (Array.isArray(response.data) ? response.data : [])
@@ -714,20 +714,20 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                         setPickupLocationAddress(shipperAddrParts.join(' '));
                     }
                 }
-                
+
                 // Try to find matching customer for shipper
                 // Match by name, phone, or email
                 if (order.shipper.name || order.shipper.phone || order.shipper.email) {
                     const matchingShipperCustomer = customers.find(customer => {
-                        const nameMatch = order.shipper.name && customer.name && 
+                        const nameMatch = order.shipper.name && customer.name &&
                             customer.name.toLowerCase().trim() === order.shipper.name.toLowerCase().trim();
-                        const phoneMatch = order.shipper.phone && customer.phone && 
+                        const phoneMatch = order.shipper.phone && customer.phone &&
                             customer.phone.replace(/\D/g, '') === order.shipper.phone.replace(/\D/g, '');
-                        const emailMatch = order.shipper.email && customer.email && 
+                        const emailMatch = order.shipper.email && customer.email &&
                             customer.email.toLowerCase().trim() === order.shipper.email.toLowerCase().trim();
                         return nameMatch || phoneMatch || emailMatch;
                     });
-                    
+
                     if (matchingShipperCustomer) {
                         setSelectedShipperCustomer(matchingShipperCustomer);
                         setShipperCustomerSearch(matchingShipperCustomer.name || '');
@@ -766,20 +766,20 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 setReceiverName(order.receiver.name || '');
                 setReceiverPhone(order.receiver.phone || '');
                 setReceiverAddress(order.receiver.address || '');
-                
+
                 // Try to find matching customer for receiver
                 // Match by name, phone, or email
                 if (order.receiver.name || order.receiver.phone || order.receiver.email) {
                     const matchingReceiverCustomer = customers.find(customer => {
-                        const nameMatch = order.receiver.name && customer.name && 
+                        const nameMatch = order.receiver.name && customer.name &&
                             customer.name.toLowerCase().trim() === order.receiver.name.toLowerCase().trim();
-                        const phoneMatch = order.receiver.phone && customer.phone && 
+                        const phoneMatch = order.receiver.phone && customer.phone &&
                             customer.phone.replace(/\D/g, '') === order.receiver.phone.replace(/\D/g, '');
-                        const emailMatch = order.receiver.email && customer.email && 
+                        const emailMatch = order.receiver.email && customer.email &&
                             customer.email.toLowerCase().trim() === order.receiver.email.toLowerCase().trim();
                         return nameMatch || phoneMatch || emailMatch;
                     });
-                    
+
                     if (matchingReceiverCustomer) {
                         setSelectedReceiverCustomer(matchingReceiverCustomer);
                         setReceiverCustomerSearch(matchingReceiverCustomer.name || '');
@@ -820,7 +820,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             // Documents and Notes
             setInternalNotes(order.internalNotes || '');
             setCustomerNotes(order.customerNotes || '');
-            
+
             // Load notes array
             console.log('📝 [FRONTEND] Loading notes from order:', {
                 hasNotes: !!order.notes,
@@ -836,7 +836,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     type: note.type || 'public',
                     text: note.text || note.note || '',
                     user: note.user || note.createdBy || 'Unknown',
-                    date: note.createdAt 
+                    date: note.createdAt
                         ? new Date(note.createdAt).toLocaleString('en-US', {
                             month: '2-digit',
                             day: '2-digit',
@@ -852,7 +852,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 console.log('📝 [FRONTEND] No valid notes found, setting empty array');
                 setNotes([]);
             }
-            
+
             // Load attachments array
             if (order.attachments && Array.isArray(order.attachments)) {
                 setAttachments(order.attachments.map((att: any) => ({
@@ -933,7 +933,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             if (order.stops && Array.isArray(order.stops)) {
                 setStops(order.stops);
             }
-            
+
             // Existing documents (URLs from database)
             if (order.documents) {
                 setExistingDocuments({
@@ -956,7 +956,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     let trucksData = trucks;
                     let trailersData = trailers;
                     let driversData = drivers;
-                    
+
                     // Fetch trucks
                     if (trucks.length === 0) {
                         const trucksResponse = await listTrucks({ page: 1, limit: 100 });
@@ -976,7 +976,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                         setDrivers(driversData);
                         setCoDrivers(driversData); // Co-drivers use the same list
                     }
-                    
+
                     // Now set selected items using the fetched data
                     if (order.truck) {
                         const truckId = order.truck._id || order.truck.id || order.truck;
@@ -1023,7 +1023,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     }
                 }
             };
-            
+
             // Load assignment data
             loadAssignmentData();
         } else {
@@ -1123,7 +1123,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setExistingDocuments({});
             setInternalNotes('');
             setCustomerNotes('');
-            
+
             // Reset new fields
             setCustomerUnit('');
             setCustomerPostalCode('');
@@ -1157,7 +1157,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setInvoiceInstructions('');
             setInvoiceNotes('');
             setStops([]);
-            
+
             setCurrentStep(1);
         }
     }, [order, customers]);
@@ -1165,7 +1165,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     // Helper function to get customer address
     const getCustomerAddress = (customer: Customer | null): { address: string; city: string; state: string; country: string; zipCode: string; unit: string } => {
         if (!customer) return { address: '', city: '', state: '', country: '', zipCode: '', unit: '' };
-        
+
         return {
             address: customer.customerDetails?.address || customer.address || '',
             city: customer.customerDetails?.city || customer.city || '',
@@ -1212,9 +1212,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         }
     };
 
-  
+
     const equipmentTypes = ["DV", "RF", "FB", "HV", "SD", "DV/RF", "B-TRAIN", "FDA", "Double Drop", "Drayage", "Other", "PO", "Tri-Axle", "Tandem", "Quad-Axle"];
- 
+
 
     const customerDropdownRef = useRef<HTMLDivElement>(null);
     const shipperCustomerDropdownRef = useRef<HTMLDivElement>(null);
@@ -1246,7 +1246,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
- 
+
     // Filtered customers for shipper
     const filteredShipperOptions = useMemo(() => {
         const searchTerm = shipperCustomerSearch.toLowerCase();
@@ -1285,36 +1285,36 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         setSelectedCustomer(customer);
         setCustomerSearch("");
         setCustomerDropdownOpen(false);
-        
+
         // Auto-fill phone fields
         if (customer.customerDetails?.phonePrimary) {
             setCustomerPrimaryPhone(customer.customerDetails.phonePrimary);
         } else if (customer.phone) {
             setCustomerPrimaryPhone(customer.phone);
         }
-        
+
         // Auto-fill secondary phone
         if (customer.customerDetails?.phoneSecondary) {
             setCustomerSecondaryPhone(customer.customerDetails.phoneSecondary);
         }
-        
+
         // Auto-fill email fields
         if (customer.customerDetails?.emailPrimary) {
             setPayableEmail(customer.customerDetails.emailPrimary);
         } else if (customer.email) {
             setPayableEmail(customer.email);
         }
-        
+
         // Auto-fill secondary payable email
         if (customer.customerDetails?.emailSecondary) {
             setSecondaryPayableEmail(customer.customerDetails.emailSecondary);
         }
-        
+
         // Auto-fill contact
         if (customer.customerDetails?.contact) {
             setCustomerContact(customer.customerDetails.contact);
         }
-        
+
         // Auto-fill address fields
         const addr = getCustomerAddress(customer);
         if (addr.unit) setCustomerUnit(addr.unit);
@@ -1326,7 +1326,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         setSelectedShipperCustomer(customer);
         setShipperCustomerSearch("");
         setShipperCustomerDropdownOpen(false);
-        
+
         // Auto-fill shipper fields from customer
         if (customer.name) setShipperName(customer.name);
         if (customer.phone) {
@@ -1334,7 +1334,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setShipperPrimaryPhone(customer.phone);
         }
         if (customer.email) setShipperEmail(customer.email);
-        
+
         // Auto-fill address fields
         const addr = getCustomerAddress(customer);
         if (addr.address) setShipperAddress(addr.address);
@@ -1343,7 +1343,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         if (addr.state) setShipperProvince(addr.state);
         if (addr.city) setShipperCity(addr.city);
         if (addr.zipCode) setShipperPostalCode(addr.zipCode);
-        
+
         // Auto-fill pickup location address (full address as single string)
         const fullAddress = formatFullAddress(customer);
         setPickupLocationAddress(fullAddress);
@@ -1354,11 +1354,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         setSelectedReceiverCustomer(customer);
         setReceiverCustomerSearch("");
         setReceiverCustomerDropdownOpen(false);
-        
+
         // Auto-fill receiver fields from customer
         if (customer.name) setReceiverName(customer.name);
         if (customer.phone) setReceiverPhone(customer.phone);
-        
+
         // Auto-fill delivery location address (full address as single string)
         const fullAddress = formatFullAddress(customer);
         setDeliveryLocationAddress(fullAddress);
@@ -1370,14 +1370,14 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
 
 
-   
+
 
     // Invoice calculations
     const invoiceCalculations = useMemo(() => {
         const loadRate = parseFloat(rate) || 0;
         const taxPercent = parseFloat(taxAmount) || 0;
         const taxAmountValue = (loadRate * taxPercent) / 100;
-        
+
         // Calculate other charges
         let otherChargesTotal = 0;
         otherCharges.forEach(charge => {
@@ -1387,10 +1387,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 otherChargesTotal += (loadRate * parseFloat(charge.chargePercent)) / 100;
             }
         });
-        
+
         const subtotal = loadRate + otherChargesTotal;
         const total = subtotal + taxAmountValue;
-        
+
         return {
             loadRate,
             subtotal,
@@ -1483,7 +1483,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         setReceiverStops(updatedStops);
     };
 
- 
+
 
     // Helper function to render Shipper Panel
     const renderShipperPanel = (shipperData: {
@@ -1705,7 +1705,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 addNotification('error', "Please enter customer order number");
                 return false;
             }
-           
+
 
             if (borderRequired) {
                 if (!borderDirection) { addNotification('error', "Border Direction is required"); return false; }
@@ -1784,7 +1784,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             return;
         }
         // Receiver phone is also optional
-        
+
 
         setLoading(true);
         try {
@@ -2036,10 +2036,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             Object.keys(orderData).forEach((key) => {
                 const value = orderData[key as keyof typeof orderData];
                 if (value !== null && value !== undefined) {
-                    if (key === 'pickupLocation' || key === 'deliveryLocation' || 
-                        key === 'shipper' || key === 'receiver' || 
+                    if (key === 'pickupLocation' || key === 'deliveryLocation' ||
+                        key === 'shipper' || key === 'receiver' ||
                         key === 'pickupAppointmentDetails' || key === 'deliveryAppointmentDetails' ||
-                        key === 'borderInfo' || key === 'weatherConditions' || 
+                        key === 'borderInfo' || key === 'weatherConditions' ||
                         key === 'dimensions' || key === 'additionalInfo') {
                         // Stringify nested objects
                         formData.append(key, JSON.stringify(value));
@@ -2062,19 +2062,19 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 response = await updateOrder(order._id, formData);
                 if (response?.success) {
                     let message = "Order updated successfully!";
-                    
+
                     // Check for validation results
                     if (response?.validation) {
                         const validation = response.validation;
                         setValidationResults(validation); // Store validation results for display
-                        
+
                         if (validation.errors && validation.errors.length > 0) {
-                            const errorMessages = validation.errors.map((e: any) => 
+                            const errorMessages = validation.errors.map((e: any) =>
                                 `${e.document || 'Document'}: ${e.message}`
                             ).join('; ');
                             addNotification('error', `Order updated but document validation failed: ${errorMessages}`);
                         } else if (validation.warnings && validation.warnings.length > 0) {
-                            const warningMessages = validation.warnings.map((w: any) => 
+                            const warningMessages = validation.warnings.map((w: any) =>
                                 `${w.document || 'Document'}: ${w.message}`
                             ).join('; ');
                             addNotification('warning', `Order updated with warnings: ${warningMessages}`);
@@ -2087,7 +2087,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     } else {
                         setValidationResults(null); // Clear validation results if none
                     }
-                    
+
                     addNotification('success', message);
                     if (onSave) {
                         onSave();
@@ -2098,7 +2098,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 } else {
                     // Check if it's a validation error
                     if (response?.validation && !response.validation.valid) {
-                        const errorMessages = response.validation.errors?.map((e: any) => 
+                        const errorMessages = response.validation.errors?.map((e: any) =>
                             `${e.document || 'Document'}: ${e.message}`
                         ).join('; ') || response?.message || "Document validation failed";
                         addNotification('error', errorMessages);
@@ -2111,20 +2111,20 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 response = await createOrder(formData);
                 if (response?.success) {
                     let message = "Order created successfully!";
-                    
+
                     // Check for validation results
                     if (response?.validation) {
                         const validation = response.validation;
                         setValidationResults(validation); // Store validation results for display
-                        
+
                         if (validation.errors && validation.errors.length > 0) {
                             // Validation errors should have blocked creation, but show them if present
-                            const errorMessages = validation.errors.map((e: any) => 
+                            const errorMessages = validation.errors.map((e: any) =>
                                 `${e.document || 'Document'}: ${e.message}`
                             ).join('; ');
                             addNotification('error', `Order created but document validation failed: ${errorMessages}`);
                         } else if (validation.warnings && validation.warnings.length > 0) {
-                            const warningMessages = validation.warnings.map((w: any) => 
+                            const warningMessages = validation.warnings.map((w: any) =>
                                 `${w.document || 'Document'}: ${w.message}`
                             ).join('; ');
                             addNotification('warning', `Order created with warnings: ${warningMessages}`);
@@ -2137,7 +2137,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     } else {
                         setValidationResults(null); // Clear validation results if none
                     }
-                    
+
                     addNotification('success', message);
                     if (onSave) {
                         onSave();
@@ -2148,7 +2148,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 } else {
                     // Check if it's a validation error
                     if (response?.validation && !response.validation.valid) {
-                        const errorMessages = response.validation.errors?.map((e: any) => 
+                        const errorMessages = response.validation.errors?.map((e: any) =>
                             `${e.document || 'Document'}: ${e.message}`
                         ).join('; ') || response?.message || "Document validation failed";
                         addNotification('error', errorMessages);
@@ -2175,7 +2175,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         const R = 6371; // Earth's radius in kilometers
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = 
+        const a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
             Math.sin(dLon / 2) * Math.sin(dLon / 2);
@@ -2196,12 +2196,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         try {
             // Use OpenCage Geocoding API to get coordinates
             const OPENCAGE_API_KEY = import.meta.env.VITE_OPENCAGE_API_KEY || '9854722a0d444bbf96fa61cec79790b6';
-            
+
             // Geocode origin
             const originUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(originAddress)}&key=${OPENCAGE_API_KEY}`;
             const originRes = await fetch(originUrl);
             const originData = await originRes.json();
-            
+
             if (originData.status?.code !== 200 || !originData.results || originData.results.length === 0) {
                 throw new Error(`Could not geocode origin address: ${originData.status?.message || 'Unknown error'}`);
             }
@@ -2213,7 +2213,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             const destUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(destinationAddress)}&key=${OPENCAGE_API_KEY}`;
             const destRes = await fetch(destUrl);
             const destData = await destRes.json();
-            
+
             if (destData.status?.code !== 200 || !destData.results || destData.results.length === 0) {
                 throw new Error(`Could not geocode destination address: ${destData.status?.message || 'Unknown error'}`);
             }
@@ -2224,7 +2224,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             // Calculate distance using Haversine formula (straight-line distance)
             const distanceInKm = haversineDistance(originLat, originLng, destLat, destLng);
             const distanceInMiles = distanceInKm * 0.621371;
-            
+
             setCalculatedDistance(distanceInMiles);
             setDistance(distanceInMiles.toFixed(2));
             addNotification('success', `Distance calculated: ${distanceInMiles.toFixed(2)} miles (${distanceInKm.toFixed(2)} km)`);
@@ -2242,7 +2242,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     useEffect(() => {
         const originAddress = pickupLocationAddress || shipperAddress;
         const destinationAddress = deliveryLocationAddress || receiverAddress;
-        
+
         // Only auto-calculate if we're on the final review step and both addresses are available
         if (currentStep === 8 && originAddress && destinationAddress && !calculatedDistance && !calculatingDistance) {
             calculateDistance();
@@ -2284,26 +2284,26 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     if (response.success && response.data) {
                         const driversData = Array.isArray(response.data) ? response.data : response.data.data || [];
                         console.log('📋 Total drivers fetched:', driversData.length);
-                        
+
                         // Fetch onboarding status for each driver and calculate percentage
                         const driversWithOnboarding = await Promise.all(
                             driversData.map(async (driver: any) => {
                                 try {
                                     const driverId = driver._id || driver.id;
                                     const onboardingResponse = await getDriverOnboardingStatus(driverId);
-                                    
+
                                     if (onboardingResponse && onboardingResponse.success && onboardingResponse.data) {
                                         const onboarding = onboardingResponse.data;
-                                        
+
                                         // Calculate onboarding percentage
                                         // Weighted: Training (25%), Tests (50%), HR Approval (25%)
                                         // Tests are most important, so they get 50%
                                         let percentage = 0;
-                                        
+
                                         if (onboarding.trainingCompleted) percentage += 25;
                                         if (onboarding.testsCompleted) percentage += 50; // Most important step
                                         if (onboarding.hrApprovalStatus === 'APPROVED') percentage += 25;
-                                        
+
                                         // Alternative: If tests are completed, give at least 80% even if HR not approved yet
                                         // This allows drivers who passed tests to be eligible
                                         if (onboarding.testsCompleted && onboarding.trainingCompleted) {
@@ -2313,9 +2313,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 percentage = 80;
                                             }
                                         }
-                                        
+
                                         console.log(`📊 Driver ${driver.name || driverId}: Training=${onboarding.trainingCompleted}, Tests=${onboarding.testsCompleted}, HR=${onboarding.hrApprovalStatus}, Percentage=${percentage}%`);
-                                        
+
                                         return {
                                             ...driver,
                                             onboardingPercentage: percentage,
@@ -2349,7 +2349,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                 }
                             })
                         );
-                        
+
                         console.log('📊 Drivers with onboarding data:', driversWithOnboarding.length);
                         console.log('📊 Onboarding percentages:', driversWithOnboarding.map((d: any) => ({
                             name: d.name,
@@ -2357,13 +2357,13 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                             testsCompleted: d.testsCompleted,
                             hrApprovalStatus: d.hrApprovalStatus
                         })));
-                        
+
                         // Filter drivers to only show those with 80% or more onboarding passed AND HR approved
                         const eligibleDrivers = driversWithOnboarding.filter((driver: any) => {
                             const has80Percent = driver.onboardingPercentage >= 80;
                             const isHRApproved = driver.hrApprovalStatus === 'APPROVED';
                             const isEligible = has80Percent && isHRApproved;
-                            
+
                             if (!isEligible) {
                                 if (!has80Percent) {
                                     console.log(`🚫 Driver ${driver.name} filtered out: ${driver.onboardingPercentage}% < 80%`);
@@ -2373,28 +2373,28 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                             }
                             return isEligible;
                         });
-                        
+
                         console.log('✅ Eligible drivers (80%+ and HR Approved):', eligibleDrivers.length);
                         console.log('✅ Eligible drivers:', eligibleDrivers.map((d: any) => ({
                             name: d.name,
                             percentage: d.onboardingPercentage,
                             hrApprovalStatus: d.hrApprovalStatus
                         })));
-                        
+
                         setDrivers(eligibleDrivers);
                         setCoDrivers(eligibleDrivers); // Co-drivers use the same filtered list
-                        
+
                         // Fetch drug test statuses for cross-border eligible drivers
                         const crossBorderDrivers = eligibleDrivers.filter((driver: any) => {
-                            const crossBorderEligible = driver.details?.cross_border_eligible !== undefined 
-                                ? driver.details.cross_border_eligible 
+                            const crossBorderEligible = driver.details?.cross_border_eligible !== undefined
+                                ? driver.details.cross_border_eligible
                                 : (driver.cross_border_eligible !== undefined ? driver.cross_border_eligible : false);
                             return crossBorderEligible === true;
                         });
-                        
+
                         if (crossBorderDrivers.length > 0) {
                             const drugTestStatuses: Record<string, 'pending' | 'completed' | 'not-created'> = {};
-                            
+
                             await Promise.all(
                                 crossBorderDrivers.map(async (driver: any) => {
                                     const driverId = driver._id || driver.id;
@@ -2402,10 +2402,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         const drugTestResponse = await getDrugTests({ driverId });
                                         if (drugTestResponse?.success && Array.isArray(drugTestResponse.data) && drugTestResponse.data.length > 0) {
                                             // Get the most recent drug test
-                                            const latestTest = drugTestResponse.data.sort((a: any, b: any) => 
+                                            const latestTest = drugTestResponse.data.sort((a: any, b: any) =>
                                                 new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
                                             )[0];
-                                            
+
                                             if (latestTest.status === 'completed') {
                                                 drugTestStatuses[driverId] = 'completed';
                                             } else if (latestTest.status === 'pending' || latestTest.status === 'scheduled') {
@@ -2422,7 +2422,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                     }
                                 })
                             );
-                            
+
                             setDriverDrugTestStatuses(drugTestStatuses);
                             console.log('💊 Drug test statuses:', drugTestStatuses);
                         }
@@ -2510,14 +2510,14 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     useEffect(() => {
         if (currentStep === 5) {
             const segments: Array<{ from: string; to: string; miles: number; locked: boolean }> = [];
-            
+
             // Get origin (shipper)
             const origin = shipperAddress || pickupLocationAddress;
-           
-            
+
+
             // Get destinations (receivers)
             const destinations: Array<{ address: string; city: string }> = [];
-            
+
             // Add main receiver if exists
             if (receiverAddress || deliveryLocationAddress) {
                 destinations.push({
@@ -2525,7 +2525,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     city: receiverName || ''
                 });
             }
-            
+
             // Add receiver stops
             receiverStops.forEach(stop => {
                 if (stop.address) {
@@ -2535,7 +2535,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     });
                 }
             });
-            
+
             // Calculate segments
             if (origin && destinations.length > 0) {
                 let previousLocation = origin;
@@ -2554,9 +2554,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     }
                 });
             }
-            
+
             setRouteSegments(segments);
-            
+
             // Calculate total miles
             const total = segments.reduce((sum, seg) => sum + seg.miles, 0);
             setTotalMiles(total);
@@ -2595,15 +2595,15 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                         const filteredEntries = response.data
                             .filter((entry: any) => {
                                 const entryOrderId = entry.entityId || '';
-                                return entryOrderId === orderId || 
-                                       entryOrderId === orderNumber ||
-                                       entry.id?.includes(orderId);
+                                return entryOrderId === orderId ||
+                                    entryOrderId === orderNumber ||
+                                    entry.id?.includes(orderId);
                             })
                             .map((entry: any) => ({
                                 id: entry.id || entry._id || Date.now(),
                                 user: entry.user || 'Unknown',
                                 action: entry.action || 'Updated',
-                                date: entry.timestamp 
+                                date: entry.timestamp
                                     ? new Date(entry.timestamp).toLocaleString('en-US', {
                                         month: '2-digit',
                                         day: '2-digit',
@@ -2636,7 +2636,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     return (
         <div className="h-full flex flex-col bg-card">
             {/* Fixed Header */}
-            <div className="flex items-center justify-between p-5 border-b-2 border-theme bg-gradient-to-r from-white to-gray-50 flex-shrink-0 shadow-sm">
+            <div className="flex items-center justify-between p-5 border-b-2 border-theme bg-gradient-to-r from-[#0B1A2A] to-[#0F2A44] flex-shrink-0 shadow-sm">
                 <div className="flex-1">
                     <div className="flex items-center justify-between mb-3">
                         <h2 className="text-xl font-bold text-primary">{order ? 'Edit Order' : 'Create New Order'}</h2>
@@ -2683,12 +2683,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                 <p className="text-xs text-secondary mt-1 ml-10">Enter basic customer information and  details</p>
                             </div>
                             <div className="px-5 pt-5 pb-0 space-y-6">
-                             
+
 
                                 {/* Basic Information Section - Additional Customer Fields */}
                                 <div className="bg-card rounded-lg border border-theme p-4">
                                     <h4 className="text-sm font-semibold text-primary mb-4 pb-2 border-b border-theme flex items-center gap-2">
-                                       
+
                                         Basic Information
                                     </h4>
                                     <div className="space-y-4">
@@ -2704,7 +2704,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <input
                                                         type="text"
                                                         value={
-                                                            selectedCustomer 
+                                                            selectedCustomer
                                                                 ? `${selectedCustomer.name || ''} | ${formatFullAddress(selectedCustomer) || selectedCustomer.email || ''}`
                                                                 : customerSearch
                                                         }
@@ -2759,11 +2759,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             <div
                                                                                 key={`customer-${customer._id || customer.id}`}
                                                                                 onClick={() => handleCustomerSelect(customer)}
-                                                                                className={`px-3 py-2 cursor-pointer text-sm hover:bg-[rgba(255,255,255,0.03)] ${
-                                                                                    (selectedCustomer?._id || selectedCustomer?.id) === (customer._id || customer.id) ? 'bg-card' : ''
-                                                                                }`}
+                                                                                className={`px-3 py-2 cursor-pointer text-sm hover:bg-[rgba(255,255,255,0.03)] ${(selectedCustomer?._id || selectedCustomer?.id) === (customer._id || customer.id) ? 'bg-card' : ''
+                                                                                    }`}
                                                                             >
-                                                                                <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
+                                                                                <div className="font-medium !text-white">{customer.name || 'Unnamed Customer'}</div>
                                                                                 <div className="text-xs text-secondary">
                                                                                     {fullAddr || customer.email || customer.phone || ''}
                                                                                 </div>
@@ -3342,14 +3341,41 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 <select
                                                     value={newChargeCategory}
                                                     onChange={(e) => setNewChargeCategory(e.target.value)}
-                                                    className="w-full p-2 border border-theme rounded text-xs"
+                                                    style={{
+                                                        backgroundColor: "#0F1F2E",
+                                                        color: "#fff"
+                                                    }}
+                                                    className="
+    w-full p-2 rounded text-xs
+    bg-[#0F1F2E] text-white
+    border border-white/10
+    focus:outline-none focus:ring-2 focus:ring-[#00D1FF]
+    appearance-none cursor-pointer
+  "
                                                 >
-                                                    <option value="">Select Category</option>
-                                                    <option value="Fuel Surcharge - % Of Base Rate">Fuel Surcharge - % Of Base Rate</option>
-                                                    <option value="Bond Charges - $ Per Bond">Bond Charges - $ Per Bond</option>
-                                                    <option value="Dangerous Goods - $ Per DG">Dangerous Goods - $ Per DG</option>
-                                                    <option value="Reefer Surcharge - $">Reefer Surcharge - $</option>
-                                                    <option value="Scheduled Truck Cancellation Charge - $">Scheduled Truck Cancellation Charge - $</option>
+                                                    <option value="" className="bg-[#0F1F2E] text-white">
+                                                        Select Category
+                                                    </option>
+
+                                                    <option className="bg-[#0F1F2E] text-white" value="Fuel Surcharge - % Of Base Rate">
+                                                        Fuel Surcharge - % Of Base Rate
+                                                    </option>
+
+                                                    <option className="bg-[#0F1F2E] text-white" value="Bond Charges - $ Per Bond">
+                                                        Bond Charges - $ Per Bond
+                                                    </option>
+
+                                                    <option className="bg-[#0F1F2E] text-white" value="Dangerous Goods - $ Per DG">
+                                                        Dangerous Goods - $ Per DG
+                                                    </option>
+
+                                                    <option className="bg-[#0F1F2E] text-white" value="Reefer Surcharge - $">
+                                                        Reefer Surcharge - $
+                                                    </option>
+
+                                                    <option className="bg-[#0F1F2E] text-white" value="Scheduled Truck Cancellation Charge - $">
+                                                        Scheduled Truck Cancellation Charge - $
+                                                    </option>
                                                 </select>
                                             </div>
                                             <div className="col-span-2">
@@ -3434,7 +3460,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         </div>
                                     </div>
                                 </div>
-                            
+
                             </div>
                         </div>
                     )}
@@ -3556,7 +3582,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                             <input
                                                                 type="text"
                                                                 value={
-                                                                    selectedShipperCustomer 
+                                                                    selectedShipperCustomer
                                                                         ? `${selectedShipperCustomer.name || ''} | ${formatFullAddress(selectedShipperCustomer) || selectedShipperCustomer.email || ''}`
                                                                         : shipperCustomerSearch
                                                                 }
@@ -3615,11 +3641,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                     <div
                                                                                         key={`customer-${customer._id || customer.id}`}
                                                                                         onClick={() => handleShipperSelect(customer)}
-                                                                                        className={`px-3 py-2 cursor-pointer text-sm hover:bg-[rgba(255,255,255,0.03)] ${
-                                                                                            (selectedShipperCustomer?._id || selectedShipperCustomer?.id) === (customer._id || customer.id) ? 'bg-card' : ''
-                                                                                        }`}
+                                                                                        className={`px-3 py-2 cursor-pointer text-sm hover:bg-[rgba(255,255,255,0.03)] ${(selectedShipperCustomer?._id || selectedShipperCustomer?.id) === (customer._id || customer.id) ? 'bg-card' : ''
+                                                                                            }`}
                                                                                     >
-                                                                                        <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
+                                                                                        <div className="font-medium !text-white">{customer.name || 'Unnamed Customer'}</div>
                                                                                         <div className="text-xs text-secondary">
                                                                                             {fullAddr || customer.email || customer.phone || ''}
                                                                                         </div>
@@ -3806,11 +3831,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 <button
                                                                     key={type}
                                                                     onClick={() => setShipperType(type)}
-                                                                    className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
-                                                                        shipperType === type
-                                                                            ? "bg-blue-600 !text-white"
-                                                                            : "bg-gray-100 text-primary hover:bg-gray-200"
-                                                                    }`}
+                                                                    className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${shipperType === type
+                                                                        ? "!bg-[var(--accent-navyblue)] !text-white"
+                                                                        : "!bg-gray-100 !text-black hover:bg-gray-200"
+                                                                        }`}
                                                                 >
                                                                     {type}
                                                                 </button>
@@ -3923,11 +3947,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     key={type}
                                                                     onClick={() => setPickupAppointmentType(type)}
                                                                     type="button"
-                                                                    className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-all ${
-                                                                        pickupAppointmentType === type
-                                                                            ? "bg-blue-600 !text-white shadow-sm"
-                                                                            : "bg-gray-100 text-primary hover:bg-gray-200"
-                                                                    }`}
+                                                                    className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-all ${pickupAppointmentType === type
+                                                                        ? "bg-[var(--accent-navyblue)] !text-white shadow-sm"
+                                                                        : "bg-gray-100 !text-black hover:bg-gray-200"
+                                                                        }`}
                                                                 >
                                                                     {type}
                                                                 </button>
@@ -4047,7 +4070,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <div className="mt-4 pt-4 border-t border-theme">
                                                         <button
                                                             onClick={addStop}
-                                                            className="w-full px-4 py-2 bg-blue-600 !text-white rounded text-sm font-medium hover:bg-blue-700 flex items-center justify-center gap-2"
+                                                            className="w-full px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded text-sm font-medium bg-[var(--accent-navyblue)]/90 flex items-center justify-center gap-2"
                                                         >
                                                             <span className="text-lg font-bold">+</span>
                                                             <span>Add Stop to Table</span>
@@ -4068,7 +4091,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     {
                         currentStep === 3 && (
                             <div className="border-b border-theme">
-                                <div className="p-5 bg-gradient-to-r from-green-50 to-gray-50 border-b border-theme">
+                                <div className="p-5  border-b border-theme">
                                     <h3 className="text-base font-semibold text-primary flex items-center gap-2">
                                         <span className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold">3</span>
                                         Receiver Information
@@ -4179,7 +4202,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         <input
                                                             type="text"
                                                             value={
-                                                                selectedReceiverCustomer 
+                                                                selectedReceiverCustomer
                                                                     ? `${selectedReceiverCustomer.name || ''} | ${formatFullAddress(selectedReceiverCustomer) || selectedReceiverCustomer.email || ''}`
                                                                     : receiverCustomerSearch
                                                             }
@@ -4238,11 +4261,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                 <div
                                                                                     key={`customer-${customer._id || customer.id}`}
                                                                                     onClick={() => handleReceiverSelect(customer)}
-                                                                                    className={`px-3 py-2 cursor-pointer text-sm hover:bg-[rgba(255,255,255,0.03)] ${
-                                                                                        (selectedReceiverCustomer?._id || selectedReceiverCustomer?.id) === (customer._id || customer.id) ? 'bg-card' : ''
-                                                                                    }`}
+                                                                                    className={`px-3 py-2 cursor-pointer text-sm hover:bg-[rgba(255,255,255,0.03)] ${(selectedReceiverCustomer?._id || selectedReceiverCustomer?.id) === (customer._id || customer.id) ? 'bg-card' : ''
+                                                                                        }`}
                                                                                 >
-                                                                                    <div className="font-medium" style={{ color: PRIMARY_COLOR }}>{customer.name || 'Unnamed Customer'}</div>
+                                                                                    <div className="font-medium !text-white">{customer.name || 'Unnamed Customer'}</div>
                                                                                     <div className="text-xs text-secondary">
                                                                                         {fullAddr || customer.email || customer.phone || ''}
                                                                                     </div>
@@ -4319,7 +4341,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     />
                                                 </div>
                                             )}
-                                            
+
                                             {/* Receiver Address (editable when no customer selected) */}
                                             {!selectedReceiverCustomer && (
                                                 <div>
@@ -4335,7 +4357,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             )}
                                         </div>
                                     </div>
-                                
+
 
                                     {/* Goods and Drop Off Details */}
                                     <div className="bg-card rounded-lg border border-theme p-4">
@@ -4437,7 +4459,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             <div className="mt-4 pt-4 border-t border-theme">
                                                 <button
                                                     onClick={addReceiverStop}
-                                                    className="w-full px-4 py-2 bg-blue-600 !text-white rounded text-sm font-medium hover:bg-blue-700 flex items-center justify-center gap-2"
+                                                    className="w-full px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded text-sm font-medium hover:bg-[var(--accent-navyblue)]/90 flex items-center justify-center gap-2"
                                                 >
                                                     <span className="text-lg font-bold">+</span>
                                                     <span>Add Stop to Table</span>
@@ -4491,8 +4513,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 <div>
                                                     <span className="font-semibold text-primary">Dispatcher:</span>
                                                     <span className="ml-2 text-primary">
-                                                        {selectedSalesman 
-                                                            ? salespersons.find(s => s._id === selectedSalesman)?.name || selectedSalesman 
+                                                        {selectedSalesman
+                                                            ? salespersons.find(s => s._id === selectedSalesman)?.name || selectedSalesman
                                                             : 'N/A'}
                                                     </span>
                                                 </div>
@@ -4596,7 +4618,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         const dateParts = stop.date ? stop.date.split(' ') : [];
                                         const stopDate = dateParts[0] || '';
                                         const stopTime = dateParts.slice(1).join(' ') || 'TBA';
-                                        
+
                                         return (
                                             <div key={`receiver-stop-${index}`}>
                                                 {renderReceiverPanel({
@@ -4671,12 +4693,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 <tbody>
                                                     {jobStops.length > 0 ? (
                                                         jobStops.map((stop, index) => (
-                                                            <tr 
+                                                            <tr
                                                                 key={index}
                                                                 onClick={() => setSelectedStopIndex(index)}
-                                                                className={`border-b border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${
-                                                                    selectedStopIndex === index ? 'bg-card' : ''
-                                                                }`}
+                                                                className={`border-b border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${selectedStopIndex === index ? 'bg-card' : ''
+                                                                    }`}
                                                             >
                                                                 <td className="px-3 py-2 border-r border-theme">{stop.job}</td>
                                                                 <td className="px-3 py-2 border-r border-theme">
@@ -4856,7 +4877,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     setSelectedStopIndex(0);
                                                     addNotification('success', 'YARD START - Pick Up job added at the top');
                                                 }}
-                                                className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded text-xs font-medium text-primary"
+                                                className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded text-xs font-medium !text-black"
                                             >
                                                 YARD START
                                             </button>
@@ -4880,11 +4901,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     setSelectedStopIndex(updatedStops.length - 1);
                                                     addNotification('success', 'YARD END - Drop Off job added at the bottom');
                                                 }}
-                                                className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded text-xs font-medium text-primary"
+                                                className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded text-xs font-medium !text-black"
                                             >
                                                 YARD END
                                             </button>
-                                           
+
                                             <button
                                                 onClick={() => {
                                                     const newStop = {
@@ -4958,8 +4979,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <div>
                                                         <label className="text-xs font-medium text-secondary">Type</label>
                                                         <div className="mt-1 text-[#A855F7] font-medium">
-                                                            {jobStops[selectedStopIndex].type === "YARD START" || jobStops[selectedStopIndex].type === "YARD END" 
-                                                                ? jobStops[selectedStopIndex].type 
+                                                            {jobStops[selectedStopIndex].type === "YARD START" || jobStops[selectedStopIndex].type === "YARD END"
+                                                                ? jobStops[selectedStopIndex].type
                                                                 : jobStops[selectedStopIndex].type}
                                                         </div>
                                                     </div>
@@ -4983,7 +5004,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     </div>
                                                     <div>
                                                         <label className="text-xs font-medium text-secondary">Address</label>
-                                                        <select 
+                                                        <select
                                                             value={jobStops[selectedStopIndex]?.city || ''}
                                                             onChange={(e) => {
                                                                 const updated = [...jobStops];
@@ -5006,1391 +5027,1369 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
                                         {/* Three Column Layout: Assignment, Pay, Miles */}
                                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
-                                        {/* Assignment Column */}
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <h4 className="text-sm font-semibold text-primary">Assignment</h4>
+                                            {/* Assignment Column */}
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <h4 className="text-sm font-semibold text-primary">Assignment</h4>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                // Add assignment logic
+                                                            }}
+                                                            className="w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm"
+                                                        >
+                                                            +
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                // Remove assignment logic
+                                                            }}
+                                                            className="w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm"
+                                                        >
+                                                            -
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Assignment Type Toggle */}
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <button
+                                                        onClick={() => setAssignmentType("DRIVER")}
+                                                        className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${assignmentType === "DRIVER"
+                                                            ? "bg-gray-800 !text-white"
+                                                            : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
+                                                            }`}
+                                                    >
+                                                        DRIVER
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setAssignmentType("CARRIER")}
+                                                        className={`px-3 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-1 ${assignmentType === "CARRIER"
+                                                            ? "bg-gray-800 !text-white"
+                                                            : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
+                                                            }`}
+                                                    >
+                                                        CARRIER
+                                                    </button>
+                                                </div>
+
+                                                {/* Assignment Fields */}
+                                                <div className="space-y-4">
+                                                    {/* Carrier Field - Only shown when CARRIER is selected */}
+                                                    {assignmentType === "CARRIER" && (
+                                                        <div className="relative assignment-dropdown-container">
+                                                            <label className="block text-xs font-medium text-primary mb-1">Carrier</label>
+                                                            <div className="relative">
+                                                                <input
+                                                                    type="text"
+                                                                    value={selectedCarrier ? (selectedCarrier.name || selectedCarrier.companyName || '') : carrierSearch}
+                                                                    onChange={(e) => {
+                                                                        setCarrierSearch(e.target.value);
+                                                                        setCarrierDropdownOpen(true);
+                                                                    }}
+                                                                    onFocus={() => setCarrierDropdownOpen(true)}
+                                                                    placeholder="Search carrier..."
+                                                                    className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
+                                                                />
+                                                                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
+                                                                {carrierDropdownOpen && (
+                                                                    <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                                        <div className="p-2 border-b border-theme">
+                                                                            <div className="relative">
+                                                                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={carrierSearch}
+                                                                                    onChange={(e) => setCarrierSearch(e.target.value)}
+                                                                                    placeholder="Search carriers..."
+                                                                                    className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                                                    autoFocus
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="overflow-y-auto max-h-48">
+                                                                            {carriers
+                                                                                .filter(carrier =>
+                                                                                    !carrierSearch ||
+                                                                                    (carrier.name || '').toLowerCase().includes(carrierSearch.toLowerCase()) ||
+                                                                                    (carrier.companyName || '').toLowerCase().includes(carrierSearch.toLowerCase())
+                                                                                )
+                                                                                .map((carrier) => (
+                                                                                    <div
+                                                                                        key={carrier._id || carrier.id}
+                                                                                        onClick={() => {
+                                                                                            const oldValue = selectedCarrier ? (selectedCarrier.name || selectedCarrier.companyName || '') : '';
+                                                                                            const newValue = carrier.name || carrier.companyName || '';
+                                                                                            setSelectedCarrier(carrier);
+                                                                                            setCarrierSearch(newValue);
+                                                                                            setCarrierDropdownOpen(false);
+                                                                                            if (oldValue !== newValue) {
+                                                                                                addAuditTrailEntry(`Receiver - Carrier Added`);
+                                                                                            }
+                                                                                        }}
+                                                                                        className="p-2 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm"
+                                                                                    >
+                                                                                        {carrier.name || carrier.companyName || 'N/A'}
+                                                                                    </div>
+                                                                                ))}
+                                                                            {carriers.length === 0 && (
+                                                                                <div className="p-2 text-sm text-secondary">No carriers found</div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSelectedCarrier(null);
+                                                                        setCarrierSearch('');
+                                                                    }}
+                                                                    className="hover:text-primary"
+                                                                >
+                                                                    Clear
+                                                                </button>
+                                                                <span>Clear All</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Truck, Trailer, Driver, Co-Driver Fields - Only shown when DRIVER is selected */}
+                                                    {assignmentType === "DRIVER" && (
+                                                        <>
+                                                            {/* Truck Field */}
+                                                            <div className="relative assignment-dropdown-container">
+                                                                <label className="block text-xs font-medium text-primary mb-1">Truck</label>
+                                                                <div className="relative">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={selectedTruck ? (selectedTruck.plateNumber || selectedTruck.vehicleNumber || selectedTruck.name || '') : truckSearch}
+                                                                        onChange={(e) => {
+                                                                            setTruckSearch(e.target.value);
+                                                                            setTruckDropdownOpen(true);
+                                                                        }}
+                                                                        onFocus={() => setTruckDropdownOpen(true)}
+                                                                        placeholder="Search truck..."
+                                                                        className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
+                                                                    />
+                                                                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
+                                                                    {truckDropdownOpen && (
+                                                                        <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                                            <div className="p-2 border-b border-theme">
+                                                                                <div className="relative">
+                                                                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        value={truckSearch}
+                                                                                        onChange={(e) => setTruckSearch(e.target.value)}
+                                                                                        placeholder="Search trucks..."
+                                                                                        className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                                                        autoFocus
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="overflow-y-auto max-h-48">
+                                                                                {trucks
+                                                                                    .filter(truck =>
+                                                                                        !truckSearch ||
+                                                                                        (truck.plateNumber || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
+                                                                                        (truck.vehicleNumber || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
+                                                                                        (truck.make || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
+                                                                                        (truck.model || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
+                                                                                        (truck.internalId || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
+                                                                                        (truck.unitNumber || '').toLowerCase().includes(truckSearch.toLowerCase())
+                                                                                    )
+                                                                                    .map((truck) => (
+                                                                                        <div
+                                                                                            key={truck._id || truck.id}
+                                                                                            onClick={() => {
+                                                                                                const oldValue = selectedTruck ? (selectedTruck.plateNumber || selectedTruck.vehicleNumber || selectedTruck.name || '') : '';
+                                                                                                const newValue = truck.plateNumber || truck.vehicleNumber || truck.name || '';
+                                                                                                setSelectedTruck(truck);
+                                                                                                setTruckSearch(newValue);
+                                                                                                setTruckDropdownOpen(false);
+                                                                                                if (oldValue !== newValue) {
+                                                                                                    addAuditTrailEntry(`Receiver - Truck Added`);
+                                                                                                }
+                                                                                            }}
+                                                                                            className="p-2 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm border-b border-theme last:border-b-0"
+                                                                                        >
+                                                                                            <div className="font-medium text-primary">
+                                                                                                {truck.plateNumber || truck.vehicleNumber || truck.unitNumber || truck.name || 'N/A'}
+                                                                                            </div>
+                                                                                            <div className="text-xs text-secondary mt-0.5 space-y-0.5">
+                                                                                                {truck.internalId && <div>ID: {truck.internalId}</div>}
+                                                                                                {(truck.make || truck.model) && (
+                                                                                                    <div>{truck.make || ''} {truck.model || ''}</div>
+                                                                                                )}
+                                                                                                {truck.unitNumber && truck.unitNumber !== (truck.plateNumber || truck.vehicleNumber) && (
+                                                                                                    <div>Unit: {truck.unitNumber}</div>
+                                                                                                )}
+                                                                                                {truck.status && <div className="text-secondary">Status: {truck.status}</div>}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ))}
+                                                                                {trucks.length === 0 && (
+                                                                                    <div className="p-2 text-sm text-secondary">No trucks found</div>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setSelectedTruck(null);
+                                                                            setTruckSearch('');
+                                                                        }}
+                                                                        className="hover:text-primary"
+                                                                    >
+                                                                        Clear
+                                                                    </button>
+                                                                    <span>Clear All</span>
+                                                                </div>
+                                                                {selectedTruck && (
+                                                                    <div className="mt-2 p-3 bg-card border border-blue-200 rounded-lg">
+                                                                        <div className="text-xs font-semibold text-blue-900 mb-2">Selected Truck Details:</div>
+                                                                        <div className="text-xs text-primary space-y-1">
+                                                                            {selectedTruck.internalId && <div><span className="font-medium">Internal ID:</span> {selectedTruck.internalId}</div>}
+                                                                            <div><span className="font-medium">Plate Number:</span> {selectedTruck.plateNumber || selectedTruck.vehicleNumber || 'N/A'}</div>
+                                                                            {selectedTruck.unitNumber && <div><span className="font-medium">Unit Number:</span> {selectedTruck.unitNumber}</div>}
+                                                                            {(selectedTruck.make || selectedTruck.model) && (
+                                                                                <div><span className="font-medium">Make/Model:</span> {selectedTruck.make || ''} {selectedTruck.model || ''}</div>
+                                                                            )}
+                                                                            {selectedTruck.year && <div><span className="font-medium">Year:</span> {selectedTruck.year}</div>}
+                                                                            {selectedTruck.status && <div><span className="font-medium">Status:</span> {selectedTruck.status}</div>}
+                                                                            {selectedTruck.vinNumber && <div><span className="font-medium">VIN:</span> {selectedTruck.vinNumber}</div>}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Trailer Field */}
+                                                            <div className="relative assignment-dropdown-container">
+                                                                <label className="block text-xs font-medium text-primary mb-1">Trailer</label>
+                                                                <div className="relative">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={selectedTrailer ? (selectedTrailer.trailer || selectedTrailer.plateNumber || selectedTrailer.name || '') : trailerSearch}
+                                                                        onChange={(e) => {
+                                                                            setTrailerSearch(e.target.value);
+                                                                            setTrailerDropdownOpen(true);
+                                                                        }}
+                                                                        onFocus={() => setTrailerDropdownOpen(true)}
+                                                                        placeholder="Search trailer..."
+                                                                        className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
+                                                                    />
+                                                                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
+                                                                    {trailerDropdownOpen && (
+                                                                        <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                                            <div className="p-2 border-b border-theme">
+                                                                                <div className="relative">
+                                                                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        value={trailerSearch}
+                                                                                        onChange={(e) => setTrailerSearch(e.target.value)}
+                                                                                        placeholder="Search trailers..."
+                                                                                        className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                                                        autoFocus
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="overflow-y-auto max-h-48">
+                                                                                {trailers
+                                                                                    .filter(trailer =>
+                                                                                        !trailerSearch ||
+                                                                                        (trailer.trailer || '').toLowerCase().includes(trailerSearch.toLowerCase()) ||
+                                                                                        (trailer.plateNumber || '').toLowerCase().includes(trailerSearch.toLowerCase()) ||
+                                                                                        (trailer.type || '').toLowerCase().includes(trailerSearch.toLowerCase()) ||
+                                                                                        (trailer.internalId || '').toLowerCase().includes(trailerSearch.toLowerCase()) ||
+                                                                                        (trailer.unitNumber || '').toLowerCase().includes(trailerSearch.toLowerCase())
+                                                                                    )
+                                                                                    .map((trailer) => (
+                                                                                        <div
+                                                                                            key={trailer._id || trailer.id}
+                                                                                            onClick={() => {
+                                                                                                const oldValue = selectedTrailer ? (selectedTrailer.trailer || selectedTrailer.plateNumber || selectedTrailer.name || '') : '';
+                                                                                                const newValue = trailer.trailer || trailer.plateNumber || trailer.name || '';
+                                                                                                setSelectedTrailer(trailer);
+                                                                                                setTrailerSearch(newValue);
+                                                                                                setTrailerDropdownOpen(false);
+                                                                                                if (oldValue !== newValue) {
+                                                                                                    addAuditTrailEntry(`Receiver - Trailer Added`);
+                                                                                                }
+                                                                                            }}
+                                                                                            className="p-2 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm border-b border-theme last:border-b-0"
+                                                                                        >
+                                                                                            <div className="font-medium text-primary">
+                                                                                                {trailer.trailer || trailer.plateNumber || trailer.unitNumber || trailer.name || 'N/A'}
+                                                                                            </div>
+                                                                                            <div className="text-xs text-secondary mt-0.5 space-y-0.5">
+                                                                                                {trailer.internalId && <div>ID: {trailer.internalId}</div>}
+                                                                                                {trailer.type && <div>Type: {trailer.type}</div>}
+                                                                                                {trailer.unitNumber && trailer.unitNumber !== (trailer.trailer || trailer.plateNumber) && (
+                                                                                                    <div>Unit: {trailer.unitNumber}</div>
+                                                                                                )}
+                                                                                                {trailer.status && <div className="text-secondary">Status: {trailer.status}</div>}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ))}
+                                                                                {trailers.length === 0 && (
+                                                                                    <div className="p-2 text-sm text-secondary">No trailers found</div>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setSelectedTrailer(null);
+                                                                            setTrailerSearch('');
+                                                                        }}
+                                                                        className="hover:text-primary"
+                                                                    >
+                                                                        Clear
+                                                                    </button>
+                                                                    <span>Clear All</span>
+                                                                </div>
+                                                                {selectedTrailer && (
+                                                                    <div className="mt-2 p-3  border rounded-lg">
+                                                                        <div className="text-xs font-semibold text-green-900 mb-2">Selected Trailer Details:</div>
+                                                                        <div className="text-xs text-primary space-y-1">
+                                                                            {selectedTrailer.internalId && <div><span className="font-medium">Internal ID:</span> {selectedTrailer.internalId}</div>}
+                                                                            <div><span className="font-medium">Trailer Number:</span> {selectedTrailer.trailer || selectedTrailer.plateNumber || 'N/A'}</div>
+                                                                            {selectedTrailer.plateNumber && <div><span className="font-medium">Plate Number:</span> {selectedTrailer.plateNumber}</div>}
+                                                                            {selectedTrailer.unitNumber && <div><span className="font-medium">Unit Number:</span> {selectedTrailer.unitNumber}</div>}
+                                                                            {selectedTrailer.type && <div><span className="font-medium">Type:</span> {selectedTrailer.type}</div>}
+                                                                            {selectedTrailer.status && <div><span className="font-medium">Status:</span> {selectedTrailer.status}</div>}
+                                                                            {selectedTrailer.capacity && <div><span className="font-medium">Capacity:</span> {selectedTrailer.capacity}</div>}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Driver Field */}
+                                                            <div className="relative assignment-dropdown-container">
+                                                                <label className="block text-xs font-medium text-primary mb-1">Driver</label>
+                                                                <div className="relative">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={selectedDriver ? (selectedDriver.name || selectedDriver.internalId || '') : driverSearch}
+                                                                        onChange={(e) => {
+                                                                            setDriverSearch(e.target.value);
+                                                                            setDriverDropdownOpen(true);
+                                                                        }}
+                                                                        onFocus={() => setDriverDropdownOpen(true)}
+                                                                        placeholder="Search driver..."
+                                                                        className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
+                                                                    />
+                                                                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
+                                                                    {driverDropdownOpen && (
+                                                                        <div className="absolute z-50 w-full bottom-full mb-1 bg-card border border-theme rounded-lg shadow-xl max-h-96 overflow-hidden" style={{ maxHeight: '24rem' }}>
+                                                                            <div className="p-2 border-b border-theme">
+                                                                                <div className="relative">
+                                                                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        value={driverSearch}
+                                                                                        onChange={(e) => setDriverSearch(e.target.value)}
+                                                                                        placeholder="Search drivers..."
+                                                                                        className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                                                        autoFocus
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="overflow-y-auto max-h-80" style={{ maxHeight: '20rem' }}>
+                                                                                {drivers
+                                                                                    .filter(driver =>
+                                                                                        !driverSearch ||
+                                                                                        (driver.name || '').toLowerCase().includes(driverSearch.toLowerCase()) ||
+                                                                                        (driver.internalId || '').toLowerCase().includes(driverSearch.toLowerCase()) ||
+                                                                                        (driver.phone || '').toLowerCase().includes(driverSearch.toLowerCase()) ||
+                                                                                        (driver.email || '').toLowerCase().includes(driverSearch.toLowerCase())
+                                                                                    )
+                                                                                    .map((driver) => (
+                                                                                        <div
+                                                                                            key={driver._id || driver.id}
+                                                                                            onClick={() => {
+                                                                                                const oldValue = selectedDriver ? (selectedDriver.name || selectedDriver.internalId || '') : '';
+                                                                                                const newValue = driver.name || driver.internalId || '';
+                                                                                                setSelectedDriver(driver);
+                                                                                                setDriverSearch(newValue);
+                                                                                                setDriverDropdownOpen(false);
+                                                                                                if (oldValue !== newValue) {
+                                                                                                    addAuditTrailEntry(`Receiver - Driver Added`);
+                                                                                                }
+                                                                                            }}
+                                                                                            className="p-3 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm border-b border-theme last:border-b-0"
+                                                                                        >
+                                                                                            <div className="font-medium text-primary flex items-center justify-between mb-1">
+                                                                                                <span>{driver.name || driver.internalId || 'N/A'}</span>
+                                                                                                {driver.onboardingPercentage !== undefined && (
+                                                                                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${driver.onboardingPercentage >= 80
+                                                                                                        ? 'bg-green-100 text-green-700'
+                                                                                                        : 'bg-yellow-100 text-yellow-700'
+                                                                                                        }`}>
+                                                                                                        {driver.onboardingPercentage.toFixed(0)}%
+                                                                                                    </span>
+                                                                                                )}
+                                                                                            </div>
+                                                                                            <div className="text-xs text-secondary space-y-1">
+                                                                                                {driver.internalId && <div>Internal ID: {driver.internalId}</div>}
+                                                                                                {driver.phone && <div>Phone: {driver.phone}</div>}
+                                                                                                {driver.email && <div>Email: {driver.email}</div>}
+                                                                                                {driver.licenseNumber && <div>License: {driver.licenseNumber}</div>}
+                                                                                                <div>Cross-Border Eligible: {driver.details?.cross_border_eligible !== undefined
+                                                                                                    ? (driver.details.cross_border_eligible ? 'Yes' : 'No')
+                                                                                                    : (driver.cross_border_eligible !== undefined
+                                                                                                        ? (driver.cross_border_eligible ? 'Yes' : 'No')
+                                                                                                        : 'No')}</div>
+                                                                                                {driver.onboardingPercentage !== undefined && (
+                                                                                                    <div className="mt-2 pt-2 border-t border-theme">
+                                                                                                        <div className="font-medium text-primary mb-1">Onboarding Status:</div>
+                                                                                                        <div className="space-y-0.5">
+                                                                                                            <div>Training: {driver.trainingCompleted ? '✓ Completed' : '✗ Pending'}</div>
+                                                                                                            <div>Tests: {driver.testsCompleted ? '✓ Completed' : '✗ Pending'}</div>
+                                                                                                            <div>HR Approval: {driver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : driver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : '✗ Pending'}</div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ))}
+                                                                                {drivers.length === 0 && (
+                                                                                    <div className="p-2 text-sm text-secondary">No eligible drivers found (80%+ onboarding required)</div>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setSelectedDriver(null);
+                                                                            setDriverSearch('');
+                                                                        }}
+                                                                        className="hover:text-primary"
+                                                                    >
+                                                                        Clear
+                                                                    </button>
+                                                                    <span>Clear All</span>
+                                                                </div>
+                                                                {selectedDriver && (
+                                                                    <div className="mt-3 p-4 bg-card border border-purple-200 rounded-lg">
+                                                                        <div className="text-sm font-semibold text-purple-900 mb-3">Selected Driver Details</div>
+                                                                        <div className="text-xs text-primary space-y-2">
+                                                                            {selectedDriver.internalId && (
+                                                                                <div className="flex">
+                                                                                    <span className="font-medium w-24 flex-shrink-0">Internal ID:</span>
+                                                                                    <span>{selectedDriver.internalId}</span>
+                                                                                </div>
+                                                                            )}
+                                                                            <div className="flex">
+                                                                                <span className="font-medium w-24 flex-shrink-0">Name:</span>
+                                                                                <span>{selectedDriver.name || 'N/A'}</span>
+                                                                            </div>
+                                                                            {selectedDriver.phone && (
+                                                                                <div className="flex">
+                                                                                    <span className="font-medium w-24 flex-shrink-0">Phone:</span>
+                                                                                    <span>{selectedDriver.phone}</span>
+                                                                                </div>
+                                                                            )}
+                                                                            {selectedDriver.email && (
+                                                                                <div className="flex">
+                                                                                    <span className="font-medium w-24 flex-shrink-0">Email:</span>
+                                                                                    <span className="break-all">{selectedDriver.email}</span>
+                                                                                </div>
+                                                                            )}
+                                                                            {selectedDriver.licenseNumber && (
+                                                                                <div className="flex">
+                                                                                    <span className="font-medium w-24 flex-shrink-0">License:</span>
+                                                                                    <span>{selectedDriver.licenseNumber}</span>
+                                                                                </div>
+                                                                            )}
+                                                                            {selectedDriver.status && (
+                                                                                <div className="flex">
+                                                                                    <span className="font-medium w-24 flex-shrink-0">Status:</span>
+                                                                                    <span className={`font-medium ${selectedDriver.status === 'ACTIVE' ? 'text-green-600' : 'text-secondary'
+                                                                                        }`}>{selectedDriver.status}</span>
+                                                                                </div>
+                                                                            )}
+                                                                            <div className="flex">
+                                                                                <span className="font-medium w-24 flex-shrink-0">Cross-Border Eligible:</span>
+                                                                                <span className="font-medium">
+                                                                                    {selectedDriver.details?.cross_border_eligible !== undefined
+                                                                                        ? (selectedDriver.details.cross_border_eligible ? 'Yes' : 'No')
+                                                                                        : (selectedDriver.cross_border_eligible !== undefined
+                                                                                            ? (selectedDriver.cross_border_eligible ? 'Yes' : 'No')
+                                                                                            : 'No')}
+                                                                                </span>
+                                                                            </div>
+                                                                            {selectedDriver.onboardingPercentage !== undefined && (
+                                                                                <div className="mt-3 pt-3 border-t border-purple-300">
+                                                                                    <div className="font-semibold text-purple-900 mb-2 text-sm">Onboarding Progress</div>
+                                                                                    <div className="flex items-center gap-2 mb-2">
+                                                                                        <div className="flex-1 bg-gray-200 rounded-full h-2.5">
+                                                                                            <div
+                                                                                                className={`h-2.5 rounded-full transition-all ${selectedDriver.onboardingPercentage >= 80 ? 'bg-green-500' : 'bg-yellow-500'
+                                                                                                    }`}
+                                                                                                style={{ width: `${selectedDriver.onboardingPercentage}%` }}
+                                                                                            ></div>
+                                                                                        </div>
+                                                                                        <span className="font-semibold text-sm text-primary min-w-[3rem] text-right">{selectedDriver.onboardingPercentage.toFixed(0)}%</span>
+                                                                                    </div>
+                                                                                    <div className="space-y-1.5 mt-2">
+                                                                                        <div className="flex items-center">
+                                                                                            <span className="w-24 flex-shrink-0">Training:</span>
+                                                                                            <span className={selectedDriver.trainingCompleted ? 'text-green-600 font-medium' : 'text-secondary'}>
+                                                                                                {selectedDriver.trainingCompleted ? '✓ Completed' : '✗ Pending'}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        <div className="flex items-center">
+                                                                                            <span className="w-24 flex-shrink-0">Tests:</span>
+                                                                                            <span className={selectedDriver.testsCompleted ? 'text-green-600 font-medium' : 'text-secondary'}>
+                                                                                                {selectedDriver.testsCompleted ? '✓ Completed' : '✗ Pending'}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        <div className="flex items-center">
+                                                                                            <span className="w-24 flex-shrink-0">HR Approval:</span>
+                                                                                            <span className={
+                                                                                                selectedDriver.hrApprovalStatus === 'APPROVED' ? 'text-green-600 font-medium' :
+                                                                                                    selectedDriver.hrApprovalStatus === 'IN_REVIEW' ? 'text-[#00FFA3] font-medium' :
+                                                                                                        'text-secondary'
+                                                                                            }>
+                                                                                                {selectedDriver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' :
+                                                                                                    selectedDriver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' :
+                                                                                                        '✗ Pending'}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        {(selectedDriver.details?.cross_border_eligible || selectedDriver.cross_border_eligible) && (() => {
+                                                                                            const driverId = selectedDriver._id || selectedDriver.id;
+                                                                                            const drugTestStatus = driverDrugTestStatuses[driverId];
+                                                                                            return (
+                                                                                                <div className="flex items-center mt-1">
+                                                                                                    <span className="w-24 flex-shrink-0">Drug Test:</span>
+                                                                                                    <span className={`font-medium ${drugTestStatus === 'completed' ? 'text-green-600' :
+                                                                                                        drugTestStatus === 'pending' ? 'text-[#00FFA3]' :
+                                                                                                            'text-[#A855F7]'
+                                                                                                        }`}>
+                                                                                                        {drugTestStatus === 'completed' ? '✓ Completed' :
+                                                                                                            drugTestStatus === 'pending' ? '⏳ Pending' :
+                                                                                                                '✗ Not Created'}
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            );
+                                                                                        })()}
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Co-Driver Field */}
+                                                            <div className="relative assignment-dropdown-container mt-4">
+                                                                <label className="block text-xs font-medium text-primary mb-1">Co-Driver</label>
+                                                                <div className="relative">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={selectedCoDriver ? (selectedCoDriver.name || selectedCoDriver.internalId || '') : coDriverSearch}
+                                                                        onChange={(e) => {
+                                                                            setCoDriverSearch(e.target.value);
+                                                                            setCoDriverDropdownOpen(true);
+                                                                        }}
+                                                                        onFocus={() => setCoDriverDropdownOpen(true)}
+                                                                        placeholder="Search co-driver..."
+                                                                        className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
+                                                                    />
+                                                                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
+                                                                    {coDriverDropdownOpen && (
+                                                                        <div className="absolute z-50 w-full bottom-full mb-1 bg-card border border-theme rounded-lg shadow-xl max-h-96 overflow-hidden" style={{ maxHeight: '24rem' }}>
+                                                                            <div className="p-2 border-b border-theme">
+                                                                                <div className="relative">
+                                                                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        value={coDriverSearch}
+                                                                                        onChange={(e) => setCoDriverSearch(e.target.value)}
+                                                                                        placeholder="Search co-drivers..."
+                                                                                        className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                                                        autoFocus
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="overflow-y-auto max-h-80" style={{ maxHeight: '20rem' }}>
+                                                                                {coDrivers
+                                                                                    .filter(driver =>
+                                                                                        !coDriverSearch ||
+                                                                                        (driver.name || '').toLowerCase().includes(coDriverSearch.toLowerCase()) ||
+                                                                                        (driver.internalId || '').toLowerCase().includes(coDriverSearch.toLowerCase()) ||
+                                                                                        (driver.phone || '').toLowerCase().includes(coDriverSearch.toLowerCase()) ||
+                                                                                        (driver.email || '').toLowerCase().includes(coDriverSearch.toLowerCase())
+                                                                                    )
+                                                                                    .map((driver) => (
+                                                                                        <div
+                                                                                            key={driver._id || driver.id}
+                                                                                            onClick={() => {
+                                                                                                const oldValue = selectedCoDriver ? (selectedCoDriver.name || selectedCoDriver.internalId || '') : '';
+                                                                                                const newValue = driver.name || driver.internalId || '';
+                                                                                                setSelectedCoDriver(driver);
+                                                                                                setCoDriverSearch(newValue);
+                                                                                                setCoDriverDropdownOpen(false);
+                                                                                                if (oldValue !== newValue) {
+                                                                                                    addAuditTrailEntry(`Receiver - Codriver Added`);
+                                                                                                }
+                                                                                            }}
+                                                                                            className="p-3 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm border-b border-theme last:border-b-0"
+                                                                                        >
+                                                                                            <div className="font-medium text-primary flex items-center justify-between mb-1">
+                                                                                                <span>{driver.name || driver.internalId || 'N/A'}</span>
+                                                                                                {driver.onboardingPercentage !== undefined && (
+                                                                                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${driver.onboardingPercentage >= 80
+                                                                                                        ? 'bg-green-100 text-green-700'
+                                                                                                        : 'bg-yellow-100 text-yellow-700'
+                                                                                                        }`}>
+                                                                                                        {driver.onboardingPercentage.toFixed(0)}%
+                                                                                                    </span>
+                                                                                                )}
+                                                                                            </div>
+                                                                                            <div className="text-xs text-secondary space-y-1">
+                                                                                                {driver.internalId && <div>Internal ID: {driver.internalId}</div>}
+                                                                                                {driver.phone && <div>Phone: {driver.phone}</div>}
+                                                                                                {driver.email && <div>Email: {driver.email}</div>}
+                                                                                                {driver.licenseNumber && <div>License: {driver.licenseNumber}</div>}
+                                                                                                <div>Cross-Border Eligible: {driver.details?.cross_border_eligible !== undefined
+                                                                                                    ? (driver.details.cross_border_eligible ? 'Yes' : 'No')
+                                                                                                    : (driver.cross_border_eligible !== undefined
+                                                                                                        ? (driver.cross_border_eligible ? 'Yes' : 'No')
+                                                                                                        : 'No')}</div>
+                                                                                                {driver.onboardingPercentage !== undefined && (
+                                                                                                    <div className="mt-2 pt-2 border-t border-theme">
+                                                                                                        <div className="font-medium text-primary mb-1">Onboarding Status:</div>
+                                                                                                        <div className="space-y-0.5">
+                                                                                                            <div>Training: {driver.trainingCompleted ? '✓ Completed' : '✗ Pending'}</div>
+                                                                                                            <div>Tests: {driver.testsCompleted ? '✓ Completed' : '✗ Pending'}</div>
+                                                                                                            <div>HR Approval: {driver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : driver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : '✗ Pending'}</div>
+                                                                                                            {(driver.details?.cross_border_eligible || driver.cross_border_eligible) && (() => {
+                                                                                                                const driverId = driver._id || driver.id;
+                                                                                                                const drugTestStatus = driverDrugTestStatuses[driverId];
+                                                                                                                return (
+                                                                                                                    <div className="mt-1 pt-1 border-t border-theme">
+                                                                                                                        <div className="font-medium text-primary mb-0.5">Drug Test:</div>
+                                                                                                                        <div className={`${drugTestStatus === 'completed' ? 'text-green-600 font-medium' :
+                                                                                                                            drugTestStatus === 'pending' ? 'text-[#00FFA3] font-medium' :
+                                                                                                                                'text-[#A855F7] font-medium'
+                                                                                                                            }`}>
+                                                                                                                            {drugTestStatus === 'completed' ? '✓ Completed' :
+                                                                                                                                drugTestStatus === 'pending' ? '⏳ Pending' :
+                                                                                                                                    '✗ Not Created'}
+                                                                                                                        </div>
+                                                                                                                    </div>
+                                                                                                                );
+                                                                                                            })()}
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ))}
+                                                                                {coDrivers.length === 0 && (
+                                                                                    <div className="p-2 text-sm text-secondary">No eligible co-drivers found (80%+ onboarding required)</div>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setSelectedCoDriver(null);
+                                                                            setCoDriverSearch('');
+                                                                        }}
+                                                                        className="hover:text-primary"
+                                                                    >
+                                                                        Clear
+                                                                    </button>
+                                                                    <span>Clear All</span>
+                                                                </div>
+                                                                {selectedCoDriver && (
+                                                                    <div className="mt-3 p-4 bg-card border border-orange-200 rounded-lg">
+                                                                        <div className="text-sm font-semibold text-orange-900 mb-3">Selected Co-Driver Details</div>
+                                                                        <div className="text-xs text-primary space-y-2">
+                                                                            {selectedCoDriver.internalId && (
+                                                                                <div className="flex">
+                                                                                    <span className="font-medium w-24 flex-shrink-0">Internal ID:</span>
+                                                                                    <span>{selectedCoDriver.internalId}</span>
+                                                                                </div>
+                                                                            )}
+                                                                            <div className="flex">
+                                                                                <span className="font-medium w-24 flex-shrink-0">Name:</span>
+                                                                                <span>{selectedCoDriver.name || 'N/A'}</span>
+                                                                            </div>
+                                                                            {selectedCoDriver.phone && (
+                                                                                <div className="flex">
+                                                                                    <span className="font-medium w-24 flex-shrink-0">Phone:</span>
+                                                                                    <span>{selectedCoDriver.phone}</span>
+                                                                                </div>
+                                                                            )}
+                                                                            {selectedCoDriver.email && (
+                                                                                <div className="flex">
+                                                                                    <span className="font-medium w-24 flex-shrink-0">Email:</span>
+                                                                                    <span className="break-all">{selectedCoDriver.email}</span>
+                                                                                </div>
+                                                                            )}
+                                                                            {selectedCoDriver.licenseNumber && (
+                                                                                <div className="flex">
+                                                                                    <span className="font-medium w-24 flex-shrink-0">License:</span>
+                                                                                    <span>{selectedCoDriver.licenseNumber}</span>
+                                                                                </div>
+                                                                            )}
+                                                                            {selectedCoDriver.status && (
+                                                                                <div className="flex">
+                                                                                    <span className="font-medium w-24 flex-shrink-0">Status:</span>
+                                                                                    <span className={`font-medium ${selectedCoDriver.status === 'ACTIVE' ? 'text-green-600' : 'text-secondary'
+                                                                                        }`}>{selectedCoDriver.status}</span>
+                                                                                </div>
+                                                                            )}
+                                                                            <div className="flex">
+                                                                                <span className="font-medium w-24 flex-shrink-0">Cross-Border Eligible:</span>
+                                                                                <span className="font-medium">
+                                                                                    {selectedCoDriver.details?.cross_border_eligible !== undefined
+                                                                                        ? (selectedCoDriver.details.cross_border_eligible ? 'Yes' : 'No')
+                                                                                        : (selectedCoDriver.cross_border_eligible !== undefined
+                                                                                            ? (selectedCoDriver.cross_border_eligible ? 'Yes' : 'No')
+                                                                                            : 'No')}
+                                                                                </span>
+                                                                            </div>
+                                                                            {selectedCoDriver.onboardingPercentage !== undefined && (
+                                                                                <div className="mt-3 pt-3 border-t border-orange-300">
+                                                                                    <div className="font-semibold text-orange-900 mb-2 text-sm">Onboarding Progress</div>
+                                                                                    <div className="flex items-center gap-2 mb-2">
+                                                                                        <div className="flex-1 bg-gray-200 rounded-full h-2.5">
+                                                                                            <div
+                                                                                                className={`h-2.5 rounded-full transition-all ${selectedCoDriver.onboardingPercentage >= 80 ? 'bg-green-500' : 'bg-yellow-500'
+                                                                                                    }`}
+                                                                                                style={{ width: `${selectedCoDriver.onboardingPercentage}%` }}
+                                                                                            ></div>
+                                                                                        </div>
+                                                                                        <span className="font-semibold text-sm text-primary min-w-[3rem] text-right">{selectedCoDriver.onboardingPercentage.toFixed(0)}%</span>
+                                                                                    </div>
+                                                                                    <div className="space-y-1.5 mt-2">
+                                                                                        <div className="flex items-center">
+                                                                                            <span className="w-24 flex-shrink-0">Training:</span>
+                                                                                            <span className={selectedCoDriver.trainingCompleted ? 'text-green-600 font-medium' : 'text-secondary'}>
+                                                                                                {selectedCoDriver.trainingCompleted ? '✓ Completed' : '✗ Pending'}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        <div className="flex items-center">
+                                                                                            <span className="w-24 flex-shrink-0">Tests:</span>
+                                                                                            <span className={selectedCoDriver.testsCompleted ? 'text-green-600 font-medium' : 'text-secondary'}>
+                                                                                                {selectedCoDriver.testsCompleted ? '✓ Completed' : '✗ Pending'}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        <div className="flex items-center">
+                                                                                            <span className="w-24 flex-shrink-0">HR Approval:</span>
+                                                                                            <span className={
+                                                                                                selectedCoDriver.hrApprovalStatus === 'APPROVED' ? 'text-green-600 font-medium' :
+                                                                                                    selectedCoDriver.hrApprovalStatus === 'IN_REVIEW' ? 'text-[#00FFA3] font-medium' :
+                                                                                                        'text-secondary'
+                                                                                            }>
+                                                                                                {selectedCoDriver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' :
+                                                                                                    selectedCoDriver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' :
+                                                                                                        '✗ Pending'}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        {(selectedCoDriver.details?.cross_border_eligible || selectedCoDriver.cross_border_eligible) && (() => {
+                                                                                            const driverId = selectedCoDriver._id || selectedCoDriver.id;
+                                                                                            const drugTestStatus = driverDrugTestStatuses[driverId];
+                                                                                            return (
+                                                                                                <div className="flex items-center mt-1">
+                                                                                                    <span className="w-24 flex-shrink-0">Drug Test:</span>
+                                                                                                    <span className={`font-medium ${drugTestStatus === 'completed' ? 'text-green-600' :
+                                                                                                        drugTestStatus === 'pending' ? 'text-[#00FFA3]' :
+                                                                                                            'text-[#A855F7]'
+                                                                                                        }`}>
+                                                                                                        {drugTestStatus === 'completed' ? '✓ Completed' :
+                                                                                                            drugTestStatus === 'pending' ? '⏳ Pending' :
+                                                                                                                '✗ Not Created'}
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            );
+                                                                                        })()}
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Pay Column */}
+                                            <div className="space-y-4">
+                                                {/* + and - buttons at the top */}
                                                 <div className="flex items-center gap-2">
                                                     <button
-                                                        onClick={() => {
-                                                            // Add assignment logic
-                                                        }}
-                                                        className="w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm"
-                                                    >
-                                                        +
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            // Remove assignment logic
-                                                        }}
-                                                        className="w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm"
-                                                    >
-                                                        -
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {/* Assignment Type Toggle */}
-                                            <div className="flex items-center gap-2 mb-4">
-                                                <button
-                                                    onClick={() => setAssignmentType("DRIVER")}
-                                                    className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                                                        assignmentType === "DRIVER"
-                                                            ? "bg-gray-800 !text-white"
-                                                            : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
-                                                    }`}
-                                                >
-                                                    DRIVER
-                                                </button>
-                                                <button
-                                                    onClick={() => setAssignmentType("CARRIER")}
-                                                    className={`px-3 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-1 ${
-                                                        assignmentType === "CARRIER"
-                                                            ? "bg-gray-800 !text-white"
-                                                            : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
-                                                    }`}
-                                                >
-                                                    CARRIER
-                                                </button>
-                                            </div>
-
-                                            {/* Assignment Fields */}
-                                            <div className="space-y-4">
-                                                {/* Carrier Field - Only shown when CARRIER is selected */}
-                                                {assignmentType === "CARRIER" && (
-                                                    <div className="relative assignment-dropdown-container">
-                                                        <label className="block text-xs font-medium text-primary mb-1">Carrier</label>
-                                                        <div className="relative">
-                                                            <input
-                                                                type="text"
-                                                                value={selectedCarrier ? (selectedCarrier.name || selectedCarrier.companyName || '') : carrierSearch}
-                                                                onChange={(e) => {
-                                                                    setCarrierSearch(e.target.value);
-                                                                    setCarrierDropdownOpen(true);
-                                                                }}
-                                                                onFocus={() => setCarrierDropdownOpen(true)}
-                                                                placeholder="Search carrier..."
-                                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
-                                                            />
-                                                            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
-                                                            {carrierDropdownOpen && (
-                                                                <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                                    <div className="p-2 border-b border-theme">
-                                                                        <div className="relative">
-                                                                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
-                                                                            <input
-                                                                                type="text"
-                                                                                value={carrierSearch}
-                                                                                onChange={(e) => setCarrierSearch(e.target.value)}
-                                                                                placeholder="Search carriers..."
-                                                                                className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
-                                                                                autoFocus
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="overflow-y-auto max-h-48">
-                                                                        {carriers
-                                                                            .filter(carrier => 
-                                                                                !carrierSearch || 
-                                                                                (carrier.name || '').toLowerCase().includes(carrierSearch.toLowerCase()) ||
-                                                                                (carrier.companyName || '').toLowerCase().includes(carrierSearch.toLowerCase())
-                                                                            )
-                                                                            .map((carrier) => (
-                                                                                <div
-                                                                                    key={carrier._id || carrier.id}
-                                                                                    onClick={() => {
-                                                                                        const oldValue = selectedCarrier ? (selectedCarrier.name || selectedCarrier.companyName || '') : '';
-                                                                                        const newValue = carrier.name || carrier.companyName || '';
-                                                                                        setSelectedCarrier(carrier);
-                                                                                        setCarrierSearch(newValue);
-                                                                                        setCarrierDropdownOpen(false);
-                                                                                        if (oldValue !== newValue) {
-                                                                                            addAuditTrailEntry(`Receiver - Carrier Added`);
-                                                                                        }
-                                                                                    }}
-                                                                                    className="p-2 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm"
-                                                                                >
-                                                                                    {carrier.name || carrier.companyName || 'N/A'}
-                                                                                </div>
-                                                                            ))}
-                                                                        {carriers.length === 0 && (
-                                                                            <div className="p-2 text-sm text-secondary">No carriers found</div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
-                                                            <button 
-                                                                onClick={() => {
-                                                                    setSelectedCarrier(null);
-                                                                    setCarrierSearch('');
-                                                                }}
-                                                                className="hover:text-primary"
-                                                            >
-                                                                Clear
-                                                            </button>
-                                                            <span>Clear All</span>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                
-                                                {/* Truck, Trailer, Driver, Co-Driver Fields - Only shown when DRIVER is selected */}
-                                                {assignmentType === "DRIVER" && (
-                                                    <>
-                                                {/* Truck Field */}
-                                                <div className="relative assignment-dropdown-container">
-                                                    <label className="block text-xs font-medium text-primary mb-1">Truck</label>
-                                                    <div className="relative">
-                                                        <input
-                                                            type="text"
-                                                            value={selectedTruck ? (selectedTruck.plateNumber || selectedTruck.vehicleNumber || selectedTruck.name || '') : truckSearch}
-                                                            onChange={(e) => {
-                                                                setTruckSearch(e.target.value);
-                                                                setTruckDropdownOpen(true);
-                                                            }}
-                                                            onFocus={() => setTruckDropdownOpen(true)}
-                                                            placeholder="Search truck..."
-                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
-                                                        />
-                                                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
-                                                        {truckDropdownOpen && (
-                                                            <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                                <div className="p-2 border-b border-theme">
-                                                                    <div className="relative">
-                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
-                                                                        <input
-                                                                            type="text"
-                                                                            value={truckSearch}
-                                                                            onChange={(e) => setTruckSearch(e.target.value)}
-                                                                            placeholder="Search trucks..."
-                                                                            className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
-                                                                            autoFocus
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="overflow-y-auto max-h-48">
-                                                                    {trucks
-                                                                        .filter(truck => 
-                                                                            !truckSearch || 
-                                                                            (truck.plateNumber || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
-                                                                            (truck.vehicleNumber || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
-                                                                            (truck.make || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
-                                                                            (truck.model || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
-                                                                            (truck.internalId || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
-                                                                            (truck.unitNumber || '').toLowerCase().includes(truckSearch.toLowerCase())
-                                                                        )
-                                                                        .map((truck) => (
-                                                                            <div
-                                                                                key={truck._id || truck.id}
-                                                                                onClick={() => {
-                                                                                    const oldValue = selectedTruck ? (selectedTruck.plateNumber || selectedTruck.vehicleNumber || selectedTruck.name || '') : '';
-                                                                                    const newValue = truck.plateNumber || truck.vehicleNumber || truck.name || '';
-                                                                                    setSelectedTruck(truck);
-                                                                                    setTruckSearch(newValue);
-                                                                                    setTruckDropdownOpen(false);
-                                                                                    if (oldValue !== newValue) {
-                                                                                        addAuditTrailEntry(`Receiver - Truck Added`);
-                                                                                    }
-                                                                                }}
-                                                                                className="p-2 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm border-b border-theme last:border-b-0"
-                                                                            >
-                                                                                <div className="font-medium text-primary">
-                                                                                    {truck.plateNumber || truck.vehicleNumber || truck.unitNumber || truck.name || 'N/A'}
-                                                                                </div>
-                                                                                <div className="text-xs text-secondary mt-0.5 space-y-0.5">
-                                                                                    {truck.internalId && <div>ID: {truck.internalId}</div>}
-                                                                                    {(truck.make || truck.model) && (
-                                                                                        <div>{truck.make || ''} {truck.model || ''}</div>
-                                                                                    )}
-                                                                                    {truck.unitNumber && truck.unitNumber !== (truck.plateNumber || truck.vehicleNumber) && (
-                                                                                        <div>Unit: {truck.unitNumber}</div>
-                                                                                    )}
-                                                                                    {truck.status && <div className="text-secondary">Status: {truck.status}</div>}
-                                                                                </div>
-                                                                            </div>
-                                                                        ))}
-                                                                    {trucks.length === 0 && (
-                                                                        <div className="p-2 text-sm text-secondary">No trucks found</div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
-                                                        <button 
-                                                            onClick={() => {
-                                                                setSelectedTruck(null);
-                                                                setTruckSearch('');
-                                                            }}
-                                                            className="hover:text-primary"
-                                                        >
-                                                            Clear
-                                                        </button>
-                                                        <span>Clear All</span>
-                                                    </div>
-                                                    {selectedTruck && (
-                                                        <div className="mt-2 p-3 bg-card border border-blue-200 rounded-lg">
-                                                            <div className="text-xs font-semibold text-blue-900 mb-2">Selected Truck Details:</div>
-                                                            <div className="text-xs text-primary space-y-1">
-                                                                {selectedTruck.internalId && <div><span className="font-medium">Internal ID:</span> {selectedTruck.internalId}</div>}
-                                                                <div><span className="font-medium">Plate Number:</span> {selectedTruck.plateNumber || selectedTruck.vehicleNumber || 'N/A'}</div>
-                                                                {selectedTruck.unitNumber && <div><span className="font-medium">Unit Number:</span> {selectedTruck.unitNumber}</div>}
-                                                                {(selectedTruck.make || selectedTruck.model) && (
-                                                                    <div><span className="font-medium">Make/Model:</span> {selectedTruck.make || ''} {selectedTruck.model || ''}</div>
-                                                                )}
-                                                                {selectedTruck.year && <div><span className="font-medium">Year:</span> {selectedTruck.year}</div>}
-                                                                {selectedTruck.status && <div><span className="font-medium">Status:</span> {selectedTruck.status}</div>}
-                                                                {selectedTruck.vinNumber && <div><span className="font-medium">VIN:</span> {selectedTruck.vinNumber}</div>}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Trailer Field */}
-                                                <div className="relative assignment-dropdown-container">
-                                                    <label className="block text-xs font-medium text-primary mb-1">Trailer</label>
-                                                    <div className="relative">
-                                                        <input
-                                                            type="text"
-                                                            value={selectedTrailer ? (selectedTrailer.trailer || selectedTrailer.plateNumber || selectedTrailer.name || '') : trailerSearch}
-                                                            onChange={(e) => {
-                                                                setTrailerSearch(e.target.value);
-                                                                setTrailerDropdownOpen(true);
-                                                            }}
-                                                            onFocus={() => setTrailerDropdownOpen(true)}
-                                                            placeholder="Search trailer..."
-                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
-                                                        />
-                                                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
-                                                        {trailerDropdownOpen && (
-                                                            <div className="absolute z-50 w-full mt-1 bg-card border border-theme rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                                <div className="p-2 border-b border-theme">
-                                                                    <div className="relative">
-                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
-                                                                        <input
-                                                                            type="text"
-                                                                            value={trailerSearch}
-                                                                            onChange={(e) => setTrailerSearch(e.target.value)}
-                                                                            placeholder="Search trailers..."
-                                                                            className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
-                                                                            autoFocus
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="overflow-y-auto max-h-48">
-                                                                    {trailers
-                                                                        .filter(trailer => 
-                                                                            !trailerSearch || 
-                                                                            (trailer.trailer || '').toLowerCase().includes(trailerSearch.toLowerCase()) ||
-                                                                            (trailer.plateNumber || '').toLowerCase().includes(trailerSearch.toLowerCase()) ||
-                                                                            (trailer.type || '').toLowerCase().includes(trailerSearch.toLowerCase()) ||
-                                                                            (trailer.internalId || '').toLowerCase().includes(trailerSearch.toLowerCase()) ||
-                                                                            (trailer.unitNumber || '').toLowerCase().includes(trailerSearch.toLowerCase())
-                                                                        )
-                                                                        .map((trailer) => (
-                                                                            <div
-                                                                                key={trailer._id || trailer.id}
-                                                                                onClick={() => {
-                                                                                    const oldValue = selectedTrailer ? (selectedTrailer.trailer || selectedTrailer.plateNumber || selectedTrailer.name || '') : '';
-                                                                                    const newValue = trailer.trailer || trailer.plateNumber || trailer.name || '';
-                                                                                    setSelectedTrailer(trailer);
-                                                                                    setTrailerSearch(newValue);
-                                                                                    setTrailerDropdownOpen(false);
-                                                                                    if (oldValue !== newValue) {
-                                                                                        addAuditTrailEntry(`Receiver - Trailer Added`);
-                                                                                    }
-                                                                                }}
-                                                                                className="p-2 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm border-b border-theme last:border-b-0"
-                                                                            >
-                                                                                <div className="font-medium text-primary">
-                                                                                    {trailer.trailer || trailer.plateNumber || trailer.unitNumber || trailer.name || 'N/A'}
-                                                                                </div>
-                                                                                <div className="text-xs text-secondary mt-0.5 space-y-0.5">
-                                                                                    {trailer.internalId && <div>ID: {trailer.internalId}</div>}
-                                                                                    {trailer.type && <div>Type: {trailer.type}</div>}
-                                                                                    {trailer.unitNumber && trailer.unitNumber !== (trailer.trailer || trailer.plateNumber) && (
-                                                                                        <div>Unit: {trailer.unitNumber}</div>
-                                                                                    )}
-                                                                                    {trailer.status && <div className="text-secondary">Status: {trailer.status}</div>}
-                                                                                </div>
-                                                                            </div>
-                                                                        ))}
-                                                                    {trailers.length === 0 && (
-                                                                        <div className="p-2 text-sm text-secondary">No trailers found</div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
-                                                        <button 
-                                                            onClick={() => {
-                                                                setSelectedTrailer(null);
-                                                                setTrailerSearch('');
-                                                            }}
-                                                            className="hover:text-primary"
-                                                        >
-                                                            Clear
-                                                        </button>
-                                                        <span>Clear All</span>
-                                                    </div>
-                                                    {selectedTrailer && (
-                                                        <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                                                            <div className="text-xs font-semibold text-green-900 mb-2">Selected Trailer Details:</div>
-                                                            <div className="text-xs text-primary space-y-1">
-                                                                {selectedTrailer.internalId && <div><span className="font-medium">Internal ID:</span> {selectedTrailer.internalId}</div>}
-                                                                <div><span className="font-medium">Trailer Number:</span> {selectedTrailer.trailer || selectedTrailer.plateNumber || 'N/A'}</div>
-                                                                {selectedTrailer.plateNumber && <div><span className="font-medium">Plate Number:</span> {selectedTrailer.plateNumber}</div>}
-                                                                {selectedTrailer.unitNumber && <div><span className="font-medium">Unit Number:</span> {selectedTrailer.unitNumber}</div>}
-                                                                {selectedTrailer.type && <div><span className="font-medium">Type:</span> {selectedTrailer.type}</div>}
-                                                                {selectedTrailer.status && <div><span className="font-medium">Status:</span> {selectedTrailer.status}</div>}
-                                                                {selectedTrailer.capacity && <div><span className="font-medium">Capacity:</span> {selectedTrailer.capacity}</div>}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Driver Field */}
-                                                <div className="relative assignment-dropdown-container">
-                                                    <label className="block text-xs font-medium text-primary mb-1">Driver</label>
-                                                    <div className="relative">
-                                                        <input
-                                                            type="text"
-                                                            value={selectedDriver ? (selectedDriver.name || selectedDriver.internalId || '') : driverSearch}
-                                                            onChange={(e) => {
-                                                                setDriverSearch(e.target.value);
-                                                                setDriverDropdownOpen(true);
-                                                            }}
-                                                            onFocus={() => setDriverDropdownOpen(true)}
-                                                            placeholder="Search driver..."
-                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
-                                                        />
-                                                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
-                                                        {driverDropdownOpen && (
-                                                            <div className="absolute z-50 w-full bottom-full mb-1 bg-card border border-theme rounded-lg shadow-xl max-h-96 overflow-hidden" style={{ maxHeight: '24rem' }}>
-                                                                <div className="p-2 border-b border-theme">
-                                                                    <div className="relative">
-                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
-                                                                        <input
-                                                                            type="text"
-                                                                            value={driverSearch}
-                                                                            onChange={(e) => setDriverSearch(e.target.value)}
-                                                                            placeholder="Search drivers..."
-                                                                            className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
-                                                                            autoFocus
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="overflow-y-auto max-h-80" style={{ maxHeight: '20rem' }}>
-                                                                    {drivers
-                                                                        .filter(driver => 
-                                                                            !driverSearch || 
-                                                                            (driver.name || '').toLowerCase().includes(driverSearch.toLowerCase()) ||
-                                                                            (driver.internalId || '').toLowerCase().includes(driverSearch.toLowerCase()) ||
-                                                                            (driver.phone || '').toLowerCase().includes(driverSearch.toLowerCase()) ||
-                                                                            (driver.email || '').toLowerCase().includes(driverSearch.toLowerCase())
-                                                                        )
-                                                                        .map((driver) => (
-                                                                            <div
-                                                                                key={driver._id || driver.id}
-                                                                                onClick={() => {
-                                                                                    const oldValue = selectedDriver ? (selectedDriver.name || selectedDriver.internalId || '') : '';
-                                                                                    const newValue = driver.name || driver.internalId || '';
-                                                                                    setSelectedDriver(driver);
-                                                                                    setDriverSearch(newValue);
-                                                                                    setDriverDropdownOpen(false);
-                                                                                    if (oldValue !== newValue) {
-                                                                                        addAuditTrailEntry(`Receiver - Driver Added`);
-                                                                                    }
-                                                                                }}
-                                                                                className="p-3 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm border-b border-theme last:border-b-0"
-                                                                            >
-                                                                                <div className="font-medium text-primary flex items-center justify-between mb-1">
-                                                                                    <span>{driver.name || driver.internalId || 'N/A'}</span>
-                                                                                    {driver.onboardingPercentage !== undefined && (
-                                                                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${
-                                                                                            driver.onboardingPercentage >= 80 
-                                                                                                ? 'bg-green-100 text-green-700' 
-                                                                                                : 'bg-yellow-100 text-yellow-700'
-                                                                                        }`}>
-                                                                                            {driver.onboardingPercentage.toFixed(0)}%
-                                                                                        </span>
-                                                                                    )}
-                                                                                </div>
-                                                                                <div className="text-xs text-secondary space-y-1">
-                                                                                    {driver.internalId && <div>Internal ID: {driver.internalId}</div>}
-                                                                                    {driver.phone && <div>Phone: {driver.phone}</div>}
-                                                                                    {driver.email && <div>Email: {driver.email}</div>}
-                                                                                    {driver.licenseNumber && <div>License: {driver.licenseNumber}</div>}
-                                                                                    <div>Cross-Border Eligible: {driver.details?.cross_border_eligible !== undefined 
-                                                                                        ? (driver.details.cross_border_eligible ? 'Yes' : 'No')
-                                                                                        : (driver.cross_border_eligible !== undefined 
-                                                                                            ? (driver.cross_border_eligible ? 'Yes' : 'No')
-                                                                                            : 'No')}</div>
-                                                                                    {driver.onboardingPercentage !== undefined && (
-                                                                                        <div className="mt-2 pt-2 border-t border-theme">
-                                                                                            <div className="font-medium text-primary mb-1">Onboarding Status:</div>
-                                                                                            <div className="space-y-0.5">
-                                                                                                <div>Training: {driver.trainingCompleted ? '✓ Completed' : '✗ Pending'}</div>
-                                                                                                <div>Tests: {driver.testsCompleted ? '✓ Completed' : '✗ Pending'}</div>
-                                                                                                <div>HR Approval: {driver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : driver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : '✗ Pending'}</div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    )}
-                                                                                </div>
-                                                                            </div>
-                                                                        ))}
-                                                                    {drivers.length === 0 && (
-                                                                        <div className="p-2 text-sm text-secondary">No eligible drivers found (80%+ onboarding required)</div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
-                                                        <button 
-                                                            onClick={() => {
-                                                                setSelectedDriver(null);
-                                                                setDriverSearch('');
-                                                            }}
-                                                            className="hover:text-primary"
-                                                        >
-                                                            Clear
-                                                        </button>
-                                                        <span>Clear All</span>
-                                                    </div>
-                                                    {selectedDriver && (
-                                                        <div className="mt-3 p-4 bg-card border border-purple-200 rounded-lg">
-                                                            <div className="text-sm font-semibold text-purple-900 mb-3">Selected Driver Details</div>
-                                                            <div className="text-xs text-primary space-y-2">
-                                                                {selectedDriver.internalId && (
-                                                                    <div className="flex">
-                                                                        <span className="font-medium w-24 flex-shrink-0">Internal ID:</span>
-                                                                        <span>{selectedDriver.internalId}</span>
-                                                                    </div>
-                                                                )}
-                                                                <div className="flex">
-                                                                    <span className="font-medium w-24 flex-shrink-0">Name:</span>
-                                                                    <span>{selectedDriver.name || 'N/A'}</span>
-                                                                </div>
-                                                                {selectedDriver.phone && (
-                                                                    <div className="flex">
-                                                                        <span className="font-medium w-24 flex-shrink-0">Phone:</span>
-                                                                        <span>{selectedDriver.phone}</span>
-                                                                    </div>
-                                                                )}
-                                                                {selectedDriver.email && (
-                                                                    <div className="flex">
-                                                                        <span className="font-medium w-24 flex-shrink-0">Email:</span>
-                                                                        <span className="break-all">{selectedDriver.email}</span>
-                                                                    </div>
-                                                                )}
-                                                                {selectedDriver.licenseNumber && (
-                                                                    <div className="flex">
-                                                                        <span className="font-medium w-24 flex-shrink-0">License:</span>
-                                                                        <span>{selectedDriver.licenseNumber}</span>
-                                                                    </div>
-                                                                )}
-                                                                {selectedDriver.status && (
-                                                                    <div className="flex">
-                                                                        <span className="font-medium w-24 flex-shrink-0">Status:</span>
-                                                                        <span className={`font-medium ${
-                                                                            selectedDriver.status === 'ACTIVE' ? 'text-green-600' : 'text-secondary'
-                                                                        }`}>{selectedDriver.status}</span>
-                                                                    </div>
-                                                                )}
-                                                                <div className="flex">
-                                                                    <span className="font-medium w-24 flex-shrink-0">Cross-Border Eligible:</span>
-                                                                    <span className="font-medium">
-                                                                        {selectedDriver.details?.cross_border_eligible !== undefined 
-                                                                            ? (selectedDriver.details.cross_border_eligible ? 'Yes' : 'No')
-                                                                            : (selectedDriver.cross_border_eligible !== undefined 
-                                                                                ? (selectedDriver.cross_border_eligible ? 'Yes' : 'No')
-                                                                                : 'No')}
-                                                                    </span>
-                                                                </div>
-                                                                {selectedDriver.onboardingPercentage !== undefined && (
-                                                                    <div className="mt-3 pt-3 border-t border-purple-300">
-                                                                        <div className="font-semibold text-purple-900 mb-2 text-sm">Onboarding Progress</div>
-                                                                        <div className="flex items-center gap-2 mb-2">
-                                                                            <div className="flex-1 bg-gray-200 rounded-full h-2.5">
-                                                                                <div 
-                                                                                    className={`h-2.5 rounded-full transition-all ${
-                                                                                        selectedDriver.onboardingPercentage >= 80 ? 'bg-green-500' : 'bg-yellow-500'
-                                                                                    }`}
-                                                                                    style={{ width: `${selectedDriver.onboardingPercentage}%` }}
-                                                                                ></div>
-                                                                            </div>
-                                                                            <span className="font-semibold text-sm text-primary min-w-[3rem] text-right">{selectedDriver.onboardingPercentage.toFixed(0)}%</span>
-                                                                        </div>
-                                                                        <div className="space-y-1.5 mt-2">
-                                                                            <div className="flex items-center">
-                                                                                <span className="w-24 flex-shrink-0">Training:</span>
-                                                                                <span className={selectedDriver.trainingCompleted ? 'text-green-600 font-medium' : 'text-secondary'}>
-                                                                                    {selectedDriver.trainingCompleted ? '✓ Completed' : '✗ Pending'}
-                                                                                </span>
-                                                                            </div>
-                                                                            <div className="flex items-center">
-                                                                                <span className="w-24 flex-shrink-0">Tests:</span>
-                                                                                <span className={selectedDriver.testsCompleted ? 'text-green-600 font-medium' : 'text-secondary'}>
-                                                                                    {selectedDriver.testsCompleted ? '✓ Completed' : '✗ Pending'}
-                                                                                </span>
-                                                                            </div>
-                                                                            <div className="flex items-center">
-                                                                                <span className="w-24 flex-shrink-0">HR Approval:</span>
-                                                                                <span className={
-                                                                                    selectedDriver.hrApprovalStatus === 'APPROVED' ? 'text-green-600 font-medium' : 
-                                                                                    selectedDriver.hrApprovalStatus === 'IN_REVIEW' ? 'text-[#00FFA3] font-medium' : 
-                                                                                    'text-secondary'
-                                                                                }>
-                                                                                    {selectedDriver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : 
-                                                                                     selectedDriver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : 
-                                                                                     '✗ Pending'}
-                                                                                </span>
-                                                                            </div>
-                                                                            {(selectedDriver.details?.cross_border_eligible || selectedDriver.cross_border_eligible) && (() => {
-                                                                                const driverId = selectedDriver._id || selectedDriver.id;
-                                                                                const drugTestStatus = driverDrugTestStatuses[driverId];
-                                                                                return (
-                                                                                    <div className="flex items-center mt-1">
-                                                                                        <span className="w-24 flex-shrink-0">Drug Test:</span>
-                                                                                        <span className={`font-medium ${
-                                                                                            drugTestStatus === 'completed' ? 'text-green-600' :
-                                                                                            drugTestStatus === 'pending' ? 'text-[#00FFA3]' :
-                                                                                            'text-[#A855F7]'
-                                                                                        }`}>
-                                                                                            {drugTestStatus === 'completed' ? '✓ Completed' :
-                                                                                             drugTestStatus === 'pending' ? '⏳ Pending' :
-                                                                                             '✗ Not Created'}
-                                                                                        </span>
-                                                                                    </div>
-                                                                                );
-                                                                            })()}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Co-Driver Field */}
-                                                <div className="relative assignment-dropdown-container mt-4">
-                                                    <label className="block text-xs font-medium text-primary mb-1">Co-Driver</label>
-                                                    <div className="relative">
-                                                        <input
-                                                            type="text"
-                                                            value={selectedCoDriver ? (selectedCoDriver.name || selectedCoDriver.internalId || '') : coDriverSearch}
-                                                            onChange={(e) => {
-                                                                setCoDriverSearch(e.target.value);
-                                                                setCoDriverDropdownOpen(true);
-                                                            }}
-                                                            onFocus={() => setCoDriverDropdownOpen(true)}
-                                                            placeholder="Search co-driver..."
-                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm pr-10"
-                                                        />
-                                                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
-                                                        {coDriverDropdownOpen && (
-                                                            <div className="absolute z-50 w-full bottom-full mb-1 bg-card border border-theme rounded-lg shadow-xl max-h-96 overflow-hidden" style={{ maxHeight: '24rem' }}>
-                                                                <div className="p-2 border-b border-theme">
-                                                                    <div className="relative">
-                                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
-                                                                        <input
-                                                                            type="text"
-                                                                            value={coDriverSearch}
-                                                                            onChange={(e) => setCoDriverSearch(e.target.value)}
-                                                                            placeholder="Search co-drivers..."
-                                                                            className="w-full pl-8 pr-2 py-1.5 border border-theme rounded text-sm focus:outline-none focus:ring-2"
-                                                                            autoFocus
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="overflow-y-auto max-h-80" style={{ maxHeight: '20rem' }}>
-                                                                    {coDrivers
-                                                                        .filter(driver => 
-                                                                            !coDriverSearch || 
-                                                                            (driver.name || '').toLowerCase().includes(coDriverSearch.toLowerCase()) ||
-                                                                            (driver.internalId || '').toLowerCase().includes(coDriverSearch.toLowerCase()) ||
-                                                                            (driver.phone || '').toLowerCase().includes(coDriverSearch.toLowerCase()) ||
-                                                                            (driver.email || '').toLowerCase().includes(coDriverSearch.toLowerCase())
-                                                                        )
-                                                                        .map((driver) => (
-                                                                            <div
-                                                                                key={driver._id || driver.id}
-                                                                                onClick={() => {
-                                                                                    const oldValue = selectedCoDriver ? (selectedCoDriver.name || selectedCoDriver.internalId || '') : '';
-                                                                                    const newValue = driver.name || driver.internalId || '';
-                                                                                    setSelectedCoDriver(driver);
-                                                                                    setCoDriverSearch(newValue);
-                                                                                    setCoDriverDropdownOpen(false);
-                                                                                    if (oldValue !== newValue) {
-                                                                                        addAuditTrailEntry(`Receiver - Codriver Added`);
-                                                                                    }
-                                                                                }}
-                                                                                className="p-3 hover:bg-[rgba(255,255,255,0.03)] cursor-pointer text-sm border-b border-theme last:border-b-0"
-                                                                            >
-                                                                                <div className="font-medium text-primary flex items-center justify-between mb-1">
-                                                                                    <span>{driver.name || driver.internalId || 'N/A'}</span>
-                                                                                    {driver.onboardingPercentage !== undefined && (
-                                                                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${
-                                                                                            driver.onboardingPercentage >= 80 
-                                                                                                ? 'bg-green-100 text-green-700' 
-                                                                                                : 'bg-yellow-100 text-yellow-700'
-                                                                                        }`}>
-                                                                                            {driver.onboardingPercentage.toFixed(0)}%
-                                                                                        </span>
-                                                                                    )}
-                                                                                </div>
-                                                                                <div className="text-xs text-secondary space-y-1">
-                                                                                    {driver.internalId && <div>Internal ID: {driver.internalId}</div>}
-                                                                                    {driver.phone && <div>Phone: {driver.phone}</div>}
-                                                                                    {driver.email && <div>Email: {driver.email}</div>}
-                                                                                    {driver.licenseNumber && <div>License: {driver.licenseNumber}</div>}
-                                                                                    <div>Cross-Border Eligible: {driver.details?.cross_border_eligible !== undefined 
-                                                                                        ? (driver.details.cross_border_eligible ? 'Yes' : 'No')
-                                                                                        : (driver.cross_border_eligible !== undefined 
-                                                                                            ? (driver.cross_border_eligible ? 'Yes' : 'No')
-                                                                                            : 'No')}</div>
-                                                                                    {driver.onboardingPercentage !== undefined && (
-                                                                                        <div className="mt-2 pt-2 border-t border-theme">
-                                                                                            <div className="font-medium text-primary mb-1">Onboarding Status:</div>
-                                                                                            <div className="space-y-0.5">
-                                                                                                <div>Training: {driver.trainingCompleted ? '✓ Completed' : '✗ Pending'}</div>
-                                                                                                <div>Tests: {driver.testsCompleted ? '✓ Completed' : '✗ Pending'}</div>
-                                                                                                <div>HR Approval: {driver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : driver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : '✗ Pending'}</div>
-                                                                                                {(driver.details?.cross_border_eligible || driver.cross_border_eligible) && (() => {
-                                                                                                    const driverId = driver._id || driver.id;
-                                                                                                    const drugTestStatus = driverDrugTestStatuses[driverId];
-                                                                                                    return (
-                                                                                                        <div className="mt-1 pt-1 border-t border-theme">
-                                                                                                            <div className="font-medium text-primary mb-0.5">Drug Test:</div>
-                                                                                                            <div className={`${
-                                                                                                                drugTestStatus === 'completed' ? 'text-green-600 font-medium' :
-                                                                                                                drugTestStatus === 'pending' ? 'text-[#00FFA3] font-medium' :
-                                                                                                                'text-[#A855F7] font-medium'
-                                                                                                            }`}>
-                                                                                                                {drugTestStatus === 'completed' ? '✓ Completed' :
-                                                                                                                 drugTestStatus === 'pending' ? '⏳ Pending' :
-                                                                                                                 '✗ Not Created'}
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                    );
-                                                                                                })()}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    )}
-                                                                                </div>
-                                                                            </div>
-                                                                        ))}
-                                                                    {coDrivers.length === 0 && (
-                                                                        <div className="p-2 text-sm text-secondary">No eligible co-drivers found (80%+ onboarding required)</div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="mt-1 flex items-center gap-2 text-xs text-secondary">
-                                                        <button 
-                                                            onClick={() => {
-                                                                setSelectedCoDriver(null);
-                                                                setCoDriverSearch('');
-                                                            }}
-                                                            className="hover:text-primary"
-                                                        >
-                                                            Clear
-                                                        </button>
-                                                        <span>Clear All</span>
-                                                    </div>
-                                                    {selectedCoDriver && (
-                                                        <div className="mt-3 p-4 bg-card border border-orange-200 rounded-lg">
-                                                            <div className="text-sm font-semibold text-orange-900 mb-3">Selected Co-Driver Details</div>
-                                                            <div className="text-xs text-primary space-y-2">
-                                                                {selectedCoDriver.internalId && (
-                                                                    <div className="flex">
-                                                                        <span className="font-medium w-24 flex-shrink-0">Internal ID:</span>
-                                                                        <span>{selectedCoDriver.internalId}</span>
-                                                                    </div>
-                                                                )}
-                                                                <div className="flex">
-                                                                    <span className="font-medium w-24 flex-shrink-0">Name:</span>
-                                                                    <span>{selectedCoDriver.name || 'N/A'}</span>
-                                                                </div>
-                                                                {selectedCoDriver.phone && (
-                                                                    <div className="flex">
-                                                                        <span className="font-medium w-24 flex-shrink-0">Phone:</span>
-                                                                        <span>{selectedCoDriver.phone}</span>
-                                                                    </div>
-                                                                )}
-                                                                {selectedCoDriver.email && (
-                                                                    <div className="flex">
-                                                                        <span className="font-medium w-24 flex-shrink-0">Email:</span>
-                                                                        <span className="break-all">{selectedCoDriver.email}</span>
-                                                                    </div>
-                                                                )}
-                                                                {selectedCoDriver.licenseNumber && (
-                                                                    <div className="flex">
-                                                                        <span className="font-medium w-24 flex-shrink-0">License:</span>
-                                                                        <span>{selectedCoDriver.licenseNumber}</span>
-                                                                    </div>
-                                                                )}
-                                                                {selectedCoDriver.status && (
-                                                                    <div className="flex">
-                                                                        <span className="font-medium w-24 flex-shrink-0">Status:</span>
-                                                                        <span className={`font-medium ${
-                                                                            selectedCoDriver.status === 'ACTIVE' ? 'text-green-600' : 'text-secondary'
-                                                                        }`}>{selectedCoDriver.status}</span>
-                                                                    </div>
-                                                                )}
-                                                                <div className="flex">
-                                                                    <span className="font-medium w-24 flex-shrink-0">Cross-Border Eligible:</span>
-                                                                    <span className="font-medium">
-                                                                        {selectedCoDriver.details?.cross_border_eligible !== undefined 
-                                                                            ? (selectedCoDriver.details.cross_border_eligible ? 'Yes' : 'No')
-                                                                            : (selectedCoDriver.cross_border_eligible !== undefined 
-                                                                                ? (selectedCoDriver.cross_border_eligible ? 'Yes' : 'No')
-                                                                                : 'No')}
-                                                                    </span>
-                                                                </div>
-                                                                {selectedCoDriver.onboardingPercentage !== undefined && (
-                                                                    <div className="mt-3 pt-3 border-t border-orange-300">
-                                                                        <div className="font-semibold text-orange-900 mb-2 text-sm">Onboarding Progress</div>
-                                                                        <div className="flex items-center gap-2 mb-2">
-                                                                            <div className="flex-1 bg-gray-200 rounded-full h-2.5">
-                                                                                <div 
-                                                                                    className={`h-2.5 rounded-full transition-all ${
-                                                                                        selectedCoDriver.onboardingPercentage >= 80 ? 'bg-green-500' : 'bg-yellow-500'
-                                                                                    }`}
-                                                                                    style={{ width: `${selectedCoDriver.onboardingPercentage}%` }}
-                                                                                ></div>
-                                                                            </div>
-                                                                            <span className="font-semibold text-sm text-primary min-w-[3rem] text-right">{selectedCoDriver.onboardingPercentage.toFixed(0)}%</span>
-                                                                        </div>
-                                                                        <div className="space-y-1.5 mt-2">
-                                                                            <div className="flex items-center">
-                                                                                <span className="w-24 flex-shrink-0">Training:</span>
-                                                                                <span className={selectedCoDriver.trainingCompleted ? 'text-green-600 font-medium' : 'text-secondary'}>
-                                                                                    {selectedCoDriver.trainingCompleted ? '✓ Completed' : '✗ Pending'}
-                                                                                </span>
-                                                                            </div>
-                                                                            <div className="flex items-center">
-                                                                                <span className="w-24 flex-shrink-0">Tests:</span>
-                                                                                <span className={selectedCoDriver.testsCompleted ? 'text-green-600 font-medium' : 'text-secondary'}>
-                                                                                    {selectedCoDriver.testsCompleted ? '✓ Completed' : '✗ Pending'}
-                                                                                </span>
-                                                                            </div>
-                                                                            <div className="flex items-center">
-                                                                                <span className="w-24 flex-shrink-0">HR Approval:</span>
-                                                                                <span className={
-                                                                                    selectedCoDriver.hrApprovalStatus === 'APPROVED' ? 'text-green-600 font-medium' : 
-                                                                                    selectedCoDriver.hrApprovalStatus === 'IN_REVIEW' ? 'text-[#00FFA3] font-medium' : 
-                                                                                    'text-secondary'
-                                                                                }>
-                                                                                    {selectedCoDriver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : 
-                                                                                     selectedCoDriver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : 
-                                                                                     '✗ Pending'}
-                                                                                </span>
-                                                                            </div>
-                                                                            {(selectedCoDriver.details?.cross_border_eligible || selectedCoDriver.cross_border_eligible) && (() => {
-                                                                                const driverId = selectedCoDriver._id || selectedCoDriver.id;
-                                                                                const drugTestStatus = driverDrugTestStatuses[driverId];
-                                                                                return (
-                                                                                    <div className="flex items-center mt-1">
-                                                                                        <span className="w-24 flex-shrink-0">Drug Test:</span>
-                                                                                        <span className={`font-medium ${
-                                                                                            drugTestStatus === 'completed' ? 'text-green-600' :
-                                                                                            drugTestStatus === 'pending' ? 'text-[#00FFA3]' :
-                                                                                            'text-[#A855F7]'
-                                                                                        }`}>
-                                                                                            {drugTestStatus === 'completed' ? '✓ Completed' :
-                                                                                             drugTestStatus === 'pending' ? '⏳ Pending' :
-                                                                                             '✗ Not Created'}
-                                                                                        </span>
-                                                                                    </div>
-                                                                                );
-                                                                            })()}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Pay Column */}
-                                        <div className="space-y-4">
-                                            {/* + and - buttons at the top */}
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => setPayType("ADD")}
-                                                    className={`w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm transition-colors ${
-                                                        payType === "ADD"
-                                                            ? "bg-gray-800 !text-white border-gray-800"
-                                                            : "bg-card"
-                                                    }`}
-                                                >
-                                                    +
-                                                </button>
-                                                <button
-                                                    onClick={() => setPayType("SUBTRACT")}
-                                                    className={`w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm transition-colors ${
-                                                        payType === "SUBTRACT"
-                                                            ? "bg-gray-800 !text-white border-gray-800"
-                                                            : "bg-card"
-                                                    }`}
-                                                >
-                                                    -
-                                                </button>
-                                            </div>
-
-                                            <h4 className="text-sm font-semibold text-primary">Pay</h4>
-                                            
-                                            {/* Driver Dropdown */}
-                                            <div>
-                                                <select
-                                                    value={selectedPayDriver?._id || selectedDriver?._id || ''}
-                                                    onChange={(e) => {
-                                                        const driver = drivers.find(d => d._id === e.target.value);
-                                                        setSelectedPayDriver(driver || null);
-                                                    }}
-                                                    className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
-                                                >
-                                                    <option value="">Select Driver</option>
-                                                    {drivers.map((driver) => (
-                                                        <option key={driver._id} value={driver._id}>
-                                                            {driver.name || driver.internalId}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            
-                                            {/* Auto-select driver from assignment if available */}
-                                            {selectedDriver && !selectedPayDriver && (
-                                                <div className="text-xs text-secondary">
-                                                    Using assigned driver: {selectedDriver.name || selectedDriver.internalId}
-                                                </div>
-                                            )}
-
-                                            {/* Pay Type Buttons */}
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <button
-                                                    onClick={() => setPayType("TOTAL")}
-                                                    className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                                                        payType === "TOTAL"
-                                                            ? "bg-gray-800 !text-white"
-                                                            : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
-                                                    }`}
-                                                >
-                                                    TOTAL
-                                                </button>
-                                                <div className="flex items-center gap-1">
-                                                    <button
-                                                        onClick={() => setPayType("BASE")}
-                                                        className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                                                            payType === "BASE"
-                                                                ? "bg-gray-800 !text-white"
-                                                                : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
-                                                        }`}
-                                                    >
-                                                        BASE
-                                                    </button>
-                                                    <button
                                                         onClick={() => setPayType("ADD")}
-                                                        className={`w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm transition-colors ${
-                                                            payType === "ADD"
-                                                                ? "bg-gray-800 !text-white border-gray-800"
-                                                                : "bg-card"
-                                                        }`}
+                                                        className={`w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm transition-colors ${payType === "ADD"
+                                                            ? "bg-gray-800 !text-white border-gray-800"
+                                                            : "bg-card"
+                                                            }`}
                                                     >
                                                         +
                                                     </button>
                                                     <button
                                                         onClick={() => setPayType("SUBTRACT")}
-                                                        className={`w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm transition-colors ${
-                                                            payType === "SUBTRACT"
-                                                                ? "bg-gray-800 !text-white border-gray-800"
-                                                                : "bg-card"
-                                                        }`}
+                                                        className={`w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm transition-colors ${payType === "SUBTRACT"
+                                                            ? "bg-gray-800 !text-white border-gray-800"
+                                                            : "bg-card"
+                                                            }`}
                                                     >
                                                         -
                                                     </button>
                                                 </div>
-                                            </div>
 
-                                            {/* Pay Content Based on Type */}
-                                            {payType === "BASE" && (
-                                                <div className="space-y-3">
-                                                    <div className="text-xs font-medium text-primary">Driver Pay</div>
-                                                    
-                                                    {/* Currency Selection */}
-                                                    <div className="flex items-center gap-2">
-                                                        <button
-                                                            onClick={() => setPayCurrency("CAD")}
-                                                            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                                                                payCurrency === "CAD"
-                                                                    ? "bg-gray-800 !text-white"
-                                                                    : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
+                                                <h4 className="text-sm font-semibold text-primary">Pay</h4>
+
+                                                {/* Driver Dropdown */}
+                                                <div>
+                                                    <select
+                                                        value={selectedPayDriver?._id || selectedDriver?._id || ''}
+                                                        onChange={(e) => {
+                                                            const driver = drivers.find(d => d._id === e.target.value);
+                                                            setSelectedPayDriver(driver || null);
+                                                        }}
+                                                        className="w-full p-2 rounded border border-white/10 
+bg-[#0F1F2E] text-white 
+focus:outline-none focus:ring-2 focus:ring-[#00D1FF]"
+                                                        style={{ backgroundColor: "#0F1F2E", color: "#fff" }}
+                                                    >
+                                                        <option value="" className="bg-[#0F1F2E] text-white">Select Driver</option>
+                                                        {drivers.map((driver) => (
+                                                            <option key={driver._id} value={driver._id}>
+                                                                {driver.name || driver.internalId}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                {/* Auto-select driver from assignment if available */}
+                                                {selectedDriver && !selectedPayDriver && (
+                                                    <div className="text-xs text-secondary">
+                                                        Using assigned driver: {selectedDriver.name || selectedDriver.internalId}
+                                                    </div>
+                                                )}
+
+                                                {/* Pay Type Buttons */}
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <button
+                                                        onClick={() => setPayType("TOTAL")}
+                                                        className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${payType === "TOTAL"
+                                                            ? "!bg-gradient-to-r from-[#00D1FF] to-[#0066FF] text-white shadow-[0_0_10px_rgba(0,209,255,0.4)]"
+                                                            : "!bg-[#0F1F2E] text-white/80 border border-white/10 hover:bg-[#162A3F]"
                                                             }`}
+                                                    >
+                                                        TOTAL
+                                                    </button>
+                                                    <div className="flex items-center gap-1">
+                                                        <button
+                                                            onClick={() => setPayType("BASE")}
+                                                            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${payType === "BASE"
+                                                                ? "bg-gradient-to-r from-[#00D1FF] to-[#0066FF] text-white shadow-[0_0_10px_rgba(0,209,255,0.4)]"
+                                                                : "bg-[#0F1F2E] text-white/80 border border-white/10 hover:bg-[#162A3F]"
+                                                                }`}
                                                         >
-                                                            CAD
+                                                            BASE
                                                         </button>
                                                         <button
-                                                            onClick={() => setPayCurrency("USD")}
-                                                            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                                                                payCurrency === "USD"
-                                                                    ? "bg-gray-800 !text-white"
-                                                                    : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
-                                                            }`}
+                                                            onClick={() => setPayType("ADD")}
+                                                            className={`w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm transition-colors ${payType === "ADD"
+                                                                ? "bg-gradient-to-r from-[#00FFA3] to-[#00C853] text-black"
+                                                                : "bg-[#0F1F2E] border border-white/10 text-white hover:bg-[#162A3F]"
+                                                                }`}
                                                         >
-                                                            USD
+                                                            +
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setPayType("SUBTRACT")}
+                                                            className={`w-6 h-6 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-sm transition-colors ${payType === "SUBTRACT"
+                                                                ? "bg-gradient-to-r from-[#EF4444] to-[#DC2626] text-white"
+                                                                : "bg-[#0F1F2E] border border-white/10 text-white hover:bg-[#162A3F]"
+                                                                }`}
+                                                        >
+                                                            -
                                                         </button>
                                                     </div>
-                                                    
-                                                    {/* Rate Unit Selection */}
-                                                    <div className="flex items-center gap-2 flex-wrap">
-                                                        <button
-                                                            onClick={() => setPayRateUnit("/MILE")}
-                                                            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                                                                payRateUnit === "/MILE"
+                                                </div>
+
+                                                {/* Pay Content Based on Type */}
+                                                {payType === "BASE" && (
+                                                    <div className="space-y-3">
+                                                        <div className="text-xs font-medium text-primary">Driver Pay</div>
+
+                                                        {/* Currency Selection */}
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                onClick={() => setPayCurrency("CAD")}
+                                                                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${payCurrency === "CAD"
+                                                                    ? "bg-gradient-to-r from-[#00D1FF] to-[#0066FF] text-white"
+                                                                    : "bg-[#0F1F2E] text-white/80 border border-white/10 hover:bg-[#162A3F]"
+                                                                    }`}
+                                                            >
+                                                                CAD
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setPayCurrency("USD")}
+                                                                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${payCurrency === "USD"
                                                                     ? "bg-gray-800 !text-white"
                                                                     : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
-                                                            }`}
-                                                        >
-                                                            /MILE
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setPayRateUnit("/TRIP")}
-                                                            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                                                                payRateUnit === "/TRIP"
+                                                                    }`}
+                                                            >
+                                                                USD
+                                                            </button>
+                                                        </div>
+
+                                                        {/* Rate Unit Selection */}
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <button
+                                                                onClick={() => setPayRateUnit("/MILE")}
+                                                                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${payRateUnit === "/MILE"
+                                                                    ? "bg-gradient-to-r from-[#A855F7] to-[#6D28D9] text-white"
+                                                                    : "bg-[#0F1F2E] text-white/80 border border-white/10 hover:bg-[#162A3F]"
+                                                                    }`}
+                                                            >
+                                                                /MILE
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setPayRateUnit("/TRIP")}
+                                                                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${payRateUnit === "/TRIP"
                                                                     ? "bg-gray-800 !text-white"
                                                                     : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
-                                                            }`}
-                                                        >
-                                                            /TRIP
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setPayRateUnit("/HR")}
-                                                            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                                                                payRateUnit === "/HR"
+                                                                    }`}
+                                                            >
+                                                                /TRIP
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setPayRateUnit("/HR")}
+                                                                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${payRateUnit === "/HR"
                                                                     ? "bg-gray-800 !text-white"
                                                                     : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
-                                                            }`}
-                                                        >
-                                                            /HR
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setPayRateUnit("/%")}
-                                                            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                                                                payRateUnit === "/%"
+                                                                    }`}
+                                                            >
+                                                                /HR
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setPayRateUnit("/%")}
+                                                                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${payRateUnit === "/%"
                                                                     ? "bg-gray-800 !text-white"
                                                                     : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
-                                                            }`}
-                                                        >
-                                                            /%
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setPayRateUnit("/LOAD")}
-                                                            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                                                                payRateUnit === "/LOAD"
+                                                                    }`}
+                                                            >
+                                                                /%
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setPayRateUnit("/LOAD")}
+                                                                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${payRateUnit === "/LOAD"
                                                                     ? "bg-gray-800 !text-white"
                                                                     : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
-                                                            }`}
-                                                        >
-                                                            /LOAD
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setPayRateUnit("/DAY")}
-                                                            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                                                                payRateUnit === "/DAY"
+                                                                    }`}
+                                                            >
+                                                                /LOAD
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setPayRateUnit("/DAY")}
+                                                                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${payRateUnit === "/DAY"
                                                                     ? "bg-gray-800 !text-white"
                                                                     : "bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]"
-                                                            }`}
-                                                        >
-                                                            /DAY
-                                                        </button>
-                                                    </div>
-                                                    
-                                                    {/* Rate Input */}
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-secondary mb-1">
-                                                            Rate{payRateUnit === "/MILE" ? "/Mile" : payRateUnit === "/TRIP" ? "/Trip" : payRateUnit === "/HR" ? "/Hr" : payRateUnit === "/%" ? "" : payRateUnit === "/LOAD" ? "/Load" : "/Day"}
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            value={payRate}
-                                                            onChange={(e) => setPayRate(e.target.value)}
-                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
-                                                            placeholder="0.27"
-                                                        />
-                                                    </div>
-                                                    
-                                                    {/* Number of Hours - Only shown when /HR is selected */}
-                                                    {payRateUnit === "/HR" && (
+                                                                    }`}
+                                                            >
+                                                                /DAY
+                                                            </button>
+                                                        </div>
+
+                                                        {/* Rate Input */}
                                                         <div>
                                                             <label className="block text-xs font-medium text-secondary mb-1">
-                                                                Number of Hours
+                                                                Rate{payRateUnit === "/MILE" ? "/Mile" : payRateUnit === "/TRIP" ? "/Trip" : payRateUnit === "/HR" ? "/Hr" : payRateUnit === "/%" ? "" : payRateUnit === "/LOAD" ? "/Load" : "/Day"}
                                                             </label>
                                                             <input
                                                                 type="text"
-                                                                value={payHours}
-                                                                onChange={(e) => setPayHours(e.target.value)}
+                                                                value={payRate}
+                                                                onChange={(e) => setPayRate(e.target.value)}
                                                                 className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
-                                                                placeholder="8"
+                                                                placeholder="0.27"
                                                             />
                                                         </div>
-                                                    )}
-                                                </div>
-                                            )}
 
-                                            {payType === "ADD" && (
-                                                <div className="space-y-3">
-                                                    {/* Amount Input */}
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-secondary mb-1">Amount</label>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-sm font-medium">$</span>
-                                                            <input
-                                                                type="text"
-                                                                value={payAmount}
-                                                                onChange={(e) => setPayAmount(e.target.value)}
-                                                                className="flex-1 p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
-                                                                placeholder="12"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    {/* Date Input */}
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-secondary mb-1">Date</label>
-                                                        <input
-                                                            type="date"
-                                                            value={payDate}
-                                                            onChange={(e) => setPayDate(e.target.value)}
-                                                            className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
-                                                        />
-                                                    </div>
-                                                    
-                                                    {/* Currency Selection */}
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-secondary mb-1">Currency</label>
-                                                        <select
-                                                            value={payCurrency}
-                                                            onChange={(e) => setPayCurrency(e.target.value as "CAD" | "USD")}
-                                                            className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
-                                                        >
-                                                            <option value="CAD">CAD</option>
-                                                            <option value="USD">USD</option>
-                                                        </select>
-                                                    </div>
-                                                    
-                                                    {/* Memo Input */}
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-secondary mb-1">Memo</label>
-                                                        <input
-                                                            type="text"
-                                                            value={payMemo}
-                                                            onChange={(e) => setPayMemo(e.target.value)}
-                                                            className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
-                                                            placeholder="Memo"
-                                                        />
-                                                    </div>
-                                                    
-                                                    {/* GST Checkbox and Add Button */}
-                                                    <div className="flex items-center justify-between">
-                                                        <label className="flex items-center gap-2 text-xs text-primary">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={payGst}
-                                                                onChange={(e) => setPayGst(e.target.checked)}
-                                                                className="w-4 h-4"
-                                                            />
-                                                            GST
-                                                        </label>
-                                                        <button
-                                                            onClick={() => {
-                                                                if (payAmount) {
-                                                                    setPayItems([...payItems, {
-                                                                        amount: payAmount,
-                                                                        date: payDate,
-                                                                        currency: payCurrency,
-                                                                        memo: payMemo,
-                                                                        gst: payGst
-                                                                    }]);
-                                                                    setPayAmount("");
-                                                                    setPayDate("");
-                                                                    setPayMemo("");
-                                                                    setPayGst(false);
-                                                                }
-                                                            }}
-                                                            className="w-8 h-8 flex items-center justify-center bg-gray-800 !text-white rounded hover:bg-gray-700 text-sm font-medium"
-                                                        >
-                                                            +
-                                                        </button>
-                                                    </div>
-                                                    
-                                                    {/* Preset Memo Dropdown */}
-                                                    <div>
-                                                        <select
-                                                            value={presetMemo}
-                                                            onChange={(e) => {
-                                                                setPresetMemo(e.target.value);
-                                                                setPayMemo(e.target.value);
-                                                            }}
-                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
-                                                        >
-                                                            <option value="">Preset Memo</option>
-                                                            <option value="Tolls">Tolls</option>
-                                                            <option value="Layover">Layover</option>
-                                                            <option value="Advance">Advance</option>
-                                                            <option value="Parking">Parking</option>
-                                                            <option value="Fuel">Fuel</option>
-                                                            <option value="Other">Other</option>
-                                                            <option value="Pickup">Pickup</option>
-                                                            <option value="Delivery">Delivery</option>
-                                                        </select>
-                                                    </div>
-                                                    
-                                                    {/* Pay Items List */}
-                                                    {payItems.length > 0 && (
-                                                        <div className="space-y-2">
-                                                            {payItems.map((item, index) => (
-                                                                <div key={index} className="flex items-center justify-between p-2 bg-card border border-theme rounded text-sm">
-                                                                    <span className="font-medium">${item.amount}</span>
-                                                                    <span className="text-secondary">{item.date}</span>
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            const updated = payItems.filter((_, i) => i !== index);
-                                                                            setPayItems(updated);
-                                                                        }}
-                                                                        className="text-[#A855F7] hover:text-red-800 text-xs"
-                                                                    >
-                                                                        X
-                                                                    </button>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                    
-                                                    {payItems.length === 0 && (
-                                                        <div className="text-xs text-secondary">No deductions</div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {payType === "TOTAL" && (
-                                                <div className="bg-gray-100 border border-theme rounded p-3 text-sm">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <span className="text-secondary">Base Pay ({payRateUnit})</span>
-                                                        <span className="font-medium">$0.00</span>
-                                                    </div>
-                                                    <div className="text-xs text-secondary mb-2">
-                                                        0.00 mi x ${payRate}
-                                                    </div>
-                                                    <div className="border-t border-theme pt-2 flex items-center justify-between">
-                                                        <span className="font-semibold">TOTAL</span>
-                                                        <span className="font-semibold">$0.00</span>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {payType === "SUBTRACT" && (
-                                                <div className="space-y-3">
-                                                    {/* Amount Input */}
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-secondary mb-1">Amount</label>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-sm font-medium">$</span>
-                                                            <input
-                                                                type="text"
-                                                                value={deductionAmount}
-                                                                onChange={(e) => setDeductionAmount(e.target.value)}
-                                                                className="flex-1 p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
-                                                                placeholder="12"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    {/* Date Input */}
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-secondary mb-1">Date</label>
-                                                        <input
-                                                            type="date"
-                                                            value={deductionDate}
-                                                            onChange={(e) => setDeductionDate(e.target.value)}
-                                                            className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
-                                                        />
-                                                    </div>
-                                                    
-                                                    {/* Currency Selection */}
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-secondary mb-1">Currency</label>
-                                                        <select
-                                                            value={payCurrency}
-                                                            onChange={(e) => setPayCurrency(e.target.value as "CAD" | "USD")}
-                                                            className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
-                                                        >
-                                                            <option value="CAD">CAD</option>
-                                                            <option value="USD">USD</option>
-                                                        </select>
-                                                    </div>
-                                                    
-                                                    {/* Memo Input */}
-                                                    <div>
-                                                        <label className="block text-xs font-medium text-secondary mb-1">Memo</label>
-                                                        <input
-                                                            type="text"
-                                                            value={deductionMemo}
-                                                            onChange={(e) => setDeductionMemo(e.target.value)}
-                                                            className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
-                                                            placeholder="Memo"
-                                                        />
-                                                    </div>
-                                                    
-                                                    {/* GST Checkbox and Add Button */}
-                                                    <div className="flex items-center justify-between">
-                                                        <label className="flex items-center gap-2 text-xs text-primary">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={deductionGst}
-                                                                onChange={(e) => setDeductionGst(e.target.checked)}
-                                                                className="w-4 h-4"
-                                                            />
-                                                            GST
-                                                        </label>
-                                                        <button
-                                                            onClick={() => {
-                                                                if (deductionAmount) {
-                                                                    setDeductionItems([...deductionItems, {
-                                                                        amount: deductionAmount,
-                                                                        date: deductionDate,
-                                                                        currency: payCurrency,
-                                                                        memo: deductionMemo,
-                                                                        gst: deductionGst
-                                                                    }]);
-                                                                    setDeductionAmount("");
-                                                                    setDeductionDate("");
-                                                                    setDeductionMemo("");
-                                                                    setDeductionGst(false);
-                                                                }
-                                                            }}
-                                                            className="w-8 h-8 flex items-center justify-center bg-gray-800 !text-white rounded hover:bg-gray-700 text-sm font-medium"
-                                                        >
-                                                            +
-                                                        </button>
-                                                    </div>
-                                                    
-                                                    {/* Preset Memo Dropdown */}
-                                                    <div>
-                                                        <select
-                                                            value={deductionPresetMemo}
-                                                            onChange={(e) => {
-                                                                setDeductionPresetMemo(e.target.value);
-                                                                setDeductionMemo(e.target.value);
-                                                            }}
-                                                            className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
-                                                        >
-                                                            <option value="">Preset Memo</option>
-                                                            <option value="Tolls">Tolls</option>
-                                                            <option value="Layover">Layover</option>
-                                                            <option value="Advance">Advance</option>
-                                                            <option value="Parking">Parking</option>
-                                                            <option value="Fuel">Fuel</option>
-                                                            <option value="Other">Other</option>
-                                                            <option value="Pickup">Pickup</option>
-                                                            <option value="Delivery">Delivery</option>
-                                                        </select>
-                                                    </div>
-                                                    
-                                                    {/* Deduction Items List */}
-                                                    {deductionItems.length > 0 && (
-                                                        <div className="space-y-2">
-                                                            {deductionItems.map((item, index) => (
-                                                                <div key={index} className="flex items-center justify-between p-2 bg-card border border-theme rounded text-sm">
-                                                                    <span className="font-medium">${item.amount}</span>
-                                                                    <span className="text-secondary">{item.date}</span>
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            const updated = deductionItems.filter((_, i) => i !== index);
-                                                                            setDeductionItems(updated);
-                                                                        }}
-                                                                        className="text-[#A855F7] hover:text-red-800 text-xs"
-                                                                    >
-                                                                        X
-                                                                    </button>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                    
-                                                    {deductionItems.length === 0 && (
-                                                        <div className="text-xs text-secondary">No deductions</div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Miles Column */}
-                                        <div className="space-y-4">
-                                            <h4 className="text-sm font-semibold text-primary">Miles</h4>
-                                            
-                                            {/* Route Segments */}
-                                            <div className="space-y-2">
-                                                {routeSegments.map((segment, index) => (
-                                                    <div key={index} className="p-2 bg-gray-100 border border-theme rounded text-sm">
-                                                        <div className="flex-1">
-                                                            <div className="font-medium text-primary">
-                                                                {segment.from} → {segment.to}
+                                                        {/* Number of Hours - Only shown when /HR is selected */}
+                                                        {payRateUnit === "/HR" && (
+                                                            <div>
+                                                                <label className="block text-xs font-medium text-secondary mb-1">
+                                                                    Number of Hours
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={payHours}
+                                                                    onChange={(e) => setPayHours(e.target.value)}
+                                                                    className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
+                                                                    placeholder="8"
+                                                                />
                                                             </div>
-                                                            <div className="text-secondary mt-1">{segment.miles.toFixed(2)} miles</div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {payType === "ADD" && (
+                                                    <div className="space-y-3">
+                                                        {/* Amount Input */}
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-secondary mb-1">Amount</label>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-sm font-medium">$</span>
+                                                                <input
+                                                                    type="text"
+                                                                    value={payAmount}
+                                                                    onChange={(e) => setPayAmount(e.target.value)}
+                                                                    className="flex-1 p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                                    placeholder="12"
+                                                                />
+                                                            </div>
                                                         </div>
-                                                        <div className="flex items-center gap-2 mt-2 justify-end">
-                                                            <button className="text-secondary hover:text-secondary">
-                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                                </svg>
-                                                            </button>
-                                                            <button className="w-5 h-5 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-xs">
+
+                                                        {/* Date Input */}
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-secondary mb-1">Date</label>
+                                                            <input
+                                                                type="date"
+                                                                value={payDate}
+                                                                onChange={(e) => setPayDate(e.target.value)}
+                                                                className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                            />
+                                                        </div>
+
+                                                        {/* Currency Selection */}
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-secondary mb-1">Currency</label>
+                                                            <select
+                                                                value={payCurrency}
+                                                                onChange={(e) => setPayCurrency(e.target.value as "CAD" | "USD")}
+                                                                className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                            >
+                                                                <option value="CAD">CAD</option>
+                                                                <option value="USD">USD</option>
+                                                            </select>
+                                                        </div>
+
+                                                        {/* Memo Input */}
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-secondary mb-1">Memo</label>
+                                                            <input
+                                                                type="text"
+                                                                value={payMemo}
+                                                                onChange={(e) => setPayMemo(e.target.value)}
+                                                                className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                                placeholder="Memo"
+                                                            />
+                                                        </div>
+
+                                                        {/* GST Checkbox and Add Button */}
+                                                        <div className="flex items-center justify-between">
+                                                            <label className="flex items-center gap-2 text-xs text-primary">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={payGst}
+                                                                    onChange={(e) => setPayGst(e.target.checked)}
+                                                                    className="w-4 h-4"
+                                                                />
+                                                                GST
+                                                            </label>
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (payAmount) {
+                                                                        setPayItems([...payItems, {
+                                                                            amount: payAmount,
+                                                                            date: payDate,
+                                                                            currency: payCurrency,
+                                                                            memo: payMemo,
+                                                                            gst: payGst
+                                                                        }]);
+                                                                        setPayAmount("");
+                                                                        setPayDate("");
+                                                                        setPayMemo("");
+                                                                        setPayGst(false);
+                                                                    }
+                                                                }}
+                                                                className="w-8 h-8 flex items-center justify-center bg-gray-800 !text-white rounded hover:bg-gray-700 text-sm font-medium"
+                                                            >
                                                                 +
                                                             </button>
                                                         </div>
+
+                                                        {/* Preset Memo Dropdown */}
+                                                        <div>
+                                                            <select
+                                                                value={presetMemo}
+                                                                onChange={(e) => {
+                                                                    setPresetMemo(e.target.value);
+                                                                    setPayMemo(e.target.value);
+                                                                }}
+                                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
+                                                            >
+                                                                <option value="">Preset Memo</option>
+                                                                <option value="Tolls">Tolls</option>
+                                                                <option value="Layover">Layover</option>
+                                                                <option value="Advance">Advance</option>
+                                                                <option value="Parking">Parking</option>
+                                                                <option value="Fuel">Fuel</option>
+                                                                <option value="Other">Other</option>
+                                                                <option value="Pickup">Pickup</option>
+                                                                <option value="Delivery">Delivery</option>
+                                                            </select>
+                                                        </div>
+
+                                                        {/* Pay Items List */}
+                                                        {payItems.length > 0 && (
+                                                            <div className="space-y-2">
+                                                                {payItems.map((item, index) => (
+                                                                    <div key={index} className="flex items-center justify-between p-2 bg-card border border-theme rounded text-sm">
+                                                                        <span className="font-medium">${item.amount}</span>
+                                                                        <span className="text-secondary">{item.date}</span>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                const updated = payItems.filter((_, i) => i !== index);
+                                                                                setPayItems(updated);
+                                                                            }}
+                                                                            className="text-[#A855F7] hover:text-red-800 text-xs"
+                                                                        >
+                                                                            X
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+
+                                                        {payItems.length === 0 && (
+                                                            <div className="text-xs text-secondary">No deductions</div>
+                                                        )}
                                                     </div>
-                                                ))}
-                                                {routeSegments.length === 0 && (
-                                                    <div className="p-2 bg-gray-100 border border-theme rounded text-sm text-secondary">
-                                                        No route segments configured
+                                                )}
+
+                                                {payType === "TOTAL" && (
+                                                    <div className=" border border-theme rounded p-3 text-sm">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <span className="text-secondary">Base Pay ({payRateUnit})</span>
+                                                            <span className="font-medium">$0.00</span>
+                                                        </div>
+                                                        <div className="text-xs text-secondary mb-2">
+                                                            0.00 mi x ${payRate}
+                                                        </div>
+                                                        <div className="border-t border-theme pt-2 flex items-center justify-between">
+                                                            <span className="font-semibold">TOTAL</span>
+                                                            <span className="font-semibold">$0.00</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {payType === "SUBTRACT" && (
+                                                    <div className="space-y-3">
+                                                        {/* Amount Input */}
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-secondary mb-1">Amount</label>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-sm font-medium">$</span>
+                                                                <input
+                                                                    type="text"
+                                                                    value={deductionAmount}
+                                                                    onChange={(e) => setDeductionAmount(e.target.value)}
+                                                                    className="flex-1 p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                                    placeholder="12"
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Date Input */}
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-secondary mb-1">Date</label>
+                                                            <input
+                                                                type="date"
+                                                                value={deductionDate}
+                                                                onChange={(e) => setDeductionDate(e.target.value)}
+                                                                className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                            />
+                                                        </div>
+
+                                                        {/* Currency Selection */}
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-secondary mb-1">Currency</label>
+                                                            <select
+                                                                value={payCurrency}
+                                                                onChange={(e) => setPayCurrency(e.target.value as "CAD" | "USD")}
+                                                                className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                            >
+                                                                <option value="CAD">CAD</option>
+                                                                <option value="USD">USD</option>
+                                                            </select>
+                                                        </div>
+
+                                                        {/* Memo Input */}
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-secondary mb-1">Memo</label>
+                                                            <input
+                                                                type="text"
+                                                                value={deductionMemo}
+                                                                onChange={(e) => setDeductionMemo(e.target.value)}
+                                                                className="w-full p-2 border border-theme rounded text-sm focus:outline-none focus:ring-2"
+                                                                placeholder="Memo"
+                                                            />
+                                                        </div>
+
+                                                        {/* GST Checkbox and Add Button */}
+                                                        <div className="flex items-center justify-between">
+                                                            <label className="flex items-center gap-2 text-xs text-primary">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={deductionGst}
+                                                                    onChange={(e) => setDeductionGst(e.target.checked)}
+                                                                    className="w-4 h-4"
+                                                                />
+                                                                GST
+                                                            </label>
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (deductionAmount) {
+                                                                        setDeductionItems([...deductionItems, {
+                                                                            amount: deductionAmount,
+                                                                            date: deductionDate,
+                                                                            currency: payCurrency,
+                                                                            memo: deductionMemo,
+                                                                            gst: deductionGst
+                                                                        }]);
+                                                                        setDeductionAmount("");
+                                                                        setDeductionDate("");
+                                                                        setDeductionMemo("");
+                                                                        setDeductionGst(false);
+                                                                    }
+                                                                }}
+                                                                className="w-8 h-8 flex items-center justify-center bg-gray-800 !text-white rounded hover:bg-gray-700 text-sm font-medium"
+                                                            >
+                                                                +
+                                                            </button>
+                                                        </div>
+
+                                                        {/* Preset Memo Dropdown */}
+                                                        <div>
+                                                            <select
+                                                                value={deductionPresetMemo}
+                                                                onChange={(e) => {
+                                                                    setDeductionPresetMemo(e.target.value);
+                                                                    setDeductionMemo(e.target.value);
+                                                                }}
+                                                                className="w-full p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm"
+                                                            >
+                                                                <option value="">Preset Memo</option>
+                                                                <option value="Tolls">Tolls</option>
+                                                                <option value="Layover">Layover</option>
+                                                                <option value="Advance">Advance</option>
+                                                                <option value="Parking">Parking</option>
+                                                                <option value="Fuel">Fuel</option>
+                                                                <option value="Other">Other</option>
+                                                                <option value="Pickup">Pickup</option>
+                                                                <option value="Delivery">Delivery</option>
+                                                            </select>
+                                                        </div>
+
+                                                        {/* Deduction Items List */}
+                                                        {deductionItems.length > 0 && (
+                                                            <div className="space-y-2">
+                                                                {deductionItems.map((item, index) => (
+                                                                    <div key={index} className="flex items-center justify-between p-2 bg-card border border-theme rounded text-sm">
+                                                                        <span className="font-medium">${item.amount}</span>
+                                                                        <span className="text-secondary">{item.date}</span>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                const updated = deductionItems.filter((_, i) => i !== index);
+                                                                                setDeductionItems(updated);
+                                                                            }}
+                                                                            className="text-[#A855F7] hover:text-red-800 text-xs"
+                                                                        >
+                                                                            X
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+
+                                                        {deductionItems.length === 0 && (
+                                                            <div className="text-xs text-secondary">No deductions</div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
 
-                                            {/* Total Miles */}
-                                            <div className="pt-2">
-                                                <div className="flex justify-between items-center text-sm font-semibold text-primary">
-                                                    <span>Total Miles</span>
-                                                    <span>{totalMiles.toFixed(2)}</span>
-                                                </div>
-                                            </div>
+                                            {/* Miles Column */}
+                                            <div className="space-y-4">
+                                                <h4 className="text-sm font-semibold text-primary">Miles</h4>
 
+                                                {/* Route Segments */}
+                                                <div className="space-y-2">
+                                                    {routeSegments.map((segment, index) => (
+                                                        <div key={index} className="p-2  border border-theme rounded text-sm">
+                                                            <div className="flex-1">
+                                                                <div className="font-medium text-primary">
+                                                                    {segment.from} → {segment.to}
+                                                                </div>
+                                                                <div className="text-secondary mt-1">{segment.miles.toFixed(2)} miles</div>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 mt-2 justify-end">
+                                                                <button className="text-secondary hover:text-secondary">
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                                    </svg>
+                                                                </button>
+                                                                <button className="w-5 h-5 flex items-center justify-center border border-theme rounded hover:bg-[rgba(255,255,255,0.03)] text-xs">
+                                                                    +
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {routeSegments.length === 0 && (
+                                                        <div className="p-2 bg-gray-100 border border-theme rounded text-sm text-secondary">
+                                                            No route segments configured
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Total Miles */}
+                                                <div className="pt-2">
+                                                    <div className="flex justify-between items-center text-sm font-semibold text-primary">
+                                                        <span>Total Miles</span>
+                                                        <span>{totalMiles.toFixed(2)}</span>
+                                                    </div>
+                                                </div>
+
+                                            </div>
                                         </div>
                                     </div>
-                                    </div>
 
-                                  
+
                                 </div>
                             </div>
                         )
                     }
 
-            
+
 
                     {/* Step 6: Notes / Audit Page */}
                     {
                         currentStep === 6 && (
                             <div className="border-b border-theme">
-                                <div className="p-5 bg-gradient-to-r from-green-50 to-gray-50 border-b border-theme">
+                                <div className="p-5  border-b border-theme">
                                     <h3 className="text-base font-semibold text-primary flex items-center gap-2">
                                         <span className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold">6</span>
                                         Notes / Audit
@@ -6403,7 +6402,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         {/* Other Notes Section */}
                                         <div className="space-y-4">
                                             <h4 className="text-sm font-semibold text-primary">Other Notes</h4>
-                                            
+
                                             {/* Note Type Selection */}
                                             <div className="space-y-2">
                                                 <label className="text-xs font-medium text-primary">Note Type:</label>
@@ -6432,7 +6431,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     </label>
                                                 </div>
                                             </div>
-                                            
+
                                             {/* Note Text Area */}
                                             <div>
                                                 <textarea
@@ -6442,7 +6441,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     className="w-full p-3 border border-theme rounded text-sm focus:outline-none focus:ring-2 min-h-[120px] resize-y"
                                                 />
                                             </div>
-                                            
+
                                             {/* Add Note Button */}
                                             <div className="flex justify-end">
                                                 <button
@@ -6465,7 +6464,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     Add
                                                 </button>
                                             </div>
-                                            
+
                                             {/* Notes List */}
                                             {notes.length > 0 && (
                                                 <div className="space-y-2 mt-4">
@@ -6484,7 +6483,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 </div>
                                             )}
                                         </div>
-                                        
+
                                         {/* Audit Trail Section */}
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between">
@@ -6493,7 +6492,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <span className="text-xs text-secondary">Loading...</span>
                                                 )}
                                             </div>
-                                            
+
                                             {/* Audit Trail Table */}
                                             <div className="border border-theme rounded overflow-hidden">
                                                 <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
@@ -6535,11 +6534,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     {/* File Attachments Section */}
                                     <div className="space-y-4 pt-4 border-t border-theme">
                                         <h4 className="text-sm font-semibold text-primary">Attachments</h4>
-                                        
+
                                         {/* Attachments List */}
                                         {attachments.length > 0 && (
                                             <div className="space-y-2">
@@ -6562,7 +6561,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 type="checkbox"
                                                                 checked={attachment.payable}
                                                                 onChange={(e) => {
-                                                                    const updated = attachments.map(a => 
+                                                                    const updated = attachments.map(a =>
                                                                         a.id === attachment.id ? { ...a, payable: e.target.checked } : a
                                                                     );
                                                                     setAttachments(updated);
@@ -6576,7 +6575,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 type="checkbox"
                                                                 checked={attachment.shareWithDriver}
                                                                 onChange={(e) => {
-                                                                    const updated = attachments.map(a => 
+                                                                    const updated = attachments.map(a =>
                                                                         a.id === attachment.id ? { ...a, shareWithDriver: e.target.checked } : a
                                                                     );
                                                                     setAttachments(updated);
@@ -6605,7 +6604,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 ))}
                                             </div>
                                         )}
-                                        
+
                                         {/* Drag and Drop Zone */}
                                         <div
                                             onDragOver={(e) => {
@@ -6633,7 +6632,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 });
                                                 addNotification('success', `${files.length} file(s) added`);
                                             }}
-                                            className={`w-full px-4 py-3 bg-gray-800 text-white rounded text-sm font-medium text-center cursor-pointer hover:bg-gray-700 transition-colors ${isDragging ? 'bg-gray-700 border-2 border-dashed border-white' : ''}`}
+                                            className={`w-full px-4 py-3  text-white rounded text-sm font-medium text-center cursor-pointer hover:bg-gray-700 transition-colors ${isDragging ? 'bg-gray-700 border-2 border-dashed border-white' : ''}`}
                                         >
                                             <label className="block w-full cursor-pointer">
                                                 <input
@@ -6668,14 +6667,14 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     }
                 </div >
             </div >
-            
+
             {/* Validation Results Display */}
             {validationResults && (
                 <div className="px-5 pb-4">
                     <ValidationDisplay validationResults={validationResults} />
                 </div>
             )}
-            
+
             {/* Fixed Footer */}
             < div className="border-t border-theme p-4 bg-card flex-shrink-0 shadow-lg" >
                 <div className="flex gap-3 justify-between">
@@ -6683,7 +6682,21 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                         {currentStep > 1 && (
                             <button
                                 onClick={prevStep}
-                                className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-primary font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm"
+                                className="
+    px-6 py-2.5 rounded-lg flex items-center gap-2
+    text-white/80 font-medium
+    bg-[#0F1F2E]
+    border border-white/10
+    shadow-sm
+    transition-all duration-300
+
+    hover:text-white
+    hover:bg-[#162A3F]
+    hover:border-[#00D1FF]/40
+    hover:shadow-[0_0_12px_rgba(0,209,255,0.3)]
+
+    active:scale-[0.97]
+  "
                             >
                                 <ArrowLeft className="w-4 h-4" />
                                 Previous
@@ -6693,7 +6706,21 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     <div className="flex gap-3">
                         <button
                             onClick={onClose}
-                            className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-primary font-medium rounded-lg transition-colors shadow-sm"
+                            className="
+    px-6 py-2.5 rounded-lg flex items-center gap-2
+    text-white/80 font-medium
+    bg-[#0F1F2E]
+    border border-white/10
+    shadow-sm
+    transition-all duration-300
+
+    hover:text-white
+    hover:bg-[#162A3F]
+    hover:border-[#00D1FF]/40
+    hover:shadow-[0_0_12px_rgba(0,209,255,0.3)]
+
+    active:scale-[0.97]
+  "
                         >
                             Cancel
                         </button>
@@ -6710,7 +6737,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                             <button
                                 onClick={handleSaveOrder}
                                 disabled={loading}
-                                className="px-6 py-2.5 bg-green-600 hover:bg-green-700 !text-white font-medium rounded-lg transition-colors disabled:opacity-50 shadow-md hover:shadow-lg disabled:shadow-sm"
+                                className="px-6 py-2.5 !text-white font-medium rounded-lg transition-opacity flex items-center gap-2 shadow-md hover:shadow-lg hover:opacity-90"
+                                style={{ background: PRIMARY_GRADIENT }}
                             >
                                 {loading ? "Creating..." : "Create Order"}
                             </button>

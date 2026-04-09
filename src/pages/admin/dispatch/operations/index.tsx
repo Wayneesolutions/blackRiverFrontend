@@ -723,7 +723,12 @@ const Index = () => {
       order.trailerNo?.toLowerCase().includes(search)
     );
   });
-
+  const hoverColorMap: Record<string, { bg: string; border: string }> = {
+    "bg-blue-600": { bg: "hover:bg-blue-500/[0.08]", border: "hover:border-blue-500/40" },
+    "bg-green-600": { bg: "hover:bg-green-500/[0.08]", border: "hover:border-green-500/40" },
+    "bg-purple-600": { bg: "hover:bg-purple-500/[0.08]", border: "hover:border-purple-500/40" },
+    "bg-orange-600": { bg: "hover:bg-orange-500/[0.08]", border: "hover:border-orange-500/40" },
+  };
   // Build feature cards
   const features: FeatureCard[] = [
     {
@@ -743,8 +748,8 @@ const Index = () => {
       value: stats?.drivers.total.toString() || "0",
       subtitle: `Active: ${stats?.drivers.active || 0} | On Shift: ${stats?.drivers.onShift || 0}`,
       icon: Users,
-      bgColor: "bg-green-50",
-      iconColor: "text-green-600",
+      bgColor: "bg-[var(--accent-green)]/10",
+      iconColor: "text-[var(--accent-green)]",
       accentColor: "bg-green-600",
       percentage: stats?.drivers.total ? Math.min(100, (stats.drivers.active / stats.drivers.total) * 100) : 0,
     },
@@ -782,7 +787,27 @@ const Index = () => {
       </div>
     );
   }
+  const getSafePercentage = (value: number) => {
+    if (!value || isNaN(value)) return 0;
+    return Math.max(8, Math.min(92, value));
+  };
 
+
+  // Gradient colors
+  const getGradient = (type: string) => {
+    switch (type) {
+      case "blue":
+        return "linear-gradient(90deg, #00D1FF, #0066FF)";
+      case "green":
+        return "linear-gradient(90deg, #00FFA3, #00C853)";
+      case "purple":
+        return "linear-gradient(90deg, #A855F7, #6D28D9)";
+      case "orange":
+        return "linear-gradient(90deg, #F59E0B, #F97316)";
+      default:
+        return "linear-gradient(90deg, #00D1FF, #0066FF)";
+    }
+  };
   return (
     <>
       <div className="min-h-screen" >
@@ -808,37 +833,73 @@ const Index = () => {
 
 
             {/* Stats Cards */}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 -mt-2 mb-4">
               {features.map((feature) => {
                 const Icon = feature.icon;
+
                 return (
                   <div
                     key={feature.id}
-                    onClick={() => navigate(`${basePath}/${feature.id === 'vehicles' || feature.id === 'trailers' ? 'fleets' : feature.id}`)}
-                    className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
+                    onClick={() =>
+                      navigate(
+                        `${basePath}/${feature.id === "vehicles" || feature.id === "trailers"
+                          ? "fleets"
+                          : feature.id
+                        }`
+                      )
+                    }
+                    className="
+          relative overflow-hidden rounded-xl p-4 cursor-pointer
+          bg-gradient-to-br from-[#0B1A2A] to-[#0F2A44]
+          border border-white/10
+          hover:scale-[1.03] transition-all duration-300
+          shadow-lg hover:shadow-[0_0_20px_rgba(0,209,255,0.3)]
+        "
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      {/* Left side content */}
-                      <div className="flex-1">
+                    {/* Glow */}
+                    <div className="absolute inset-0 opacity-0 hover:opacity-100 transition duration-500">
+                      <div className={`absolute inset-0 blur-2xl opacity-20 ${feature.accentColor}`} />
+                    </div>
 
-                        <h3 className="text-sm font-bold text-primary mb-1">
-                          {feature.title}
-                        </h3>
-
-                        <div className="flex items-baseline gap-2 mb-0.5">
-                          <span className="text-xl font-bold text-primary">{feature.value}</span>
-                        </div>
-
-                        <p className="text-xs text-secondary">{feature.subtitle}</p>
+                    <div className="flex items-start justify-between mb-3 relative z-10">
+                      <div>
+                        <h3 className="text-sm text-white/70">{feature.title}</h3>
+                        <div className="text-2xl font-bold text-white">{feature.value}</div>
+                        <p className="text-xs text-white/60">{feature.subtitle}</p>
                       </div>
 
-                      {/* Right side icon */}
-                      <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
-                        <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                      <div className="relative">
+                        <div className={`absolute inset-0 blur-lg opacity-50 ${feature.accentColor}`} />
+                        <div className="relative bg-white/5 p-2 rounded-lg">
+                          <Icon className={feature.iconColor} size={22} />
+                        </div>
                       </div>
                     </div>
 
-
+                    {/* Progress */}
+                    <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden relative">
+                      <div
+                        className="absolute inset-0 blur-md opacity-30"
+                        style={{
+                          width: `${getSafePercentage(feature.percentage)}%`,
+                          background: getGradient(feature.accentColor.includes("blue") ? "blue" :
+                            feature.accentColor.includes("green") ? "green" :
+                              feature.accentColor.includes("purple") ? "purple" : "orange"),
+                        }}
+                      />
+                      <div
+                        className="h-full rounded-full relative overflow-hidden"
+                        style={{
+                          width: `${getSafePercentage(feature.percentage)}%`,
+                          background: getGradient(feature.accentColor.includes("blue") ? "blue" :
+                            feature.accentColor.includes("green") ? "green" :
+                              feature.accentColor.includes("purple") ? "purple" : "orange"),
+                        }}
+                      >
+                        <div className="absolute inset-0 animate-shimmer" />
+                      </div>
+                    </div>
                   </div>
                 );
               })}
@@ -846,138 +907,145 @@ const Index = () => {
 
             {/* Additional Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-              {/* Truck Utilization */}
-              <div
-                onClick={() => navigate(`${basePath}/utilization`)}
-                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-primary mb-1">Truck Utilization</h3>
-                    <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className="text-xl font-bold text-primary">{truckUtilization}%</span>
-                    </div>
-                    <p className="text-xs text-secondary">Active trucks in use</p>
-                  </div>
-                  <div className="bg-card rounded-lg p-2 shadow-sm">
-                    <Truck className="text-[#00D1FF]" size={21} strokeWidth={2} />
-                  </div>
-                </div>
-              </div>
 
-              {/* Trailer Utilization */}
-              <div
-                onClick={() => navigate(`${basePath}/utilization`)}
-                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-primary mb-1">Trailer Utilization</h3>
-                    <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className="text-xl font-bold text-primary">{trailerUtilization}%</span>
-                    </div>
-                    <p className="text-xs text-secondary">Active trailers in use</p>
-                  </div>
-                  <div className="bg-card rounded-lg p-2 shadow-sm">
-                    <Package className="text-purple-600" size={21} strokeWidth={2} />
-                  </div>
-                </div>
-              </div>
+              {/* Reusable Card Function */}
+              {[
+                {
+                  title: "Truck Utilization",
+                  value: `${truckUtilization}%`,
+                  subtitle: "Active trucks in use",
+                  icon: Truck,
+                  color: "blue",
+                  raw: truckUtilization,
+                  path: "/utilization"
+                },
+                {
+                  title: "Trailer Utilization",
+                  value: `${trailerUtilization}%`,
+                  subtitle: "Active trailers in use",
+                  icon: Package,
+                  color: "purple",
+                  raw: trailerUtilization,
+                  path: "/utilization"
+                },
+                {
+                  title: "Revenue Per Mile",
+                  value: `$${revenuePerMile.toFixed(2)}`,
+                  subtitle: "Average revenue per mile",
+                  icon: DollarSign,
+                  color: "green",
+                  raw: revenuePerMile,
+                  path: "/revenue-per-mile"
+                },
+                {
+                  title: "Deliveries Today",
+                  value: deliveriesToday,
+                  subtitle: "Scheduled for today",
+                  icon: Calendar,
+                  color: "orange",
+                  raw: deliveriesToday,
+                  path: "/deliveries"
+                },
+                {
+                  title: "Pickups Today",
+                  value: pickupsToday,
+                  subtitle: "Scheduled for today",
+                  icon: TrendingUp,
+                  color: "green",
+                  raw: pickupsToday,
+                  path: "/pickups"
+                },
+                {
+                  title: "Unassigned Drivers",
+                  value: unassignedDrivers,
+                  subtitle: "Available for assignment",
+                  icon: UserX,
+                  color: "purple",
+                  raw: unassignedDrivers,
+                  path: "/drivers?filter=unassigned"
+                },
+                {
+                  title: "Drivers on Leave",
+                  value: driversOnLeave,
+                  subtitle: "Currently on leave",
+                  icon: UserCheck,
+                  color: "blue",
+                  raw: driversOnLeave,
+                  path: "/drivers-on-leave"
+                }
+              ].map((card, i) => {
+                const Icon = card.icon;
+                const gradient = getGradient(card.color);
+                const percent = getSafePercentage(card.raw);
 
-              {/* Revenue Per Mile */}
-              <div
-                onClick={() => navigate(`${basePath}/revenue-per-mile`)}
-                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-primary mb-1">Revenue Per Mile</h3>
-                    <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className="text-xl font-bold text-primary">${revenuePerMile.toFixed(2)}</span>
+                return (
+                  <div
+                    key={i}
+                    onClick={() => navigate(`${basePath}${card.path}`)}
+                    className="
+          relative overflow-hidden rounded-xl p-4 cursor-pointer
+          bg-gradient-to-br from-[#0B1A2A] to-[#0F2A44]
+          border border-white/10
+          hover:scale-[1.03] transition-all duration-300
+          shadow-lg hover:shadow-[0_0_20px_rgba(0,209,255,0.25)]
+        "
+                  >
+                    {/* Glow Background */}
+                    <div className="absolute inset-0 opacity-0 hover:opacity-100 transition duration-500">
+                      <div className="absolute inset-0 blur-2xl opacity-20" style={{ background: gradient }} />
                     </div>
-                    <p className="text-xs text-secondary">Average revenue per mile</p>
-                  </div>
-                  <div className="bg-green-50 rounded-lg p-2 shadow-sm">
-                    <DollarSign className="text-green-600" size={21} strokeWidth={2} />
-                  </div>
-                </div>
-              </div>
 
-              {/* Deliveries Today */}
-              <div
-                onClick={() => navigate(`${basePath}/deliveries`)}
-                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-primary mb-1">Deliveries Today</h3>
-                    <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className="text-xl font-bold text-primary">{deliveriesToday}</span>
-                    </div>
-                    <p className="text-xs text-secondary">Scheduled for today</p>
-                  </div>
-                  <div className="bg-card rounded-lg p-2 shadow-sm">
-                    <Calendar className="text-[#F59E0B]" size={21} strokeWidth={2} />
-                  </div>
-                </div>
-              </div>
+                    {/* Content */}
+                    <div className="flex items-start justify-between mb-3 relative z-10">
+                      <div>
+                        <h3 className="text-sm text-white/70">{card.title}</h3>
+                        <div className="text-2xl font-bold text-white">{card.value}</div>
+                        <p className="text-xs text-white/60">{card.subtitle}</p>
+                      </div>
 
-              {/* Pickups Today */}
-              <div
-                onClick={() => navigate(`${basePath}/pickups`)}
-                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-primary mb-1">Pickups Today</h3>
-                    <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className="text-xl font-bold text-primary">{pickupsToday}</span>
+                      {/* Icon Glow */}
+                      <div className="relative">
+                        <div
+                          className="absolute inset-0 blur-lg opacity-50 rounded-full"
+                          style={{ background: gradient }}
+                        />
+                        <div className="relative bg-white/5 p-2 rounded-lg">
+                          <Icon className="text-white" size={22} />
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-xs text-secondary">Scheduled for today</p>
-                  </div>
-                  <div className="bg-card rounded-lg p-2 shadow-sm">
-                    <TrendingUp className="text-[#00FFA3]" size={21} strokeWidth={2} />
-                  </div>
-                </div>
-              </div>
 
-              {/* Unassigned Drivers */}
-              <div
-                onClick={() => navigate(`${basePath}/drivers?filter=unassigned`)}
-                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-primary mb-1">Unassigned Drivers</h3>
-                    <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className="text-xl font-bold text-primary">{unassignedDrivers}</span>
-                    </div>
-                    <p className="text-xs text-secondary">Available for assignment</p>
-                  </div>
-                  <div className="bg-card rounded-lg p-2 shadow-sm">
-                    <UserX className="text-[#A855F7]" size={21} strokeWidth={2} />
-                  </div>
-                </div>
-              </div>
 
-              {/* Drivers on Leave */}
-              <div
-                onClick={() => navigate(`${basePath}/drivers-on-leave`)}
-                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-primary mb-1">Drivers on Leave</h3>
-                    <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className="text-xl font-bold text-primary">{driversOnLeave}</span>
+                    <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden relative mt-2">
+
+                      {/* Glow base */}
+                      <div
+                        className="absolute inset-0 blur-md opacity-40"
+                        style={{
+                          width: `${percent}%`,
+                          background: gradient,
+                        }}
+                      />
+
+                      {/* Main bar */}
+                      <div
+                        className="h-full rounded-full relative overflow-hidden"
+                        style={{
+                          width: `${percent}%`,
+                          background: gradient,
+                        }}
+                      >
+                        {/* Moving shine */}
+                        <div className="absolute inset-0 shimmer-overlay" />
+
+                        {/* Pulse glow */}
+                        <div className="absolute inset-0 animate-pulse opacity-30" />
+                      </div>
                     </div>
-                    <p className="text-xs text-secondary">Currently on leave</p>
                   </div>
-                  <div className="bg-indigo-50 rounded-lg p-2 shadow-sm">
-                    <UserCheck className="text-indigo-600" size={21} strokeWidth={2} />
-                  </div>
-                </div>
-              </div>
+                );
+              })}
+
             </div>
 
 
@@ -990,7 +1058,7 @@ const Index = () => {
                     setEditingOrder(null);
                     setSidebarOpen(true);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
+                  className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg  hover:bg-[var(--accent-navyblue)]/90  transition-colors shadow-sm hover:shadow-md"
                 >
                   <Plus className="w-5 h-5" />
                   Add Order
@@ -1140,10 +1208,10 @@ const Index = () => {
                                 }
                               }}
                               onClick={(e) => e.stopPropagation()} // Prevent row click from opening sidebar
-                              className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 ${order.paymentStatus === 'PAID' ? 'bg-green-50 text-green-700 ring-green-600/20' :
-                                order.paymentStatus === 'PENDING' ? 'bg-card text-yellow-700 ring-yellow-600/20' :
-                                  order.paymentStatus === 'OVERDUE' ? 'bg-card text-red-700 ring-red-600/20' :
-                                    'bg-card text-secondary ring-gray-500/10'
+                              className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 ${order.paymentStatus === 'PAID' ? 'bg-[var(--accent-green)]/10 text-[var(--accent-green)] ring-[var(--accent-green)]/20' :
+                                order.paymentStatus === 'PENDING' ? 'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] ring-[var(--accent-orange)]/20' :
+                                  order.paymentStatus === 'OVERDUE' ? 'bg-red-500/10 text-red-400 ring-red-500/20' :
+                                    'bg-white/5 text-secondary ring-white/10'
                                 }`}
                             >
                               <option value="PENDING">Pending</option>
@@ -1244,13 +1312,13 @@ const Index = () => {
                                 }
                               }}
                               onClick={(e) => e.stopPropagation()}
-                              className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 ${order.status === 'quoted' ? 'bg-card text-secondary ring-gray-500/10' :
-                                order.status === 'planned' ? 'bg-card text-blue-700 ring-blue-700/10' :
-                                  order.status === 'completed' ? 'bg-green-50 text-green-700 ring-green-600/20' :
-                                    order.status === 'delivered' ? 'bg-card text-purple-700 ring-purple-700/10' :
-                                      order.status === 'in-delivery' ? 'bg-card text-orange-700 ring-orange-700/10' :
-                                        order.status === 'canceled' ? 'bg-card text-red-700 ring-red-700/10' :
-                                          'bg-card text-secondary ring-gray-500/10'
+                              className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 ${order.status === 'quoted' ? 'bg-[var(--accent-yellow)]/10 text-[var(--accent-yellow)] ring-[var(--accent-yellow)]/20' :
+                                order.status === 'planned' ? 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] ring-[var(--accent-blue)]/20' :
+                                  order.status === 'completed' ? 'bg-[var(--accent-green)]/10 text-[var(--accent-green)] ring-[var(--accent-green)]/20' :
+                                    order.status === 'delivered' ? 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)] ring-[var(--accent-purple)]/20' :
+                                      order.status === 'in-delivery' ? 'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] ring-[var(--accent-orange)]/20' :
+                                        order.status === 'canceled' ? 'bg-red-500/10 text-red-400 ring-red-500/20' :
+                                          'bg-white/5 text-secondary ring-white/10'
                                 }`}
                             >
                               <option value="planned">Planned</option>
@@ -1319,7 +1387,7 @@ const Index = () => {
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
                       className={`p-2 border rounded-lg transition-colors ${currentPage === 1
-                        ? "bg-gray-100 text-secondary cursor-not-allowed"
+                        ? "bg-white/5 text-secondary cursor-not-allowed"
                         : "bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme"
                         }`}
                     >
@@ -1358,7 +1426,7 @@ const Index = () => {
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
                       className={`p-2 border rounded-lg transition-colors ${currentPage === totalPages
-                        ? "bg-gray-100 text-secondary cursor-not-allowed"
+                        ? "bg-white/5 text-secondary cursor-not-allowed"
                         : "bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme"
                         }`}
                     >

@@ -336,7 +336,7 @@ const TruckProfile = () => {
             {/* Title Section */}
             <div>
               <div className="flex items-center gap-3 text-white mb-2">
-                {activeTab === "truck" ? <FaTruck className="w-6 h-6 text-[var(--accent-navyblue)]" /> : <FaTrailer className="w-6 h-6 text-[#00D1FF]" />}
+                {activeTab === "truck" ? <FaTruck className="w-6 h-6 text-[var(--accent-navyblue)]" /> : <FaTrailer className="w-6 h-6 text-[var(--accent-navyblue)]" />}
                 <h1 className="text-3xl font-bold text-primary tracking-tight">{activeTab === "truck" ? "Truck Profile" : "Trailer Profile"}</h1>
               </div>
               <p className="text-secondary text-sm font-medium ml-9">

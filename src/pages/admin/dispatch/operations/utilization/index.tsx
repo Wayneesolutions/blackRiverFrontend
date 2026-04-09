@@ -203,7 +203,7 @@ const UtilizationPage = () => {
                 <button
                   onClick={() => setActiveTab("trucks")}
                   className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "trucks"
-                    ? "border-accent text-accent"
+                    ? "border-accent !text-[var(--accent-navyblue)]"
                     : "border-transparent text-secondary hover:text-primary hover:border-theme"
                     }`}
                 >
@@ -215,7 +215,7 @@ const UtilizationPage = () => {
                 <button
                   onClick={() => setActiveTab("trailers")}
                   className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "trailers"
-                    ? "border-accent text-accent"
+                    ? "border-accent !text-[var(--accent-navyblue)]"
                     : "border-transparent text-secondary hover:text-primary hover:border-theme"
                     }`}
                 >
@@ -248,43 +248,43 @@ const UtilizationPage = () => {
                   <tr>
                     {activeTab === "trucks" ? (
                       <>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                           Unit/Plate
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                           Make/Model/Year
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                           Driver
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                           Location
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                           Details
                         </th>
                       </>
                     ) : (
                       <>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                           Trailer/Plate
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                           Make/Model/Type
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                           Attached Vehicle
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                           Location
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                           Load Status
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                           Service Status
                         </th>
                       </>

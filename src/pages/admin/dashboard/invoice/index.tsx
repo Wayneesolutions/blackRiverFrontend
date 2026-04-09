@@ -202,7 +202,7 @@ const InvoiceList = () => {
         {/* LEFT → Search */}
         <div className="relative w-full md:w-80">
           <Search
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#42aeec]"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--accent-navyblue)]"
             size={18}
           />
           <input
@@ -220,7 +220,7 @@ const InvoiceList = () => {
 
         {/* RIGHT → Status Filter */}
         <div className="relative w-full md:w-48">
-          <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#42aeec]" size={18} />
+          <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--accent-navyblue)]" size={18} />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -285,15 +285,15 @@ const InvoiceList = () => {
           <table className="w-full text-sm">
             <thead className="bg-[rgba(0,209,255,0.08)] border-b border-[rgba(0,209,255,0.15)]">
               <tr>
-                <th className="p-4 text-left font-semibold text-[#00D1FF]">Client</th>
-                <th className="p-4 text-left font-semibold text-[#00D1FF]">Company</th>
-                <th className="p-4 text-left font-semibold text-[#00D1FF]">Email</th>
-                <th className="p-4 text-left font-semibold text-[#00D1FF]">Amount</th>
-                <th className="p-4 text-left font-semibold text-[#00D1FF]">Status</th>
-                <th className="p-4 text-left font-semibold text-[#00D1FF]">Invoice Date</th>
-                <th className="p-4 text-left font-semibold text-[#00D1FF]">Due Date</th>
-                <th className="p-4 text-left font-semibold text-[#00D1FF]">Payment Date</th>
-                <th className="p-4 text-center font-semibold text-[#00D1FF]">Actions</th>
+                <th className="p-4 text-left font-semibold text-[var(--accent-navyblue)]">Client</th>
+                <th className="p-4 text-left font-semibold text-[var(--accent-navyblue)]">Company</th>
+                <th className="p-4 text-left font-semibold text-[var(--accent-navyblue)]">Email</th>
+                <th className="p-4 text-left font-semibold text-[var(--accent-navyblue)]">Amount</th>
+                <th className="p-4 text-left font-semibold text-[var(--accent-navyblue)]">Status</th>
+                <th className="p-4 text-left font-semibold text-[var(--accent-navyblue)]">Invoice Date</th>
+                <th className="p-4 text-left font-semibold text-[var(--accent-navyblue)]">Due Date</th>
+                <th className="p-4 text-left font-semibold text-[var(--accent-navyblue)]">Payment Date</th>
+                <th className="p-4 text-center font-semibold text-[var(--accent-navyblue)]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
@@ -495,7 +495,7 @@ const InvoiceList = () => {
                       </div>
                       <div>
                         <p className="text-sm text-secondary mb-1">Amount</p>
-                        <p className="font-bold text-2xl text-[#00D1FF]">
+                        <p className="font-bold text-2xl text-[var(--accent-navyblue)]">
                           {selectedInvoice.currency} {selectedInvoice.amount}
                         </p>
                       </div>
