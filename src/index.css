@@ -6,16 +6,45 @@
   --bg-card: #121A2B;
   --bg-card-light: #182235;
 
- --accent-navyblue: #1183e0;;
+ --accent-navyblue: #1183e0;
   --accent-blue: #00D1FF;
   --accent-green: #00FFA3;
   --accent-purple: #A855F7;
   --accent-orange: #F59E0B;
 
+  --text-heading:#1183e0;
   --text-primary: #E6EDF3;
   --text-secondary: #8B9BB4;
 
   --border-glow: rgba(0, 209, 255, 0.2);
+}
+
+/* Custom Scrollbar — theme-aware, slim */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 209, 255, 0.25) var(--bg-main);
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 209, 255, 0.25);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 209, 255, 0.5);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--bg-main);
 }
 
 html {

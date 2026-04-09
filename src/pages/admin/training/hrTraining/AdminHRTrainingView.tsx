@@ -525,7 +525,7 @@ const AdminHRTrainingView: React.FC = () => {
     return (
       <div className="p-6 bg-main min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#0ea3d8] mx-auto mb-4" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#1183e0] mx-auto mb-4" />
           <p className="text-secondary">Loading training content...</p>
         </div>
       </div>
@@ -536,10 +536,17 @@ const AdminHRTrainingView: React.FC = () => {
     <div className="p-6 bg-main min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-primary mb-2">HR Training Content</h1>
-          <p className="text-secondary">
-            View all training materials and Q&A content managed by HR
-          </p>
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-2xl shadow-lg bg-[rgba(17,131,224,0.1)]">
+              <FileText className="w-8 h-8 text-[var(--accent-navyblue)]" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-primary">HR Training Content</h1>
+              <p className="text-secondary mt-1">
+                View all training materials and Q&A content managed by HR
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="flex gap-6">
@@ -584,7 +591,7 @@ const AdminHRTrainingView: React.FC = () => {
                   ).size;
 
                   return (
-                    <div className="rounded-lg border-2 transition-all border-theme bg-card hover:border-gray-300">
+                    <div className="rounded-lg border-2 transition-all border-theme bg-card hover:border-[rgba(17,131,224,0.4)]">
                       <div className="p-3">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-semibold text-primary">HR</span>
@@ -628,7 +635,7 @@ const AdminHRTrainingView: React.FC = () => {
                         {/* Dropdown Toggle Button */}
                         <button
                           onClick={() => setOpenDropdown(isDropdownOpen ? null : 'hr')}
-                          className="w-full mt-3 flex items-center justify-between px-2 py-1.5 text-xs font-medium text-[#8B9BB4] bg-[rgba(0,209,255,0.05)] rounded-lg border border-[rgba(0,209,255,0.2)] hover:bg-[rgba(0,209,255,0.1)] hover:text-[#00D1FF] transition-colors"
+                          className="w-full !mt-3 flex items-center justify-between px-2 py-1.5 text-xs font-medium text-[#8B9BB4] bg-[rgba(17,131,224,0.08)] rounded-lg border border-[rgba(17,131,224,0.2)] hover:bg-[rgba(17,131,224,0.15)] hover:text-[var(--accent-navyblue)] transition-colors"
                         >
                           <span>View Users ({roleUsers.length})</span>
                           <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
@@ -678,7 +685,7 @@ const AdminHRTrainingView: React.FC = () => {
                                 >
                                   <div className="flex items-center gap-2 flex-1">
                                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                                      style={{ background: 'linear-gradient(135deg, #0ea3d8 0%, #0d8fc4 100%)' }}
+                                      style={{ background: 'linear-gradient(135deg, #1183e0 0%, #0e6bbf 100%)' }}
                                     >
                                       {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                                     </div>
@@ -738,7 +745,7 @@ const AdminHRTrainingView: React.FC = () => {
                   setUploadDescription('');
                   setUploadFile(null);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-[#00D1FF]/10 border border-[#00D1FF]/30 text-[#00D1FF] rounded-lg hover:bg-[#00D1FF]/20 hover:border-[#00D1FF]/60 hover:shadow-[0_0_16px_rgba(0,209,255,0.2)] transition-all"
+                className="flex items-center gap-2 px-4 py-2 bg-[rgba(17,131,224,0.1)] border border-[rgba(17,131,224,0.3)] text-[var(--accent-navyblue)] rounded-lg hover:bg-[rgba(17,131,224,0.2)] hover:border-[rgba(17,131,224,0.6)] hover:shadow-[0_0_16px_rgba(17,131,224,0.2)] transition-all"
               >
                 <Plus className="w-4 h-4" />
                 Upload Content
@@ -758,20 +765,20 @@ const AdminHRTrainingView: React.FC = () => {
                   <div key={item._id} className="bg-card rounded-lg p-4 border border-theme">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2 flex-1">
-                        <div className="text-[#00D1FF]">{getIcon(item.type)}</div>
+                        <div className="text-[var(--accent-navyblue)]">{getIcon(item.type)}</div>
                         <h3 className="font-semibold text-primary">{item.name}</h3>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleViewContent(item._id, item.type)}
-                          className="text-[#00D1FF] hover:text-[#00FFA3] p-1 transition-colors"
+                          className="text-[var(--accent-navyblue)] hover:text-[#00FFA3] p-1 transition-colors"
                           title="View content"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteContent(item._id)}
-                          className="text-[#A855F7] hover:text-red-700 p-1"
+                          className="text-secondary hover:text-rose-400 p-1"
                           title="Delete content"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -784,7 +791,7 @@ const AdminHRTrainingView: React.FC = () => {
                     <div className="flex items-center justify-between text-sm text-secondary mt-3">
                       <div className="flex items-center gap-2">
                         <span className="capitalize bg-[rgba(255,255,255,0.08)] text-[#8B9BB4] px-2 py-1 rounded-md text-xs">{getTypeLabel(item.type)}</span>
-                        <span className="bg-[#00D1FF]/10 text-[#00D1FF] border border-[#00D1FF]/20 px-2 py-1 rounded-md text-xs">{getTestTypeDisplayName(item.testType)}</span>
+                        <span className="bg-[rgba(17,131,224,0.1)] text-[var(--accent-navyblue)] border border-[rgba(17,131,224,0.2)] px-2 py-1 rounded-md text-xs">{getTestTypeDisplayName(item.testType)}</span>
                       </div>
                       <span>
                         {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
@@ -818,7 +825,7 @@ const AdminHRTrainingView: React.FC = () => {
                   setCurrentQOptions(['', '', '', '']);
                   setCurrentQCorrectAnswer(0);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-[#00D1FF]/10 border border-[#00D1FF]/30 text-[#00D1FF] rounded-lg hover:bg-[#00D1FF]/20 hover:border-[#00D1FF]/60 hover:shadow-[0_0_16px_rgba(0,209,255,0.2)] transition-all"
+                className="flex items-center gap-2 px-4 py-2 bg-[rgba(17,131,224,0.1)] border border-[rgba(17,131,224,0.3)] text-[var(--accent-navyblue)] rounded-lg hover:bg-[rgba(17,131,224,0.2)] hover:border-[rgba(17,131,224,0.6)] hover:shadow-[0_0_16px_rgba(17,131,224,0.2)] transition-all"
               >
                 <Plus className="w-4 h-4" />
                 Add Q&A
@@ -864,16 +871,16 @@ const AdminHRTrainingView: React.FC = () => {
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-3">
                               <h3 className="font-semibold text-primary">{item.testName}</h3>
-                              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
+                              <span className="bg-[rgba(17,131,224,0.15)] text-[var(--accent-navyblue)] px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
                               <span className="text-sm text-secondary">Passing: {item.passingPercentage}%</span>
                               <span className="text-sm text-secondary">Questions: {item.questions.length}</span>
-                              {item.mandatory && <span className="text-xs text-[#A855F7] font-medium">Mandatory</span>}
+                              {item.mandatory && <span className="text-xs text-[var(--accent-navyblue)] font-medium">Mandatory</span>}
                             </div>
                             {stats && (
                               <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-2 px-3 py-1 bg-card rounded-lg border border-theme">
                                   <span className="text-xs font-medium text-secondary">Avg Score:</span>
-                                  <span className={`text-sm font-bold ${stats.avgScore >= 0.9 ? 'text-green-600' : stats.avgScore >= 0.7 ? 'text-[#00FFA3]' : 'text-[#A855F7]'}`}>
+                                  <span className={`text-sm font-bold ${stats.avgScore >= 0.9 ? 'text-[#00FFA3]' : stats.avgScore >= 0.7 ? 'text-[#F59E0B]' : 'text-rose-400'}`}>
                                     {Math.round(stats.avgScore * 100)}%
                                   </span>
                                 </div>
@@ -889,7 +896,7 @@ const AdminHRTrainingView: React.FC = () => {
                                   {allUserResults.length > 0 && (
                                     <div className="mt-4 mb-4">
                                       <div className="flex items-center gap-2 mb-3">
-                                        <TrendingUp className="w-4 h-4 text-[#0ea3d8]" />
+                                        <TrendingUp className="w-4 h-4 text-[#1183e0]" />
                                         <h4 className="text-sm font-semibold text-primary">User Results</h4>
                                         <span className="text-xs text-secondary">({allUserResults.length} {allUserResults.length === 1 ? 'user' : 'users'})</span>
                                       </div>
@@ -897,9 +904,9 @@ const AdminHRTrainingView: React.FC = () => {
                                         {allUserResults.map(({ userId, result, userName, passed }) => {
                                           const percentage = result.score.correct; // Score is already a percentage
                                           const getScoreColor = () => {
-                                            if (percentage >= 90 || passed) return { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', badge: 'bg-green-100 text-green-700' };
-                                            if (percentage >= 70) return { bg: 'bg-card', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700' };
-                                            return { bg: 'bg-card', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-700' };
+                                            if (percentage >= 90 || passed) return { bg: 'bg-card', border: 'border-[rgba(0,255,163,0.3)]', text: 'text-[#00FFA3]', badge: 'bg-[rgba(0,255,163,0.15)] text-[#00FFA3]' };
+                                            if (percentage >= 70) return { bg: 'bg-card', border: 'border-[rgba(245,158,11,0.3)]', text: 'text-[#F59E0B]', badge: 'bg-[rgba(245,158,11,0.15)] text-[#F59E0B]' };
+                                            return { bg: 'bg-card', border: 'border-[rgba(239,68,68,0.3)]', text: 'text-rose-400', badge: 'bg-[rgba(239,68,68,0.15)] text-rose-400' };
                                           };
                                           const colors = getScoreColor();
                                           const initials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -909,7 +916,7 @@ const AdminHRTrainingView: React.FC = () => {
                                               <div className="flex items-start justify-between mb-3">
                                                 <div className="flex items-center gap-3">
                                                   <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm`}
-                                                    style={{ background: 'linear-gradient(135deg, #0ea3d8 0%, #0d8fc4 100%)' }}
+                                                    style={{ background: 'linear-gradient(135deg, #1183e0 0%, #0e6bbf 100%)' }}
                                                   >
                                                     {initials}
                                                   </div>
@@ -935,7 +942,7 @@ const AdminHRTrainingView: React.FC = () => {
                                                 </div>
                                                 
                                                 {/* Progress Bar */}
-                                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                                <div className="w-full bg-[rgba(255,255,255,0.08)] rounded-full h-2">
                                                   <div
                                                     className={`h-2 rounded-full transition-all ${
                                                       percentage >= 90 ? 'bg-green-500' : percentage >= 70 ? 'bg-yellow-500' : 'bg-red-500'
@@ -984,7 +991,7 @@ const AdminHRTrainingView: React.FC = () => {
                                           readOnly
                                           className="w-4 h-4"
                                         />
-                                        <span className={`text-sm ${isCorrectOption ? 'text-green-600 font-medium' : 'text-secondary'} flex items-center gap-2`}>
+                                        <span className={`text-sm ${isCorrectOption ? 'text-[#00FFA3] font-medium' : 'text-secondary'} flex items-center gap-2`}>
                                           {String.fromCharCode(65 + optIdx)}. {option}
                                           {isCorrectOption && ' ✓ (Correct Answer)'}
                                         </span>
@@ -998,7 +1005,7 @@ const AdminHRTrainingView: React.FC = () => {
                         </div>
                         <button
                           onClick={() => handleDeleteQA(item._id)}
-                          className="text-[#A855F7] hover:text-red-700 p-1 ml-4"
+                          className="text-secondary hover:text-rose-400 p-1 ml-4"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -1042,7 +1049,7 @@ const AdminHRTrainingView: React.FC = () => {
                     value={uploadTestType}
                     onChange={(e) => setUploadTestType(e.target.value)}
                     disabled={uploading}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                    className="flex-1 px-3 py-2 border border-[rgba(255,255,255,0.12)] bg-[#0B1220] text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(17,131,224,0.4)] disabled:opacity-50"
                   >
                     <option value="">Select Test Type</option>
                     {testTypes.map((type) => (
@@ -1055,7 +1062,7 @@ const AdminHRTrainingView: React.FC = () => {
                     type="button"
                     onClick={() => setShowAddTestTypeModal(true)}
                     disabled={uploading}
-                    className="px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    className="px-4 py-2 bg-[rgba(255,255,255,0.06)] text-primary border border-[rgba(255,255,255,0.1)] rounded-lg hover:bg-[rgba(255,255,255,0.1)] transition-colors disabled:opacity-50 flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add Type
@@ -1071,8 +1078,8 @@ const AdminHRTrainingView: React.FC = () => {
                     disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
                       uploadType === 'VIDEO'
-                        ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
-                        : 'bg-card text-primary border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                        ? 'bg-[#1183e0] !text-white border-[#1183e0]'
+                        : 'bg-card text-primary border-[rgba(255,255,255,0.12)] hover:bg-[rgba(255,255,255,0.06)]'
                     } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Video className="w-4 h-4 inline mr-2" />
@@ -1084,8 +1091,8 @@ const AdminHRTrainingView: React.FC = () => {
                     disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
                       uploadType === 'PDF'
-                        ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
-                        : 'bg-card text-primary border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                        ? 'bg-[#1183e0] !text-white border-[#1183e0]'
+                        : 'bg-card text-primary border-[rgba(255,255,255,0.12)] hover:bg-[rgba(255,255,255,0.06)]'
                     } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <FileText className="w-4 h-4 inline mr-2" />
@@ -1097,8 +1104,8 @@ const AdminHRTrainingView: React.FC = () => {
                     disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
                       uploadType === 'IMAGE'
-                        ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
-                        : 'bg-card text-primary border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                        ? 'bg-[#1183e0] !text-white border-[#1183e0]'
+                        : 'bg-card text-primary border-[rgba(255,255,255,0.12)] hover:bg-[rgba(255,255,255,0.06)]'
                     } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Image className="w-4 h-4 inline mr-2" />
@@ -1117,7 +1124,7 @@ const AdminHRTrainingView: React.FC = () => {
                   onChange={(e) => setUploadTitle(e.target.value)}
                   placeholder="Enter content title"
                   disabled={uploading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-[rgba(255,255,255,0.12)] bg-[#0B1220] text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(17,131,224,0.4)] disabled:opacity-50"
                 />
               </div>
               <div>
@@ -1131,7 +1138,7 @@ const AdminHRTrainingView: React.FC = () => {
                   placeholder="Enter content description (optional)"
                   rows={3}
                   disabled={uploading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-[rgba(255,255,255,0.12)] bg-[#0B1220] text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(17,131,224,0.4)] disabled:opacity-50"
                 />
               </div>
               <div>
@@ -1144,21 +1151,21 @@ const AdminHRTrainingView: React.FC = () => {
                   accept={uploadType === 'VIDEO' ? 'video/*' : uploadType === 'PDF' ? 'application/pdf' : 'image/*'}
                   onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                   disabled={uploading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-[rgba(255,255,255,0.12)] bg-[#0B1220] text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(17,131,224,0.4)] disabled:opacity-50"
                 />
               </div>
               <div className="flex gap-2 justify-end pt-4">
                 <button
                   onClick={() => !uploading && setShowUploadModal(false)}
                   disabled={uploading}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-[rgba(255,255,255,0.12)] rounded-lg text-primary hover:bg-[rgba(255,255,255,0.06)] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleUpload}
                   disabled={uploading || !uploadTitle.trim() || !uploadFile}
-                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-2 bg-[#1183e0] !text-white rounded-lg hover:bg-[#0e6bbf] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {uploading ? (
                     <>
@@ -1215,7 +1222,7 @@ const AdminHRTrainingView: React.FC = () => {
                   onChange={(e) => setQATitle(e.target.value)}
                   placeholder="Enter Q&A title"
                   disabled={creatingQA}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-[rgba(255,255,255,0.12)] bg-[#0B1220] text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(17,131,224,0.4)] disabled:opacity-50"
                 />
               </div>
 
@@ -1227,7 +1234,7 @@ const AdminHRTrainingView: React.FC = () => {
                     value={qaTestType}
                     onChange={(e) => setQATestType(e.target.value)}
                     disabled={creatingQA}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                    className="flex-1 px-3 py-2 border border-[rgba(255,255,255,0.12)] bg-[#0B1220] text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(17,131,224,0.4)] disabled:opacity-50"
                   >
                     <option value="">Select Test Type</option>
                     {testTypes.map((type) => (
@@ -1240,7 +1247,7 @@ const AdminHRTrainingView: React.FC = () => {
                     type="button"
                     onClick={() => setShowAddTestTypeModal(true)}
                     disabled={creatingQA}
-                    className="px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    className="px-4 py-2 bg-[rgba(255,255,255,0.06)] text-primary border border-[rgba(255,255,255,0.1)] rounded-lg hover:bg-[rgba(255,255,255,0.1)] transition-colors disabled:opacity-50 flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add Type
@@ -1260,7 +1267,7 @@ const AdminHRTrainingView: React.FC = () => {
                   placeholder="Enter description (optional)"
                   rows={3}
                   disabled={creatingQA}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-[rgba(255,255,255,0.12)] bg-[#0B1220] text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(17,131,224,0.4)] disabled:opacity-50"
                 />
               </div>
 
@@ -1279,7 +1286,7 @@ const AdminHRTrainingView: React.FC = () => {
                             type="button"
                             onClick={() => handleRemoveQuestionFromQA(index)}
                             disabled={creatingQA}
-                            className="text-[#A855F7] hover:text-red-700 ml-2 disabled:opacity-50"
+                            className="text-secondary hover:text-rose-400 ml-2 disabled:opacity-50"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -1293,7 +1300,7 @@ const AdminHRTrainingView: React.FC = () => {
                                 readOnly
                                 className="w-4 h-4"
                               />
-                              <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-green-600 font-medium' : 'text-secondary'}`}>
+                              <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-[#00FFA3] font-medium' : 'text-secondary'}`}>
                                 {String.fromCharCode(65 + optIdx)}. {option}
                                 {q.correctAnswer === optIdx && ' ✓ (Correct)'}
                               </span>
@@ -1323,7 +1330,7 @@ const AdminHRTrainingView: React.FC = () => {
                       placeholder="Enter question"
                       rows={2}
                       disabled={creatingQA}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                      className="w-full px-3 py-2 border border-[rgba(255,255,255,0.12)] bg-[#0B1220] text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(17,131,224,0.4)] disabled:opacity-50"
                     />
                   </div>
 
@@ -1356,7 +1363,7 @@ const AdminHRTrainingView: React.FC = () => {
                             }}
                             placeholder={`Option ${String.fromCharCode(65 + idx)}`}
                             disabled={creatingQA}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                            className="flex-1 px-3 py-2 border border-[rgba(255,255,255,0.12)] bg-[#0B1220] text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(17,131,224,0.4)] disabled:opacity-50"
                           />
                         </div>
                       ))}
@@ -1370,7 +1377,7 @@ const AdminHRTrainingView: React.FC = () => {
                     type="button"
                     onClick={handleAddQuestionToQA}
                     disabled={creatingQA || !currentQQuestion.trim() || currentQOptions.filter(opt => opt.trim()).length < 2}
-                    className="w-full px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full px-4 py-2 bg-[rgba(255,255,255,0.06)] text-primary border border-[rgba(255,255,255,0.1)] rounded-lg hover:bg-[rgba(255,255,255,0.1)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add Question
@@ -1382,14 +1389,14 @@ const AdminHRTrainingView: React.FC = () => {
                 <button
                   onClick={() => !creatingQA && setShowQAModal(false)}
                   disabled={creatingQA}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-[rgba(255,255,255,0.12)] rounded-lg text-primary hover:bg-[rgba(255,255,255,0.06)] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddQA}
                   disabled={creatingQA || !qaTitle.trim() || qaQuestions.length === 0}
-                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-2 bg-[#1183e0] !text-white rounded-lg hover:bg-[#0e6bbf] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {creatingQA ? (
                     <>
@@ -1435,7 +1442,7 @@ const AdminHRTrainingView: React.FC = () => {
                   onChange={(e) => setNewTestTypeName(e.target.value.toUpperCase())}
                   placeholder="Enter test type name (uppercase)"
                   disabled={creatingTestType}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-[rgba(255,255,255,0.12)] bg-[#0B1220] text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(17,131,224,0.4)] disabled:opacity-50"
                 />
                 <p className="text-xs text-secondary mt-1">This will be stored in uppercase</p>
               </div>
@@ -1450,7 +1457,7 @@ const AdminHRTrainingView: React.FC = () => {
                   onChange={(e) => setNewTestTypeDisplayName(e.target.value)}
                   placeholder="Enter display name"
                   disabled={creatingTestType}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  className="w-full px-3 py-2 border border-[rgba(255,255,255,0.12)] bg-[#0B1220] text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(17,131,224,0.4)] disabled:opacity-50"
                 />
                 <p className="text-xs text-secondary mt-1">This is how it will appear in dropdowns</p>
               </div>
@@ -1458,14 +1465,14 @@ const AdminHRTrainingView: React.FC = () => {
                 <button
                   onClick={() => !creatingTestType && setShowAddTestTypeModal(false)}
                   disabled={creatingTestType}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-[rgba(255,255,255,0.12)] rounded-lg text-primary hover:bg-[rgba(255,255,255,0.06)] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddTestType}
                   disabled={creatingTestType || !newTestTypeName.trim() || !newTestTypeDisplayName.trim()}
-                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-2 bg-[#1183e0] !text-white rounded-lg hover:bg-[#0e6bbf] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {creatingTestType ? (
                     <>

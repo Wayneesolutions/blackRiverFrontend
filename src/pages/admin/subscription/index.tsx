@@ -120,14 +120,14 @@ const SubscriptionPage = () => {
 
 
   const primaryButtonStyle: CSSProperties = {
-    background: FLEET_COLORS.gradient,
+    background: 'linear-gradient(90deg, #1a8ee8 0%, #1183e0 40%, #0d6bc7 100%)',
     color: '#fff',
     border: 'none',
-    boxShadow: `0 18px 32px ${FLEET_COLORS.focusRing}`,
+    boxShadow: `0 18px 32px rgba(17, 131, 224, 0.25)`,
   };
   const cardAccentStyle: CSSProperties = {
-    borderColor: FLEET_COLORS.focusRing,
-    boxShadow: `0 25px 45px ${FLEET_COLORS.focusRing}`,
+    borderColor: 'rgba(17, 131, 224, 0.2)',
+    boxShadow: `0 4px 20px rgba(17, 131, 224, 0.1)`,
   };
 
   useEffect(() => {
@@ -346,8 +346,8 @@ const SubscriptionPage = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl shadow-lg bg-[rgba(0,209,255,0.1)]">
-                <CreditCard className="w-8 h-8 text-[#00D1FF]" />
+              <div className="p-3 rounded-2xl shadow-lg bg-[rgba(17,131,224,0.1)]">
+                <CreditCard className="w-8 h-8 text-[var(--accent-navyblue)]" />
               </div>
               <div>
                 <h1 className="text-4xl font-bold text-primary">
@@ -363,43 +363,43 @@ const SubscriptionPage = () => {
         </div>
 
         {/* Prominent Alert Banner for Expired Trial or No Subscription */}
-        {((trialStatus && trialStatus.isTrialExpired && !trialStatus.hasActiveSubscription) || 
+        {((trialStatus && trialStatus.isTrialExpired && !trialStatus.hasActiveSubscription) ||
           (trialStatus && !trialStatus.hasActiveSubscription && !trialStatus.hasTrial)) && (
-          <div className="mb-6">
-            <Alert
-              message={
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="w-6 h-6" />
-                  <div>
-                    <div className="font-bold text-lg">Subscription Required</div>
-                    <div className="text-sm mt-1">
-                      {trialStatus?.isTrialExpired 
-                        ? "Your free trial has expired. You don't have an active subscription plan to use this software. Please subscribe to a plan to continue."
-                        : "You don't have an active subscription plan to use this software. Please subscribe to a plan to continue."}
+            <div className="mb-6">
+              <Alert
+                message={
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-6 h-6" />
+                    <div>
+                      <div className="font-bold text-lg">Subscription Required</div>
+                      <div className="text-sm mt-1">
+                        {trialStatus?.isTrialExpired
+                          ? "Your free trial has expired. You don't have an active subscription plan to use this software. Please subscribe to a plan to continue."
+                          : "You don't have an active subscription plan to use this software. Please subscribe to a plan to continue."}
+                      </div>
                     </div>
                   </div>
-                </div>
-              }
-              type="error"
-              showIcon={false}
-              closable={false}
-              className="border-2 border-red-500"
-              style={{
-                backgroundColor: 'rgba(239,68,68,0.1)',
-                borderColor: '#ef4444',
-                padding: '20px'
-              }}
-            />
-          </div>
-        )}
+                }
+                type="error"
+                showIcon={false}
+                closable={false}
+                className="border-2 border-red-500"
+                style={{
+                  backgroundColor: 'rgba(239,68,68,0.1)',
+                  borderColor: '#ef4444',
+                  padding: '20px'
+                }}
+              />
+            </div>
+          )}
 
         {/* Trial Status Card */}
         {trialStatus && !trialStatus.hasActiveSubscription && trialStatus.hasTrial && (
           <div className={`mb-8 relative overflow-hidden rounded-2xl shadow-2xl ${trialStatus.isTrialExpired
-              ? 'bg-gradient-to-br from-red-500 via-red-600 to-orange-600'
-              : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
-                ? 'bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500'
-                : 'bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600'
+            ? 'bg-gradient-to-br from-red-500 via-red-600 to-orange-600'
+            : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
+              ? 'bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500'
+              : 'bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600'
             }`}>
             <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
             <div className="absolute top-0 right-0 w-64 h-64 bg-card/5 rounded-full -mr-32 -mt-32 pointer-events-none"></div>
@@ -506,7 +506,7 @@ const SubscriptionPage = () => {
         {activeSubscription && (
           <div
             className="mb-8 relative overflow-hidden rounded-2xl shadow-2xl bg-card border-2 border-theme"
-            style={{ boxShadow: `0 35px 55px ${FLEET_COLORS.focusRing}` }}
+            style={{ boxShadow: `0 4px 24px rgba(17, 131, 224, 0.12)` }}
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-card rounded-full -mr-32 -mt-32 pointer-events-none"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-card rounded-full -ml-24 -mb-24 pointer-events-none"></div>
@@ -515,8 +515,8 @@ const SubscriptionPage = () => {
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-[rgba(0,209,255,0.1)] rounded-lg">
-                      <Crown className="w-6 h-6 text-[#00D1FF]" />
+                    <div className="p-2 bg-[rgba(17,131,224,0.1)] rounded-lg">
+                      <Crown className="w-6 h-6 text-[var(--accent-navyblue)]" />
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
@@ -535,9 +535,9 @@ const SubscriptionPage = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div className="bg-[rgba(0,209,255,0.06)] rounded-xl p-4 border border-[rgba(0,209,255,0.15)]">
+                    <div className="bg-[rgba(17,131,224,0.06)] rounded-xl p-4 border border-[rgba(17,131,224,0.15)]">
                       <div className="flex items-center gap-2 mb-2">
-                        <Package className="w-5 h-5 text-[#00D1FF]" />
+                        <Package className="w-5 h-5 text-[var(--accent-navyblue)]" />
                         <span className="text-primary text-sm font-medium">Plan Name</span>
                       </div>
                       <p className="text-primary text-xl font-bold">
@@ -587,10 +587,10 @@ const SubscriptionPage = () => {
                     )}
 
                     {activeSubscription.maxTrucks != null && activeSubscription.maxTrucks > 0 && (
-                      <div className="bg-[rgba(0,209,255,0.06)] rounded-xl p-4 border border-[rgba(0,209,255,0.15)] md:col-span-2">
+                      <div className="bg-[rgba(17,131,224,0.06)] rounded-xl p-4 border border-[rgba(17,131,224,0.15)] md:col-span-2">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-[#00D1FF]" />
+                            <TrendingUp className="w-5 h-5 text-[var(--accent-navyblue)]" />
                             <span className="text-primary text-sm font-medium">Truck Usage</span>
                           </div>
                           <span className="text-primary font-bold">
@@ -605,7 +605,7 @@ const SubscriptionPage = () => {
                           strokeColor={
                             (activeSubscription.usedTrucks ?? 0) >= activeSubscription.maxTrucks
                               ? { '0%': '#ef4444', '100%': '#dc2626' }
-                              : { '0%': '#00D1FF', '100%': '#00FFA3' }
+                              : { '0%': '#1183e0', '100%': '#00FFA3' }
                           }
                           className="mb-2"
                         />
@@ -634,7 +634,11 @@ const SubscriptionPage = () => {
                       size="large"
                       icon={<X className="w-4 h-4" />}
                       onClick={(e) => handleCancelSubscription(activeSubscription._id, e)}
-                      className="bg-red-500 hover:bg-red-600 border-red-500 hover:border-red-600 text-white font-semibold shadow-lg"
+                      className="
+      !bg-red-500 !hover:bg-red-600 !border-red-500 hover:border-red-600
+      !dark:bg-red-700 dark:hover:bg-red-800 dark:border-red-700 dark:hover:border-red-800
+      !text-white font-semibold shadow-lg
+    "
                       style={{ pointerEvents: 'auto', zIndex: 10 }}
                     >
                       Cancel Subscription
@@ -728,7 +732,7 @@ const SubscriptionPage = () => {
               {
                 key: 'plans',
                 label: (
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-2 text-white">
                     <Package className="w-4 h-4" />
                     All Plans
                   </span>
@@ -737,7 +741,7 @@ const SubscriptionPage = () => {
               {
                 key: 'history',
                 label: (
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-2 text-white">
                     <History className="w-4 h-4" />
                     Subscription History
                   </span>
@@ -763,7 +767,7 @@ const SubscriptionPage = () => {
                 const activeSubType = activeSubscription?.subscriptionType;
                 const defaultTab: 'monthly' | '6months' | 'annual' =
                   isCurrentPlan && activeSubType === '6-months' ? '6months' :
-                  isCurrentPlan && activeSubType === '1-year' ? 'annual' : 'monthly';
+                    isCurrentPlan && activeSubType === '1-year' ? 'annual' : 'monthly';
                 const planTab = pricingTabs[plan._id] ?? defaultTab;
 
                 // Determine which tier index matches the active subscription
@@ -777,10 +781,10 @@ const SubscriptionPage = () => {
                 return (
                   <div
                     key={plan._id}
-                    className={`bg-card rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 ${isCurrentPlan ? 'border-[#00D1FF]' : 'border-theme hover:border-theme'}`}
+                    className={`bg-card rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 ${isCurrentPlan ? 'border-[var(--accent-navyblue)]' : 'border-theme hover:border-theme'}`}
                   >
                     {/* ── Plan Header ── */}
-                    <div className={`px-8 py-6 ${isCurrentPlan ? 'bg-gradient-to-r from-blue-600 to-indigo-700' : 'bg-gradient-to-r from-slate-700 to-slate-800'}`}>
+                    <div className={`px-8 py-6 ${isCurrentPlan ? 'bg-[var(--accent-navyblue)]' : 'bg-gradient-to-r from-slate-700 to-slate-800'}`}>
                       <div className="flex items-start justify-between gap-4 flex-wrap">
                         <div>
                           <div className="flex items-center gap-3 mb-1 flex-wrap">
@@ -810,7 +814,7 @@ const SubscriptionPage = () => {
                         <>
                           {/* ── Billing Period Selector ── */}
                           <div className="flex justify-center mb-8">
-                            <div className="inline-flex bg-[#0B1220] rounded-2xl p-1 gap-1 border border-[rgba(0,209,255,0.12)]">
+                            <div className="inline-flex bg-[#0B1220] rounded-2xl p-1 gap-1 border border-[rgba(17,131,224,0.12)]">
                               {(['monthly', '6months', 'annual'] as const).map((tab) => {
                                 const isActiveTab = planTab === tab;
                                 const isCurrentBillingTab = isCurrentPlan && (
@@ -822,22 +826,20 @@ const SubscriptionPage = () => {
                                   <button
                                     key={tab}
                                     onClick={() => setPricingTabs(prev => ({ ...prev, [plan._id]: tab }))}
-                                    className={`relative px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex flex-col items-center min-w-[110px] ${
-                                      isActiveTab
-                                        ? 'bg-[#182235] shadow-md text-[#00D1FF] ring-1 ring-[rgba(0,209,255,0.2)]'
+                                    className={`relative px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex flex-col items-center min-w-[110px] ${isActiveTab
+                                        ? 'bg-[#182235] shadow-md text-[var(--accent-navyblue)] ring-1 ring-[rgba(17,131,224,0.2)]'
                                         : 'text-secondary hover:text-primary'
-                                    }`}
+                                      }`}
                                   >
                                     <span>{tab === 'monthly' ? 'Monthly' : tab === '6months' ? '6 Months' : 'Annual'}</span>
-                                    <span className={`text-[10px] font-bold mt-0.5 ${
-                                      isActiveTab
+                                    <span className={`text-[10px] font-bold mt-0.5 ${isActiveTab
                                         ? tab === '6months' ? 'text-[#F59E0B]' : tab === 'annual' ? 'text-[#00FFA3]' : 'text-transparent'
                                         : 'text-secondary'
-                                    }`}>
+                                      }`}>
                                       {tab === '6months' ? `+${bonusDays} days free` : tab === 'annual' ? `+${freeMonths} mo free` : '‎'}
                                     </span>
                                     {isCurrentBillingTab && (
-                                      <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-[#00D1FF] rounded-full border-2 border-[#121A2B] shadow-sm" />
+                                      <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-[var(--accent-navyblue)] rounded-full border-2 border-[#121A2B] shadow-sm" />
                                     )}
                                   </button>
                                 );
@@ -896,31 +898,30 @@ const SubscriptionPage = () => {
                               return (
                                 <div
                                   key={tier._id}
-                                  className={`relative rounded-2xl border-2 p-6 transition-all duration-200 flex flex-col ${
-                                    isCurrentTabAndTier
-                                      ? 'border-[#00D1FF] bg-[rgba(0,209,255,0.06)] shadow-xl ring-2 ring-[rgba(0,209,255,0.15)]'
+                                  className={`relative rounded-2xl border-2 p-6 transition-all duration-200 flex flex-col ${isCurrentTabAndTier
+                                      ? 'border-[var(--accent-navyblue)] bg-[rgba(17,131,224,0.06)] shadow-xl ring-2 ring-[rgba(17,131,224,0.15)]'
                                       : isActiveTier
-                                        ? 'border-[rgba(0,209,255,0.3)] bg-[rgba(0,209,255,0.03)] shadow-md'
-                                        : 'border-theme bg-card hover:border-[rgba(0,209,255,0.25)] hover:shadow-lg'
-                                  }`}
+                                        ? 'border-[rgba(17,131,224,0.3)] bg-[rgba(17,131,224,0.03)] shadow-md'
+                                        : 'border-theme bg-card hover:border-[rgba(17,131,224,0.25)] hover:shadow-lg'
+                                    }`}
                                 >
                                   {/* "Your Current Plan" badge */}
                                   {isCurrentTabAndTier && (
-                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#00D1FF] text-[#0B1220] text-xs font-bold px-4 py-1 rounded-full flex items-center gap-1.5 shadow-lg whitespace-nowrap">
+                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[var(--accent-navyblue)] text-[#0B1220] text-xs font-bold px-4 py-1 rounded-full flex items-center gap-1.5 shadow-lg whitespace-nowrap">
                                       <CheckCircle className="w-3 h-3" />
                                       Your Current Plan
                                     </div>
                                   )}
                                   {/* "Same tier, different billing" hint */}
                                   {isActiveTier && !isCurrentTabAndTier && (
-                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[rgba(0,209,255,0.2)] text-[#00D1FF] text-xs font-semibold px-4 py-1 rounded-full whitespace-nowrap shadow border border-[rgba(0,209,255,0.3)]">
+                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[rgba(17,131,224,0.2)] text-[var(--accent-navyblue)] text-xs font-semibold px-4 py-1 rounded-full whitespace-nowrap shadow border border-[rgba(17,131,224,0.3)]">
                                       Your Tier
                                     </div>
                                   )}
 
                                   {/* Tier label */}
                                   <div className="flex items-center gap-3 mb-5">
-                                    <div className={`p-2.5 rounded-xl ${isCurrentTabAndTier ? 'bg-[#00D1FF]' : 'bg-[rgba(245,158,11,0.1)]'}`}>
+                                    <div className={`p-2.5 rounded-xl ${isCurrentTabAndTier ? 'bg-[var(--accent-navyblue)]' : 'bg-[rgba(245,158,11,0.1)]'}`}>
                                       <Truck className={`w-5 h-5 ${isCurrentTabAndTier ? 'text-[#0B1220]' : 'text-[#F59E0B]'}`} />
                                     </div>
                                     <div>
@@ -935,7 +936,7 @@ const SubscriptionPage = () => {
                                       <p className="text-sm text-secondary line-through mb-0.5">{formatPrice(strikethroughPrice, currency)}</p>
                                     )}
                                     <div className="flex items-baseline gap-1.5">
-                                      <span className={`text-4xl font-extrabold ${isCurrentTabAndTier ? 'text-[#00D1FF]' : 'text-primary'}`}>
+                                      <span className={`text-4xl font-extrabold ${isCurrentTabAndTier ? 'text-[var(--accent-navyblue)]' : 'text-primary'}`}>
                                         {formatPrice(displayPrice, currency)}
                                       </span>
                                       <span className="text-sm text-secondary font-medium">
@@ -970,7 +971,7 @@ const SubscriptionPage = () => {
                                   })()}
 
                                   {/* Divider */}
-                                  <div className={`h-px mb-5 ${isCurrentTabAndTier ? 'bg-[rgba(0,209,255,0.2)]' : 'bg-[rgba(255,255,255,0.06)]'}`} />
+                                  <div className={`h-px mb-5 ${isCurrentTabAndTier ? 'bg-[rgba(17,131,224,0.2)]' : 'bg-[rgba(255,255,255,0.06)]'}`} />
 
                                   {/* CTA */}
                                   <Button
@@ -1052,7 +1053,7 @@ const SubscriptionPage = () => {
                   {subscriptions.map((sub) => (
                     <Card
                       key={sub._id}
-                      className="hover:shadow-lg transition-all duration-300 border-2 border-theme hover:border-purple-300 !mb-4"
+                      className="hover:shadow-lg transition-all duration-300 border-2 border-theme hover:border-[#1183e0]/40 !mb-4"
                       style={cardAccentStyle}
                     >
                       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
@@ -1070,9 +1071,9 @@ const SubscriptionPage = () => {
                             </Tag>
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="bg-[rgba(0,209,255,0.06)] rounded-lg p-3 border border-[rgba(0,209,255,0.15)]">
+                            <div className="bg-[rgba(17,131,224,0.06)] rounded-lg p-3 border border-[rgba(17,131,224,0.15)]">
                               <div className="flex items-center gap-2 mb-1">
-                                <DollarSign className="w-4 h-4 text-[#00D1FF]" />
+                                <DollarSign className="w-4 h-4 text-[var(--accent-navyblue)]" />
                                 <span className="text-xs text-secondary font-medium">Amount</span>
                               </div>
                               <p className="text-lg font-bold text-primary">
@@ -1129,7 +1130,7 @@ const SubscriptionPage = () => {
                             size="large"
                             icon={<X className="w-4 h-4" />}
                             onClick={(e) => handleCancelSubscription(sub._id, e)}
-                            className="lg:self-start"
+                            className="lg:self-start !bg-red-500 !text-white"
                             style={{ pointerEvents: 'auto', zIndex: 10 }}
                           >
                             Cancel
@@ -1155,10 +1156,10 @@ const SubscriptionPage = () => {
       <Modal
         title={
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg">
+            <div className="p-2 bg-[var(--accent-navyblue)] rounded-lg">
               <CreditCard className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold">Confirm Subscription</span>
+            <span className="text-xl font-bold text-primary">Confirm Subscription</span>
           </div>
         }
         open={showSubscribeModal}
@@ -1198,10 +1199,16 @@ const SubscriptionPage = () => {
           </Button>,
         ]}
         width={600}
+        styles={{
+          content: { background: 'var(--bg-card)', padding: 0 },
+          header: { background: 'var(--bg-card)', padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 0 },
+          body: { background: 'var(--bg-card)', padding: '0 24px' },
+          footer: { background: 'var(--bg-card)', padding: '16px 24px 20px', borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 0 },
+        }}
       >
         {selectedPlan && (
           <div className="space-y-6 py-4">
-            <div className="bg-[rgba(168,85,247,0.08)] rounded-xl p-4 border-2 border-[rgba(168,85,247,0.25)]">
+            <div className="bg-[rgba(17,131,224,0.08)] rounded-xl p-4 border-2 border-[rgba(17,131,224,0.25)]">
               <p className="text-primary mb-2">
                 You are about to subscribe to
               </p>
@@ -1217,7 +1224,7 @@ const SubscriptionPage = () => {
             <div className="bg-[#0B1220] rounded-xl p-6 border-2 border-theme">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-purple-600" />
+                  <Zap className="w-5 h-5 text-[var(--accent-navyblue)]" />
                   <p className="font-bold text-primary text-lg capitalize">
                     {selectedType.replace('-', ' ')}
                   </p>
@@ -1308,12 +1315,12 @@ const SubscriptionPage = () => {
                               <div className="flex items-center gap-3">
                                 <button
                                   onClick={() => setExtraTrucks(Math.max(0, extraTrucks - 1))}
-                                  className="w-8 h-8 rounded-lg border border-[rgba(0,209,255,0.2)] bg-[#0B1220] flex items-center justify-center text-primary hover:bg-[rgba(0,209,255,0.08)] font-bold text-lg leading-none"
+                                  className="w-8 h-8 rounded-lg border border-[rgba(17,131,224,0.2)] bg-[#0B1220] flex items-center justify-center text-primary hover:bg-[rgba(17,131,224,0.08)] font-bold text-lg leading-none"
                                 >−</button>
                                 <span className="w-12 text-center font-bold text-lg text-primary">{extraTrucks}</span>
                                 <button
                                   onClick={() => setExtraTrucks(extraTrucks + 1)}
-                                  className="w-8 h-8 rounded-lg border border-[rgba(0,209,255,0.2)] bg-[#0B1220] flex items-center justify-center text-primary hover:bg-[rgba(0,209,255,0.08)] font-bold text-lg leading-none"
+                                  className="w-8 h-8 rounded-lg border border-[rgba(17,131,224,0.2)] bg-[#0B1220] flex items-center justify-center text-primary hover:bg-[rgba(17,131,224,0.08)] font-bold text-lg leading-none"
                                 >+</button>
                                 {extraTrucks > 0 && (
                                   <span className="ml-auto text-sm font-semibold text-[#F59E0B]">
@@ -1328,7 +1335,7 @@ const SubscriptionPage = () => {
                           <div className="flex items-center justify-between px-4 py-3 bg-card">
                             <span className="text-sm font-bold text-primary">Total</span>
                             <div className="text-right">
-                              <span className="text-xl font-extrabold text-[#00D1FF]">{formatPrice(grandTotal, selectedTier.currency)}</span>
+                              <span className="text-xl font-extrabold text-[var(--accent-navyblue)]">{formatPrice(grandTotal, selectedTier.currency)}</span>
                               <span className="text-xs text-secondary ml-1">{billingLabel}</span>
                               {selectedType !== '1-month' && (
                                 <p className="text-xs text-secondary mt-0.5">{formatPrice(grandTotal / billingFactor, selectedTier.currency)}/mo equivalent</p>
@@ -1343,8 +1350,8 @@ const SubscriptionPage = () => {
               )}
             </div>
 
-            <div className="bg-card rounded-lg p-4 border border-[rgba(0,209,255,0.15)] flex items-start gap-3">
-              <Info className="w-5 h-5 text-[#00D1FF] mt-0.5 flex-shrink-0" />
+            <div className="bg-card rounded-lg p-4 border border-[rgba(17,131,224,0.15)] flex items-start gap-3">
+              <Info className="w-5 h-5 text-[var(--accent-navyblue)] mt-0.5 flex-shrink-0" />
               <p className="text-sm text-primary">
                 You will be redirected to <strong>Stripe checkout</strong> to complete your payment securely.
               </p>
@@ -1360,7 +1367,7 @@ const SubscriptionPage = () => {
             <div className="p-2 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg">
               <Truck className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold">Add Extra Trucks</span>
+            <span className="text-xl font-bold text-primary">Add Extra Trucks</span>
           </div>
         }
         open={showAddTruckModal}
@@ -1380,6 +1387,12 @@ const SubscriptionPage = () => {
           </Button>,
         ]}
         width={500}
+        styles={{
+          content: { background: 'var(--bg-card)', padding: 0 },
+          header: { background: 'var(--bg-card)', padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 0 },
+          body: { background: 'var(--bg-card)', padding: '0 24px' },
+          footer: { background: 'var(--bg-card)', padding: '16px 24px 20px', borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 0 },
+        }}
       >
         {activeSubscription && (() => {
           const activePlan = typeof activeSubscription.plan === 'object' ? activeSubscription.plan as Plan : null;
@@ -1403,7 +1416,7 @@ const SubscriptionPage = () => {
                 <div className="flex items-center gap-4 mb-4">
                   <button
                     onClick={() => setAddTruckCount(Math.max(1, addTruckCount - 1))}
-                    className="w-10 h-10 rounded-xl border-2 border-[rgba(0,209,255,0.2)] bg-[#0B1220] flex items-center justify-center text-primary hover:bg-[rgba(0,209,255,0.08)] font-bold text-xl leading-none"
+                    className="w-10 h-10 rounded-xl border-2 border-[rgba(17,131,224,0.2)] bg-[#0B1220] flex items-center justify-center text-primary hover:bg-[rgba(17,131,224,0.08)] font-bold text-xl leading-none"
                   >−</button>
                   <span className="w-16 text-center font-bold text-2xl text-primary">{addTruckCount}</span>
                   <button
@@ -1428,8 +1441,8 @@ const SubscriptionPage = () => {
                 </div>
               </div>
 
-              <div className="bg-card rounded-lg p-4 border border-[rgba(0,209,255,0.15)] flex items-start gap-3">
-                <Info className="w-5 h-5 text-[#00D1FF] mt-0.5 flex-shrink-0" />
+              <div className="bg-card rounded-lg p-4 border border-[rgba(17,131,224,0.15)] flex items-start gap-3">
+                <Info className="w-5 h-5 text-[var(--accent-navyblue)] mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-primary">
                   You will be redirected to <strong>Stripe checkout</strong> to complete the payment. Your truck limit will be increased immediately after payment.
                 </p>
@@ -1444,7 +1457,7 @@ const SubscriptionPage = () => {
         title={
           <div className="flex items-center gap-2">
             <AlertCircle className="w-6 h-6 text-red-500" />
-            <span className="text-xl font-bold">Cancel Subscription</span>
+            <span className="text-xl font-bold text-primary">Cancel Subscription</span>
           </div>
         }
         open={showCancelModal}
@@ -1481,13 +1494,19 @@ const SubscriptionPage = () => {
         width={500}
         centered
         maskClosable={!cancelling}
+        styles={{
+          content: { background: 'var(--bg-card)', padding: 0 },
+          header: { background: 'var(--bg-card)', padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 0 },
+          body: { background: 'var(--bg-card)', padding: '0 24px' },
+          footer: { background: 'var(--bg-card)', padding: '16px 24px 20px', borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: 0 },
+        }}
       >
         <div className="py-4">
           <div className="mb-4">
             <p className="text-primary mb-2">
               Are you sure you want to cancel this subscription?
             </p>
-            <p className="text-[#A855F7] font-semibold">
+            <p className="text-[var(--accent-navyblue)] font-semibold">
               This action cannot be undone.
             </p>
           </div>
