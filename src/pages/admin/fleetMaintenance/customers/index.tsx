@@ -554,7 +554,7 @@ const FleetMaintenanceCustomers = () => {
   };
 
   return (
-    <div className="min-h-screen pb-10" >
+    <div className="min-h-screen pb-10  border-2 border-red-700" >
       <div className="relative w-full mx-auto p-6">
         {/* Notifications */}
         <div className="fixed top-4 right-4 z-[200] space-y-3 max-w-md">

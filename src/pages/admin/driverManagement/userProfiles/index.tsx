@@ -51,7 +51,7 @@ const UserProfilesPortfolio: React.FC = () => {
     const [showProfileSidebar, setShowProfileSidebar] = useState(false);
     const [profileTimePeriod, setProfileTimePeriod] = useState<ProfileTimePeriod>('1month');
     const PAGE_SIZE = 100;
-    
+
     // Refs for scrollbar synchronization
     const topScrollRef = useRef<HTMLDivElement>(null);
     const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -185,8 +185,8 @@ const UserProfilesPortfolio: React.FC = () => {
 
         const bottomTable = bottomScroll.querySelector('table');
         if (bottomTable) {
-            tableObserver.observe(bottomTable, { 
-                childList: true, 
+            tableObserver.observe(bottomTable, {
+                childList: true,
                 subtree: true,
                 attributes: true,
                 attributeFilter: ['style', 'class']
@@ -252,15 +252,15 @@ const UserProfilesPortfolio: React.FC = () => {
 
     const getRoleBadgeColor = (role: string) => {
         const colors: Record<string, string> = {
-            driver: 'bg-blue-100 text-blue-800',
-            dispatcher: 'bg-purple-100 text-purple-800',
-            hr: 'bg-green-100 text-green-800',
-            reporter: 'bg-yellow-100 text-yellow-800',
-            'Maintenance Crew (Mechanics)': 'bg-orange-100 text-orange-800',
-            'Fleet Maintenance Manager': 'bg-indigo-100 text-indigo-800',
-            'Compliance Manager': 'bg-pink-100 text-pink-800'
+            driver: 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]',
+            dispatcher: 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)]',
+            hr: 'bg-[var(--accent-green)]/10 text-[var(--accent-green)]',
+            reporter: 'bg-[var(--accent-amber)]/10 text-[var(--accent-amber)]',
+            'Maintenance Crew (Mechanics)': 'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)]',
+            'Fleet Maintenance Manager': 'bg-[var(--accent-cyan)]/10 text-[var(--accent-cyan)]',
+            'Compliance Manager': 'bg-[var(--accent-teal)]/10 text-[var(--accent-teal)]'
         };
-        return colors[role] || 'bg-gray-100 text-primary';
+        return colors[role] || 'text-[var(--accent-orange)]text-primary';
     };
 
     const handleExportToExcel = async () => {
@@ -365,11 +365,10 @@ const UserProfilesPortfolio: React.FC = () => {
 
     return (
         <div
-            className="min-h-screen p-6"
+            className="min-h-screen p-6 "
             style={{
                 ...ACCENT_VARS,
-                background: 'linear-gradient(135deg, #f8fafc 0%, rgba(1, 106, 178, 0.08) 45%, rgba(6, 63, 111, 0.12) 100%)',
-
+                background: "var(--bg-main)"
             }}
         >
             <div className="w-full mx-auto p-2">
@@ -410,13 +409,13 @@ const UserProfilesPortfolio: React.FC = () => {
                 </div>
 
                 {requiresCompanySetup && (
-                    <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800">
+                    <div className="mb-6 rounded-lg bg-[var(--accent-amber)]/10 border-[var(--accent-amber)]/30 text-[var(--accent-amber)] p-4 text-amber-800">
                         Please complete your company setup to view and manage employee profiles.
                     </div>
                 )}
 
                 {error && (
-                    <div className="mb-6 rounded-lg border border-red-200 bg-card p-4 text-red-700">
+                    <div className="mb-6 rounded-lg border bg-card p-4 bg-[var(--accent-red)]/10 border-[var(--accent-red)]/30 text-[var(--accent-red)]">
                         {error}
                     </div>
                 )}
@@ -426,59 +425,59 @@ const UserProfilesPortfolio: React.FC = () => {
                     className={`grid grid-cols-1 md:grid-cols-2 ${summaryGridCols} gap-4 mb-6`}
                 >
                     {/* Total Employees */}
-                    <div className="rounded-lg p-4 bg-card border border-purple-200">
+                    <div className="rounded-lg p-4 bg-card border border-theme card-premium">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs text-purple-600 mb-0.5">
+                                <p className="text-xs text-[var(--accent-purple)] mb-0.5">
                                     Total Employees
                                 </p>
-                                <p className="text-2xl font-semibold text-purple-700">
+                                <p className="text-2xl font-semibold text-[var(--accent-purple)]">
                                     {summaryStats.totalUsers}
                                 </p>
                             </div>
-                            <Users className="text-purple-600" size={20} />
+                            <Users className="text-[var(--accent-purple)]" size={20} />
                         </div>
                     </div>
 
                     {/* Total Earnings */}
-                    <div className="rounded-lg p-4 bg-green-50 border border-green-200">
+                    <div className="rounded-lg p-4 bg-[var(--accent-green)]/10 border border-theme card-premium">
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                                <p className="text-xs text-green-600 mb-0.5">
+                                <p className="text-xs text-[var(--accent-green)] mb-0.5">
                                     Total Earnings
                                 </p>
-                                <p className="text-xl font-semibold text-green-700 break-words">
+                                <p className="text-xl font-semibold text-[var(--accent-green)] break-words">
                                     {formatCurrency(summaryStats.totalEarnings)}
                                 </p>
                             </div>
-                            <DollarSign className="text-green-600 flex-shrink-0" size={20} />
+                            <DollarSign className="text-[var(--accent-green)] ]flex-shrink-0" size={20} />
                         </div>
                     </div>
 
                     {/* Total Hours */}
-                    <div className="rounded-lg p-4 bg-amber-50 border border-amber-200">
+                    <div className="rounded-lg p-4 bg-[var(--accent-amber)]/10 border-themeamber-200 card-premium">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs text-amber-600 mb-0.5">
+                                <p className="text-xs text-[var(--accent-amber)] mb-0.5">
                                     Total Hours
                                 </p>
                                 <p className="text-2xl font-semibold text-amber-700">
                                     {formatNumber(summaryStats.totalHours)}
                                 </p>
                             </div>
-                            <Clock className="text-amber-600" size={20} />
+                            <Clock className="text-[var(--accent-amber)]" size={20} />
                         </div>
                     </div>
 
                     {/* Driver Miles */}
                     {showDriverColumns && (
-                        <div className="rounded-lg p-4 bg-card border border-orange-200">
+                        <div className="rounded-lg p-4 bg-card border border-theme">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-xs text-[#F59E0B] mb-0.5">
                                         Driver Miles
                                     </p>
-                                    <p className="text-2xl font-semibold text-orange-700">
+                                    <p className="text-2xl font-semibold text-[var(--accent-orange)]">
                                         {formatNumber(summaryStats.totalMiles)}
                                     </p>
                                 </div>
@@ -488,13 +487,13 @@ const UserProfilesPortfolio: React.FC = () => {
                     )}
 
                     {/* Total Invoices */}
-                    <div className="rounded-lg p-4 bg-indigo-50 border border-indigo-200">
+                    <div className="rounded-lg p-4 bg-[var(--accent-indigo)]/10border border-indigo-200 card-premium">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-xs text-indigo-600 mb-0.5">
                                     Total Invoices
                                 </p>
-                                <p className="text-2xl font-semibold text-indigo-700">
+                                <p className="text-2xl font-semibold text-[var(--accent-indigo)]">
                                     {summaryStats.totalInvoices}
                                 </p>
                             </div>
@@ -515,7 +514,9 @@ const UserProfilesPortfolio: React.FC = () => {
                                 placeholder="Search by name or email..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 w-full border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                                className="pl-10 pr-4 py-2 w-full border bg-card text-primary border border-theme rounded-lg
+focus:ring-2 focus:ring-[var(--accent-blue)]/30
+focus:border-[var(--accent-blue)] focus:border-transparent"
                                 style={focusRingStyle}
                             />
                         </div>
@@ -529,7 +530,7 @@ const UserProfilesPortfolio: React.FC = () => {
                                     <button
                                         key={period}
                                         onClick={() => setTimePeriod(period)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timePeriod === period ? '!text-white shadow-md' : 'bg-gray-100 text-primary hover:bg-gray-200'
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timePeriod === period ? '!text-white shadow-md' : 'text-[var(--accent-orange)]text-primary bg-[var(--accent-navyblue)] border border-theme hover:bg-[rgba(255,255,255,0.05)]'
                                             }`}
                                         style={timePeriod === period ? { background: ACCENT_GRADIENT } : undefined}
                                     >
@@ -546,7 +547,8 @@ const UserProfilesPortfolio: React.FC = () => {
                             <select
                                 value={selectedRole}
                                 onChange={(e) => setSelectedRole(e.target.value as UserRole)}
-                                className="px-4 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                                className="px-4 py-2 border border-theme rounded-lg text-sm focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                 style={focusRingStyle}
                             >
                                 <option value="all">All Roles</option>
@@ -562,7 +564,7 @@ const UserProfilesPortfolio: React.FC = () => {
                 </div>
 
                 {loading && (
-                    <div className="mb-4 rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-indigo-700">
+                    <div className="mb-4 rounded-lg border bg-[var(--accent-indigo)] p-3 text-[var(--accent-indigo)]">
                         Loading employee profiles...
                     </div>
                 )}
@@ -592,25 +594,25 @@ const UserProfilesPortfolio: React.FC = () => {
                             display: none; /* Chrome, Safari, Opera */
                         }
                     `}</style>
-                    <div 
+                    <div
                         ref={topScrollRef}
-                        className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-                        style={{ 
+                        className="overflow-x-auto overflow-y-hidden top-scrollbar-container scrollbar-theme"
+                        style={{
                             maxHeight: '20px',
                             marginBottom: '2px',
                             scrollbarWidth: 'thin',
-                            scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                            scrollbarColor: 'rgba(168,85,247,0.6) var(--bg-main)' /* purple */
                         }}
                     >
                         <div className="top-scroll-content" style={{ height: '1px' }}></div>
                     </div>
                     {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-                    <div 
+                    <div
                         ref={bottomScrollRef}
                         className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
                     >
                         <table className="w-full" style={{ minWidth: '1200px' }}>
-                            <thead className="text-white" style={{ background: ACCENT_GRADIENT }}>
+                            <thead className="text-white " style={{ background: 'var(--accent-navyblue)' }}>
                                 <tr>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Employee</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Role</th>
@@ -643,8 +645,8 @@ const UserProfilesPortfolio: React.FC = () => {
                                     </tr>
                                 ) : (
                                     filteredProfiles.map((profile) => (
-                                        <tr 
-                                            key={profile._id} 
+                                        <tr
+                                            key={profile._id}
                                             className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                                             onClick={() => {
                                                 setSelectedProfile(profile);
@@ -668,7 +670,7 @@ const UserProfilesPortfolio: React.FC = () => {
                                                     <div className="mt-2 flex flex-wrap gap-3 text-xs text-secondary">
                                                         {profile.milesDriven != null && (
                                                             <span className="inline-flex items-center gap-1">
-                                                                <MapPin className="w-3 h-3 text-orange-500" />
+                                                                <MapPin className="w-3 h-3 text-[var(--accent-purple)]" />
                                                                 {formatNumber(profile.milesDriven)} mi
                                                             </span>
                                                         )}
@@ -680,7 +682,7 @@ const UserProfilesPortfolio: React.FC = () => {
                                                         )}
                                                         {profile.invoices != null && (
                                                             <span className="inline-flex items-center gap-1">
-                                                                <FileText className="w-3 h-3 text-indigo-500" />
+                                                                <FileText className="w-3 h-3 text-[var(--accent-indigo)]" />
                                                                 {profile.invoices} invoices
                                                             </span>
                                                         )}
@@ -697,7 +699,7 @@ const UserProfilesPortfolio: React.FC = () => {
                                                     <p className="font-semibold text-primary">{formatCurrency(profile.totalEarnings)}</p>
                                                     <div className="text-xs text-secondary mt-1">
                                                         <span>Base: {formatCurrency(profile.baseSalary)}</span>
-                                                        {profile.bonus > 0 && <span className="ml-2 text-green-600">+{formatCurrency(profile.bonus)}</span>}
+                                                        {profile.bonus > 0 && <span className="ml-2 text-[var(--accent-green)]">+{formatCurrency(profile.bonus)}</span>}
                                                         {profile.deductions > 0 && <span className="ml-2 text-[#A855F7]">-{formatCurrency(profile.deductions)}</span>}
                                                     </div>
                                                 </div>
@@ -707,7 +709,7 @@ const UserProfilesPortfolio: React.FC = () => {
                                                     <td className="px-6 py-4">
                                                         {profile.milesDriven != null ? (
                                                             <div className="flex items-center gap-2">
-                                                                <MapPin className="w-4 h-4 text-orange-500" />
+                                                                <MapPin className="w-4 h-4 text-[var(--accent-purple)]" />
                                                                 <span className="font-medium text-primary">{formatNumber(profile.milesDriven)}</span>
                                                             </div>
                                                         ) : (
@@ -724,7 +726,7 @@ const UserProfilesPortfolio: React.FC = () => {
                                                     <td className="px-6 py-4">
                                                         {profile.invoices != null ? (
                                                             <div className="flex items-center gap-2">
-                                                                <FileText className="w-4 h-4 text-indigo-500" />
+                                                                <FileText className="w-4 h-4 text-[var(--accent-indigo)]" />
                                                                 <span className="font-medium text-primary">{profile.invoices}</span>
                                                             </div>
                                                         ) : (
@@ -737,7 +739,7 @@ const UserProfilesPortfolio: React.FC = () => {
                                                 <div>
                                                     <p className="font-medium text-primary">{profile.daysWorked} days</p>
                                                     <div className="text-xs text-secondary mt-1 flex gap-2">
-                                                        <span className="text-green-600">✓ {profile.presentDays}</span>
+                                                        <span className="text-[var(--accent-green)]">✓ {profile.presentDays}</span>
                                                         {profile.absentDays > 0 && <span className="text-[#A855F7]">✗ {profile.absentDays}</span>}
                                                         {profile.leaveDays > 0 && <span className="text-[#00D1FF]">L {profile.leaveDays}</span>}
                                                     </div>
@@ -745,20 +747,20 @@ const UserProfilesPortfolio: React.FC = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2">
-                                                    <Clock className="w-4 h-4 text-blue-500" />
+                                                    <Clock className="w-4 h-4 text-[var(--accent-blue)]" />
                                                     <span className="font-medium text-primary">{formatNumber(profile.totalHours)} hrs</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-1">
                                                     {profile.presentDays > 0 && (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--accent-green)]/10 text-[var(--accent-green)] text-xs font-medium rounded">
                                                             <FaCheckCircle size={12} />
                                                             {profile.presentDays}
                                                         </span>
                                                     )}
                                                     {profile.absentDays > 0 && (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded">
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--accent-red)]/10 text-[var(--accent-red)] text-xs font-medium rounded">
                                                             <FaTimes size={12} />
                                                             {profile.absentDays}
                                                         </span>
@@ -784,360 +786,360 @@ const UserProfilesPortfolio: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
-                    </div>
                 </div>
+            </div>
 
-                {/* Profile Detail Sidebar */}
-                {showProfileSidebar && selectedProfile && (
-                    <>
-                        {/* Backdrop */}
-                        <div
-                            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998] transition-opacity"
-                            onClick={() => setShowProfileSidebar(false)}
-                        />
+            {/* Profile Detail Sidebar */}
+            {showProfileSidebar && selectedProfile && (
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998] transition-opacity"
+                        onClick={() => setShowProfileSidebar(false)}
+                    />
 
-                        {/* Sidebar */}
-                        <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-card shadow-2xl z-[9999] transform transition-transform duration-300 ease-out overflow-y-auto">
-                            {/* Header */}
-                            <div className="sticky top-0  text-white p-6 z-10"
-                                style={{
-                                    background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
-                                }}>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 rounded-full bg-card/20 flex items-center justify-center text-white text-2xl font-bold">
-                                            {selectedProfile.name.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <h2 className="text-2xl font-bold">{selectedProfile.name}</h2>
-                                            <p className="text-purple-100 flex items-center gap-2 mt-1">
-                                                <Briefcase className="w-4 h-4" />
-                                                {selectedProfile.role}
-                                            </p>
-                                        </div>
+                    {/* Sidebar */}
+                    <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-card shadow-2xl z-[9999] transform transition-transform duration-300 ease-out overflow-y-auto">
+                        {/* Header */}
+                        <div className="sticky top-0  text-white p-6 z-10"
+                            style={{
+                                background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                            }}>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-16 h-16 rounded-full bg-card/20 flex items-center justify-center text-white text-2xl font-bold">
+                                        {selectedProfile.name.charAt(0)}
                                     </div>
-                                    <button
-                                        onClick={() => setShowProfileSidebar(false)}
-                                        className="p-2 hover:bg-card/20 rounded-lg transition-colors"
-                                    >
-                                        <X className="w-6 h-6" />
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Content */}
-                            <div className="p-6 space-y-6">
-
-
-                                {/* Basic Information */}
-                                <div className="bg-card border border-theme rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                                        <UserIcon className="w-5 h-5 text-purple-600" />
-                                        Basic Information
-                                    </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="flex items-center gap-3">
-                                            <Mail className="w-5 h-5 text-secondary" />
-                                            <div>
-                                                <p className="text-sm text-secondary">Email</p>
-                                                <p className="text-primary font-medium">{selectedProfile.email}</p>
-                                            </div>
-                                        </div>
-                                        {selectedProfile.phone && (
-                                            <div className="flex items-center gap-3">
-                                                <Clock className="w-5 h-5 text-secondary" />
-                                                <div>
-                                                    <p className="text-sm text-secondary">Phone</p>
-                                                    <p className="text-primary font-medium">{selectedProfile.phone}</p>
-                                                </div>
-                                            </div>
-                                        )}
-                                        {selectedProfile.joinDate && (
-                                            <div className="flex items-center gap-3">
-                                                <Calendar className="w-5 h-5 text-secondary" />
-                                                <div>
-                                                    <p className="text-sm text-secondary">Join Date</p>
-                                                    <p className="text-primary font-medium">{new Date(selectedProfile.joinDate).toLocaleDateString()}</p>
-                                                </div>
-                                            </div>
-                                        )}
-                                        {selectedProfile.dateOfBirth && (
-                                            <div className="flex items-center gap-3">
-                                                <Calendar className="w-5 h-5 text-secondary" />
-                                                <div>
-                                                    <p className="text-sm text-secondary">Date of Birth</p>
-                                                    <p className="text-primary font-medium">{new Date(selectedProfile.dateOfBirth).toLocaleDateString()}</p>
-                                                </div>
-                                            </div>
-                                        )}
+                                    <div>
+                                        <h2 className="text-2xl font-bold">{selectedProfile.name}</h2>
+                                        <p className="text-purple-100 flex items-center gap-2 mt-1">
+                                            <Briefcase className="w-4 h-4" />
+                                            {selectedProfile.role}
+                                        </p>
                                     </div>
-
-                                    {/* Address Information */}
-                                    {(selectedProfile.address || selectedProfile.city || selectedProfile.province || selectedProfile.postalCode) && (
-                                        <div className="mt-4 pt-4 border-t border-theme">
-                                            <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
-                                                <MapPin className="w-4 h-4" />
-                                                Address
-                                            </h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                {selectedProfile.address && (
-                                                    <div>
-                                                        <p className="text-xs text-secondary">Street Address</p>
-                                                        <p className="text-primary font-medium">{selectedProfile.address}</p>
-                                                    </div>
-                                                )}
-                                                {selectedProfile.city && (
-                                                    <div>
-                                                        <p className="text-xs text-secondary">City</p>
-                                                        <p className="text-primary font-medium">{selectedProfile.city}</p>
-                                                    </div>
-                                                )}
-                                                {selectedProfile.province && (
-                                                    <div>
-                                                        <p className="text-xs text-secondary">Province</p>
-                                                        <p className="text-primary font-medium">{selectedProfile.province}</p>
-                                                    </div>
-                                                )}
-                                                {selectedProfile.postalCode && (
-                                                    <div>
-                                                        <p className="text-xs text-secondary">Postal Code</p>
-                                                        <p className="text-primary font-medium">{selectedProfile.postalCode}</p>
-                                                    </div>
-                                                )}
-                                                {selectedProfile.country && (
-                                                    <div>
-                                                        <p className="text-xs text-secondary">Country</p>
-                                                        <p className="text-primary font-medium">{selectedProfile.country}</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Citizenship & Legal Information */}
-                                    {(selectedProfile.citizenshipStatus || selectedProfile.sinNumber) && (
-                                        <div className="mt-4 pt-4 border-t border-theme">
-                                            <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
-                                                <FileText className="w-4 h-4" />
-                                                Citizenship & Legal Information
-                                            </h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                {selectedProfile.citizenshipStatus && (
-                                                    <div>
-                                                        <p className="text-xs text-secondary">Citizenship Status</p>
-                                                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full mt-1 ${selectedProfile.citizenshipStatus === 'Citizen' ? 'bg-green-100 text-green-800' :
-                                                            selectedProfile.citizenshipStatus === 'Permanent Resident' ? 'bg-blue-100 text-blue-800' :
-                                                                'bg-yellow-100 text-yellow-800'
-                                                            }`}>
-                                                            {selectedProfile.citizenshipStatus}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                {selectedProfile.sinNumber && (
-                                                    <div>
-                                                        <p className="text-xs text-secondary">SIN Number</p>
-                                                        <p className="text-primary font-medium">{selectedProfile.sinNumber}</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
-                                {/* Time Period Filter */}
-                                <div
-                                    className="rounded-xl p-4"
-                                    style={{ backgroundColor: 'rgba(1, 106, 178, 0.05)', border: '1px solid rgba(1, 106, 178, 0.2)' }}
+                                <button
+                                    onClick={() => setShowProfileSidebar(false)}
+                                    className="p-2 hover:bg-card/20 rounded-lg transition-colors"
                                 >
-                                    <div className="flex items-center justify-between flex-wrap gap-4">
-                                        <div className="flex items-center gap-2">
-                                            <Calendar className="w-5 h-5 text-[var(--accent-color)]" />
-                                            <span className="text-sm font-semibold text-primary">Filter Period:</span>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2">
-                                            {(['1week', '2weeks', '1month', '6months', '1year', '2years'] as ProfileTimePeriod[]).map((period) => (
-                                                <button
-                                                    key={period}
-                                                    onClick={() => setProfileTimePeriod(period)}
-                                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${profileTimePeriod === period
-                                                        ? '!text-white shadow-md'
-                                                        : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
-                                                        }`}
-                                                    style={profileTimePeriod === period ? { background: ACCENT_GRADIENT, borderColor: 'transparent' } : undefined}
-                                                >
-                                                    {period === '1week' ? '1 Week' :
-                                                        period === '2weeks' ? '2 Weeks' :
-                                                            period === '1month' ? '1 Month' :
-                                                                period === '6months' ? '6 Months' :
-                                                                    period === '1year' ? '1 Year' : '2 Years'}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                                {/* Payment Breakdown by Period */}
-                                <div className="bg-card border border-theme rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                                        <DollarSign className="w-5 h-5 text-green-600" />
-                                        Payment Breakdown - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
-                                    </h3>
-                                    {(() => {
-                                        const multipliers: Record<ProfileTimePeriod, number> = {
-                                            '1week': 0.25,
-                                            '2weeks': 0.5,
-                                            '1month': 1.0,
-                                            '6months': 6.0,
-                                            '1year': 12.0,
-                                            '2years': 24.0
-                                        };
-                                        const multiplier = multipliers[profileTimePeriod];
-                                        const periodEarnings = selectedProfile.totalEarnings * multiplier;
-                                        const periodBase = selectedProfile.baseSalary * multiplier;
-                                        const periodBonus = selectedProfile.bonus * multiplier;
-                                        const periodDeductions = selectedProfile.deductions * multiplier;
-
-                                        return (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                                                    <p className="text-sm font-medium text-green-600 mb-2">Total Earnings</p>
-                                                    <p className="text-2xl font-bold text-green-700 mb-2">{formatCurrency(periodEarnings)}</p>
-                                                </div>
-                                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                                                    <p className="text-sm font-medium text-[#00D1FF] mb-2">Base Salary</p>
-                                                    <p className="text-2xl font-bold text-blue-700 mb-2">{formatCurrency(periodBase)}</p>
-                                                </div>
-                                                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-                                                    <p className="text-sm font-medium text-purple-600 mb-2">Bonus</p>
-                                                    <p className="text-2xl font-bold text-purple-700 mb-2">{formatCurrency(periodBonus)}</p>
-                                                </div>
-                                                <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
-                                                    <p className="text-sm font-medium text-[#A855F7] mb-2">Deductions</p>
-                                                    <p className="text-2xl font-bold text-red-700 mb-2">{formatCurrency(periodDeductions)}</p>
-                                                </div>
-                                            </div>
-                                        );
-                                    })()}
-                                </div>
-
-                                {/* Attendance Details */}
-                                <div className="bg-card border border-theme rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                                        <Clock className="w-5 h-5 text-[#00D1FF]" />
-                                        Attendance & Working Hours - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
-                                    </h3>
-                                    {(() => {
-                                        const multipliers: Record<ProfileTimePeriod, number> = {
-                                            '1week': 0.25,
-                                            '2weeks': 0.5,
-                                            '1month': 1.0,
-                                            '6months': 6.0,
-                                            '1year': 12.0,
-                                            '2years': 24.0
-                                        };
-                                        const multiplier = multipliers[profileTimePeriod];
-                                        const periodDaysWorked = Math.round(selectedProfile.daysWorked * multiplier);
-                                        const periodPresentDays = Math.round(selectedProfile.presentDays * multiplier);
-                                        const periodAbsentDays = Math.round(selectedProfile.absentDays * multiplier);
-                                        const periodLeaveDays = Math.round(selectedProfile.leaveDays * multiplier);
-                                        const periodTotalHours = selectedProfile.totalHours * multiplier;
-
-                                        return (
-                                            <>
-                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                                    <div className="bg-card rounded-lg p-4 border border-blue-200">
-                                                        <p className="text-sm text-[#00D1FF] mb-1">Working Days</p>
-                                                        <p className="text-2xl font-bold text-blue-700">{periodDaysWorked}</p>
-                                                    </div>
-                                                    <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                                                        <p className="text-sm text-green-600 mb-1">Present Days</p>
-                                                        <p className="text-2xl font-bold text-green-700">{periodPresentDays}</p>
-                                                    </div>
-                                                    <div className="bg-card rounded-lg p-4 border border-red-200">
-                                                        <p className="text-sm text-[#A855F7] mb-1">Absent Days</p>
-                                                        <p className="text-2xl font-bold text-red-700">{periodAbsentDays}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div className="bg-card rounded-lg p-4 border border-purple-200">
-                                                        <p className="text-sm text-purple-600 mb-1">Total Hours</p>
-                                                        <p className="text-2xl font-bold text-purple-700">{formatNumber(periodTotalHours)} hrs</p>
-                                                    </div>
-                                                    <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-                                                        <p className="text-sm text-indigo-600 mb-1">Leave Days</p>
-                                                        <p className="text-2xl font-bold text-indigo-700">{periodLeaveDays}</p>
-                                                    </div>
-                                                </div>
-                                            </>
-                                        );
-                                    })()}
-                                </div>
-
-                                {/* Driver-Specific Information */}
-                                {(selectedProfile.role === 'driver' || selectedProfile.milesDriven) && (
-                                    <div className="bg-card border border-theme rounded-xl p-6">
-                                        <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                                            <MapPin className="w-5 h-5 text-[#F59E0B]" />
-                                            Driver Performance - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
-                                        </h3>
-                                        {(() => {
-                                            const multipliers: Record<ProfileTimePeriod, number> = {
-                                                '1week': 0.25,
-                                                '2weeks': 0.5,
-                                                '1month': 1.0,
-                                                '6months': 6.0,
-                                                '1year': 12.0,
-                                                '2years': 24.0
-                                            };
-                                            const multiplier = multipliers[profileTimePeriod];
-                                            const periodMiles = selectedProfile.milesDriven ? selectedProfile.milesDriven * multiplier : 0;
-                                            const periodTrips = selectedProfile.tripsCompleted ? Math.round(selectedProfile.tripsCompleted * multiplier) : 0;
-                                            const periodInvoices = Math.round(selectedProfile.invoices * multiplier);
-
-                                            return (
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                    {selectedProfile.milesDriven && (
-                                                        <div className="bg-card rounded-lg p-4 border border-orange-200">
-                                                            <p className="text-sm text-[#F59E0B] mb-1">Miles Driven</p>
-                                                            <p className="text-2xl font-bold text-orange-700">{formatNumber(periodMiles)}</p>
-                                                        </div>
-                                                    )}
-                                                    {selectedProfile.tripsCompleted && (
-                                                        <div className="bg-card rounded-lg p-4 border border-blue-200">
-                                                            <p className="text-sm text-[#00D1FF] mb-1">Trips Completed</p>
-                                                            <p className="text-2xl font-bold text-blue-700">{periodTrips}</p>
-                                                        </div>
-                                                    )}
-                                                    {selectedProfile.invoices > 0 && (
-                                                        <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-                                                            <p className="text-sm text-indigo-600 mb-1">Invoices</p>
-                                                            <p className="text-2xl font-bold text-indigo-700">{periodInvoices}</p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        })()}
-                                    </div>
-                                )}
-
-                                {/* Notes */}
-                                {selectedProfile.notes && (
-                                    <div className="bg-card border border-theme rounded-xl p-6">
-                                        <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                                            <AlertCircle className="w-5 h-5 text-amber-600" />
-                                            Notes
-                                        </h3>
-                                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                                            <p className="text-primary leading-relaxed">{selectedProfile.notes}</p>
-                                        </div>
-                                    </div>
-                                )}
-
-
+                                    <X className="w-6 h-6" />
+                                </button>
                             </div>
                         </div>
-                    </>
-                )}
-            </div>
-     
+
+                        {/* Content */}
+                        <div className="p-6 space-y-6">
+
+
+                            {/* Basic Information */}
+                            <div className="bg-card border border-theme rounded-xl p-6">
+                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                                    <UserIcon className="w-5 h-5 text-[var(--accent-purple)]" />
+                                    Basic Information
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <Mail className="w-5 h-5 text-secondary" />
+                                        <div>
+                                            <p className="text-sm text-secondary">Email</p>
+                                            <p className="text-primary font-medium">{selectedProfile.email}</p>
+                                        </div>
+                                    </div>
+                                    {selectedProfile.phone && (
+                                        <div className="flex items-center gap-3">
+                                            <Clock className="w-5 h-5 text-secondary" />
+                                            <div>
+                                                <p className="text-sm text-secondary">Phone</p>
+                                                <p className="text-primary font-medium">{selectedProfile.phone}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {selectedProfile.joinDate && (
+                                        <div className="flex items-center gap-3">
+                                            <Calendar className="w-5 h-5 text-secondary" />
+                                            <div>
+                                                <p className="text-sm text-secondary">Join Date</p>
+                                                <p className="text-primary font-medium">{new Date(selectedProfile.joinDate).toLocaleDateString()}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {selectedProfile.dateOfBirth && (
+                                        <div className="flex items-center gap-3">
+                                            <Calendar className="w-5 h-5 text-secondary" />
+                                            <div>
+                                                <p className="text-sm text-secondary">Date of Birth</p>
+                                                <p className="text-primary font-medium">{new Date(selectedProfile.dateOfBirth).toLocaleDateString()}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Address Information */}
+                                {(selectedProfile.address || selectedProfile.city || selectedProfile.province || selectedProfile.postalCode) && (
+                                    <div className="mt-4 pt-4 border-t border-theme">
+                                        <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+                                            <MapPin className="w-4 h-4" />
+                                            Address
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {selectedProfile.address && (
+                                                <div>
+                                                    <p className="text-xs text-secondary">Street Address</p>
+                                                    <p className="text-primary font-medium">{selectedProfile.address}</p>
+                                                </div>
+                                            )}
+                                            {selectedProfile.city && (
+                                                <div>
+                                                    <p className="text-xs text-secondary">City</p>
+                                                    <p className="text-primary font-medium">{selectedProfile.city}</p>
+                                                </div>
+                                            )}
+                                            {selectedProfile.province && (
+                                                <div>
+                                                    <p className="text-xs text-secondary">Province</p>
+                                                    <p className="text-primary font-medium">{selectedProfile.province}</p>
+                                                </div>
+                                            )}
+                                            {selectedProfile.postalCode && (
+                                                <div>
+                                                    <p className="text-xs text-secondary">Postal Code</p>
+                                                    <p className="text-primary font-medium">{selectedProfile.postalCode}</p>
+                                                </div>
+                                            )}
+                                            {selectedProfile.country && (
+                                                <div>
+                                                    <p className="text-xs text-secondary">Country</p>
+                                                    <p className="text-primary font-medium">{selectedProfile.country}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Citizenship & Legal Information */}
+                                {(selectedProfile.citizenshipStatus || selectedProfile.sinNumber) && (
+                                    <div className="mt-4 pt-4 border-t border-theme">
+                                        <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+                                            <FileText className="w-4 h-4" />
+                                            Citizenship & Legal Information
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {selectedProfile.citizenshipStatus && (
+                                                <div>
+                                                    <p className="text-xs text-secondary">Citizenship Status</p>
+                                                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full mt-1 ${selectedProfile.citizenshipStatus === 'Citizen' ? 'bg-[var(--accent-green)]/10 text-[var(--accent-green)]' :
+                                                        selectedProfile.citizenshipStatus === 'Permanent Resident' ? 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]' :
+                                                            'bg-[var(--accent-yellow)]/10 text-[var(--accent-yellow)]'
+                                                        }`}>
+                                                        {selectedProfile.citizenshipStatus}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {selectedProfile.sinNumber && (
+                                                <div>
+                                                    <p className="text-xs text-secondary">SIN Number</p>
+                                                    <p className="text-primary font-medium">{selectedProfile.sinNumber}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            {/* Time Period Filter */}
+                            <div
+                                className="rounded-xl p-4"
+                                style={{ backgroundColor: 'rgba(1, 106, 178, 0.05)', border: '1px solid rgba(1, 106, 178, 0.2)' }}
+                            >
+                                <div className="flex items-center justify-between flex-wrap gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="w-5 h-5 text-[var(--accent-color)]" />
+                                        <span className="text-sm font-semibold text-primary">Filter Period:</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(['1week', '2weeks', '1month', '6months', '1year', '2years'] as ProfileTimePeriod[]).map((period) => (
+                                            <button
+                                                key={period}
+                                                onClick={() => setProfileTimePeriod(period)}
+                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${profileTimePeriod === period
+                                                    ? '!text-white shadow-md'
+                                                    : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
+                                                    }`}
+                                                style={profileTimePeriod === period ? { background: 'var(--accent-navyblue)', borderColor: 'transparent' } : undefined}
+                                            >
+                                                {period === '1week' ? '1 Week' :
+                                                    period === '2weeks' ? '2 Weeks' :
+                                                        period === '1month' ? '1 Month' :
+                                                            period === '6months' ? '6 Months' :
+                                                                period === '1year' ? '1 Year' : '2 Years'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            {/* Payment Breakdown by Period */}
+                            <div className="bg-card border border-theme rounded-xl p-6">
+                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                                    <DollarSign className="w-5 h-5 text-[var(--accent-green)]" />
+                                    Payment Breakdown - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
+                                </h3>
+                                {(() => {
+                                    const multipliers: Record<ProfileTimePeriod, number> = {
+                                        '1week': 0.25,
+                                        '2weeks': 0.5,
+                                        '1month': 1.0,
+                                        '6months': 6.0,
+                                        '1year': 12.0,
+                                        '2years': 24.0
+                                    };
+                                    const multiplier = multipliers[profileTimePeriod];
+                                    const periodEarnings = selectedProfile.totalEarnings * multiplier;
+                                    const periodBase = selectedProfile.baseSalary * multiplier;
+                                    const periodBonus = selectedProfile.bonus * multiplier;
+                                    const periodDeductions = selectedProfile.deductions * multiplier;
+
+                                    return (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                            <div className="bg-[var(--accent-green)]/10 border border-theme to-green-100 rounded-lg p-4 border border-theme">
+                                                <p className="text-sm font-medium text-[var(--accent-green)] mb-2">Total Earnings</p>
+                                                <p className="text-2xl font-bold text-[var(--accent-green)] mb-2">{formatCurrency(periodEarnings)}</p>
+                                            </div>
+                                            <div className="bg-gradient-to-br bg-[var(--accent-blue)]/10 border border-theme to-blue-100 rounded-lg p-4 border border-blue-200">
+                                                <p className="text-sm font-medium text-[#00D1FF] mb-2">Base Salary</p>
+                                                <p className="text-2xl font-bold text-[var(--accent-blue)] mb-2">{formatCurrency(periodBase)}</p>
+                                            </div>
+                                            <div className="bg-gradient-to-br bg-[var(--accent-purple)]/10 border border-theme to-purple-100 rounded-lg p-4 border border-theme">
+                                                <p className="text-sm font-medium text-[var(--accent-purple)] mb-2">Bonus</p>
+                                                <p className="text-2xl font-bold text-[var(--accent-purple)] mb-2">{formatCurrency(periodBonus)}</p>
+                                            </div>
+                                            <div className="bg-gradient-to-br bg-[var(--accent-red)]/10 border border-theme to-red-100 rounded-lg p-4 border border-red-200">
+                                                <p className="text-sm font-medium text-[var(--accent-red)] mb-2">Deductions</p>
+                                                <p className="text-2xl font-bold text-red-700 mb-2">{formatCurrency(periodDeductions)}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+
+                            {/* Attendance Details */}
+                            <div className="bg-card border border-theme rounded-xl p-6">
+                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                                    <Clock className="w-5 h-5 text-[#00D1FF]" />
+                                    Attendance & Working Hours - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
+                                </h3>
+                                {(() => {
+                                    const multipliers: Record<ProfileTimePeriod, number> = {
+                                        '1week': 0.25,
+                                        '2weeks': 0.5,
+                                        '1month': 1.0,
+                                        '6months': 6.0,
+                                        '1year': 12.0,
+                                        '2years': 24.0
+                                    };
+                                    const multiplier = multipliers[profileTimePeriod];
+                                    const periodDaysWorked = Math.round(selectedProfile.daysWorked * multiplier);
+                                    const periodPresentDays = Math.round(selectedProfile.presentDays * multiplier);
+                                    const periodAbsentDays = Math.round(selectedProfile.absentDays * multiplier);
+                                    const periodLeaveDays = Math.round(selectedProfile.leaveDays * multiplier);
+                                    const periodTotalHours = selectedProfile.totalHours * multiplier;
+
+                                    return (
+                                        <>
+                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                                <div className="bg-card rounded-lg p-4 border border-blue-200">
+                                                    <p className="text-sm text-[#00D1FF] mb-1">Working Days</p>
+                                                    <p className="text-2xl font-bold text-[var(--accent-blue)]">{periodDaysWorked}</p>
+                                                </div>
+                                                <div className="bg-[var(--accent-green)]/10 rounded-lg p-4 border border-theme">
+                                                    <p className="text-sm text-[var(--accent-green)] mb-1">Present Days</p>
+                                                    <p className="text-2xl font-bold text-[var(--accent-green)]">{periodPresentDays}</p>
+                                                </div>
+                                                <div className="bg-card rounded-lg p-4 border border-red-200">
+                                                    <p className="text-sm text-[#A855F7] mb-1">Absent Days</p>
+                                                    <p className="text-2xl font-bold text-red-700">{periodAbsentDays}</p>
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="bg-card rounded-lg p-4 border border-theme">
+                                                    <p className="text-sm text-[var(--accent-purple)] mb-1">Total Hours</p>
+                                                    <p className="text-2xl font-bold text-[var(--accent-purple)]">{formatNumber(periodTotalHours)} hrs</p>
+                                                </div>
+                                                <div className="bg-[var(--accent-blue)]/10rounded-lg p-4 border border-indigo-200">
+                                                    <p className="text-sm text-indigo-600 mb-1">Leave Days</p>
+                                                    <p className="text-2xl font-bold text-[var(--accent-indigo)]">{periodLeaveDays}</p>
+                                                </div>
+                                            </div>
+                                        </>
+                                    );
+                                })()}
+                            </div>
+
+                            {/* Driver-Specific Information */}
+                            {(selectedProfile.role === 'driver' || selectedProfile.milesDriven) && (
+                                <div className="bg-card border border-theme rounded-xl p-6">
+                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                                        <MapPin className="w-5 h-5 text-[#F59E0B]" />
+                                        Driver Performance - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
+                                    </h3>
+                                    {(() => {
+                                        const multipliers: Record<ProfileTimePeriod, number> = {
+                                            '1week': 0.25,
+                                            '2weeks': 0.5,
+                                            '1month': 1.0,
+                                            '6months': 6.0,
+                                            '1year': 12.0,
+                                            '2years': 24.0
+                                        };
+                                        const multiplier = multipliers[profileTimePeriod];
+                                        const periodMiles = selectedProfile.milesDriven ? selectedProfile.milesDriven * multiplier : 0;
+                                        const periodTrips = selectedProfile.tripsCompleted ? Math.round(selectedProfile.tripsCompleted * multiplier) : 0;
+                                        const periodInvoices = Math.round(selectedProfile.invoices * multiplier);
+
+                                        return (
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                {selectedProfile.milesDriven && (
+                                                    <div className="bg-card rounded-lg p-4 border border-theme">
+                                                        <p className="text-sm text-[#F59E0B] mb-1">Miles Driven</p>
+                                                        <p className="text-2xl font-bold text-[var(--accent-orange)]">{formatNumber(periodMiles)}</p>
+                                                    </div>
+                                                )}
+                                                {selectedProfile.tripsCompleted && (
+                                                    <div className="bg-card rounded-lg p-4 border border-blue-200">
+                                                        <p className="text-sm text-[#00D1FF] mb-1">Trips Completed</p>
+                                                        <p className="text-2xl font-bold text-[var(--accent-blue)]">{periodTrips}</p>
+                                                    </div>
+                                                )}
+                                                {selectedProfile.invoices > 0 && (
+                                                    <div className="bg-[var(--accent-blue)]/10rounded-lg p-4 border border-indigo-200">
+                                                        <p className="text-sm text-indigo-600 mb-1">Invoices</p>
+                                                        <p className="text-2xl font-bold text-[var(--accent-indigo)]">{periodInvoices}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            )}
+
+                            {/* Notes */}
+                            {selectedProfile.notes && (
+                                <div className="bg-card border border-theme rounded-xl p-6">
+                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                                        <AlertCircle className="w-5 h-5 text-[var(--accent-amber)]" />
+                                        Notes
+                                    </h3>
+                                    <div className="bg-[var(--accent-amber)]/10 border-themeamber-200 rounded-lg p-4">
+                                        <p className="text-primary leading-relaxed">{selectedProfile.notes}</p>
+                                    </div>
+                                </div>
+                            )}
+
+
+                        </div>
+                    </div>
+                </>
+            )}
+        </div>
+
     );
 };
 

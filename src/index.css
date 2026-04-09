@@ -6,15 +6,20 @@
   --bg-card: #121A2B;
   --bg-card-light: #182235;
 
- --accent-navyblue: #1183e0;
+  --accent-navyblue: #1183e0;
   --accent-blue: #00D1FF;
   --accent-green: #00FFA3;
   --accent-purple: #A855F7;
   --accent-orange: #F59E0B;
+  --accent-cyan: #22D3EE;
+  --accent-teal: #14B8A6;
+  --accent-red: #F43F5E;
+  --accent-amber: #FBBF24;
 
-  --text-heading:#1183e0;
+  --text-heading: #1183e0;
   --text-primary: #E6EDF3;
   --text-secondary: #8B9BB4;
+
 
   --border-glow: rgba(0, 209, 255, 0.2);
 }
@@ -421,4 +426,32 @@ body {
 
 .divide-theme> :not([hidden])~ :not([hidden]) {
   border-color: rgba(0, 209, 255, 0.1);
+}
+
+
+/* FORCE horizontal scrollbar styling */
+.scrollbar-theme {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.6) var(--bg-main);
+  /* purple */
+}
+
+.scrollbar-theme::-webkit-scrollbar {
+  height: 6px;
+  /* horizontal */
+  width: 6px;
+}
+
+.scrollbar-theme::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+
+.scrollbar-theme::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.6);
+  /* purple */
+  border-radius: 10px;
+}
+
+.scrollbar-theme::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.9);
 }

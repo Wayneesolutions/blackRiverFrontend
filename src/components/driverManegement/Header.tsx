@@ -111,7 +111,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
 
         {/* MIDDLE */}
         <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
-          <span className="text-white font-semibold text-lg tracking-wide">{pageTitle || 'HR Management'}</span>
+          <span className=" text-[var(--accent-navyblue)] font-semibold text-lg tracking-wide">{pageTitle || 'HR Management'}</span>
         </div>
 
         {/* RIGHT */}

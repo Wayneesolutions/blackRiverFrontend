@@ -46,15 +46,15 @@ interface ToastNotification {
 
 const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
   const icons = {
-    success: <FaCheckCircle className="text-green-500" size={24} />,
-    error: <FaExclamationTriangle className="text-red-500" size={24} />,
-    warning: <FaExclamationTriangle className="text-yellow-500" size={24} />
+    success: <FaCheckCircle className="text-[var(--accent-green)]" size={24} />,
+    error: <FaExclamationTriangle className="text-[var(--accent-red)]" size={24} />,
+    warning: <FaExclamationTriangle className="text-[var(--accent-amber)]" size={24} />
   };
 
   const bgColors = {
-    success: 'bg-[#00FFA3]/10 border-[#00FFA3]/30',
-    error: 'bg-rose-500/10 border-rose-500/30',
-    warning: 'bg-[#F59E0B]/10 border-[#F59E0B]/30'
+    success: 'bg-[var(--accent-green)]/10 border-[var(--accent-green)]/30',
+    error: 'bg-[var(--accent-red)]/10 border-[var(--accent-red)]/30',
+    warning: 'bg-[var(--accent-amber)]/10 border-[var(--accent-amber)]/30'
   };
 
   useEffect(() => {
@@ -419,15 +419,15 @@ const DocumentManagement: React.FC = () => {
 
   const getFileIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case 'pdf': return <FileText className="text-[#A855F7]" size={24} />;
+      case 'pdf': return <FileText className="text-[var(--accent-purple)]" size={24} />;
       case 'doc':
       case 'docx': return <FileText className="text-[#1183e0]" size={24} />;
       case 'xls':
-      case 'xlsx': return <Sheet className="text-green-600" size={24} />;
+      case 'xlsx': return <Sheet className="text-[var(--accent-green)]" size={24} />;
       case 'jpg':
       case 'jpeg':
       case 'png':
-      case 'gif': return <Image className="text-purple-600" size={24} />;
+      case 'gif': return <Image className="text-[var(--accent-purple)]" size={24} />;
       default: return <File className="text-secondary" size={24} />;
     }
   };
@@ -555,7 +555,7 @@ const DocumentManagement: React.FC = () => {
 
       {/* Create Category Modal */}
       {showCreateCategory && (
-        <div className="fixed inset-0 z-[10002] bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[10002] bg-card/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-card w-full max-w-md rounded-xl shadow-2xl border border-theme overflow-hidden">
             <div className="px-5 py-4 border-b border-theme flex items-center justify-between">
               <h3 className="text-base font-bold text-primary">Create Category</h3>
@@ -606,7 +606,7 @@ const DocumentManagement: React.FC = () => {
 
       {/* Edit Category Modal */}
       {editCategory && (
-        <div className="fixed inset-0 z-[10002] bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[10002] bg-card/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-card w-full max-w-md rounded-xl shadow-2xl border border-theme overflow-hidden">
             <div className="px-5 py-4 border-b border-theme flex items-center justify-between">
               <h3 className="text-base font-bold text-primary">Edit Category</h3>
@@ -656,7 +656,7 @@ const DocumentManagement: React.FC = () => {
 
       {/* Delete Category Modal */}
       {confirmDeleteCategory && (
-        <div className="fixed inset-0 z-[10002] bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[10002] bg-card/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-card w-full max-w-md rounded-xl shadow-2xl border border-theme overflow-hidden">
             <div className="px-5 py-4 border-b border-theme flex items-center justify-between">
               <h3 className="text-base font-bold text-primary">Delete Category</h3>
@@ -737,7 +737,7 @@ const DocumentManagement: React.FC = () => {
                 <h3 className="text-xs font-medium text-red-800">Error</h3>
                 <p className="mt-1 text-xs text-red-700">{errorMessage}</p>
                 {requiresCompanySetup && (
-                  <p className="mt-2 text-xs text-[#A855F7]">
+                  <p className="mt-2 text-xs text-[var(--accent-purple)]">
                     Please go to <strong>Company Settings</strong> to complete your company setup.
                   </p>
                 )}
@@ -956,10 +956,10 @@ const DocumentManagement: React.FC = () => {
                             handleAskDelete(doc);
                           }}
                           className="px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center justify-center 
-                 hover:bg-red-100"
+                 hover:bg-[rgba(255,77,77,0.1)]"
                           style={{
                             background: "rgba(239,68,68,0.12)",
-                            color: "#b91c1c",
+                            color: "var(--accent-red)"
                           }}
                           title="Delete"
                         >
@@ -992,7 +992,7 @@ const DocumentManagement: React.FC = () => {
 
       {/* Upload Dialog */}
       {uploadDialog && (
-        <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-card/20 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-card rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-theme">
               <div className="flex items-center justify-between">
@@ -1021,7 +1021,7 @@ const DocumentManagement: React.FC = () => {
                       <h3 className="text-sm font-medium text-red-800">Error</h3>
                       <p className="mt-1 text-sm text-red-700">{uploadModalError}</p>
                       {uploadModalError.includes('company settings') || uploadModalError.includes('Company Settings') ? (
-                        <p className="mt-2 text-xs text-[#A855F7]">
+                        <p className="mt-2 text-xs text-[var(--accent-purple)]">
                           Please go to <strong>Company Settings</strong> to complete your company setup.
                         </p>
                       ) : null}
@@ -1056,9 +1056,9 @@ const DocumentManagement: React.FC = () => {
                   />
                 </label>
                 {selectedFile && (
-                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
-                    <CheckCircle className="text-green-600" size={16} />
-                    <span className="text-sm text-green-700">{selectedFile.name}</span>
+                  <div className="mt-2 p-3 bg-[var(--accent-green)]/10 border-[var(--accent-green)]/30 text-[var(--accent-green)] rounded-lg flex items-center gap-2">
+                    <CheckCircle className="text-[var(--accent-green)]" size={16} />
+                    <span className="text-sm text-[var(--accent-green)]">{selectedFile.name}</span>
                   </div>
                 )}
               </div>
@@ -1071,7 +1071,7 @@ const DocumentManagement: React.FC = () => {
                   value={uploadForm.name}
                   onChange={(e) => setUploadForm({ ...uploadForm, name: e.target.value })}
                   placeholder="Enter document name"
-                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30focus:ring-[var(--accent-blue)]/30"
                 />
               </div>
 
@@ -1081,7 +1081,7 @@ const DocumentManagement: React.FC = () => {
                 <select
                   value={uploadForm.category}
                   onChange={(e) => setUploadForm({ ...uploadForm, category: e.target.value })}
-                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30focus:ring-[var(--accent-blue)]/30"
                 >
                   {categories.filter((c) => c.key !== "all").length === 0 ? (
                     <option value="" disabled>
@@ -1117,7 +1117,7 @@ const DocumentManagement: React.FC = () => {
                   onChange={(e) => setUploadForm({ ...uploadForm, description: e.target.value })}
                   placeholder="Enter a brief description"
                   rows={3}
-                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30focus:ring-[var(--accent-blue)]/30 resize-none"
                 />
               </div>
 
@@ -1155,7 +1155,7 @@ const DocumentManagement: React.FC = () => {
 
       {/* View Modal */}
       {showViewModal && viewDoc && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-card/40 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
           <div className="bg-card rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
             <div className="p-4 border-b border-theme flex items-center justify-between">
               <div>
@@ -1198,7 +1198,7 @@ const DocumentManagement: React.FC = () => {
                           onClick={() => {
                             window.open(docUrl, '_blank', 'noopener,noreferrer');
                           }}
-                          className="px-3 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                          className="px-3 py-2  !text-white rounded-lg bg-[var(--accent-teal )] hover:bg-[var(--accent-teal)] transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
                         >
                           <Eye size={16} className="text-white" />
                           <span className="text-white">Open in New Tab</span>
@@ -1230,7 +1230,7 @@ const DocumentManagement: React.FC = () => {
                       {viewerError && (
                         <div className="absolute inset-0 flex items-center justify-center bg-card bg-opacity-90 rounded-lg">
                           <div className="text-center p-4">
-                            <AlertCircle className="text-yellow-500 mb-2 mx-auto" size={32} />
+                            <AlertCircle className="text-[var(--accent-amber)] mb-2 mx-auto" size={32} />
                             <p className="text-sm text-secondary mb-3">PDF could not be displayed in viewer.</p>
                             <button
                               onClick={() => window.open(docUrl, '_blank', 'noopener,noreferrer')}
@@ -1311,7 +1311,7 @@ const DocumentManagement: React.FC = () => {
                               // Open in new tab - will trigger download
                               window.open(docUrl, '_blank', 'noopener,noreferrer');
                             }}
-                            className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                            className="px-4 py-2  !text-white rounded-lg bg-[var(--accent-green)] hover:bg-[var(--accent-green)] transition-colors font-medium flex items-center gap-2"
                           >
                             <Eye size={18} className="text-white" />
                             <span className="text-white">Open File</span>
@@ -1349,7 +1349,7 @@ const DocumentManagement: React.FC = () => {
                     return (
                       <div className="flex flex-col items-center justify-center h-[70vh] bg-card rounded-lg border-2 border-dashed border-theme">
                         <div className="text-center mb-6">
-                          <AlertCircle className="text-yellow-500 mb-4 mx-auto" size={64} />
+                          <AlertCircle className="text-[var(--accent-amber)] mb-4 mx-auto" size={64} />
                           <h3 className="text-lg font-semibold text-primary mb-2">Viewer Error</h3>
                           <p className="text-sm text-secondary mb-4 max-w-md">
                             The Microsoft Office Online viewer could not load this document.
@@ -1361,7 +1361,7 @@ const DocumentManagement: React.FC = () => {
                             onClick={() => {
                               window.open(docUrl, '_blank', 'noopener,noreferrer');
                             }}
-                            className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                            className="px-4 py-2  !text-white rounded-lg bg-[var(--accent-green)] hover:bg-[var(--accent-green)] transition-colors font-medium flex items-center gap-2"
                           >
                             <Eye size={18} className="text-white" />
                             <span className="text-white">Open in New Tab</span>
@@ -1414,7 +1414,7 @@ const DocumentManagement: React.FC = () => {
                           onClick={() => {
                             window.open(docUrl, '_blank', 'noopener,noreferrer');
                           }}
-                          className="px-3 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                          className="px-3 py-2  !text-white rounded-lg bg-[var(--accent-green)] hover:bg-[var(--accent-green)] transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
                         >
                           <Eye size={16} className="text-white" />
                           <span className="text-white">Open in New Tab</span>
@@ -1470,7 +1470,7 @@ const DocumentManagement: React.FC = () => {
                           onClick={() => {
                             window.open(docUrl, '_blank', 'noopener,noreferrer');
                           }}
-                          className="px-3 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                          className="px-3 py-2  !text-white rounded-lg bg-[var(--accent-green)] hover:bg-[var(--accent-green)] transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
                         >
                           <Eye size={16} className="text-white" />
                           <span className="text-white">Open in New Tab</span>
@@ -1512,7 +1512,7 @@ const DocumentManagement: React.FC = () => {
                           onClick={() => {
                             window.open(docUrl, '_blank', 'noopener,noreferrer');
                           }}
-                          className="px-3 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                          className="px-3 py-2  !text-white rounded-lg bg-[var(--accent-green)] hover:bg-[var(--accent-green)] transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
                         >
                           <Eye size={16} className="text-white" />
                           <span className="text-white">Open in New Tab</span>
@@ -1545,7 +1545,7 @@ const DocumentManagement: React.FC = () => {
                       <div className="flex flex-col items-center justify-center h-[70vh] bg-card rounded-lg border-2 border-dashed border-theme">
                         <div className="text-center mb-6">
                           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Eye className="text-green-600" size={32} />
+                            <Eye className="text-[var(--accent-green)]" size={32} />
                           </div>
                           <h3 className="text-lg font-semibold text-primary mb-2">Document Opened</h3>
                           <p className="text-sm text-secondary mb-4">
@@ -1555,7 +1555,7 @@ const DocumentManagement: React.FC = () => {
                         <div className="flex gap-3">
                           <button
                             onClick={() => window.open(docUrl, '_blank', 'noopener,noreferrer')}
-                            className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                            className="px-4 py-2  !text-white rounded-lg bg-[var(--accent-green)] hover:bg-[var(--accent-green)] transition-colors font-medium flex items-center gap-2"
                           >
                             <Eye size={18} className="text-white" />
                             <span className="text-white">Open in New Tab</span>
@@ -1598,7 +1598,7 @@ const DocumentManagement: React.FC = () => {
                             window.open(docUrl, '_blank', 'noopener,noreferrer');
                             setViewMode('newtab');
                           }}
-                          className="px-3 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
+                          className="px-3 py-2  !text-white rounded-lg bg-[var(--accent-green)] hover:bg-[var(--accent-green)] transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
                         >
                           <Eye size={16} className="text-white" />
                           <span className="text-white">Open in New Tab</span>
@@ -1648,7 +1648,7 @@ const DocumentManagement: React.FC = () => {
                           // Directly open in new tab - this is more reliable
                           window.open(docUrl, '_blank', 'noopener,noreferrer');
                         }}
-                        className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                        className="px-4 py-2  !text-white rounded-lg bg-[var(--accent-green)] hover:bg-[var(--accent-green)] transition-colors font-medium flex items-center gap-2"
                       >
                         <Eye size={18} className="text-white" />
                         <span className="text-white">Open in New Tab</span>
@@ -1662,7 +1662,7 @@ const DocumentManagement: React.FC = () => {
                           a.click();
                           document.body.removeChild(a);
                         }}
-                        className="px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 transition-colors font-medium flex items-center gap-2"
+                        className="px-4 py-2 bg-card text-primary rounded-lg hover:bg-card transition-colors font-medium flex items-center gap-2"
                       >
                         <Download size={18} />
                         Download
@@ -1678,7 +1678,7 @@ const DocumentManagement: React.FC = () => {
 
       {/* Delete Confirmation */}
       {confirmDelete.open && (
-        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-[120] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-card/30 backdrop-blur-sm z-[120] flex items-center justify-center p-4">
           <div className="bg-card rounded-xl shadow-2xl w-full max-w-md">
             <div className="p-6 border-b border-theme">
               <h3 className="text-lg font-semibold text-primary">Delete document?</h3>
@@ -1686,7 +1686,7 @@ const DocumentManagement: React.FC = () => {
             </div>
             <div className="p-4 flex items-center justify-end gap-3">
               <button onClick={() => setConfirmDelete({ open: false, id: null })} className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium">Cancel</button>
-              <button onClick={handleConfirmDelete} className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors font-medium">Delete</button>
+              <button onClick={handleConfirmDelete} className="px-4 py-2  !text-white rounded-lg bg-[var(--hover:accent-red)] hover:bg-[var(--accent-red)] transition-colors font-medium">Delete</button>
             </div>
           </div>
         </div>

@@ -212,7 +212,7 @@ function Dashboard() {
             <div className="mb-4 relative z-10">
               <div className="flex items-center justify-between">
                 <h1 className="text-xl font-bold text-primary">Compliance Overview</h1>
-                <div className="flex items-center gap-2 text-primary/90">
+                <div className="flex items-center gap-2 text-secondary">
                   <span className="text-xs">Compliance Dashboard</span>
 
                 </div>
