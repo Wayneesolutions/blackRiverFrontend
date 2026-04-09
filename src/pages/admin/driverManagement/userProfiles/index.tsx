@@ -252,13 +252,13 @@ const UserProfilesPortfolio: React.FC = () => {
 
     const getRoleBadgeColor = (role: string) => {
         const colors: Record<string, string> = {
-            driver: 'bg-blue-100 text-blue-800',
-            dispatcher: 'bg-purple-100 text-purple-800',
-            hr: 'bg-green-100 text-green-800',
-            reporter: 'bg-yellow-100 text-yellow-800',
-            'Maintenance Crew (Mechanics)': 'bg-orange-100 text-orange-800',
-            'Fleet Maintenance Manager': 'bg-indigo-100 text-indigo-800',
-            'Compliance Manager': 'bg-pink-100 text-pink-800'
+            driver: 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]',
+            dispatcher: 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)]',
+            hr: 'bg-[var(--accent-green)]/10 text-[var(--accent-green)]',
+            reporter: 'bg-[var(--accent-amber)]/10 text-[var(--accent-amber)]',
+            'Maintenance Crew (Mechanics)': 'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)]',
+            'Fleet Maintenance Manager': 'bg-[var(--accent-cyan)]/10 text-[var(--accent-cyan)]',
+            'Compliance Manager': 'bg-[var(--accent-teal)]/10 text-[var(--accent-teal)]'
         };
         return colors[role] || 'text-[var(--accent-orange)]text-primary';
     };
@@ -425,22 +425,22 @@ const UserProfilesPortfolio: React.FC = () => {
                     className={`grid grid-cols-1 md:grid-cols-2 ${summaryGridCols} gap-4 mb-6`}
                 >
                     {/* Total Employees */}
-                    <div className="rounded-lg p-4 bg-card border border-theme">
+                    <div className="rounded-lg p-4 bg-card border border-theme card-premium">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs text-purple-600 mb-0.5">
+                                <p className="text-xs text-[var(--accent-purple)] mb-0.5">
                                     Total Employees
                                 </p>
-                                <p className="text-2xl font-semibold text-purple-700">
+                                <p className="text-2xl font-semibold text-[var(--accent-purple)]">
                                     {summaryStats.totalUsers}
                                 </p>
                             </div>
-                            <Users className="text-purple-600" size={20} />
+                            <Users className="text-[var(--accent-purple)]" size={20} />
                         </div>
                     </div>
 
                     {/* Total Earnings */}
-                    <div className="rounded-lg p-4 bg-[var(--accent-green)]/10 border border-theme">
+                    <div className="rounded-lg p-4 bg-[var(--accent-green)]/10 border border-theme card-premium">
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex-1 min-w-0">
                                 <p className="text-xs text-[var(--accent-green)] mb-0.5">
@@ -455,7 +455,7 @@ const UserProfilesPortfolio: React.FC = () => {
                     </div>
 
                     {/* Total Hours */}
-                    <div className="rounded-lg p-4 bg-[var(--accent-amber)]/10 border-themeamber-200">
+                    <div className="rounded-lg p-4 bg-[var(--accent-amber)]/10 border-themeamber-200 card-premium">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-xs text-[var(--accent-amber)] mb-0.5">
@@ -487,13 +487,13 @@ const UserProfilesPortfolio: React.FC = () => {
                     )}
 
                     {/* Total Invoices */}
-                    <div className="rounded-lg p-4 bg-indigo-50 border border-indigo-200">
+                    <div className="rounded-lg p-4 bg-[var(--accent-indigo)]/10border border-indigo-200 card-premium">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-xs text-indigo-600 mb-0.5">
                                     Total Invoices
                                 </p>
-                                <p className="text-2xl font-semibold text-indigo-700">
+                                <p className="text-2xl font-semibold text-[var(--accent-indigo)]">
                                     {summaryStats.totalInvoices}
                                 </p>
                             </div>
@@ -530,7 +530,7 @@ focus:border-[var(--accent-blue)] focus:border-transparent"
                                     <button
                                         key={period}
                                         onClick={() => setTimePeriod(period)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timePeriod === period ? '!text-white shadow-md' : 'text-[var(--accent-orange)]text-primary bg-card border border-theme hover:bg-[rgba(255,255,255,0.05)]'
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timePeriod === period ? '!text-white shadow-md' : 'text-[var(--accent-orange)]text-primary bg-[var(--accent-navyblue)] border border-theme hover:bg-[rgba(255,255,255,0.05)]'
                                             }`}
                                         style={timePeriod === period ? { background: ACCENT_GRADIENT } : undefined}
                                     >
@@ -596,12 +596,12 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                     `}</style>
                     <div
                         ref={topScrollRef}
-                        className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+                        className="overflow-x-auto overflow-y-hidden top-scrollbar-container scrollbar-theme"
                         style={{
                             maxHeight: '20px',
                             marginBottom: '2px',
                             scrollbarWidth: 'thin',
-                            scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                            scrollbarColor: 'rgba(168,85,247,0.6) var(--bg-main)' /* purple */
                         }}
                     >
                         <div className="top-scroll-content" style={{ height: '1px' }}></div>
@@ -612,7 +612,7 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
                     >
                         <table className="w-full" style={{ minWidth: '1200px' }}>
-                            <thead className="text-white" style={{ background: ACCENT_GRADIENT }}>
+                            <thead className="text-white " style={{ background: 'var(--accent-navyblue)' }}>
                                 <tr>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Employee</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Role</th>
@@ -670,7 +670,7 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                                     <div className="mt-2 flex flex-wrap gap-3 text-xs text-secondary">
                                                         {profile.milesDriven != null && (
                                                             <span className="inline-flex items-center gap-1">
-                                                                <MapPin className="w-3 h-3 text-orange-500" />
+                                                                <MapPin className="w-3 h-3 text-[var(--accent-purple)]" />
                                                                 {formatNumber(profile.milesDriven)} mi
                                                             </span>
                                                         )}
@@ -682,7 +682,7 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                                         )}
                                                         {profile.invoices != null && (
                                                             <span className="inline-flex items-center gap-1">
-                                                                <FileText className="w-3 h-3 text-indigo-500" />
+                                                                <FileText className="w-3 h-3 text-[var(--accent-indigo)]" />
                                                                 {profile.invoices} invoices
                                                             </span>
                                                         )}
@@ -709,7 +709,7 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                                     <td className="px-6 py-4">
                                                         {profile.milesDriven != null ? (
                                                             <div className="flex items-center gap-2">
-                                                                <MapPin className="w-4 h-4 text-orange-500" />
+                                                                <MapPin className="w-4 h-4 text-[var(--accent-purple)]" />
                                                                 <span className="font-medium text-primary">{formatNumber(profile.milesDriven)}</span>
                                                             </div>
                                                         ) : (
@@ -726,7 +726,7 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                                     <td className="px-6 py-4">
                                                         {profile.invoices != null ? (
                                                             <div className="flex items-center gap-2">
-                                                                <FileText className="w-4 h-4 text-indigo-500" />
+                                                                <FileText className="w-4 h-4 text-[var(--accent-indigo)]" />
                                                                 <span className="font-medium text-primary">{profile.invoices}</span>
                                                             </div>
                                                         ) : (
@@ -747,20 +747,20 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2">
-                                                    <Clock className="w-4 h-4 text-blue-500" />
+                                                    <Clock className="w-4 h-4 text-[var(--accent-blue)]" />
                                                     <span className="font-medium text-primary">{formatNumber(profile.totalHours)} hrs</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-1">
                                                     {profile.presentDays > 0 && (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--accent-green)]/10 text-[var(--accent-green)] text-xs font-medium rounded">
                                                             <FaCheckCircle size={12} />
                                                             {profile.presentDays}
                                                         </span>
                                                     )}
                                                     {profile.absentDays > 0 && (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded">
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--accent-red)]/10 text-[var(--accent-red)] text-xs font-medium rounded">
                                                             <FaTimes size={12} />
                                                             {profile.absentDays}
                                                         </span>
@@ -794,7 +794,7 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                 <>
                     {/* Backdrop */}
                     <div
-                        className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998] transition-opacity"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998] transition-opacity"
                         onClick={() => setShowProfileSidebar(false)}
                     />
 
@@ -834,7 +834,7 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                             {/* Basic Information */}
                             <div className="bg-card border border-theme rounded-xl p-6">
                                 <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                                    <UserIcon className="w-5 h-5 text-purple-600" />
+                                    <UserIcon className="w-5 h-5 text-[var(--accent-purple)]" />
                                     Basic Information
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -927,9 +927,9 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                             {selectedProfile.citizenshipStatus && (
                                                 <div>
                                                     <p className="text-xs text-secondary">Citizenship Status</p>
-                                                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full mt-1 ${selectedProfile.citizenshipStatus === 'Citizen' ? 'bg-green-100 text-green-800' :
-                                                        selectedProfile.citizenshipStatus === 'Permanent Resident' ? 'bg-blue-100 text-blue-800' :
-                                                            'bg-yellow-100 text-yellow-800'
+                                                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full mt-1 ${selectedProfile.citizenshipStatus === 'Citizen' ? 'bg-[var(--accent-green)]/10 text-[var(--accent-green)]' :
+                                                        selectedProfile.citizenshipStatus === 'Permanent Resident' ? 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]' :
+                                                            'bg-[var(--accent-yellow)]/10 text-[var(--accent-yellow)]'
                                                         }`}>
                                                         {selectedProfile.citizenshipStatus}
                                                     </span>
@@ -964,7 +964,7 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                                     ? '!text-white shadow-md'
                                                     : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                     }`}
-                                                style={profileTimePeriod === period ? { background: ACCENT_GRADIENT, borderColor: 'transparent' } : undefined}
+                                                style={profileTimePeriod === period ? { background: 'var(--accent-navyblue)', borderColor: 'transparent' } : undefined}
                                             >
                                                 {period === '1week' ? '1 Week' :
                                                     period === '2weeks' ? '2 Weeks' :
@@ -999,20 +999,20 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
 
                                     return (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-theme">
+                                            <div className="bg-[var(--accent-green)]/10 border border-theme to-green-100 rounded-lg p-4 border border-theme">
                                                 <p className="text-sm font-medium text-[var(--accent-green)] mb-2">Total Earnings</p>
                                                 <p className="text-2xl font-bold text-[var(--accent-green)] mb-2">{formatCurrency(periodEarnings)}</p>
                                             </div>
-                                            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                                            <div className="bg-gradient-to-br bg-[var(--accent-blue)]/10 border border-theme to-blue-100 rounded-lg p-4 border border-blue-200">
                                                 <p className="text-sm font-medium text-[#00D1FF] mb-2">Base Salary</p>
-                                                <p className="text-2xl font-bold text-blue-700 mb-2">{formatCurrency(periodBase)}</p>
+                                                <p className="text-2xl font-bold text-[var(--accent-blue)] mb-2">{formatCurrency(periodBase)}</p>
                                             </div>
-                                            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-theme">
-                                                <p className="text-sm font-medium text-purple-600 mb-2">Bonus</p>
-                                                <p className="text-2xl font-bold text-purple-700 mb-2">{formatCurrency(periodBonus)}</p>
+                                            <div className="bg-gradient-to-br bg-[var(--accent-purple)]/10 border border-theme to-purple-100 rounded-lg p-4 border border-theme">
+                                                <p className="text-sm font-medium text-[var(--accent-purple)] mb-2">Bonus</p>
+                                                <p className="text-2xl font-bold text-[var(--accent-purple)] mb-2">{formatCurrency(periodBonus)}</p>
                                             </div>
-                                            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
-                                                <p className="text-sm font-medium text-[#A855F7] mb-2">Deductions</p>
+                                            <div className="bg-gradient-to-br bg-[var(--accent-red)]/10 border border-theme to-red-100 rounded-lg p-4 border border-red-200">
+                                                <p className="text-sm font-medium text-[var(--accent-red)] mb-2">Deductions</p>
                                                 <p className="text-2xl font-bold text-red-700 mb-2">{formatCurrency(periodDeductions)}</p>
                                             </div>
                                         </div>
@@ -1047,7 +1047,7 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                                 <div className="bg-card rounded-lg p-4 border border-blue-200">
                                                     <p className="text-sm text-[#00D1FF] mb-1">Working Days</p>
-                                                    <p className="text-2xl font-bold text-blue-700">{periodDaysWorked}</p>
+                                                    <p className="text-2xl font-bold text-[var(--accent-blue)]">{periodDaysWorked}</p>
                                                 </div>
                                                 <div className="bg-[var(--accent-green)]/10 rounded-lg p-4 border border-theme">
                                                     <p className="text-sm text-[var(--accent-green)] mb-1">Present Days</p>
@@ -1063,9 +1063,9 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                                     <p className="text-sm text-[var(--accent-purple)] mb-1">Total Hours</p>
                                                     <p className="text-2xl font-bold text-[var(--accent-purple)]">{formatNumber(periodTotalHours)} hrs</p>
                                                 </div>
-                                                <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+                                                <div className="bg-[var(--accent-blue)]/10rounded-lg p-4 border border-indigo-200">
                                                     <p className="text-sm text-indigo-600 mb-1">Leave Days</p>
-                                                    <p className="text-2xl font-bold text-indigo-700">{periodLeaveDays}</p>
+                                                    <p className="text-2xl font-bold text-[var(--accent-indigo)]">{periodLeaveDays}</p>
                                                 </div>
                                             </div>
                                         </>
@@ -1105,13 +1105,13 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                                 {selectedProfile.tripsCompleted && (
                                                     <div className="bg-card rounded-lg p-4 border border-blue-200">
                                                         <p className="text-sm text-[#00D1FF] mb-1">Trips Completed</p>
-                                                        <p className="text-2xl font-bold text-blue-700">{periodTrips}</p>
+                                                        <p className="text-2xl font-bold text-[var(--accent-blue)]">{periodTrips}</p>
                                                     </div>
                                                 )}
                                                 {selectedProfile.invoices > 0 && (
-                                                    <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+                                                    <div className="bg-[var(--accent-blue)]/10rounded-lg p-4 border border-indigo-200">
                                                         <p className="text-sm text-indigo-600 mb-1">Invoices</p>
-                                                        <p className="text-2xl font-bold text-indigo-700">{periodInvoices}</p>
+                                                        <p className="text-2xl font-bold text-[var(--accent-indigo)]">{periodInvoices}</p>
                                                     </div>
                                                 )}
                                             </div>

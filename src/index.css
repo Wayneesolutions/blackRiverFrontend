@@ -427,3 +427,31 @@ body {
 .divide-theme> :not([hidden])~ :not([hidden]) {
   border-color: rgba(0, 209, 255, 0.1);
 }
+
+
+/* FORCE horizontal scrollbar styling */
+.scrollbar-theme {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.6) var(--bg-main);
+  /* purple */
+}
+
+.scrollbar-theme::-webkit-scrollbar {
+  height: 6px;
+  /* horizontal */
+  width: 6px;
+}
+
+.scrollbar-theme::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+
+.scrollbar-theme::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.6);
+  /* purple */
+  border-radius: 10px;
+}
+
+.scrollbar-theme::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.9);
+}
