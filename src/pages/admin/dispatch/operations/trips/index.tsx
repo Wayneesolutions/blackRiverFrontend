@@ -314,7 +314,7 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
 
   // Type guard: at this point, notification.type can only be 'success' | 'error' | 'warning'
   const standardType = notification.type as 'success' | 'error' | 'warning';
-  
+
   return (
     <div className={`fixed top-4 right-4 w-[350px] rounded-xl border-2 shadow-xl z-[10000] ${bgColors[standardType]} animate-slide-in overflow-hidden`}>
       {/* Progress bar */}
@@ -346,7 +346,7 @@ const Trips = () => {
   useEffect(() => {
     console.log('🚀 Trips component mounted/rendered');
   }, []);
-  
+
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
@@ -363,7 +363,7 @@ const Trips = () => {
   const navigate = useNavigate();
   const pendingOpenChatTripIdRef = useRef<string | null>(null);
   const handleChatNotificationClickRef = useRef<((tripId: string) => Promise<void>) | null>(null);
-  
+
   // Initialize global store immediately (runs on every render before handler is defined)
   if (!(window as any).__tripsChatHandlers) {
     (window as any).__tripsChatHandlers = {};
@@ -373,19 +373,19 @@ const Trips = () => {
   // Set up global function IMMEDIATELY (before event listeners)
   useEffect(() => {
     console.log('🌐 Setting up global openTripChat function');
-    
+
     // Expose global function for opening chat from external navigation
     (window as any).openTripChat = async (tripId: string) => {
       console.log('🌐 Global openTripChat called with:', tripId);
-      
+
       // Try to get handler from ref first
       let handler = handleChatNotificationClickRef.current;
-      
+
       // If not available, try to get from global store
       if (!handler && (window as any).__tripsChatHandlers) {
         handler = (window as any).__tripsChatHandlers.openChat;
       }
-      
+
       if (handler) {
         try {
           console.log('✅ Handler available, calling it directly');
@@ -416,16 +416,16 @@ const Trips = () => {
         }, 300);
       }
     };
-    
+
     console.log('🌐 Global function registered:', typeof (window as any).openTripChat);
   }, []); // Empty deps - function uses ref which is always current
-  
+
   // This is now handled above - removed duplicate
 
   // Real-time unread count updates from global socket notifications
   useEffect(() => {
     console.log('🔧 Setting up event listeners...');
-    
+
     const onChatNewMessage = async (event: Event) => {
       const detail = (event as CustomEvent<{ tripId?: string }>).detail;
       const tripId = detail?.tripId;
@@ -446,7 +446,7 @@ const Trips = () => {
       console.log('🎯 openChatFromNotification event received!');
       const detail = (event as CustomEvent<{ tripId?: string; orderId?: string }>).detail;
       console.log('🎯 Event detail:', detail);
-      
+
       const chatId = detail?.orderId || detail?.tripId;
       if (!chatId) {
         console.warn('⚠️ No chatId in event detail');
@@ -454,11 +454,11 @@ const Trips = () => {
       }
 
       console.log('🔔 Opening chat for:', chatId);
-      
+
       // Get handler from ref (always current)
       let handler = handleChatNotificationClickRef.current;
       console.log('🔔 Handler from ref:', !!handler);
-      
+
       // If handler not ready, wait and retry
       if (!handler) {
         console.log('⏳ Handler not ready, waiting 300ms...');
@@ -466,13 +466,13 @@ const Trips = () => {
         handler = handleChatNotificationClickRef.current;
         console.log('🔔 Handler after wait:', !!handler);
       }
-      
+
       // Also try global store as fallback
       if (!handler && (window as any).__tripsChatHandlers?.openChat) {
         handler = (window as any).__tripsChatHandlers.openChat;
         console.log('🔔 Using handler from global store');
       }
-      
+
       if (handler) {
         try {
           console.log('✅ Calling handler to set state directly (no navigation)');
@@ -493,15 +493,15 @@ const Trips = () => {
     window.addEventListener('chat:newMessage', onChatNewMessage as EventListener, true);
     window.addEventListener('openChatFromNotification', onOpenChatFromNotification as EventListener, true);
     document.addEventListener('openChatFromNotification', onOpenChatFromNotification as EventListener, true);
-    
+
     // Also listen without capture phase (bubbling)
     window.addEventListener('openChatFromNotification', onOpenChatFromNotification as EventListener, false);
     document.addEventListener('openChatFromNotification', onOpenChatFromNotification as EventListener, false);
-    
+
     console.log('👂 Event listeners set up for chat notifications');
     console.log('👂 Listening for: chat:newMessage, openChatFromNotification');
     console.log('👂 Listening on both window and document, with and without capture');
-    
+
     return () => {
       console.log('🧹 Cleaning up event listeners');
       window.removeEventListener('chat:newMessage', onChatNewMessage as EventListener, true);
@@ -537,11 +537,11 @@ const Trips = () => {
       setTrips(prev => prev.map(t =>
         t._id === data.tripId
           ? {
-              ...t,
-              driverAcceptanceStatus: data.driverAcceptanceStatus,
-              driverRejectionReason: data.driverRejectionReason,
-              driverRespondedAt: data.driverRespondedAt
-            }
+            ...t,
+            driverAcceptanceStatus: data.driverAcceptanceStatus,
+            driverRejectionReason: data.driverRejectionReason,
+            driverRespondedAt: data.driverRespondedAt
+          }
           : t
       ));
 
@@ -598,13 +598,13 @@ const Trips = () => {
   const handleChatNotificationClick = useCallback(async (tripId: string) => {
     console.log('🔍 handleChatNotificationClick called with tripId:', tripId);
     console.log('🔍 Current trips count:', trips.length);
-    
+
     // First, try to find in trips
     let trip = trips.find(t => t._id === tripId);
     let isOrder = false;
-    
+
     console.log('🔍 Found in trips?', !!trip);
-    
+
     // If not found, it might be an order - try to fetch it
     if (!trip) {
       console.log('🔍 Trip not found, checking orders...');
@@ -612,11 +612,11 @@ const Trips = () => {
         const { listOrder } = await import("../../../../../axios/api/distapcher");
         const orderResponse = await listOrder({ page: 1, limit: 1000 });
         console.log('🔍 Order response:', orderResponse?.success, orderResponse?.data?.length);
-        
+
         if (orderResponse?.success && orderResponse?.data) {
           const order = orderResponse.data.find((o: any) => o._id === tripId);
           console.log('🔍 Found order?', !!order, order?._id);
-          
+
           if (order) {
             isOrder = true;
             // Convert order to trip format for compatibility
@@ -628,9 +628,9 @@ const Trips = () => {
               coDriver: order.coDriver,
               truck: order.truck,
               trailer: order.trailer,
-              status: order.status === 'ACTIVE' ? 'in-progress' : 
-                      order.status === 'COMPLETED' ? 'completed' : 
-                      order.status === 'CANCELLED' ? 'cancelled' : 'planned',
+              status: order.status === 'ACTIVE' ? 'in-progress' :
+                order.status === 'COMPLETED' ? 'completed' :
+                  order.status === 'CANCELLED' ? 'cancelled' : 'planned',
               orders: [order],
             } as Trip & { orderNumber?: string };
             console.log('✅ Converted order to trip format:', trip._id, trip.tripNumber);
@@ -643,18 +643,18 @@ const Trips = () => {
       // Check if it's an order by looking for orderNumber property
       isOrder = !!(trip as any).orderNumber;
     }
-    
+
     if (trip) {
       console.log('✅ Setting viewingTrip and opening chat');
       console.log('✅ Trip data:', { _id: trip._id, tripNumber: trip.tripNumber, isOrder });
-      
+
       // Set all states together - React will batch them
       setViewingTrip(trip);
       setIsOrderChat(isOrder);
       setShowChat(true);
-      
+
       console.log('✅ All states set - viewingTrip:', trip._id, 'showChat: true', 'isOrderChat:', isOrder);
-      
+
       // Clear unread count for this trip/order when opening chat
       setUnreadCounts(prev => ({
         ...prev,
@@ -668,7 +668,7 @@ const Trips = () => {
   // Store handler in ref IMMEDIATELY (not in useEffect) so it's always current
   // This runs on every render, ensuring the ref is always up-to-date
   handleChatNotificationClickRef.current = handleChatNotificationClick;
-  
+
   // Also update global store whenever handler changes
   useEffect(() => {
     if ((window as any).__tripsChatHandlers) {
@@ -683,9 +683,9 @@ const Trips = () => {
     const searchParams = new URLSearchParams(location.search);
     const chatIdFromQuery = searchParams.get('openChat');
     const orderIdFromQuery = searchParams.get('orderId'); // Check for orderId query parameter
-    
+
     console.log('📍 Location changed - state:', state, 'query:', location.search);
-    
+
     // Check orderId query parameter first (for chat notifications)
     if (orderIdFromQuery) {
       console.log('📍 Found orderId in query param:', orderIdFromQuery);
@@ -725,7 +725,7 @@ const Trips = () => {
         // Clear query param
         navigate(location.pathname, { replace: true, state: {} });
       }
-    } 
+    }
     // Then check state
     else if (state?.openTripChat) {
       console.log('📍 Found openTripChat in state:', state.openTripChat);
@@ -1032,8 +1032,8 @@ const Trips = () => {
     try {
       const response = await approveTripCompletion(trip._id, action, rejectionReason);
       if (response?.success) {
-        addNotification('success', action === 'approve' 
-          ? `Trip ${trip.tripNumber} completion approved successfully.` 
+        addNotification('success', action === 'approve'
+          ? `Trip ${trip.tripNumber} completion approved successfully.`
           : `Trip ${trip.tripNumber} completion rejected.`);
         fetchTrips();
         if (viewingTrip?._id === trip._id) {
@@ -1083,7 +1083,7 @@ const Trips = () => {
       'completed': 'bg-green-100 text-green-800',
       'cancelled': 'bg-red-100 text-red-800'
     };
-    return badges[status] || 'bg-gray-100 text-primary';
+    return badges[status] || 'bg-card text-primary';
   };
 
   const formatDate = (dateString?: string | null) => {
@@ -1119,7 +1119,7 @@ const Trips = () => {
   const getDocumentStatus = (trip: Trip) => {
     // Check both trip documents and order attachments
     const tripDocuments = trip.documents || [];
-    
+
     // Get documents from orders (attachments)
     const orderDocuments: any[] = [];
     if (trip.orders && Array.isArray(trip.orders)) {
@@ -1137,18 +1137,18 @@ const Trips = () => {
         }
       });
     }
-    
+
     // Combine trip documents and order documents
     const allDocuments = [...tripDocuments, ...orderDocuments];
-    
-    const hasPOD = allDocuments.some((doc: any) => 
+
+    const hasPOD = allDocuments.some((doc: any) =>
       doc.type === 'pod' || doc.type === 'proof_of_delivery'
     );
     const isCanada = isCanadaTrip(trip);
-    const hasBorderManifest = allDocuments.some((doc: any) => 
+    const hasBorderManifest = allDocuments.some((doc: any) =>
       doc.type === 'stamped_manifest' || doc.type === 'manifest' || doc.type === 'border_manifest'
     );
-    
+
     return {
       hasPOD,
       hasBorderManifest,
@@ -1162,7 +1162,7 @@ const Trips = () => {
   const getDemoDocumentStatus = (_trip: Trip, index: number) => {
     // Demo logic: alternate between different states for visual variety
     const demoPattern = index % 4;
-    
+
     // Pattern 0: Both documents uploaded (complete - Canada trip)
     if (demoPattern === 0) {
       return {
@@ -1433,7 +1433,7 @@ const Trips = () => {
                           // Use demo status for static display - always shows something
                           const tripIndex = trips.findIndex(t => t._id === trip._id);
                           const demoStatus = getDemoDocumentStatus(trip, tripIndex);
-                          
+
                           function setShowDocumentsModal(_arg0: boolean) {
                             throw new Error("Function not implemented.");
                           }
@@ -1480,7 +1480,7 @@ const Trips = () => {
                                     </>
                                   )}
                                 </div>
-                                
+
                                 {/* Border Manifest Status (for Canada trips) */}
                                 {demoStatus.isCanada && (
                                   <div className="flex items-center gap-1" title={demoStatus.hasBorderManifest ? "Manifest Uploaded ✓" : "Manifest Missing ✗"}>
@@ -1497,7 +1497,7 @@ const Trips = () => {
                                     )}
                                   </div>
                                 )}
-                                
+
                                 {/* Document count badge */}
                                 {demoStatus.documentCount > 0 && (
                                   <div className="flex items-center gap-1 ml-auto">
@@ -1505,7 +1505,7 @@ const Trips = () => {
                                     <span className="text-xs font-semibold text-blue-800">{demoStatus.documentCount}</span>
                                   </div>
                                 )}
-                                
+
                                 {/* Show dash if no documents */}
                                 {demoStatus.documentCount === 0 && (
                                   <span className="text-xs text-secondary ml-auto">-</span>
@@ -1683,7 +1683,7 @@ const Trips = () => {
                 </button>
                 <span className="px-3 py-1 !text-white rounded text-sm" style={primaryButtonStyle}>{currentPage}</span>
                 <span className="text-sm text-secondary">of</span>
-                <span className="px-3 py-1 bg-gray-100 rounded text-sm text-primary">{totalPages}</span>
+                <span className="px-3 py-1 bg-card rounded text-sm text-primary">{totalPages}</span>
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
@@ -1944,7 +1944,7 @@ const Trips = () => {
                       </span>
                     )}
                   </h4>
-                  
+
                   {/* Document Requirements Status - Static */}
                   <div className="mb-4 p-3 bg-card rounded-lg border border-theme">
                     <div className="text-xs font-semibold text-primary mb-2">Required Documents:</div>
@@ -1991,7 +1991,7 @@ const Trips = () => {
                             if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
                             return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
                           };
-                          
+
                           const getDocumentTypeLabel = (type?: string) => {
                             if (!type) return 'Document';
                             if (type === 'pod' || type === 'proof_of_delivery') return 'POD';
@@ -2013,7 +2013,7 @@ const Trips = () => {
                                         {doc.fileName || 'Untitled Document'}
                                       </span>
                                       {doc.type && (
-                                        <span className="px-2 py-0.5 bg-gray-100 text-primary rounded text-xs font-medium flex-shrink-0">
+                                        <span className="px-2 py-0.5 bg-card text-primary rounded text-xs font-medium flex-shrink-0">
                                           {getDocumentTypeLabel(doc.type)}
                                         </span>
                                       )}
@@ -2063,14 +2063,14 @@ const Trips = () => {
                               </div>
                             </div>
                           );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="p-4 bg-card border border-theme rounded-lg text-center text-secondary">
-                          <File className="w-6 h-6 mx-auto mb-2 text-secondary" />
-                          <p className="text-sm">No documents uploaded</p>
-                        </div>
-                      )}
+                        })}
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-card border border-theme rounded-lg text-center text-secondary">
+                        <File className="w-6 h-6 mx-auto mb-2 text-secondary" />
+                        <p className="text-sm">No documents uploaded</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Document Approval Section - Only show if documents are not approved */}
@@ -2078,7 +2078,7 @@ const Trips = () => {
                     // Show approval section if trip is not completed and documents are not approved
                     const isNotCompleted = viewingTrip.status !== 'completed';
                     const isNotApproved = !viewingTrip.documentsApproved; // true if false, undefined, or null
-                    
+
                     // Debug logging
                     console.log('🔍 Approval Section Check:', {
                       tripId: viewingTrip._id,
@@ -2091,20 +2091,20 @@ const Trips = () => {
                       hasOrderAttachments: !!(viewingTrip.orders && viewingTrip.orders.some((order: any) => order.attachments && order.attachments.length > 0)),
                       ordersCount: viewingTrip.orders?.length || 0
                     });
-                    
+
                     // Don't show if trip is completed or already approved
                     if (!isNotCompleted || !isNotApproved) {
                       console.log('❌ Not showing approval section:', { isNotCompleted, isNotApproved });
                       return null;
                     }
-                    
+
                     const docStatus = getDocumentStatus(viewingTrip);
                     // Check if there are any documents (from trip or orders)
-                    const hasDocuments = (viewingTrip.documents && viewingTrip.documents.length > 0) || 
+                    const hasDocuments = (viewingTrip.documents && viewingTrip.documents.length > 0) ||
                       (viewingTrip.orders && viewingTrip.orders.some((order: any) => order.attachments && order.attachments.length > 0));
-                    
+
                     console.log('✅ Showing approval section:', { hasDocuments, docStatus });
-                    
+
                     return (
                       <div className="mt-4 p-4 bg-card border border-yellow-200 rounded-lg">
                         <div className="text-sm font-semibold text-primary mb-3">Document Approval</div>

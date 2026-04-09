@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 
 type FieldKey =
     | "name"
@@ -106,7 +106,7 @@ const NavigatorSettings = () => {
                                                 id={key}
                                                 checked={selectedFields[key as FieldKey]}   // ✅ Cast to FieldKey
                                                 onChange={() => handleFieldChange(key as FieldKey)}
-                                                className="w-4 h-4 text-purple-600 bg-gray-100 border-theme rounded focus:ring-purple-500 focus:ring-2"
+                                                className="w-4 h-4 text-purple-600 bg-card border-theme rounded focus:ring-purple-500 focus:ring-2"
                                             />
 
                                             <label htmlFor={key} className="text-sm text-primary cursor-pointer">

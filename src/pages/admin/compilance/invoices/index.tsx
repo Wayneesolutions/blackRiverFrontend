@@ -293,11 +293,11 @@ const ComplianceInvoices = () => {
           odometer: invoice.odometer ? invoice.odometer.toLocaleString() : "N/A",
           parts: invoice.parts && invoice.parts.length > 0
             ? invoice.parts.map((part: any) => {
-                const partName = part.partName || part.name || part.partNumber || 'Part';
-                const quantity = part.quantity || 1;
-                const cost = part.cost || 0;
-                return `${partName}${quantity > 1 ? ` (Qty: ${quantity})` : ''}${cost > 0 ? ` ($${cost.toFixed(2)})` : ''}`;
-              }).join(", ")
+              const partName = part.partName || part.name || part.partNumber || 'Part';
+              const quantity = part.quantity || 1;
+              const cost = part.cost || 0;
+              return `${partName}${quantity > 1 ? ` (Qty: ${quantity})` : ''}${cost > 0 ? ` ($${cost.toFixed(2)})` : ''}`;
+            }).join(", ")
             : "No parts listed",
           serviceProvider: invoice.serviceProvider || "N/A",
           location: invoice.location || "N/A",
@@ -347,7 +347,7 @@ const ComplianceInvoices = () => {
     try {
       const invoiceType = invoiceToDelete.type || 'general';
       const response = await deleteComplianceInvoice(invoiceToDelete.id, invoiceType);
-      
+
       if (response?.success) {
         setShowDeleteModal(false);
         setInvoiceToDelete(null);
@@ -637,7 +637,7 @@ const ComplianceInvoices = () => {
                               return (
                                 <span
                                   key={`${invoice.id}-${partName}-${idx}`}
-                                  className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-primary"
+                                  className="rounded-full bg-card px-1.5 py-0.5 text-[10px] font-medium text-primary"
                                   title={cost > 0 ? `${partName} (Qty: ${quantity}) - $${cost.toFixed(2)}` : `${partName} (Qty: ${quantity})`}
                                 >
                                   {partName} {quantity > 1 ? `(Qty: ${quantity})` : ''} {cost > 0 ? `$${cost.toFixed(2)}` : ''}
@@ -927,7 +927,7 @@ const ComplianceInvoices = () => {
                     </div>
                     <h3 className="text-lg font-bold text-primary">Delete Service</h3>
                   </div>
-                  
+
                   <p className="text-secondary mb-6">
                     Are you sure you want to delete this service record? This action cannot be undone.
                   </p>
@@ -950,7 +950,7 @@ const ComplianceInvoices = () => {
                         setShowDeleteModal(false);
                         setInvoiceToDelete(null);
                       }}
-                      className="px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 font-medium transition-colors"
+                      className="px-4 py-2 bg-card text-primary rounded-lg hover:bg-gray-200 font-medium transition-colors"
                     >
                       Cancel
                     </button>

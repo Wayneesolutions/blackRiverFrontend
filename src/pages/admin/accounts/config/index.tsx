@@ -82,7 +82,7 @@ export default function AccountsSetup() {
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: TabType } | null>(null);
-  
+
   // Detail modal states
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<DataItem | null>(null);
@@ -617,7 +617,7 @@ export default function AccountsSetup() {
           <div className="flex justify-end gap-3">
             <button
               onClick={() => setShowDeleteModal(false)}
-              className="px-4 py-2 text-primary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
             >
               Cancel
             </button>
@@ -731,8 +731,8 @@ export default function AccountsSetup() {
                     </tr>
                   ) : (
                     (filteredData() as ChartOfAccount[]).map(account => (
-                      <tr 
-                        key={account._id || account.id} 
+                      <tr
+                        key={account._id || account.id}
                         className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedItem(account);
@@ -795,8 +795,8 @@ export default function AccountsSetup() {
                     </tr>
                   ) : (
                     (filteredData() as AccountTaxCode[]).map(tax => (
-                      <tr 
-                        key={tax._id || tax.id} 
+                      <tr
+                        key={tax._id || tax.id}
                         className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedItem(tax);
@@ -854,8 +854,8 @@ export default function AccountsSetup() {
                     </tr>
                   ) : (
                     (filteredData() as PaymentMethod[]).map(method => (
-                      <tr 
-                        key={method._id || method.id} 
+                      <tr
+                        key={method._id || method.id}
                         className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedItem(method);
@@ -888,7 +888,7 @@ export default function AccountsSetup() {
             </div>
           )}
 
-    
+
         </div>
       </div>
 
@@ -934,13 +934,12 @@ export default function AccountsSetup() {
 
                   <div className="bg-card p-4 rounded-lg border border-purple-200">
                     <label className="text-sm font-medium text-purple-900 mb-2 block">Account Type</label>
-                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
-                      (selectedItem as ChartOfAccount).type === 'Asset' ? 'bg-green-100 text-green-800 border-green-300' :
-                      (selectedItem as ChartOfAccount).type === 'Liability' ? 'bg-red-100 text-red-800 border-red-300' :
-                      (selectedItem as ChartOfAccount).type === 'Equity' ? 'bg-blue-100 text-blue-800 border-blue-300' :
-                      (selectedItem as ChartOfAccount).type === 'Revenue' ? 'bg-purple-100 text-purple-800 border-purple-300' :
-                      'bg-orange-100 text-orange-800 border-orange-300'
-                    }`}>
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as ChartOfAccount).type === 'Asset' ? 'bg-green-100 text-green-800 border-green-300' :
+                        (selectedItem as ChartOfAccount).type === 'Liability' ? 'bg-red-100 text-red-800 border-red-300' :
+                          (selectedItem as ChartOfAccount).type === 'Equity' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                            (selectedItem as ChartOfAccount).type === 'Revenue' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                              'bg-orange-100 text-orange-800 border-orange-300'
+                      }`}>
                       {(selectedItem as ChartOfAccount).type}
                     </span>
                   </div>
@@ -975,13 +974,12 @@ export default function AccountsSetup() {
 
                   <div className="bg-card p-4 rounded-lg border border-purple-200">
                     <label className="text-sm font-medium text-purple-900 mb-2 block">Category</label>
-                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
-                      (selectedItem as AccountTaxCode).category === 'IFTA' 
-                        ? 'bg-blue-100 text-blue-800 border-blue-300' 
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as AccountTaxCode).category === 'IFTA'
+                        ? 'bg-blue-100 text-blue-800 border-blue-300'
                         : (selectedItem as AccountTaxCode).category === 'Sales Tax'
-                        ? 'bg-green-100 text-green-800 border-green-300'
-                        : 'bg-yellow-100 text-yellow-800 border-yellow-300'
-                    }`}>
+                          ? 'bg-green-100 text-green-800 border-green-300'
+                          : 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                      }`}>
                       {(selectedItem as AccountTaxCode).category}
                     </span>
                   </div>

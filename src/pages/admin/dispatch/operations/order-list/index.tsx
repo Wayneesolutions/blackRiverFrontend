@@ -1837,7 +1837,7 @@ ${order.status?.toLowerCase() === 'quoted' ? 'text-yellow-400 border-yellow-400/
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
                                       <span className="font-medium text-sm text-primary">{displayName}</span>
-                                      <span className="px-2 py-0.5 bg-gray-100 text-primary rounded text-xs font-medium">{typeLabel}</span>
+                                      <span className="px-2 py-0.5 bg-card text-primary rounded text-xs font-medium">{typeLabel}</span>
                                     </div>
                                     <div className="text-xs text-secondary mt-1">{docName}</div>
                                     {attachment.uploadedAt && (

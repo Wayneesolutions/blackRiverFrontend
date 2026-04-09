@@ -926,7 +926,7 @@ function VehicleDocument() {
       case "expiring-soon":
         return "bg-yellow-100 text-yellow-700 border border-yellow-200";
       default:
-        return "bg-gray-100 text-primary border border-theme";
+        return "bg-card text-primary border border-theme";
     }
   };
 
@@ -1994,7 +1994,7 @@ function VehicleDocument() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
         <div className="bg-card rounded-lg shadow-md border border-theme p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gray-100 rounded-lg">
+            <div className="p-2 bg-card rounded-lg">
               <FaCar className="text-secondary" size={18} />
             </div>
             <div>
@@ -2047,7 +2047,7 @@ function VehicleDocument() {
             <div className="flex items-center justify-center gap-2">
               <FaCar className="text-secondary" size={16} />
               All Units
-              <span className="bg-gray-100 text-secondary px-2 py-1 rounded-full text-xs font-medium">
+              <span className="bg-card text-secondary px-2 py-1 rounded-full text-xs font-medium">
                 {tabStats.total}
               </span>
             </div>
@@ -2247,7 +2247,7 @@ function VehicleDocument() {
                           <div className="text-xs text-secondary space-y-1 ml-8">
                             <p className="flex items-center gap-1.5">
                               <span className="font-semibold text-primary">Number:</span>
-                              <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded">
+                              <span className="font-mono bg-card px-1.5 py-0.5 rounded">
                                 {doc.documentNumber}
                               </span>
                             </p>

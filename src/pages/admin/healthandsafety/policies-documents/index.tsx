@@ -234,9 +234,9 @@ const PolicyManagementModule = () => {
       case 'active': return 'bg-green-100 text-green-800';
       case 'draft': return 'bg-yellow-100 text-yellow-800';
       case 'under-review': return 'bg-blue-100 text-blue-800';
-      case 'archived': return 'bg-gray-100 text-primary';
+      case 'archived': return 'bg-card text-primary';
       case 'expired': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-primary';
+      default: return 'bg-card text-primary';
     }
   };
 
@@ -788,7 +788,7 @@ const PolicyManagementModule = () => {
                       <p className="text-sm text-secondary">Published: {new Date(v.date).toLocaleDateString()}</p>
                       <p className="text-sm text-secondary">By: {v.publishedBy}</p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${v.status === 'Current' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-primary'
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${v.status === 'Current' ? 'bg-green-100 text-green-800' : 'bg-card text-primary'
                       }`}>
                       {v.status}
                     </span>
@@ -858,7 +858,7 @@ const PolicyManagementModule = () => {
       {/* Policies Table - Version Control & Renewal Tracking */}
       <div className="bg-card rounded-xl shadow-lg overflow-hidden">
         {/* Top Scrollbar */}
-        <div 
+        <div
           ref={topScrollRef}
           className="overflow-x-auto overflow-y-hidden"
           style={{ height: '17px' }}
@@ -873,9 +873,9 @@ const PolicyManagementModule = () => {
             <div style={{ width: '1400px', height: '1px' }}></div>
           </div>
         </div>
-        
+
         {/* Main Table with Bottom Scrollbar */}
-        <div 
+        <div
           ref={bottomScrollRef}
           className="overflow-x-auto"
           onScroll={() => {
@@ -908,8 +908,8 @@ const PolicyManagementModule = () => {
                 </tr>
               ) : (
                 filteredPolicies.map((policy) => (
-                  <tr 
-                    key={policy._id} 
+                  <tr
+                    key={policy._id}
                     onClick={() => {
                       setSelectedPolicy(policy);
                       setShowVersionHistoryModal(true);
@@ -927,7 +927,7 @@ const PolicyManagementModule = () => {
                           {policy.documentType || 'N/A'}
                         </span>
                         {policy.fileType && (
-                          <span className="ml-2 px-2 py-1 bg-gray-100 text-primary rounded-full text-xs">
+                          <span className="ml-2 px-2 py-1 bg-card text-primary rounded-full text-xs">
                             {policy.fileType}
                           </span>
                         )}

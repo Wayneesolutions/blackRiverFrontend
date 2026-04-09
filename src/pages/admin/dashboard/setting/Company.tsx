@@ -528,7 +528,7 @@ const Company = () => {
                     <button
                       onClick={handleCancel}
                       disabled={loading}
-                      className="px-4 py-2 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
+                      className="px-4 py-2 text-primary bg-card hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
                     >
                       <X size={16} />
                       Cancel
@@ -572,8 +572,8 @@ const Company = () => {
               type="button"
               onClick={() => setActiveTab('company')}
               className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'company'
-                  ? 'border-blue-600 text-[#00D1FF]'
-                  : 'border-transparent text-secondary hover:text-primary hover:border-theme'
+                ? 'border-blue-600 text-[#00D1FF]'
+                : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                 }`}
             >
               Company & API
@@ -582,8 +582,8 @@ const Company = () => {
               type="button"
               onClick={() => setActiveTab('maintenance')}
               className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'maintenance'
-                  ? 'border-blue-600 text-[#00D1FF]'
-                  : 'border-transparent text-secondary hover:text-primary hover:border-theme'
+                ? 'border-blue-600 text-[#00D1FF]'
+                : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                 }`}
             >
               Maintenance Policy Settings
@@ -606,7 +606,7 @@ const Company = () => {
                 {/* Company Logo */}
                 <div className="flex flex-col items-center">
                   <div className="relative group">
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-theme bg-gray-100">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-theme bg-card">
                       <img
                         src={previewUrl || companyInfo.logoUrl || 'https://via.placeholder.com/200x200/3B82F6/FFFFFF?text=LOGO'}
                         alt="Company Logo"
@@ -877,7 +877,7 @@ const Company = () => {
                       <button
                         onClick={handleCancelPolicy}
                         disabled={policyLoading}
-                        className="px-4 py-2 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
+                        className="px-4 py-2 text-primary bg-card hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
                       >
                         <X size={16} />
                         Cancel

@@ -76,7 +76,7 @@ const ChatMessagePopup = ({ navigate }: { navigate: (path: string) => void }) =>
                     </button>
                 </div>
                 {/* Auto-dismiss progress bar */}
-                <div className="h-1 bg-gray-100">
+                <div className="h-1 bg-card">
                     <div className="h-full bg-[#25D366] animate-[shrink_5s_linear_forwards]" style={{ transformOrigin: 'left' }} />
                 </div>
             </div>

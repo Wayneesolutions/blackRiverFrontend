@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { FaSignOutAlt, FaUser, FaBars } from "react-icons/fa";
 import {
-  Search, X, LogOut, AlertCircle, ArrowRight,ArrowLeft,
+  Search, X, LogOut, AlertCircle, ArrowRight, ArrowLeft,
   LayoutDashboard, Truck, Package, Users,
 } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
@@ -113,8 +113,8 @@ const ManifestHeader: React.FC<ManifestHeaderProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!filteredActions.length) return;
     if (e.key === "ArrowDown") { e.preventDefault(); setSelectedIndex((p) => (p < filteredActions.length - 1 ? p + 1 : 0)); }
-    if (e.key === "ArrowUp")   { e.preventDefault(); setSelectedIndex((p) => (p > 0 ? p - 1 : filteredActions.length - 1)); }
-    if (e.key === "Enter")     { e.preventDefault(); if (filteredActions[selectedIndex]) handleActionSelect(filteredActions[selectedIndex]); }
+    if (e.key === "ArrowUp") { e.preventDefault(); setSelectedIndex((p) => (p > 0 ? p - 1 : filteredActions.length - 1)); }
+    if (e.key === "Enter") { e.preventDefault(); if (filteredActions[selectedIndex]) handleActionSelect(filteredActions[selectedIndex]); }
   };
 
   return (
@@ -219,9 +219,8 @@ const ManifestHeader: React.FC<ManifestHeaderProps> = ({
                     <button
                       key={action.id}
                       onClick={() => handleActionSelect(action)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all border-l-2 ${
-                        index === selectedIndex ? "bg-card border-[var(--accent-blue)]" : "border-transparent hover:border-blue-300"
-                      }`}
+                      className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all border-l-2 ${index === selectedIndex ? "bg-card border-[var(--accent-blue)]" : "border-transparent hover:border-blue-300"
+                        }`}
                     >
                       <div className="flex-shrink-0 p-2 rounded-lg bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">{action.icon}</div>
                       <div className="flex-1 text-left min-w-0">
@@ -281,7 +280,7 @@ const ManifestHeader: React.FC<ManifestHeaderProps> = ({
             <div className="p-6 border-t border-theme flex justify-end gap-3">
               <button
                 onClick={() => setShowLogoutModal(false)}
-                className="px-6 py-2.5 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                className="px-6 py-2.5 text-primary bg-card hover:bg-gray-200 rounded-lg font-medium transition-colors"
               >
                 Cancel
               </button>

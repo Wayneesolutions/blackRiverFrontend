@@ -286,7 +286,7 @@ const DriverDocumentsPage = () => {
       case 'pending': return 'bg-yellow-100 text-yellow-700';
       case 'expired':
       case 'rejected': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-primary';
+      default: return 'bg-card text-primary';
     }
   };
 

@@ -30,14 +30,14 @@ class ErrorBoundary extends Component<Props, State> {
       if (this.props.fallback) {
         return this.props.fallback;
       }
-      
+
       // Log error details for debugging
       console.error('ErrorBoundary Error Details:', {
         message: this.state.error?.message,
         stack: this.state.error?.stack,
         name: this.state.error?.name
       });
-      
+
       return (
         <div className="min-h-screen flex items-center justify-center bg-card p-4">
           <div className="text-center p-8 bg-card rounded-lg shadow-lg max-w-2xl">
@@ -46,7 +46,7 @@ class ErrorBoundary extends Component<Props, State> {
             {this.state.error?.stack && (
               <details className="mt-4 text-left">
                 <summary className="cursor-pointer text-sm text-secondary mb-2">Show error details</summary>
-                <pre className="text-xs bg-gray-100 p-4 rounded overflow-auto max-h-60 text-primary">
+                <pre className="text-xs bg-card p-4 rounded overflow-auto max-h-60 text-primary">
                   {this.state.error.stack}
                 </pre>
               </details>

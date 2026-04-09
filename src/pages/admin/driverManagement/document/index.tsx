@@ -218,7 +218,7 @@ const EmployeeDocumentsPage = () => {
             case 'rejected':
                 return 'bg-red-100 text-red-700';
             default:
-                return 'bg-gray-100 text-primary';
+                return 'bg-card text-primary';
         }
     };
 
@@ -695,7 +695,7 @@ const ViewDocumentModal = ({
             case 'rejected':
                 return 'bg-red-100 text-red-700';
             default:
-                return 'bg-gray-100 text-primary';
+                return 'bg-card text-primary';
         }
     };
 

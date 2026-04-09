@@ -164,21 +164,21 @@ export default function SettlementSystem() {
       if (response?.success) {
         const allDrivers = response.data || [];
         console.log('📊 All drivers from API:', allDrivers.length);
-        console.log('📋 Driver statuses:', allDrivers.map((d: any) => ({ 
-          name: d.name, 
-          status: d.status, 
-          _id: d._id 
+        console.log('📋 Driver statuses:', allDrivers.map((d: any) => ({
+          name: d.name,
+          status: d.status,
+          _id: d._id
         })));
-        
+
         // Show all drivers except explicitly inactive ones
-        const driverList = allDrivers.filter((driver: any) => 
+        const driverList = allDrivers.filter((driver: any) =>
           driver.status !== 'inactive'
         );
         console.log('✅ Filtered drivers:', driverList.length, 'out of', allDrivers.length);
-        console.log('📋 Final driver list:', driverList.map((d: any) => ({ 
-          name: d.name, 
-          status: d.status, 
-          _id: d._id 
+        console.log('📋 Final driver list:', driverList.map((d: any) => ({
+          name: d.name,
+          status: d.status,
+          _id: d._id
         })));
         setDrivers(driverList);
       } else {
@@ -199,9 +199,9 @@ export default function SettlementSystem() {
       console.log('🔍 Vehicles API response:', response);
       if (response?.success && Array.isArray(response.data)) {
         // Filter to show only active/in-service vehicles
-        const activeVehicles = response.data.filter((vehicle: any) => 
-          !vehicle.status || 
-          vehicle.status === 'In Service' || 
+        const activeVehicles = response.data.filter((vehicle: any) =>
+          !vehicle.status ||
+          vehicle.status === 'In Service' ||
           vehicle.status === 'IN SERVICE' ||
           vehicle.operationStatus === 'IN SERVICE'
         );
@@ -428,7 +428,7 @@ export default function SettlementSystem() {
     return `${startMonth} ${startDay}-${endDay}, ${year}`;
   };
 
- 
+
   // Calculate current week for miles tracking
   const getCurrentWeekRange = () => {
     const today = new Date();
@@ -731,8 +731,8 @@ export default function SettlementSystem() {
                   </thead>
                   <tbody className="bg-card divide-y divide-theme">
                     {filteredSettlements.map(settlement => (
-                      <tr 
-                        key={settlement._id} 
+                      <tr
+                        key={settlement._id}
                         className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedItem({ ...settlement, type: 'settlement' });
@@ -748,7 +748,7 @@ export default function SettlementSystem() {
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${settlement.status === 'Paid' ? 'bg-green-100 text-green-800' :
                             settlement.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                               settlement.status === 'Processing' ? 'bg-blue-100 text-blue-800' :
-                                'bg-gray-100 text-primary'
+                                'bg-card text-primary'
                             }`}>
                             {settlement.status}
                           </span>
@@ -819,8 +819,8 @@ export default function SettlementSystem() {
                   </thead>
                   <tbody className="bg-card divide-y divide-theme">
                     {filteredDeductions.map(item => (
-                      <tr 
-                        key={item._id} 
+                      <tr
+                        key={item._id}
                         className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedItem({ ...item, type: 'deduction' });
@@ -902,8 +902,8 @@ export default function SettlementSystem() {
                   </thead>
                   <tbody className="bg-card divide-y divide-theme">
                     {filteredMilesTracking.map(record => (
-                      <tr 
-                        key={record._id} 
+                      <tr
+                        key={record._id}
                         className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedItem({ ...record, type: 'miles' });
@@ -1458,7 +1458,7 @@ export default function SettlementSystem() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-primary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>
@@ -1498,7 +1498,7 @@ export default function SettlementSystem() {
                   </p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setShowDetailModal(false)}
                 className="text-white hover:bg-card/20 rounded-lg p-2 transition-colors"
               >
@@ -1545,12 +1545,11 @@ export default function SettlementSystem() {
 
                     <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
                       <label className="text-xs font-semibold text-orange-900 uppercase tracking-wide mb-1 block">Status</label>
-                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${
-                        selectedItem.status === 'Paid' ? 'bg-green-500 text-white' :
-                        selectedItem.status === 'Pending' ? 'bg-yellow-500 text-white' :
-                        selectedItem.status === 'Processing' ? 'bg-blue-500 text-white' :
-                        'bg-gray-500 text-white'
-                      }`}>
+                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${selectedItem.status === 'Paid' ? 'bg-green-500 text-white' :
+                          selectedItem.status === 'Pending' ? 'bg-yellow-500 text-white' :
+                            selectedItem.status === 'Processing' ? 'bg-blue-500 text-white' :
+                              'bg-gray-500 text-white'
+                        }`}>
                         {selectedItem.status}
                       </span>
                     </div>
@@ -1589,14 +1588,12 @@ export default function SettlementSystem() {
                       <p className="text-xl font-bold text-blue-900">{selectedItem.name}</p>
                     </div>
 
-                    <div className={`rounded-lg p-4 border ${
-                      selectedItem.type === 'Addition' 
-                        ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200' 
+                    <div className={`rounded-lg p-4 border ${selectedItem.type === 'Addition'
+                        ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
                         : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200'
-                    }`}>
-                      <label className={`text-xs font-semibold uppercase tracking-wide mb-2 block flex items-center gap-2 ${
-                        selectedItem.type === 'Addition' ? 'text-green-900' : 'text-red-900'
                       }`}>
+                      <label className={`text-xs font-semibold uppercase tracking-wide mb-2 block flex items-center gap-2 ${selectedItem.type === 'Addition' ? 'text-green-900' : 'text-red-900'
+                        }`}>
                         {selectedItem.type === 'Addition' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                         Type
                       </label>
@@ -1703,7 +1700,7 @@ export default function SettlementSystem() {
               )}
             </div>
 
-            <div className="sticky bottom-0 bg-gray-100 p-4 border-t border-theme rounded-b-xl flex justify-end">
+            <div className="sticky bottom-0 bg-card p-4 border-t border-theme rounded-b-xl flex justify-end">
               <button
                 onClick={() => setShowDetailModal(false)}
                 className="px-6 py-2.5 bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transform transition-all duration-200"

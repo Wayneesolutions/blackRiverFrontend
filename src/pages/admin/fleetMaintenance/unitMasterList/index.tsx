@@ -145,7 +145,7 @@ const UnitMasterList: React.FC = () => {
 
   const filteredUnits = units.filter(unit => {
     const matchesStatus = activeTab === 'active' ? unit.status === 'Active' : unit.status === 'Inactive';
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       unit.unitNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       unit.makeModel.toLowerCase().includes(searchTerm.toLowerCase()) ||
       unit.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -207,19 +207,19 @@ const UnitMasterList: React.FC = () => {
       };
       setUnits([...units, newUnit]);
     } else if (showEditModal && selectedUnit) {
-      setUnits(units.map(unit => 
-        unit._id === selectedUnit._id 
-          ? { 
-              ...unit, 
-              unitNo: formData.unitNo,
-              unitType: formData.unitType,
-              makeModel: formData.makeModel,
-              vinNo: formData.vinNo,
-              licensePlate: formData.licensePlate,
-              initialOdometer: parseInt(formData.initialOdometer),
-              lastDate: formData.lastDate || undefined,
-              reason: formData.reason || undefined
-            }
+      setUnits(units.map(unit =>
+        unit._id === selectedUnit._id
+          ? {
+            ...unit,
+            unitNo: formData.unitNo,
+            unitType: formData.unitType,
+            makeModel: formData.makeModel,
+            vinNo: formData.vinNo,
+            licensePlate: formData.licensePlate,
+            initialOdometer: parseInt(formData.initialOdometer),
+            lastDate: formData.lastDate || undefined,
+            reason: formData.reason || undefined
+          }
           : unit
       ));
     }
@@ -286,22 +286,20 @@ const UnitMasterList: React.FC = () => {
           <div className="flex border-b border-theme">
             <button
               onClick={() => setActiveTab('active')}
-              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
-                activeTab === 'active'
+              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${activeTab === 'active'
                   ? 'text-white border-b-2'
                   : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
-              }`}
+                }`}
               style={activeTab === 'active' ? { background: 'linear-gradient(to right, #016ab2, #063f6f)', borderColor: '#016ab2' } : {}}
             >
               Active Units ({units.filter(u => u.status === 'Active').length})
             </button>
             <button
               onClick={() => setActiveTab('inactive')}
-              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
-                activeTab === 'inactive'
+              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${activeTab === 'inactive'
                   ? 'text-white border-b-2'
                   : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
-              }`}
+                }`}
               style={activeTab === 'inactive' ? { background: 'linear-gradient(to right, #016ab2, #063f6f)', borderColor: '#016ab2' } : {}}
             >
               Inactive Units ({units.filter(u => u.status === 'Inactive').length})
@@ -358,13 +356,12 @@ const UnitMasterList: React.FC = () => {
                     <tr key={unit._id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                       <td className="px-6 py-4 font-medium text-primary">{unit.unitNo}</td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                          unit.unitType === 'Truck' ? 'bg-blue-100 text-blue-800' :
-                          unit.unitType === 'Reefer Trailer' ? 'bg-green-100 text-green-800' :
-                          unit.unitType === 'Tri-Axle Trailer' ? 'bg-orange-100 text-orange-800' :
-                          unit.unitType === 'Dry Van' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-primary'
-                        }`}>
+                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${unit.unitType === 'Truck' ? 'bg-blue-100 text-blue-800' :
+                            unit.unitType === 'Reefer Trailer' ? 'bg-green-100 text-green-800' :
+                              unit.unitType === 'Tri-Axle Trailer' ? 'bg-orange-100 text-orange-800' :
+                                unit.unitType === 'Dry Van' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-card text-primary'
+                          }`}>
                           {unit.unitType}
                         </span>
                       </td>
@@ -383,9 +380,8 @@ const UnitMasterList: React.FC = () => {
                         </>
                       )}
                       <td className="px-6 py-4">
-                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                          unit.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${unit.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
                           {unit.status === 'Active' ? (
                             <><FaCheckCircle className="mr-1" size={12} /> Active</>
                           ) : (
@@ -443,119 +439,119 @@ const UnitMasterList: React.FC = () => {
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-2">Unit No. *</label>
-                    <input
-                      type="text"
-                      value={formData.unitNo}
-                      onChange={(e) => setFormData({ ...formData, unitNo: e.target.value })}
-                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., 1001, BRV001"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Unit No. *</label>
+                      <input
+                        type="text"
+                        value={formData.unitNo}
+                        onChange={(e) => setFormData({ ...formData, unitNo: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., 1001, BRV001"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Unit Type *</label>
+                      <select
+                        value={formData.unitType}
+                        onChange={(e) => setFormData({ ...formData, unitType: e.target.value as UnitType })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      >
+                        <option value="Truck">Truck</option>
+                        <option value="Reefer Trailer">Reefer Trailer</option>
+                        <option value="Tri-Axle Trailer">Tri-Axle Trailer</option>
+                        <option value="Dry Van">Dry Van</option>
+                        <option value="Bus/Van">Bus/Van</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Make/Model *</label>
+                      <input
+                        type="text"
+                        value={formData.makeModel}
+                        onChange={(e) => setFormData({ ...formData, makeModel: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., Kenworth T680"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">VIN No. *</label>
+                      <input
+                        type="text"
+                        value={formData.vinNo}
+                        onChange={(e) => setFormData({ ...formData, vinNo: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent font-mono"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="17-character VIN"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">License Plate *</label>
+                      <input
+                        type="text"
+                        value={formData.licensePlate}
+                        onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., BRV-1001"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Initial Odometer/Hour *</label>
+                      <input
+                        type="number"
+                        value={formData.initialOdometer}
+                        onChange={(e) => setFormData({ ...formData, initialOdometer: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="0"
+                      />
+                    </div>
+                    {activeTab === 'inactive' && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-primary mb-2">Last Date *</label>
+                          <input
+                            type="date"
+                            value={formData.lastDate}
+                            onChange={(e) => setFormData({ ...formData, lastDate: e.target.value })}
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                            onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-primary mb-2">Reason/Comment *</label>
+                          <input
+                            type="text"
+                            value={formData.reason}
+                            onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                            onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                            placeholder="SOLD, Rental returned, Scrapped, etc."
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-2">Unit Type *</label>
-                    <select
-                      value={formData.unitType}
-                      onChange={(e) => setFormData({ ...formData, unitType: e.target.value as UnitType })}
-                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                    >
-                      <option value="Truck">Truck</option>
-                      <option value="Reefer Trailer">Reefer Trailer</option>
-                      <option value="Tri-Axle Trailer">Tri-Axle Trailer</option>
-                      <option value="Dry Van">Dry Van</option>
-                      <option value="Bus/Van">Bus/Van</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-2">Make/Model *</label>
-                    <input
-                      type="text"
-                      value={formData.makeModel}
-                      onChange={(e) => setFormData({ ...formData, makeModel: e.target.value })}
-                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., Kenworth T680"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-2">VIN No. *</label>
-                    <input
-                      type="text"
-                      value={formData.vinNo}
-                      onChange={(e) => setFormData({ ...formData, vinNo: e.target.value })}
-                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent font-mono"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="17-character VIN"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-2">License Plate *</label>
-                    <input
-                      type="text"
-                      value={formData.licensePlate}
-                      onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value })}
-                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., BRV-1001"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-2">Initial Odometer/Hour *</label>
-                    <input
-                      type="number"
-                      value={formData.initialOdometer}
-                      onChange={(e) => setFormData({ ...formData, initialOdometer: e.target.value })}
-                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="0"
-                    />
-                  </div>
-                  {activeTab === 'inactive' && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Last Date *</label>
-                        <input
-                          type="date"
-                          value={formData.lastDate}
-                          onChange={(e) => setFormData({ ...formData, lastDate: e.target.value })}
-                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Reason/Comment *</label>
-                        <input
-                          type="text"
-                          value={formData.reason}
-                          onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                          className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                          placeholder="SOLD, Rental returned, Scrapped, etc."
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
                   <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t mt-6">
                     <button
                       onClick={() => {

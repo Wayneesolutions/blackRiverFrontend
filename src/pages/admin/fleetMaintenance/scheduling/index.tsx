@@ -3,16 +3,16 @@ import { Clock, AlertTriangle, Truck, Wrench, CheckCircle, Search, Bell, Plus, X
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaInfoCircle } from 'react-icons/fa';
 import ConfirmationModal from '../../../../components/common/ConfirmationModal';
 import { getMaintenanceSchedule, getMaintenanceCostReport } from "../../../../axios/api/fleet.maintenance"
-import { 
-    createVehicleService, 
-    updateVehicleService, 
-    updateServiceStatus, 
-    deleteVehicleService, 
+import {
+    createVehicleService,
+    updateVehicleService,
+    updateServiceStatus,
+    deleteVehicleService,
     listVehicleServices,
     type VehicleServiceData,
     type UpdateServiceData,
     type ServiceFilters,
-    type VehicleServiceResponse 
+    type VehicleServiceResponse
 } from "../../../../axios/api/vehicleService"
 import { listUsers } from "../../../../axios/api/admin"
 
@@ -140,7 +140,7 @@ const MaintenanceSchedule = () => {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [costReport, setCostReport] = useState<CostReportItem[]>([]);
     const [selectedYear] = useState<number>(new Date().getFullYear());
-    
+
     // Vehicle Service State
     const [vehicleServices, setVehicleServices] = useState<VehicleServiceResponse[]>([]);
     const [editingService, setEditingService] = useState<VehicleServiceResponse | null>(null);
@@ -254,7 +254,7 @@ const MaintenanceSchedule = () => {
         fetchVehicleServices();
         fetchCostReport();
         fetchMechanics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfoReady, userInfo]);
 
     // Fetch vehicle services when filters change
@@ -263,7 +263,7 @@ const MaintenanceSchedule = () => {
             return;
         }
         fetchVehicleServices();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [serviceFilters]);
 
     useEffect(() => {
@@ -273,7 +273,7 @@ const MaintenanceSchedule = () => {
         if (selectedYear) {
             fetchCostReport();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedYear]);
 
     const fetchMaintenanceData = async () => {
@@ -428,7 +428,7 @@ const MaintenanceSchedule = () => {
         // Convert service type to correct format (with hyphens)
         const serviceTypeMap: { [key: string]: string } = {
             'oil_change': 'oil-change',
-            'tire_rotation': 'tire-rotation', 
+            'tire_rotation': 'tire-rotation',
             'bike_inspection': 'bike-inspection',
             'general_maintenance': 'general-maintenance',
             'other': 'other'
@@ -575,8 +575,8 @@ const MaintenanceSchedule = () => {
             // New fields - can be populated from service data if available
             serviceDate: (service as any).serviceDate?.split('T')[0] || '',
             unitNumber: service.vehicleId?.plateNumber || (service as any).unitNumber || '',
-            makeModel: service.vehicleId?.make && service.vehicleId?.model 
-                ? `${service.vehicleId.make} ${service.vehicleId.model}` 
+            makeModel: service.vehicleId?.make && service.vehicleId?.model
+                ? `${service.vehicleId.make} ${service.vehicleId.model}`
                 : (service as any).makeModel || '',
             vinLicensePlate: (service as any).vinLicensePlate || service.vehicleId?.plateNumber || '',
             odometer: (service as any).odometer?.toString() || '',
@@ -688,7 +688,7 @@ const MaintenanceSchedule = () => {
     // Calculate stats from actual vehicle services data
     const stats = useMemo(() => {
         console.log('📊 Calculating stats for', vehicleServices.length, 'services');
-        
+
         const overdue = vehicleServices.filter((service: VehicleServiceResponse) => {
             if (!service.dueDate) return false;
             const dueDate = new Date(service.dueDate);
@@ -708,7 +708,7 @@ const MaintenanceSchedule = () => {
         const scheduled = vehicleServices.filter((service: VehicleServiceResponse) => service.status === 'pending').length;
 
         console.log('📊 Stats calculated:', { overdue, dueThisWeek, inProgress, scheduled });
-        
+
         return { overdue, dueThisWeek, inProgress, scheduled };
     }, [vehicleServices]);
 
@@ -755,12 +755,12 @@ const MaintenanceSchedule = () => {
         try {
             // Use static work orders data instead of API call
             const completedOrders = staticWorkOrders
-                .filter((order: any) => 
-                    order.vehicleId?._id === vehicleId && 
+                .filter((order: any) =>
+                    order.vehicleId?._id === vehicleId &&
                     order.status === 'completed' &&
                     order.odometerReading &&
-                    (order.issue?.toLowerCase().includes(serviceType.replace(/_/g, ' ').toLowerCase()) || 
-                     order.description?.toLowerCase().includes(serviceType.replace(/_/g, ' ').toLowerCase()))
+                    (order.issue?.toLowerCase().includes(serviceType.replace(/_/g, ' ').toLowerCase()) ||
+                        order.description?.toLowerCase().includes(serviceType.replace(/_/g, ' ').toLowerCase()))
                 )
                 .sort((a: any, b: any) => {
                     const dateA = new Date(a.completionDate || a.createdAt || '');
@@ -795,7 +795,7 @@ const MaintenanceSchedule = () => {
             if (scheduleForm.useTimeInterval && intervals.days > 0 && lastCompletionDate) {
                 const nextDueDate = new Date(lastCompletionDate);
                 nextDueDate.setDate(nextDueDate.getDate() + intervals.days);
-                
+
                 // Format date as YYYY-MM-DD for input
                 const formattedDate = nextDueDate.toISOString().split('T')[0];
                 setScheduleForm(prev => ({ ...prev, dueDate: formattedDate }));
@@ -811,7 +811,7 @@ const MaintenanceSchedule = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
         console.log('New service scheduled:', scheduleForm);
-        
+
         if (editingService) {
             // Update existing service
             await handleUpdateService(editingService._id);
@@ -880,7 +880,7 @@ const MaintenanceSchedule = () => {
                     </div>
 
                     <div className="flex justify-end gap-3 p-6 border-t border-theme">
-                        <button onClick={onClose} className="px-4 py-2 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                        <button onClick={onClose} className="px-4 py-2 text-primary bg-card hover:bg-gray-200 rounded-lg transition-colors">
                             Close
                         </button>
                         <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
@@ -1056,7 +1056,7 @@ const MaintenanceSchedule = () => {
                                         onChange={(e) => {
                                             const vehicleId = e.target.value;
                                             handleFormChange('vehicle', vehicleId);
-                                            
+
                                             // Auto-populate vehicle-related fields
                                             const selectedVehicle = vehicles.find(v => v._id === vehicleId);
                                             if (selectedVehicle) {
@@ -1070,7 +1070,7 @@ const MaintenanceSchedule = () => {
                                                     odometer: (selectedVehicle.odometer || selectedVehicle.currentOdometer || 0).toString()
                                                 }));
                                             }
-                                            
+
                                             // Auto-calculate next due if service type is selected
                                             if (vehicleId && scheduleForm.serviceType) {
                                                 const intervals = serviceTypeIntervals[scheduleForm.serviceType];
@@ -1085,7 +1085,7 @@ const MaintenanceSchedule = () => {
                                         <option value="">Select a vehicle</option>
                                         {vehicles.map((vehicle: Vehicle) => (
                                             <option key={vehicle._id} value={vehicle._id}>
-                                                {vehicle.plateNumber} {vehicle.make && vehicle.model ? `- ${vehicle.make} ${vehicle.model}` : ''} 
+                                                {vehicle.plateNumber} {vehicle.make && vehicle.model ? `- ${vehicle.make} ${vehicle.model}` : ''}
                                                 {(vehicle.odometer || vehicle.currentOdometer) ? ` (${(vehicle.odometer || vehicle.currentOdometer || 0).toLocaleString()} km)` : ''}
                                             </option>
                                         ))}
@@ -1102,7 +1102,7 @@ const MaintenanceSchedule = () => {
                                         onChange={(e) => {
                                             const selectedType = e.target.value;
                                             handleFormChange('serviceType', selectedType);
-                                            
+
                                             // Auto-populate service intervals based on service type
                                             const intervals = serviceTypeIntervals[selectedType];
                                             if (intervals) {
@@ -1111,7 +1111,7 @@ const MaintenanceSchedule = () => {
                                                     mileageInterval: intervals.mileage.toString(),
                                                     timeInterval: intervals.days.toString()
                                                 }));
-                                                
+
                                                 // Auto-calculate next due if vehicle is selected
                                                 if (scheduleForm.vehicle) {
                                                     calculateNextDue(scheduleForm.vehicle, selectedType, intervals);
@@ -1134,7 +1134,7 @@ const MaintenanceSchedule = () => {
                                 {scheduleForm.serviceType && (
                                     <div className="bg-card border border-blue-200 rounded-lg p-4 space-y-4">
                                         <h3 className="text-sm font-semibold text-blue-900 mb-2">Service Interval Configuration</h3>
-                                        
+
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-xs font-medium text-primary mb-1">
@@ -1165,7 +1165,7 @@ const MaintenanceSchedule = () => {
                                                     min="0"
                                                 />
                                             </div>
-                                            
+
                                             <div>
                                                 <label className="block text-xs font-medium text-primary mb-1">
                                                     <input
@@ -1196,7 +1196,7 @@ const MaintenanceSchedule = () => {
                                                 />
                                             </div>
                                         </div>
-                                        
+
                                         <button
                                             type="button"
                                             onClick={() => {
@@ -1292,7 +1292,7 @@ const MaintenanceSchedule = () => {
                                 {/* New Fields Section */}
                                 <div className="border-t pt-6 mt-6">
                                     <h3 className="text-lg font-semibold text-primary mb-4">Service Details</h3>
-                                    
+
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-sm font-medium text-primary mb-2">Service Date</label>
@@ -1408,7 +1408,7 @@ const MaintenanceSchedule = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowScheduleForm(false)}
-                                        className="flex-1 px-4 py-3 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                                        className="flex-1 px-4 py-3 text-primary bg-card hover:bg-gray-200 rounded-lg transition-colors font-medium"
                                     >
                                         Cancel
                                     </button>
@@ -1599,111 +1599,111 @@ const MaintenanceSchedule = () => {
                                         const date = new Date(dateString);
                                         return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
                                     };
-                                    
+
                                     return (
-                                    <tr key={service._id} className="hover:bg-[rgba(255,255,255,0.03)]">
-                                        <td className="px-4 py-4 whitespace-nowrap">
-                                            <div>
-                                                <div className="text-sm font-medium text-primary">
-                                                    {(service as any).unitNumber || service.vehicleId?.internalId || 'N/A'}
+                                        <tr key={service._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div>
+                                                    <div className="text-sm font-medium text-primary">
+                                                        {(service as any).unitNumber || service.vehicleId?.internalId || 'N/A'}
+                                                    </div>
+                                                    <div className="text-xs text-secondary">
+                                                        {service.vehicleId?.plateNumber || ''}
+                                                    </div>
                                                 </div>
-                                                <div className="text-xs text-secondary">
-                                                    {service.vehicleId?.plateNumber || ''}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
-                                            {service.serviceType.replace('-', ' ').toUpperCase()}
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
-                                            {formatDate((service as any).serviceDate)}
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
-                                            {formatDate(service.dueDate)}
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
-                                            {(service as any).odometer ? (service as any).odometer.toLocaleString() : 'N/A'}
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
-                                            {service.dueMileage ? service.dueMileage.toLocaleString() : 'N/A'}
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${service.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
+                                                {service.serviceType.replace('-', ' ').toUpperCase()}
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
+                                                {formatDate((service as any).serviceDate)}
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
+                                                {formatDate(service.dueDate)}
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
+                                                {(service as any).odometer ? (service as any).odometer.toLocaleString() : 'N/A'}
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
+                                                {service.dueMileage ? service.dueMileage.toLocaleString() : 'N/A'}
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${service.priority === 'urgent' ? 'bg-red-100 text-red-800' :
                                                     service.priority === 'high' ? 'bg-orange-100 text-orange-800' :
                                                         service.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
                                                             'bg-green-100 text-green-800'}`}>
-                                                {service.priority.toUpperCase()}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-2">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${service.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                    {service.priority.toUpperCase()}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${service.status === 'completed' ? 'bg-green-100 text-green-800' :
                                                         service.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
                                                             'bg-yellow-100 text-yellow-800'}`}>
-                                                    {service.status.replace('-', ' ').toUpperCase()}
-                                                </span>
-                                                {service.status !== 'completed' && (
-                                                    <select
-                                                        value={service.status}
-                                                        onChange={(e) => handleStatusChange(service._id, e.target.value as any)}
-                                                        className="text-xs border border-theme rounded px-2 py-1"
+                                                        {service.status.replace('-', ' ').toUpperCase()}
+                                                    </span>
+                                                    {service.status !== 'completed' && (
+                                                        <select
+                                                            value={service.status}
+                                                            onChange={(e) => handleStatusChange(service._id, e.target.value as any)}
+                                                            className="text-xs border border-theme rounded px-2 py-1"
+                                                        >
+                                                            <option value="pending">Pending</option>
+                                                            <option value="in-progress">In Progress</option>
+                                                            <option value="completed">Completed</option>
+                                                        </select>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
+                                                {(() => {
+                                                    const mechanic = service.assignedMechanic as any;
+                                                    if (!mechanic) return 'N/A';
+                                                    if (typeof mechanic === 'string') {
+                                                        return mechanics.find(m => m._id === mechanic)?.name || mechanic;
+                                                    }
+                                                    // Handle populated object
+                                                    if (mechanic.name) {
+                                                        return mechanic.name;
+                                                    }
+                                                    if (mechanic.first_name || mechanic.last_name) {
+                                                        return `${mechanic.first_name || ''} ${mechanic.last_name || ''}`.trim() || 'N/A';
+                                                    }
+                                                    return 'N/A';
+                                                })()}
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
+                                                <div className="truncate max-w-24" title={(service as any).serviceProvider || 'N/A'}>
+                                                    {(service as any).serviceProvider || 'N/A'}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
+                                                {(service as any).estimatedCost ? `$${((service as any).estimatedCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-secondary max-w-xs">
+                                                <div className="truncate" title={(service as any).parts || 'N/A'}>
+                                                    {(service as any).parts || 'N/A'}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => handleEditService(service)}
+                                                        className="text-[#00D1FF] hover:text-blue-900"
+                                                        title="Edit Service"
                                                     >
-                                                        <option value="pending">Pending</option>
-                                                        <option value="in-progress">In Progress</option>
-                                                        <option value="completed">Completed</option>
-                                                    </select>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
-                                            {(() => {
-                                                const mechanic = service.assignedMechanic as any;
-                                                if (!mechanic) return 'N/A';
-                                                if (typeof mechanic === 'string') {
-                                                    return mechanics.find(m => m._id === mechanic)?.name || mechanic;
-                                                }
-                                                // Handle populated object
-                                                if (mechanic.name) {
-                                                    return mechanic.name;
-                                                }
-                                                if (mechanic.first_name || mechanic.last_name) {
-                                                    return `${mechanic.first_name || ''} ${mechanic.last_name || ''}`.trim() || 'N/A';
-                                                }
-                                                return 'N/A';
-                                            })()}
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
-                                            <div className="truncate max-w-24" title={(service as any).serviceProvider || 'N/A'}>
-                                                {(service as any).serviceProvider || 'N/A'}
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
-                                            {(service as any).estimatedCost ? `$${((service as any).estimatedCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
-                                        </td>
-                                        <td className="px-4 py-4 text-sm text-secondary max-w-xs">
-                                            <div className="truncate" title={(service as any).parts || 'N/A'}>
-                                                {(service as any).parts || 'N/A'}
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => handleEditService(service)}
-                                                    className="text-[#00D1FF] hover:text-blue-900"
-                                                    title="Edit Service"
-                                                >
-                                                    <Edit size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => setDeleteConfirm({ show: true, serviceId: service._id })}
-                                                    className="text-[#A855F7] hover:text-red-900"
-                                                    title="Delete Service"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setDeleteConfirm({ show: true, serviceId: service._id })}
+                                                        className="text-[#A855F7] hover:text-red-900"
+                                                        title="Delete Service"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     );
                                 })}
                             </tbody>

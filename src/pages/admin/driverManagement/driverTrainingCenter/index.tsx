@@ -1,4 +1,4 @@
-import  { useState } from "react";
+import { useState } from "react";
 import TrainingCertificates from "../trainingCertificates/index";
 import TrainingTestManagement from "../trainingTestManagement/index";
 
@@ -14,11 +14,11 @@ const DriverTrainingCenter = () => {
   ];
 
   return (
-    <div className="p-6 bg-main min-h-screen">
+    <div className="p-6 bg-main min-h-screen  ">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-primary mb-2">
+          <h1 className="text-3xl font-bold  mb-2 text-[var(--accent-navyblue)]">
             Driver Training Center
           </h1>
           <p className="text-secondary">
@@ -33,11 +33,10 @@ const DriverTrainingCenter = () => {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as TabType)}
-                className={`px-6 py-3 font-medium text-sm transition-colors ${
-                  activeTab === tab.key
-                    ? "text-[rgba(0,209,255,0.15)] border-b-2 border-[rgba(0,209,255,0.15)]"
-                    : "text-secondary hover:text-primary"
-                }`}
+                className={`px-6 py-3 font-medium text-sm transition-colors ${activeTab === tab.key
+                  ? "text-[rgba(0,209,255,0.15)] border-b-2 border-[rgba(0,209,255,0.15)]"
+                  : "text-secondary hover:text-primary"
+                  }`}
               >
                 {tab.label}
               </button>

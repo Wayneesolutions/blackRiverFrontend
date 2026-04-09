@@ -227,11 +227,11 @@ const Incidents: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [trailers, setTrailers] = useState<Trailer[]>([]);
   const [loading, setLoading] = useState(false);
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -349,8 +349,8 @@ const Incidents: React.FC = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -528,7 +528,7 @@ const Incidents: React.FC = () => {
       case 'closed':
         return 'bg-green-100 text-green-800 border-green-200';
       default:
-        return 'bg-gray-100 text-primary border-theme';
+        return 'bg-card text-primary border-theme';
     }
   };
 
@@ -650,7 +650,7 @@ const Incidents: React.FC = () => {
     try {
       // Create FormData to handle file uploads
       const formData = new FormData();
-      
+
       // Add all form fields
       formData.append('incidentDateTime', incidentForm.incidentDateTime);
       formData.append('location', JSON.stringify(incidentForm.location));
@@ -680,7 +680,7 @@ const Incidents: React.FC = () => {
       formData.append('fmcsaReportable', String(incidentForm.fmcsaReportable || false));
       if (incidentForm.fmcsaNotes) formData.append('fmcsaNotes', incidentForm.fmcsaNotes);
       if (incidentForm.notes) formData.append('notes', incidentForm.notes);
-      
+
       // Add files if they exist
       if (incidentForm.accidentReport instanceof File) {
         formData.append('accidentReport', incidentForm.accidentReport);
@@ -705,7 +705,7 @@ const Incidents: React.FC = () => {
               const vehiclesResponse = await getAllVehicles(1, 1000);
               if (vehiclesResponse?.success && vehiclesResponse?.data) {
                 const matchingVehicle = vehiclesResponse.data.find(
-                  (vehicle: any) => 
+                  (vehicle: any) =>
                     vehicle.unitNumber === incidentForm.unitNumber ||
                     vehicle.internalId === incidentForm.unitNumber ||
                     vehicle.plateNumber === incidentForm.unitNumber
@@ -783,7 +783,7 @@ const Incidents: React.FC = () => {
     try {
       // Create FormData to handle file uploads
       const formData = new FormData();
-      
+
       // Add all form fields
       formData.append('incidentDateTime', incidentForm.incidentDateTime);
       formData.append('location', JSON.stringify(incidentForm.location));
@@ -813,7 +813,7 @@ const Incidents: React.FC = () => {
       formData.append('fmcsaReportable', String(incidentForm.fmcsaReportable || false));
       if (incidentForm.fmcsaNotes) formData.append('fmcsaNotes', incidentForm.fmcsaNotes);
       if (incidentForm.notes) formData.append('notes', incidentForm.notes);
-      
+
       // Add files if they exist (only new files, existing file names are preserved)
       if (incidentForm.accidentReport instanceof File) {
         formData.append('accidentReport', incidentForm.accidentReport);
@@ -1164,10 +1164,10 @@ const Incidents: React.FC = () => {
           `}</style>
           <div className="relative">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
-            <div 
+            <div
               ref={topScrollRef}
               className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-              style={{ 
+              style={{
                 maxHeight: '20px',
                 marginBottom: '2px',
                 scrollbarWidth: 'thin',
@@ -1177,137 +1177,137 @@ const Incidents: React.FC = () => {
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
             </div>
             {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-            <div 
+            <div
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
               <table className="w-full">
-              <thead className="bg-card border-b border-theme">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky left-0 bg-card z-10">
-                    Incident #
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                    Date/Time
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                    Location
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                    Driver
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                    Unit/Trailer
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                    Case File #
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky right-0 bg-card z-10">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-card divide-y divide-theme">
-                {loading ? (
+                <thead className="bg-card border-b border-theme">
                   <tr>
-                    <td colSpan={9} className="px-6 py-12 text-center text-secondary">
-                      Loading incidents...
-                    </td>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky left-0 bg-card z-10">
+                      Incident #
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Date/Time
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Location
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Driver
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Unit/Trailer
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Case File #
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky right-0 bg-card z-10">
+                      Actions
+                    </th>
                   </tr>
-                ) : incidents.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="px-6 py-12 text-center text-secondary">
-                      No incidents found
-                    </td>
-                  </tr>
-                ) : (
-                  incidents.map((incident) => (
-                    <tr 
-                      key={incident._id} 
-                      className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
-                      onClick={() => handleViewIncident(incident)}
-                    >
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky left-0 bg-card z-10">
-                        <p className="text-sm font-semibold text-primary">{incident.incidentNumber || 'N/A'}</p>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-secondary">
-                          <FaCalendarAlt size={14} />
-                          {incident.incidentDateTime ? formatDate(incident.incidentDateTime) : 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <p className="text-sm text-primary">{incident.incidentType || 'N/A'}</p>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-secondary">
-                          <FaMapMarkerAlt size={14} />
-                          <span>
-                            {incident.location?.city || ''}{incident.location?.city && incident.location?.stateProvince ? ', ' : ''}
-                            {incident.location?.stateProvince || ''}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-secondary">
-                          <FaUser size={14} />
-                          {getDriverName(incident.driver)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-secondary">
-                          {incident.unitNumber ? `Unit: ${incident.unitNumber}` : 'N/A'}
-                          {incident.trailerNumber && (
-                            <div className="text-xs text-secondary">Trailer: {incident.trailerNumber}</div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <p className="text-sm text-secondary">{incident.caseFileNumber || 'N/A'}</p>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(incident.incidentStatus)}
-                          <span className={`text-xs px-3 py-1 rounded-full font-semibold border ${getStatusBadgeColor(incident.incidentStatus)}`}>
-                            {incident.incidentStatus?.toUpperCase().replace('-', ' ') || 'N/A'}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-card z-10" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleViewIncident(incident)}
-                            className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
-                            title="View Details"
-                          >
-                            <FaEye size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleEditIncident(incident)}
-                            className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
-                            title="Edit Incident"
-                          >
-                            <FaEdit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteIncident(incident)}
-                            className="text-[#A855F7] hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete Incident"
-                          >
-                            <FaTrash size={16} />
-                          </button>
-                        </div>
+                </thead>
+                <tbody className="bg-card divide-y divide-theme">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={9} className="px-6 py-12 text-center text-secondary">
+                        Loading incidents...
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
+                  ) : incidents.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="px-6 py-12 text-center text-secondary">
+                        No incidents found
+                      </td>
+                    </tr>
+                  ) : (
+                    incidents.map((incident) => (
+                      <tr
+                        key={incident._id}
+                        className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
+                        onClick={() => handleViewIncident(incident)}
+                      >
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky left-0 bg-card z-10">
+                          <p className="text-sm font-semibold text-primary">{incident.incidentNumber || 'N/A'}</p>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2 text-sm text-secondary">
+                            <FaCalendarAlt size={14} />
+                            {incident.incidentDateTime ? formatDate(incident.incidentDateTime) : 'N/A'}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <p className="text-sm text-primary">{incident.incidentType || 'N/A'}</p>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2 text-sm text-secondary">
+                            <FaMapMarkerAlt size={14} />
+                            <span>
+                              {incident.location?.city || ''}{incident.location?.city && incident.location?.stateProvince ? ', ' : ''}
+                              {incident.location?.stateProvince || ''}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2 text-sm text-secondary">
+                            <FaUser size={14} />
+                            {getDriverName(incident.driver)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-secondary">
+                            {incident.unitNumber ? `Unit: ${incident.unitNumber}` : 'N/A'}
+                            {incident.trailerNumber && (
+                              <div className="text-xs text-secondary">Trailer: {incident.trailerNumber}</div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <p className="text-sm text-secondary">{incident.caseFileNumber || 'N/A'}</p>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(incident.incidentStatus)}
+                            <span className={`text-xs px-3 py-1 rounded-full font-semibold border ${getStatusBadgeColor(incident.incidentStatus)}`}>
+                              {incident.incidentStatus?.toUpperCase().replace('-', ' ') || 'N/A'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-card z-10" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleViewIncident(incident)}
+                              className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
+                              title="View Details"
+                            >
+                              <FaEye size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleEditIncident(incident)}
+                              className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
+                              title="Edit Incident"
+                            >
+                              <FaEdit size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteIncident(incident)}
+                              className="text-[#A855F7] hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete Incident"
+                            >
+                              <FaTrash size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
               </table>
             </div>
           </div>
@@ -1326,7 +1326,7 @@ const Incidents: React.FC = () => {
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
                     className={`px-3 py-2 rounded-lg border ${currentPage === 1
-                      ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
+                      ? 'bg-card text-secondary cursor-not-allowed border-theme'
                       : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                       }`}
                   >
@@ -1362,7 +1362,7 @@ const Incidents: React.FC = () => {
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
                     className={`px-3 py-2 rounded-lg border ${currentPage === totalPages
-                      ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
+                      ? 'bg-card text-secondary cursor-not-allowed border-theme'
                       : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                       }`}
                   >
@@ -2140,7 +2140,7 @@ const Incidents: React.FC = () => {
                       Accident Details
                     </h4>
                     {selectedIncident.accidentReport && (() => {
-                      const report = typeof selectedIncident.accidentReport === 'string' 
+                      const report = typeof selectedIncident.accidentReport === 'string'
                         ? { fileName: selectedIncident.accidentReport, signedUrl: null }
                         : selectedIncident.accidentReport;
                       return (
@@ -2170,7 +2170,7 @@ const Incidents: React.FC = () => {
                         <label className="block text-xs font-medium text-secondary mb-2">Accident Pictures</label>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {selectedIncident.accidentPictures.map((picture, idx) => {
-                            const pic = typeof picture === 'string' 
+                            const pic = typeof picture === 'string'
                               ? { fileName: picture, signedUrl: null }
                               : picture;
                             return (
@@ -2209,7 +2209,7 @@ const Incidents: React.FC = () => {
                       </div>
                     )}
                     {selectedIncident.accidentVideo && (() => {
-                      const video = typeof selectedIncident.accidentVideo === 'string' 
+                      const video = typeof selectedIncident.accidentVideo === 'string'
                         ? { fileName: selectedIncident.accidentVideo, signedUrl: null }
                         : selectedIncident.accidentVideo;
                       return (
@@ -2342,11 +2342,11 @@ const Incidents: React.FC = () => {
               </div>
 
               <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t shadow-lg">
-                <button 
+                <button
                   onClick={() => {
                     setShowViewModal(false);
                     handleEditIncident(selectedIncident);
-                  }} 
+                  }}
                   className="px-4 py-2 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors text-sm"
                 >
                   Edit

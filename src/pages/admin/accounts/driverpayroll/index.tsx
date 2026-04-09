@@ -364,7 +364,7 @@ interface FormData {
 const DriverPayrollManagement = () => {
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
-  
+
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
@@ -486,7 +486,7 @@ const DriverPayrollManagement = () => {
           });
 
           const companyFlag = driver.details?.companyFlag ?? driver.companyFlag ?? false;
-          
+
           return {
             _id: driver._id,
             name: driver.name,
@@ -535,16 +535,16 @@ const DriverPayrollManagement = () => {
         const driverPayrolls = (response.data || []).filter((payroll: DriverPayroll) => {
           // Check if userId exists and has role
           if (!payroll.userId) return false;
-          
+
           // Handle both populated object and ObjectId string cases
           const userId = typeof payroll.userId === 'object' ? payroll.userId : null;
           if (!userId) return false;
-          
+
           // Check role (case-insensitive)
           const role = userId.role || (userId as any).role;
           return role && role.toLowerCase() === 'driver';
         });
-        
+
         console.log('📊 Driver Payrolls Filtered:', {
           total: response.data?.length || 0,
           driverPayrolls: driverPayrolls.length,
@@ -554,7 +554,7 @@ const DriverPayrollManagement = () => {
             role: typeof driverPayrolls[0].userId === 'object' ? driverPayrolls[0].userId.role : 'N/A'
           } : null
         });
-        
+
         setPayrollData(driverPayrolls);
       } else {
         const message = response?.message || 'Failed to fetch driver payrolls';
@@ -589,7 +589,7 @@ const DriverPayrollManagement = () => {
       } else {
         setDriverDeductions([]);
       }
-      
+
       // Reset edited amounts when fetching new driver data
       setEditedAdditionAmounts({});
       setEditedDeductionAmounts({});
@@ -719,7 +719,7 @@ const DriverPayrollManagement = () => {
     };
 
     updateScrollWidth();
-    
+
     // Update scroll width when window resizes or data changes
     const resizeObserver = new ResizeObserver(updateScrollWidth);
     if (bottomScroll) resizeObserver.observe(bottomScroll);
@@ -813,28 +813,28 @@ const DriverPayrollManagement = () => {
           earnings = trip.earnings;
         }
       }
-      
+
       // If earnings is still 0, try to calculate from miles and rate
       if (earnings === 0 && trip.distanceInMiles) {
         const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
         const rate = trip.baseRate || driverPayrollSummary?.baseRate || driverPayrollSummary?.ratePerMile || selectedDriver?.details?.salaryPerMile || 0;
         if (miles > 0 && rate > 0) {
           let calculatedEarnings = miles * rate;
-          
+
           // Add snow premium if applicable
           if (trip.weatherConditions?.snow && trip.snowRate) {
             calculatedEarnings += miles * trip.snowRate;
           }
-          
+
           // Add high temp premium if applicable
           if (trip.weatherConditions?.highTemperature && trip.highTempRate) {
             calculatedEarnings += miles * trip.highTempRate;
           }
-          
+
           earnings = calculatedEarnings;
         }
       }
-      
+
       return sum + earnings;
     }, 0);
 
@@ -853,7 +853,7 @@ const DriverPayrollManagement = () => {
     const startDateObj = new Date(formData.startDate);
     const endDateObj = new Date(formData.endDate);
     endDateObj.setHours(23, 59, 59, 999);
-    
+
     console.log('📊 Calculating additions/deductions for period:', {
       startDate: startDateObj.toISOString(),
       endDate: endDateObj.toISOString(),
@@ -865,25 +865,25 @@ const DriverPayrollManagement = () => {
     let totalAdditions = 0;
     for (const addition of driverAdditions) {
       if (!addition.isActive) continue;
-      
+
       const addStartDate = addition.startDate ? new Date(addition.startDate) : null;
       const addEndDate = addition.endDate ? new Date(addition.endDate) : null;
-      
+
       // Check if addition period overlaps with payroll period
       // Addition is applicable if:
       // 1. No start date (always active) OR start date is before/on payroll end date
       // 2. No end date (ongoing) OR end date is after/on payroll start date
       const additionStartsBeforePayrollEnds = !addStartDate || addStartDate <= endDateObj;
       const additionEndsAfterPayrollStarts = !addEndDate || addEndDate >= startDateObj;
-      
+
       if (!additionStartsBeforePayrollEnds || !additionEndsAfterPayrollStarts) {
         continue; // Addition period doesn't overlap with payroll period
       }
-      
+
       // For recurring additions, calculate based on the overlap period
       const effectiveStartDate = addStartDate && addStartDate > startDateObj ? addStartDate : startDateObj;
       const effectiveEndDate = addEndDate && addEndDate < endDateObj ? addEndDate : endDateObj;
-      
+
       // Calculate amount based on recurrence (use edited amount if available)
       let calculatedAmount = editedAdditionAmounts[addition._id];
       if (calculatedAmount === undefined) {
@@ -904,7 +904,7 @@ const DriverPayrollManagement = () => {
         // One-time, Quarterly, Yearly: if period overlaps, use the full amount
         calculatedAmount = amount;
       }
-      
+
       totalAdditions += calculatedAmount;
     }
 
@@ -912,19 +912,19 @@ const DriverPayrollManagement = () => {
     let totalDeductions = 0;
     for (const deduction of driverDeductions) {
       if (!deduction.isActive) continue;
-      
+
       const dedStartDate = deduction.startDate ? new Date(deduction.startDate) : null;
       const dedEndDate = deduction.endDate ? new Date(deduction.endDate) : null;
-      
+
       // Check if deduction period overlaps with payroll period
       // For monthly deductions, we need special handling
       let shouldInclude = false;
-      
+
       if (deduction.recurrence === 'Monthly') {
         // For monthly deductions, if the deduction is active and has no end date (or end date is in future),
         // it should apply to any payroll period in the same year or later years
         // If it has an end date, check if payroll period overlaps
-        
+
         if (!dedStartDate) {
           // No start date = always active for monthly deductions
           shouldInclude = true;
@@ -935,7 +935,7 @@ const DriverPayrollManagement = () => {
           const payrollEndYear = endDateObj.getFullYear();
           const dedStartMonth = dedStartDate.getMonth();
           const dedStartYear = dedStartDate.getFullYear();
-          
+
           // Check if deduction end date excludes this period
           if (dedEndDate) {
             const dedEndMonth = dedEndDate.getMonth();
@@ -949,13 +949,13 @@ const DriverPayrollManagement = () => {
               for (let year = payrollStartYear; year <= payrollEndYear; year++) {
                 const startMonth = year === payrollStartYear ? payrollStartMonth : 0;
                 const endMonth = year === payrollEndYear ? payrollEndMonth : 11;
-                
+
                 for (let month = startMonth; month <= endMonth; month++) {
                   // Check if this month is within deduction period
-                  const monthInRange = 
+                  const monthInRange =
                     (year > dedStartYear || (year === dedStartYear && month >= dedStartMonth)) &&
                     (year < dedEndYear || (year === dedEndYear && month <= dedEndMonth));
-                  
+
                   if (monthInRange) {
                     shouldInclude = true;
                     break;
@@ -982,7 +982,7 @@ const DriverPayrollManagement = () => {
         const deductionEndsAfterPayrollStarts = !dedEndDate || dedEndDate >= startDateObj;
         shouldInclude = deductionStartsBeforePayrollEnds && deductionEndsAfterPayrollStarts;
       }
-      
+
       if (!shouldInclude) {
         console.log('⏭️ Skipping deduction (no overlap):', {
           name: deduction.name,
@@ -994,11 +994,11 @@ const DriverPayrollManagement = () => {
         });
         continue; // Deduction period doesn't overlap with payroll period
       }
-      
+
       // For recurring deductions, calculate based on the overlap period
       const effectiveStartDate = dedStartDate && dedStartDate > startDateObj ? dedStartDate : startDateObj;
       const effectiveEndDate = dedEndDate && dedEndDate < endDateObj ? dedEndDate : endDateObj;
-      
+
       // Calculate amount based on recurrence (use edited amount if available)
       let calculatedAmount = editedDeductionAmounts[deduction._id];
       if (calculatedAmount === undefined) {
@@ -1020,24 +1020,24 @@ const DriverPayrollManagement = () => {
           const dedStartYear = dedStartDate ? dedStartDate.getFullYear() : payrollStartYear;
           const dedEndMonth = dedEndDate ? dedEndDate.getMonth() : 11;
           const dedEndYear = dedEndDate ? dedEndDate.getFullYear() : 9999;
-          
+
           let monthsCount = 0;
           for (let year = payrollStartYear; year <= payrollEndYear; year++) {
             const startMonth = year === payrollStartYear ? payrollStartMonth : 0;
             const endMonth = year === payrollEndYear ? payrollEndMonth : 11;
-            
+
             for (let month = startMonth; month <= endMonth; month++) {
               // Check if this month is within deduction period
-              const monthInRange = 
+              const monthInRange =
                 (year > dedStartYear || (year === dedStartYear && month >= dedStartMonth)) &&
                 (year < dedEndYear || (year === dedEndYear && month <= dedEndMonth));
-              
+
               if (monthInRange) {
                 monthsCount++;
               }
             }
           }
-          
+
           amount = amount * Math.max(1, monthsCount);
           console.log('💰 Monthly deduction calculated:', {
             name: deduction.name,
@@ -1054,7 +1054,7 @@ const DriverPayrollManagement = () => {
         // One-time, Quarterly, Yearly: if period overlaps, use the full amount
         calculatedAmount = amount;
       }
-      
+
       console.log('✅ Deduction included:', {
         name: deduction.name,
         amount: deduction.amount,
@@ -1064,7 +1064,7 @@ const DriverPayrollManagement = () => {
         endDate: dedEndDate?.toISOString(),
         isEdited: editedDeductionAmounts[deduction._id] !== undefined
       });
-      
+
       totalDeductions += calculatedAmount;
     }
 
@@ -1111,7 +1111,7 @@ const DriverPayrollManagement = () => {
           }
           return true; // Keep if driver not found (backend should have filtered, but keep for safety)
         });
-        
+
         setBulkPayrollSuggestions(filteredSuggestions);
         setBulkGenerateResult(response.data);
         setShowBulkGenerateModal(false);
@@ -1204,26 +1204,26 @@ const DriverPayrollManagement = () => {
     setBulkPayrollSuggestions(prev => {
       const updated = [...prev];
       const suggestion = updated[index];
-      
+
       // Update the addition's calculatedAmount
       if (suggestion.additions && Array.isArray(suggestion.additions)) {
         const additionIndex = suggestion.additions.findIndex((a: any) => a._id === additionId);
         if (additionIndex !== -1) {
           suggestion.additions[additionIndex].calculatedAmount = parseFloat(newAmount.toString()) || 0;
-          
+
           // Recalculate totalAdditions
           const totalAdditions = suggestion.additions.reduce((sum: number, a: any) => {
             return sum + (parseFloat(a.calculatedAmount || a.amount || 0));
           }, 0);
-          
+
           suggestion.totalAdditions = totalAdditions;
-          
+
           // Recalculate totalSalary
           const baseSalary = parseFloat(suggestion.baseSalary || 0);
           const bonus = parseFloat(suggestion.bonus || 0);
           const grossSalary = baseSalary + bonus + totalAdditions;
           const deductions = parseFloat(suggestion.deductions || suggestion.totalDeductions || 0);
-          
+
           let totalTaxes = 0;
           if (suggestion.country === 'Canada') {
             totalTaxes = parseFloat(suggestion.federalIncomeTaxCA || 0) +
@@ -1239,11 +1239,11 @@ const DriverPayrollManagement = () => {
               parseFloat(suggestion.stateDisabilityInsurance || 0) +
               parseFloat(suggestion.localTax || 0);
           }
-          
+
           suggestion.totalSalary = Math.round((grossSalary - deductions - totalTaxes) * 100) / 100;
         }
       }
-      
+
       return updated;
     });
   };
@@ -1252,27 +1252,27 @@ const DriverPayrollManagement = () => {
     setBulkPayrollSuggestions(prev => {
       const updated = [...prev];
       const suggestion = updated[index];
-      
+
       // Update the deduction's calculatedAmount
       if (suggestion.deductionsDetails && Array.isArray(suggestion.deductionsDetails)) {
         const deductionIndex = suggestion.deductionsDetails.findIndex((d: any) => d._id === deductionId);
         if (deductionIndex !== -1) {
           suggestion.deductionsDetails[deductionIndex].calculatedAmount = parseFloat(newAmount.toString()) || 0;
-          
+
           // Recalculate totalDeductions
           const totalDeductions = suggestion.deductionsDetails.reduce((sum: number, d: any) => {
             return sum + (parseFloat(d.calculatedAmount || d.amount || 0));
           }, 0);
-          
+
           suggestion.totalDeductions = totalDeductions;
           suggestion.deductions = totalDeductions; // Also update deductions field for compatibility
-          
+
           // Recalculate totalSalary
           const baseSalary = parseFloat(suggestion.baseSalary || 0);
           const bonus = parseFloat(suggestion.bonus || 0);
           const totalAdditions = parseFloat(suggestion.totalAdditions || 0);
           const grossSalary = baseSalary + bonus + totalAdditions;
-          
+
           let totalTaxes = 0;
           if (suggestion.country === 'Canada') {
             totalTaxes = parseFloat(suggestion.federalIncomeTaxCA || 0) +
@@ -1288,11 +1288,11 @@ const DriverPayrollManagement = () => {
               parseFloat(suggestion.stateDisabilityInsurance || 0) +
               parseFloat(suggestion.localTax || 0);
           }
-          
+
           suggestion.totalSalary = Math.round((grossSalary - totalDeductions - totalTaxes) * 100) / 100;
         }
       }
-      
+
       return updated;
     });
   };
@@ -1344,7 +1344,7 @@ const DriverPayrollManagement = () => {
           } : undefined,
           selected: true // Auto-select all AI analysis trips
         }));
-        
+
         setAiAnalysis({
           recommendedBonus: analysis.recommendedBonus || 0,
           recommendedDeductions: analysis.recommendedDeductions || 0,
@@ -1392,7 +1392,7 @@ const DriverPayrollManagement = () => {
 
     try {
       const selectedTotals = getSelectedTripsTotals();
-      
+
       console.log('📊 Creating payroll with:', {
         selectedTripsCount: selectedTrips.length,
         totalMiles: selectedTotals.totalMiles,
@@ -1405,7 +1405,7 @@ const DriverPayrollManagement = () => {
           return earnings > 0;
         }).length
       });
-      
+
       // Ensure we have earnings - use summary if trips don't have earnings
       let baseSalary = selectedTotals.totalEarnings;
       if (baseSalary === 0 && driverPayrollSummary?.totalEarnings) {
@@ -1423,7 +1423,7 @@ const DriverPayrollManagement = () => {
           }
         }
       }
-      
+
       // Final fallback: if still 0, calculate from miles and rate
       if (baseSalary === 0 && selectedTotals.totalMiles > 0) {
         const rate = driverPayrollSummary?.baseRate || driverPayrollSummary?.ratePerMile || selectedDriver?.details?.salaryPerMile || 0;
@@ -1432,7 +1432,7 @@ const DriverPayrollManagement = () => {
           console.log('✅ Final fallback: Calculated baseSalary from miles and rate:', baseSalary);
         }
       }
-      
+
       if (baseSalary === 0) {
         console.warn('⚠️ Warning: baseSalary is still 0!', {
           selectedTrips: selectedTrips.map(t => ({
@@ -1450,7 +1450,7 @@ const DriverPayrollManagement = () => {
       // Add calculated additions to bonus (or baseSalary)
       const calculatedBonus = parseFloat(formData.bonus) || 0;
       const finalBonus = calculatedBonus + totalAdditions;
-      
+
       // Use only calculated deductions from backend (driver deductions)
       // No manual deductions field - all deductions come from driver deductions
       const finalDeductions = totalDeductions;
@@ -1516,11 +1516,11 @@ const DriverPayrollManagement = () => {
     try {
       // Calculate additions and deductions from driver profile (same as create, respects edited amounts)
       const { totalAdditions, totalDeductions: calculatedDeductions } = calculateAdditionsDeductions();
-      
+
       // Add calculated additions to bonus (same as create)
       const calculatedBonus = parseFloat(formData.bonus) || 0;
       const finalBonus = calculatedBonus + totalAdditions;
-      
+
       const payload: any = {
         userId: formData.userId,
         baseSalary: selectedPayroll.baseSalary, // Keep existing baseSalary
@@ -1655,7 +1655,7 @@ const DriverPayrollManagement = () => {
       const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 15;
       const contentWidth = pageWidth - (margin * 2);
-      
+
       // Helper function to check if we need a new page
       const checkPageBreak = (requiredSpace: number) => {
         if (yPos + requiredSpace > pageHeight - margin) {
@@ -1685,7 +1685,7 @@ const DriverPayrollManagement = () => {
       doc.setFont('helvetica', 'bold');
       const companyName = paystub.companyDetails?.companyName || 'Company Name';
       doc.text(companyName, margin, 12);
-      
+
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
       let companyY = 19;
@@ -1698,7 +1698,7 @@ const DriverPayrollManagement = () => {
         doc.text(paystub.companyDetails.companyPhone, margin, companyY);
         companyY += 4;
       }
-      
+
       // Employee info on right side of header (for owner operator format)
       if (paystub.workType === 'Owner-Operator' || paystub.workType === 'Driver') {
         const employeeInfoX = pageWidth - margin - 70;
@@ -1725,7 +1725,7 @@ const DriverPayrollManagement = () => {
       } else {
         doc.text('PAY STUB', pageWidth - margin, 12, { align: 'right' });
       }
-      
+
       // Additional info below title
       doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
@@ -1734,17 +1734,17 @@ const DriverPayrollManagement = () => {
         doc.text(`GST No. ${paystub.companyDetails.gstNumber}`, pageWidth - margin, rightY, { align: 'right' });
         rightY += 4;
       }
-      
+
       // Pay Period
       const periodStart = new Date(paystub.payPeriod.startDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
       const periodEnd = new Date(paystub.payPeriod.endDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
       doc.text(`PAY PERIOD ${periodStart} - ${periodEnd}`, pageWidth - margin, rightY, { align: 'right' });
       rightY += 4;
-      
+
       const payDate = new Date(paystub.payPeriod.payDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
       doc.text(`PAYROLL DUE: ${payDate}`, pageWidth - margin, rightY, { align: 'right' });
       rightY += 4;
-      
+
       if (paystub.payment?.mode === 'Cheque' && paystub.payment?.accountNumber) {
         doc.text(`CHEQUE #: ${paystub.payment.accountNumber}`, pageWidth - margin, rightY, { align: 'right' });
       }
@@ -1758,13 +1758,13 @@ const DriverPayrollManagement = () => {
       const boxHeight = 25;
       doc.setFillColor(lightGrayR, lightGrayG, lightGrayB);
       doc.roundedRect(pageWidth - margin - boxWidth, yPos, boxWidth, boxHeight, 2, 2, 'F');
-      
+
       doc.setFontSize(7);
       doc.setTextColor(107, 114, 128);
       doc.text('Pay Period Start', pageWidth - margin - boxWidth + 3, yPos + 6);
       doc.text('Pay Period End', pageWidth - margin - boxWidth + 3, yPos + 12);
       doc.text('Pay Date', pageWidth - margin - boxWidth + 3, yPos + 18);
-      
+
       doc.setFontSize(8);
       doc.setTextColor(textR, textG, textB);
       doc.setFont('helvetica', 'bold');
@@ -1809,14 +1809,14 @@ const DriverPayrollManagement = () => {
       // Trip Details Section (for drivers/owner-operators)
       if (paystub.tripDetails && paystub.tripDetails.length > 0) {
         checkPageBreak(30);
-        
+
         // Trip Details Table Header
         doc.setFillColor(lightGrayR, lightGrayG, lightGrayB);
         doc.rect(margin, yPos, contentWidth, 6, 'F');
         doc.setFontSize(6);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(textR, textG, textB);
-        
+
         // Column positions (adjusted for smaller font to fit all columns)
         const col1 = margin + 1; // Truck #
         const col2 = margin + 15; // Pay Type
@@ -1828,7 +1828,7 @@ const DriverPayrollManagement = () => {
         const col8 = margin + 92; // Miles/Hours
         const col9 = margin + 108; // CAD
         const col10 = margin + 125; // USD
-        
+
         doc.text('Truck #', col1, yPos + 4);
         doc.text('Pay Type', col2, yPos + 4);
         doc.text('Load #', col3, yPos + 4);
@@ -1841,61 +1841,61 @@ const DriverPayrollManagement = () => {
         doc.text('Hours', col8, yPos + 5.5);
         doc.text('CAD', col9, yPos + 4);
         doc.text('USD', col10, yPos + 4);
-        
+
         yPos += 7;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(6);
-        
+
         let totalMiles = 0;
         let totalCAD = 0;
         let totalUSD = 0;
-        
+
         // Trip Details Rows
         for (const trip of paystub.tripDetails) {
           checkPageBreak(8);
-          
+
           const truckNum = trip.truckNumber || 'N/A';
           const payType = trip.payType || 'Paid Per Mile';
           const loadNum = trip.loadNumber || 'N/A';
           const tripType = trip.tripType || 'N/A';
-          
+
           // Format dates
           const fromDate = trip.periodFrom ? new Date(trip.periodFrom).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : 'N/A';
           const toDate = trip.periodTo ? new Date(trip.periodTo).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : 'N/A';
-          
+
           const origin = trip.origin || 'N/A';
           const destination = trip.destination || 'N/A';
-          
+
           // Split long locations for display
           const originLines = doc.splitTextToSize(origin, 12);
           const destLines = doc.splitTextToSize(destination, 12);
-          
+
           const payRate = trip.payRate || 0;
           const miles = trip.miles || 0;
           const hours = trip.hours || 0;
           const amountCAD = trip.amountCAD || 0;
           const amountUSD = trip.amountUSD || 0;
-          
+
           totalMiles += miles;
           totalCAD += amountCAD;
           totalUSD += amountUSD;
-          
+
           // Calculate row height based on location text
           const maxLines = Math.max(originLines.length, destLines.length);
           const rowHeight = Math.max(6, maxLines * 3.5);
-          
+
           // Truck #
           doc.text(truckNum, col1, yPos + 3);
-          
+
           // Pay Type
           doc.text(payType, col2, yPos + 3);
-          
+
           // Load #
           doc.text(loadNum, col3, yPos + 3);
-          
+
           // Type
           doc.text(tripType, col4, yPos + 3);
-          
+
           // Period From - show date on first line, origin below
           doc.text(fromDate, col5, yPos + 3);
           if (origin !== 'N/A' && originLines.length > 0) {
@@ -1905,7 +1905,7 @@ const DriverPayrollManagement = () => {
             doc.setFontSize(6);
             doc.setTextColor(textR, textG, textB);
           }
-          
+
           // To - show date on first line, destination below
           doc.text(toDate, col6, yPos + 3);
           if (destination !== 'N/A' && destLines.length > 0) {
@@ -1915,10 +1915,10 @@ const DriverPayrollManagement = () => {
             doc.setFontSize(6);
             doc.setTextColor(textR, textG, textB);
           }
-          
+
           // Pay Rate
           doc.text(`$${payRate.toFixed(2)}`, col7, yPos + 3);
-          
+
           // Miles/Hours
           if (miles > 0) {
             doc.text(miles.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), col8, yPos + 3);
@@ -1927,16 +1927,16 @@ const DriverPayrollManagement = () => {
           } else {
             doc.text('-', col8, yPos + 3);
           }
-          
+
           // CAD
           doc.text(`$${amountCAD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, col9, yPos + 3);
-          
+
           // USD
           doc.text(`$${amountUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, col10, yPos + 3);
-          
+
           yPos += rowHeight;
         }
-        
+
         // Total Miles row
         yPos += 2;
         doc.setDrawColor(200, 200, 200);
@@ -2152,11 +2152,11 @@ const DriverPayrollManagement = () => {
       const footerY = pageHeight - 20;
       doc.setDrawColor(200, 200, 200);
       doc.line(margin, footerY, pageWidth - margin, footerY);
-      
+
       doc.setFontSize(7);
       doc.setTextColor(107, 114, 128);
       let footerTextY = footerY + 5;
-      
+
       if (paystub.notes) {
         const notesLines = doc.splitTextToSize(`Notes: ${paystub.notes}`, contentWidth);
         doc.text(notesLines, margin, footerTextY);
@@ -2171,7 +2171,7 @@ const DriverPayrollManagement = () => {
 
       // Generate filename
       const fileName = `Paystub_${paystub.employeeName.replace(/\s+/g, '_')}_${paystub.paystubId || paystub._id.slice(-8)}.pdf`;
-      
+
       // Save PDF
       doc.save(fileName);
     } catch (error) {
@@ -2235,7 +2235,7 @@ const DriverPayrollManagement = () => {
         }
       }
     }
-    
+
     // Then apply search filter
     const searchLower = searchTerm.toLowerCase();
     return searchTerm === '' ||
@@ -2365,11 +2365,10 @@ const DriverPayrollManagement = () => {
           <div className="flex border-b border-theme">
             <button
               onClick={() => setDriverTypeTab('ownerOperator')}
-              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
-                driverTypeTab === 'ownerOperator'
+              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${driverTypeTab === 'ownerOperator'
                   ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] bg-card'
                   : 'text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)]'
-              }`}
+                }`}
             >
               Company Drivers
               <span className="ml-2 text-xs text-secondary">
@@ -2378,11 +2377,10 @@ const DriverPayrollManagement = () => {
             </button>
             <button
               onClick={() => setDriverTypeTab('companyDriver')}
-              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
-                driverTypeTab === 'companyDriver'
+              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${driverTypeTab === 'companyDriver'
                   ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] bg-card'
                   : 'text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)]'
-              }`}
+                }`}
             >
               Owner Operators
               <span className="ml-2 text-xs text-secondary">
@@ -2398,7 +2396,7 @@ const DriverPayrollManagement = () => {
               {driverTypeTab === 'ownerOperator' ? 'Company Driver' : 'Owner Operator'} Payroll Records
             </h2>
           </div>
-          
+
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
@@ -2467,102 +2465,102 @@ const DriverPayrollManagement = () => {
                 className="table-container-with-scrollbar"
               >
                 <table className="w-full">
-                <thead className="bg-card">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Driver</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Trips</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Total Miles</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Rate/Mile</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Trip Earnings</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Bonus</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Deductions</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Total Pay</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Pay Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-card divide-y divide-theme">
-                  {filteredPayrolls.map((payroll) => (
-                    <tr 
-                      key={payroll._id} 
-                      className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
-                      onClick={() => openViewModal(payroll)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium bg-green-500">
-                            {payroll.userId.name.charAt(0)}
-                          </div>
-                          <div className="ml-3">
-                            <div className="text-sm font-medium text-primary">{payroll.userId.name}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
-                        {payroll.trips?.length || 0}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
-                        {payroll.totalMiles?.toLocaleString() || 0} mi
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
-                        ${(payroll.ratePerMile || 0).toFixed(2)}/mi
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                        ${payroll.baseSalary.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">
-                        +${payroll.bonus.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#A855F7]">
-                        -${payroll.deductions.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">
-                        ${payroll.totalSalary.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
-                        {new Date(payroll.payDate).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => openViewModal(payroll)}
-                            className="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded-lg"
-                            title="View Details"
-                          >
-                            <Eye size={18} />
-                          </button>
-                          <button
-                            onClick={() => openPaystubModal(payroll)}
-                            className="text-purple-600 hover:text-purple-900 p-2 hover:bg-purple-50 rounded-lg disabled:opacity-50"
-                            title="View Paystub"
-                            disabled={loadingPaystub}
-                          >
-                            {loadingPaystub && payroll._id === selectedPayroll?._id ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
-                            ) : (
-                              <FileText size={18} />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => openEditModal(payroll)}
-                            className="text-[#00D1FF] hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg"
-                            title="Edit"
-                          >
-                            <Edit2 size={18} />
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(payroll)}
-                            className="text-[#A855F7] hover:text-red-900 p-2 hover:bg-red-50 rounded-lg"
-                            title="Delete"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </td>
+                  <thead className="bg-card">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Driver</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Trips</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Total Miles</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Rate/Mile</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Trip Earnings</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Bonus</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Deductions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Total Pay</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Pay Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-card divide-y divide-theme">
+                    {filteredPayrolls.map((payroll) => (
+                      <tr
+                        key={payroll._id}
+                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
+                        onClick={() => openViewModal(payroll)}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium bg-green-500">
+                              {payroll.userId.name.charAt(0)}
+                            </div>
+                            <div className="ml-3">
+                              <div className="text-sm font-medium text-primary">{payroll.userId.name}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
+                          {payroll.trips?.length || 0}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
+                          {payroll.totalMiles?.toLocaleString() || 0} mi
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
+                          ${(payroll.ratePerMile || 0).toFixed(2)}/mi
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                          ${payroll.baseSalary.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">
+                          +${payroll.bonus.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#A855F7]">
+                          -${payroll.deductions.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">
+                          ${payroll.totalSalary.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
+                          {new Date(payroll.payDate).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => openViewModal(payroll)}
+                              className="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded-lg"
+                              title="View Details"
+                            >
+                              <Eye size={18} />
+                            </button>
+                            <button
+                              onClick={() => openPaystubModal(payroll)}
+                              className="text-purple-600 hover:text-purple-900 p-2 hover:bg-purple-50 rounded-lg disabled:opacity-50"
+                              title="View Paystub"
+                              disabled={loadingPaystub}
+                            >
+                              {loadingPaystub && payroll._id === selectedPayroll?._id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                              ) : (
+                                <FileText size={18} />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => openEditModal(payroll)}
+                              className="text-[#00D1FF] hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg"
+                              title="Edit"
+                            >
+                              <Edit2 size={18} />
+                            </button>
+                            <button
+                              onClick={() => openDeleteModal(payroll)}
+                              className="text-[#A855F7] hover:text-red-900 p-2 hover:bg-red-50 rounded-lg"
+                              title="Delete"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
@@ -2738,29 +2736,29 @@ const DriverPayrollManagement = () => {
                                   const calculatedAmount = editedAdditionAmounts[addition._id] !== undefined
                                     ? editedAdditionAmounts[addition._id]
                                     : (() => {
-                                        // Calculate from base amount and recurrence (same logic as calculateAdditionsDeductions)
-                                        if (!formData.startDate || !formData.endDate) return addition.amount || 0;
-                                        const startDateObj = new Date(formData.startDate);
-                                        const endDateObj = new Date(formData.endDate);
-                                        endDateObj.setHours(23, 59, 59, 999);
-                                        const addStartDate = addition.startDate ? new Date(addition.startDate) : null;
-                                        const addEndDate = addition.endDate ? new Date(addition.endDate) : null;
-                                        const effectiveStartDate = addStartDate && addStartDate > startDateObj ? addStartDate : startDateObj;
-                                        const effectiveEndDate = addEndDate && addEndDate < endDateObj ? addEndDate : endDateObj;
-                                        let amount = addition.amount || 0;
-                                        if (addition.recurrence === 'Weekly') {
-                                          const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-                                          amount = amount * Math.max(1, weeks);
-                                        } else if (addition.recurrence === 'Bi-weekly') {
-                                          const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
-                                          amount = amount * Math.max(1, biWeeks);
-                                        } else if (addition.recurrence === 'Monthly') {
-                                          const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
-                                          amount = amount * Math.max(1, months);
-                                        }
-                                        return amount;
-                                      })();
-                                  
+                                      // Calculate from base amount and recurrence (same logic as calculateAdditionsDeductions)
+                                      if (!formData.startDate || !formData.endDate) return addition.amount || 0;
+                                      const startDateObj = new Date(formData.startDate);
+                                      const endDateObj = new Date(formData.endDate);
+                                      endDateObj.setHours(23, 59, 59, 999);
+                                      const addStartDate = addition.startDate ? new Date(addition.startDate) : null;
+                                      const addEndDate = addition.endDate ? new Date(addition.endDate) : null;
+                                      const effectiveStartDate = addStartDate && addStartDate > startDateObj ? addStartDate : startDateObj;
+                                      const effectiveEndDate = addEndDate && addEndDate < endDateObj ? addEndDate : endDateObj;
+                                      let amount = addition.amount || 0;
+                                      if (addition.recurrence === 'Weekly') {
+                                        const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+                                        amount = amount * Math.max(1, weeks);
+                                      } else if (addition.recurrence === 'Bi-weekly') {
+                                        const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+                                        amount = amount * Math.max(1, biWeeks);
+                                      } else if (addition.recurrence === 'Monthly') {
+                                        const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
+                                        amount = amount * Math.max(1, months);
+                                      }
+                                      return amount;
+                                    })();
+
                                   return (
                                     <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
                                       <div className="flex justify-between items-start gap-4">
@@ -2813,30 +2811,30 @@ const DriverPayrollManagement = () => {
                                   const calculatedAmount = editedDeductionAmounts[deduction._id] !== undefined
                                     ? editedDeductionAmounts[deduction._id]
                                     : (() => {
-                                        // Calculate from base amount and recurrence (same logic as calculateAdditionsDeductions)
-                                        if (!formData.startDate || !formData.endDate) return deduction.amount || 0;
-                                        const startDateObj = new Date(formData.startDate);
-                                        const endDateObj = new Date(formData.endDate);
-                                        endDateObj.setHours(23, 59, 59, 999);
-                                        const dedStartDate = deduction.startDate ? new Date(deduction.startDate) : null;
-                                        const dedEndDate = deduction.endDate ? new Date(deduction.endDate) : null;
-                                        const effectiveStartDate = dedStartDate && dedStartDate > startDateObj ? dedStartDate : startDateObj;
-                                        const effectiveEndDate = dedEndDate && dedEndDate < endDateObj ? dedEndDate : endDateObj;
-                                        let amount = deduction.amount || 0;
-                                        if (deduction.recurrence === 'Weekly') {
-                                          const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-                                          amount = amount * Math.max(1, weeks);
-                                        } else if (deduction.recurrence === 'Bi-weekly') {
-                                          const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
-                                          amount = amount * Math.max(1, biWeeks);
-                                        } else if (deduction.recurrence === 'Monthly') {
-                                          // Simplified monthly calculation for display
-                                          const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
-                                          amount = amount * Math.max(1, months);
-                                        }
-                                        return amount;
-                                      })();
-                                  
+                                      // Calculate from base amount and recurrence (same logic as calculateAdditionsDeductions)
+                                      if (!formData.startDate || !formData.endDate) return deduction.amount || 0;
+                                      const startDateObj = new Date(formData.startDate);
+                                      const endDateObj = new Date(formData.endDate);
+                                      endDateObj.setHours(23, 59, 59, 999);
+                                      const dedStartDate = deduction.startDate ? new Date(deduction.startDate) : null;
+                                      const dedEndDate = deduction.endDate ? new Date(deduction.endDate) : null;
+                                      const effectiveStartDate = dedStartDate && dedStartDate > startDateObj ? dedStartDate : startDateObj;
+                                      const effectiveEndDate = dedEndDate && dedEndDate < endDateObj ? dedEndDate : endDateObj;
+                                      let amount = deduction.amount || 0;
+                                      if (deduction.recurrence === 'Weekly') {
+                                        const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+                                        amount = amount * Math.max(1, weeks);
+                                      } else if (deduction.recurrence === 'Bi-weekly') {
+                                        const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+                                        amount = amount * Math.max(1, biWeeks);
+                                      } else if (deduction.recurrence === 'Monthly') {
+                                        // Simplified monthly calculation for display
+                                        const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
+                                        amount = amount * Math.max(1, months);
+                                      }
+                                      return amount;
+                                    })();
+
                                   return (
                                     <div key={deduction._id} className="bg-card p-3 rounded-lg border border-red-200">
                                       <div className="flex justify-between items-start gap-4">
@@ -2895,7 +2893,7 @@ const DriverPayrollManagement = () => {
                             </button>
                             <button
                               onClick={deselectAllTrips}
-                              className="px-3 py-1 text-xs bg-gray-100 text-primary rounded hover:bg-gray-200"
+                              className="px-3 py-1 text-xs bg-card text-primary rounded hover:bg-gray-200"
                             >
                               Deselect All
                             </button>
@@ -2924,7 +2922,7 @@ const DriverPayrollManagement = () => {
                                       type="checkbox"
                                       checked={trip.selected || false}
                                       onChange={() => toggleTripSelection(trip._id)}
-                                      className="w-4 h-4 text-green-600 bg-gray-100 border-theme rounded focus:ring-green-500"
+                                      className="w-4 h-4 text-green-600 bg-card border-theme rounded focus:ring-green-500"
                                     />
                                   </td>
                                   <td className="px-3 py-2 text-sm font-medium text-primary">
@@ -3010,11 +3008,10 @@ const DriverPayrollManagement = () => {
                                     <div className="flex items-center gap-2">
                                       <span>${trip.baseRate || 0}/mi</span>
                                       {trip.rateType && (
-                                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${
-                                          trip.rateType === 'TEAM' 
-                                            ? 'bg-blue-100 text-blue-800' 
-                                            : 'bg-gray-100 text-primary'
-                                        }`}>
+                                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${trip.rateType === 'TEAM'
+                                            ? 'bg-blue-100 text-blue-800'
+                                            : 'bg-card text-primary'
+                                          }`}>
                                           {trip.rateType}
                                         </span>
                                       )}
@@ -3228,15 +3225,14 @@ const DriverPayrollManagement = () => {
                                     <div className="flex items-center gap-2">
                                       <span>${trip.baseRate || 0}/mi</span>
                                       {trip.rateType && (
-                                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${
-                                          trip.rateType === 'TEAM' 
+                                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${trip.rateType === 'TEAM'
                                             ? 'bg-blue-100 text-blue-800'
                                             : trip.rateType === 'EMPTY'
-                                            ? 'bg-yellow-100 text-yellow-800'
-                                            : trip.rateType === 'EMPTY-TEAM'
-                                            ? 'bg-orange-100 text-orange-800'
-                                            : 'bg-gray-100 text-primary'
-                                        }`}>
+                                              ? 'bg-yellow-100 text-yellow-800'
+                                              : trip.rateType === 'EMPTY-TEAM'
+                                                ? 'bg-orange-100 text-orange-800'
+                                                : 'bg-card text-primary'
+                                          }`}>
                                           {trip.rateTypeLabel || trip.rateType}
                                         </span>
                                       )}
@@ -3589,14 +3585,14 @@ const DriverPayrollManagement = () => {
                   const { totalAdditions, totalDeductions: calculatedDeductions } = calculateAdditionsDeductions();
                   const tripsTotals = getSelectedTripsTotals();
                   const manualBonus = parseFloat(formData.bonus || '0');
-                  
+
                   // Gross Earnings = Trip Earnings + Manual Bonus + Calculated Additions
                   const grossEarnings = tripsTotals.totalEarnings + manualBonus + totalAdditions;
-                  
+
                   // Total Deductions = Only Calculated Deductions (from backend/driver deductions)
                   // No manual deductions - all deductions come from driver deductions
                   const totalDeductions = calculatedDeductions;
-                  
+
                   // Calculate taxes
                   let totalTax = 0;
                   if (formData.country === 'Canada') {
@@ -3615,10 +3611,10 @@ const DriverPayrollManagement = () => {
                       parseFloat(formData.stateDisabilityInsurance || '0') +
                       parseFloat(formData.localTax || '0');
                   }
-                  
+
                   // Net Pay = Gross Earnings - Total Deductions - Taxes
                   const netPay = grossEarnings - totalDeductions - totalTax;
-                  
+
                   return (
                     <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg">
                       <div className="space-y-2">
@@ -3690,7 +3686,7 @@ const DriverPayrollManagement = () => {
                       setAiAnalysis(null); // Clear AI analysis when modal is closed
                       resetForm();
                     }}
-                    className="px-4 py-2 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg font-medium flex items-center gap-2"
+                    className="px-4 py-2 text-primary bg-card hover:bg-gray-200 rounded-lg font-medium flex items-center gap-2"
                     disabled={loading}
                   >
                     <X size={16} />
@@ -4054,7 +4050,7 @@ const DriverPayrollManagement = () => {
               <div className="p-6 border-t border-theme">
                 <button
                   onClick={() => setShowViewModal(false)}
-                  className="w-full px-6 py-3 bg-gray-100 hover:bg-gray-200 text-primary rounded-lg font-medium flex items-center justify-center gap-2"
+                  className="w-full px-6 py-3 bg-card hover:bg-gray-200 text-primary rounded-lg font-medium flex items-center justify-center gap-2"
                 >
                   <X size={18} />
                   Close
@@ -4088,7 +4084,7 @@ const DriverPayrollManagement = () => {
                     setShowDeleteModal(false);
                     setSelectedPayroll(null);
                   }}
-                  className="px-4 py-2 text-primary !mr-3 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"
+                  className="px-4 py-2 text-primary !mr-3 bg-card hover:bg-gray-200 rounded-lg font-medium"
                   disabled={loading}
                 >
                   Cancel
@@ -4122,15 +4118,15 @@ const DriverPayrollManagement = () => {
                     <X size={24} />
                   </button>
                 </div>
-                
+
                 {/* Company Header Section */}
                 <div className="border-b-2 border-theme pb-4 mb-4">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       {selectedPaystub.companyDetails?.companyLogo && (
-                        <img 
-                          src={selectedPaystub.companyDetails.companyLogo} 
-                          alt="Company Logo" 
+                        <img
+                          src={selectedPaystub.companyDetails.companyLogo}
+                          alt="Company Logo"
                           className="h-12 mb-3"
                         />
                       )}
@@ -4476,13 +4472,12 @@ const DriverPayrollManagement = () => {
                     </div>
                     <div className="text-right">
                       <div className="text-xs text-secondary">
-                        Status: <span className={`font-semibold ${
-                          selectedPaystub.status === 'issued' 
-                            ? 'text-green-600' 
+                        Status: <span className={`font-semibold ${selectedPaystub.status === 'issued'
+                            ? 'text-green-600'
                             : selectedPaystub.status === 'void'
-                            ? 'text-[#A855F7]'
-                            : 'text-secondary'
-                        }`}>
+                              ? 'text-[#A855F7]'
+                              : 'text-secondary'
+                          }`}>
                           {selectedPaystub.status.charAt(0).toUpperCase() + selectedPaystub.status.slice(1)}
                         </span>
                       </div>
@@ -5081,15 +5076,14 @@ const DriverPayrollManagement = () => {
                                     <div className="flex items-center gap-2">
                                       <span>${trip.baseRate || 0}/mi</span>
                                       {trip.rateType && (
-                                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${
-                                          trip.rateType === 'TEAM' 
+                                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${trip.rateType === 'TEAM'
                                             ? 'bg-blue-100 text-blue-800'
                                             : trip.rateType === 'EMPTY'
-                                            ? 'bg-yellow-100 text-yellow-800'
-                                            : trip.rateType === 'EMPTY-TEAM'
-                                            ? 'bg-orange-100 text-orange-800'
-                                            : 'bg-gray-100 text-primary'
-                                        }`}>
+                                              ? 'bg-yellow-100 text-yellow-800'
+                                              : trip.rateType === 'EMPTY-TEAM'
+                                                ? 'bg-orange-100 text-orange-800'
+                                                : 'bg-card text-primary'
+                                          }`}>
                                           {trip.rateTypeLabel || trip.rateType}
                                         </span>
                                       )}
@@ -5146,10 +5140,10 @@ const DriverPayrollManagement = () => {
                       const totalDeductions = suggestion.deductionsDetails && Array.isArray(suggestion.deductionsDetails)
                         ? suggestion.deductionsDetails.reduce((sum: number, d: any) => sum + (parseFloat(d.calculatedAmount || d.amount || 0)), 0)
                         : (suggestion.totalDeductions || suggestion.deductions || 0);
-                      
+
                       // Gross Earnings = Trip Earnings + Manual Bonus + Calculated Additions
                       const grossEarnings = tripsEarnings + manualBonus + totalAdditions;
-                      
+
                       // Calculate taxes
                       let totalTax = 0;
                       if (suggestion.country === 'Canada') {
@@ -5168,10 +5162,10 @@ const DriverPayrollManagement = () => {
                           parseFloat(suggestion.stateDisabilityInsurance || '0') +
                           parseFloat(suggestion.localTax || '0');
                       }
-                      
+
                       // Net Pay = Gross Earnings - Total Deductions - Taxes
                       const netPay = grossEarnings - totalDeductions - totalTax;
-                      
+
                       return (
                         <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg mt-4">
                           <div className="space-y-2">

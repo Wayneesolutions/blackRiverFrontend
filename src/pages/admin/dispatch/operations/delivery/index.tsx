@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { 
+import {
   FaTruck, FaFilter, FaDollarSign, FaFileAlt, FaUpload, FaCheck, FaTimes,
   FaCheckCircle, FaExclamationCircle, FaInfoCircle
 } from 'react-icons/fa';
@@ -126,7 +126,7 @@ const Delivery = () => {
 
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchLoads = useCallback(
@@ -222,13 +222,13 @@ const Delivery = () => {
   const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>, loadId: string, docType: 'bol' | 'billOfSale' | 'pod') => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     setUploadingDoc(docType);
     try {
       const response = await uploadDeliveryDocument(loadId, docType, file);
       if (response && response.success) {
         addNotification('success', `${docType.toUpperCase()} uploaded successfully`);
-        
+
         // Optimistically update the selected load immediately for instant feedback
         if (selectedLoad && selectedLoad._id === loadId) {
           setSelectedLoad(prev => {
@@ -246,7 +246,7 @@ const Delivery = () => {
             };
           });
         }
-        
+
         // Update the loads list in background
         await fetchLoads({ suppressLoading: true });
       } else {
@@ -263,21 +263,21 @@ const Delivery = () => {
 
   const handleMarkPaid = async () => {
     if (!selectedLoad) return;
-    
+
     if (!paymentMethod || !paymentReference) {
       addNotification('error', 'Please fill in payment method and reference');
       return;
     }
-    
+
     try {
       const response = await updatePaymentStatus(
-        selectedLoad._id, 
-        paymentMethod, 
-        paymentReference, 
-        paymentDate, 
+        selectedLoad._id,
+        paymentMethod,
+        paymentReference,
+        paymentDate,
         paymentNotes
       );
-      
+
       if (response && response.success) {
         addNotification('success', 'Payment marked as paid successfully');
         setShowPaymentModal(false);
@@ -304,15 +304,15 @@ const Delivery = () => {
 
   const formatDate = (date: string) => {
     if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
-  const filteredLoads = paymentFilter === 'all' 
-    ? loads 
+  const filteredLoads = paymentFilter === 'all'
+    ? loads
     : loads.filter(load => load.paymentStatus === paymentFilter);
 
   const totalAmount = filteredLoads.reduce((sum, load) => sum + (load.amount || load.rate || 0), 0);
@@ -476,15 +476,12 @@ const Delivery = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex gap-1">
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          load.documents?.bol ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-secondary'
-                        }`}>BOL</span>
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          load.documents?.billOfSale ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-secondary'
-                        }`}>B/S</span>
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          load.documents?.pod ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-secondary'
-                        }`}>POD</span>
+                        <span className={`text-xs px-2 py-1 rounded ${load.documents?.bol ? 'bg-green-100 text-green-700' : 'bg-card text-secondary'
+                          }`}>BOL</span>
+                        <span className={`text-xs px-2 py-1 rounded ${load.documents?.billOfSale ? 'bg-green-100 text-green-700' : 'bg-card text-secondary'
+                          }`}>B/S</span>
+                        <span className={`text-xs px-2 py-1 rounded ${load.documents?.pod ? 'bg-green-100 text-green-700' : 'bg-card text-secondary'
+                          }`}>POD</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -561,14 +558,13 @@ const Delivery = () => {
               {/* Document Upload Section */}
               <div>
                 <h4 className="text-lg font-semibold text-primary mb-4">Upload Required Documents</h4>
-                
+
                 {/* BOL */}
                 <div className="border-2 border-theme rounded-lg p-4 mb-4 hover:border-blue-300 transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                        selectedLoad.documents?.bol ? 'bg-green-100' : 'bg-blue-100'
-                      }`}>
+                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${selectedLoad.documents?.bol ? 'bg-green-100' : 'bg-blue-100'
+                        }`}>
                         <FaFileAlt className={`${selectedLoad.documents?.bol ? 'text-green-600' : 'text-[#00D1FF]'}`} size={24} />
                       </div>
                       <div>
@@ -603,9 +599,8 @@ const Delivery = () => {
                 <div className="border-2 border-theme rounded-lg p-4 mb-4 hover:border-green-300 transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                        selectedLoad.documents?.billOfSale ? 'bg-green-100' : 'bg-green-100'
-                      }`}>
+                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${selectedLoad.documents?.billOfSale ? 'bg-green-100' : 'bg-green-100'
+                        }`}>
                         <FaFileAlt className={`${selectedLoad.documents?.billOfSale ? 'text-green-600' : 'text-green-600'}`} size={24} />
                       </div>
                       <div>
@@ -640,9 +635,8 @@ const Delivery = () => {
                 <div className="border-2 border-theme rounded-lg p-4 mb-4 hover:border-purple-300 transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                        selectedLoad.documents?.pod ? 'bg-green-100' : 'bg-purple-100'
-                      }`}>
+                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${selectedLoad.documents?.pod ? 'bg-green-100' : 'bg-purple-100'
+                        }`}>
                         <FaFileAlt className={`${selectedLoad.documents?.pod ? 'text-green-600' : 'text-purple-600'}`} size={24} />
                       </div>
                       <div>
@@ -728,7 +722,7 @@ const Delivery = () => {
                   <label className="block text-sm font-semibold text-primary mb-2">
                     Payment Method
                   </label>
-                  <select 
+                  <select
                     className="w-full p-3 border border-theme rounded-lg"
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value)}
@@ -801,7 +795,7 @@ const Delivery = () => {
           </div>
         </div>
       )}
-      
+
       <style>{`
         @keyframes slide-in {
           from {

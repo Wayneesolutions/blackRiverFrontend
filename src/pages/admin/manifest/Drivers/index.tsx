@@ -73,7 +73,7 @@ const DriverAvatar = ({ driver: d, size }: { driver: DriverData; size: "sm" | "m
 const StatusBadge = ({ status }: { status?: string }) => {
   const active = (status || "").toLowerCase() === "active";
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${active ? "bg-green-50 text-green-700" : "bg-gray-100 text-secondary"}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${active ? "bg-green-50 text-green-700" : "bg-card text-secondary"}`}>
       {active ? <CheckCircle size={10} /> : null}{status || "—"}
     </span>
   );
@@ -90,14 +90,14 @@ const exportToExcel = async (drivers: DriverData[]) => {
     alignment: { horizontal: "center", vertical: "middle" },
   };
   ws.columns = [
-    { header: "Name", key: "name", width: 22 },{ header: "Email", key: "email", width: 26 },
-    { header: "Phone", key: "phone", width: 16 },{ header: "Status", key: "status", width: 12 },
-    { header: "Internal ID", key: "internalId", width: 14 },{ header: "Licence #", key: "licence", width: 18 },
-    { header: "Licence Expiry", key: "licExpiry", width: 16 },{ header: "Job Type", key: "jobType", width: 16 },
-    { header: "Pay Type", key: "payType", width: 14 },{ header: "Pay Rate", key: "payRate", width: 12 },
-    { header: "Fast Card #", key: "fastCard", width: 16 },{ header: "Fast Card Expiry", key: "fastExpiry", width: 18 },
-    { header: "Citizenship", key: "citizenship", width: 16 },{ header: "Gender", key: "gender", width: 12 },
-    { header: "Hire Date", key: "hireDate", width: 14 },{ header: "Join Date", key: "joinDate", width: 14 },
+    { header: "Name", key: "name", width: 22 }, { header: "Email", key: "email", width: 26 },
+    { header: "Phone", key: "phone", width: 16 }, { header: "Status", key: "status", width: 12 },
+    { header: "Internal ID", key: "internalId", width: 14 }, { header: "Licence #", key: "licence", width: 18 },
+    { header: "Licence Expiry", key: "licExpiry", width: 16 }, { header: "Job Type", key: "jobType", width: 16 },
+    { header: "Pay Type", key: "payType", width: 14 }, { header: "Pay Rate", key: "payRate", width: 12 },
+    { header: "Fast Card #", key: "fastCard", width: 16 }, { header: "Fast Card Expiry", key: "fastExpiry", width: 18 },
+    { header: "Citizenship", key: "citizenship", width: 16 }, { header: "Gender", key: "gender", width: 12 },
+    { header: "Hire Date", key: "hireDate", width: 14 }, { header: "Join Date", key: "joinDate", width: 14 },
   ];
   ws.getRow(1).eachCell((c) => { Object.assign(c, { style: hStyle }); });
   ws.getRow(1).height = 24;
@@ -172,34 +172,34 @@ const SlidePanel = ({ driver: d, onClose }: { driver: DriverData; onClose: () =>
           <div className="rounded-xl border border-theme p-4">
             <p className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Contact Info</p>
             <div className="grid grid-cols-2 gap-3">
-              <DR label="Full Name"   value={driverFullName(d)} />
+              <DR label="Full Name" value={driverFullName(d)} />
               <DR label="Internal ID" value={d.internalId} />
-              <DR label="Email"       value={d.email} />
-              <DR label="Phone"       value={d.phone} />
-              <DR label="Status"      value={<StatusBadge status={d.status} />} />
-              <DR label="Join Date"   value={fmt(d.joinDate)} />
+              <DR label="Email" value={d.email} />
+              <DR label="Phone" value={d.phone} />
+              <DR label="Status" value={<StatusBadge status={d.status} />} />
+              <DR label="Join Date" value={fmt(d.joinDate)} />
             </div>
           </div>
 
           <div className="rounded-xl border border-theme p-4">
             <p className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Licence & Compliance</p>
             <div className="grid grid-cols-2 gap-3">
-              <DR label="Licence #"        value={d.details?.licenceNumber} />
-              <DR label="Licence Expiry"   value={fmt(d.details?.licenceExpiry)} />
-              <DR label="Fast Card #"      value={d.details?.fastCardNo} />
+              <DR label="Licence #" value={d.details?.licenceNumber} />
+              <DR label="Licence Expiry" value={fmt(d.details?.licenceExpiry)} />
+              <DR label="Fast Card #" value={d.details?.fastCardNo} />
               <DR label="Fast Card Expiry" value={fmt(d.details?.fastCardExpiry)} />
-              <DR label="Citizenship"      value={d.details?.citizenship} />
+              <DR label="Citizenship" value={d.details?.citizenship} />
             </div>
           </div>
 
           <div className="rounded-xl border border-theme p-4">
             <p className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Employment</p>
             <div className="grid grid-cols-2 gap-3">
-              <DR label="Job Type"  value={d.details?.jobType} />
-              <DR label="Pay Type"  value={d.details?.payType} />
-              <DR label="Pay Rate"  value={d.details?.payRate ? `$${d.details.payRate}` : ""} />
+              <DR label="Job Type" value={d.details?.jobType} />
+              <DR label="Pay Type" value={d.details?.payType} />
+              <DR label="Pay Rate" value={d.details?.payRate ? `$${d.details.payRate}` : ""} />
               <DR label="Hire Date" value={fmt(d.details?.hireDate)} />
-              <DR label="Gender"    value={d.details?.gender} />
+              <DR label="Gender" value={d.details?.gender} />
             </div>
           </div>
         </div>

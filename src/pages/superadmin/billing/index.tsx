@@ -70,7 +70,7 @@ type SortType = 'name' | 'price' | 'created' | 'status';
 
 const createDefaultTruckPricing = (): TruckPricing => ({
   tiers: [
-    { minTrucks: 1,  maxTrucks: 10, monthlyPrice: 199, currency: 'CAD' },
+    { minTrucks: 1, maxTrucks: 10, monthlyPrice: 199, currency: 'CAD' },
     { minTrucks: 11, maxTrucks: 20, monthlyPrice: 399, currency: 'CAD' },
   ],
   extraTruckPrice: 19.99,
@@ -164,7 +164,7 @@ const Billing = () => {
   const filteredAndSortedPlans = monthlyPlans
     .filter(plan => {
       if (searchTerm && !plan.planName.toLowerCase().includes(searchTerm.toLowerCase()) &&
-          !plan.description?.toLowerCase().includes(searchTerm.toLowerCase())) {
+        !plan.description?.toLowerCase().includes(searchTerm.toLowerCase())) {
         return false;
       }
       if (filterType === 'active' && plan.status !== 'active') return false;
@@ -174,13 +174,13 @@ const Billing = () => {
     })
     .sort((a, b) => {
       let comparison = 0;
-      
+
       switch (sortType) {
         case 'name':
           comparison = a.planName.localeCompare(b.planName);
           break;
         case 'price':
-          const priceA = a.planType === 'lifetime' 
+          const priceA = a.planType === 'lifetime'
             ? (a.lifetime?.oneTime.price || 0)
             : (a.monthly?.fullApp.price || 0);
           const priceB = b.planType === 'lifetime'
@@ -195,7 +195,7 @@ const Billing = () => {
           comparison = a.status.localeCompare(b.status);
           break;
       }
-      
+
       return sortDirection === 'asc' ? comparison : -comparison;
     });
 
@@ -707,16 +707,16 @@ const Billing = () => {
       <div className="bg-card border-b border-theme shadow-sm">
         <div className="px-6 py-5">
           <div className="flex items-center justify-between mb-4">
-          <div>
+            <div>
               <h1 className="text-3xl font-bold text-primary flex items-center">
                 <div className="relative">
-              <CreditCard className="w-8 h-8 text-purple-600 mr-3" />
+                  <CreditCard className="w-8 h-8 text-purple-600 mr-3" />
                   <Sparkles className="w-4 h-4 text-yellow-400 absolute -top-1 -right-1" />
                 </div>
-              Plan Management
-            </h1>
+                Plan Management
+              </h1>
               <p className="text-secondary mt-2">Create, manage, and optimize pricing plans for your customers</p>
-          </div>
+            </div>
             <div className="flex items-center gap-3">
               <Button
                 icon={<BarChart3 className="w-4 h-4" />}
@@ -730,18 +730,18 @@ const Billing = () => {
               >
                 Compare Plans
               </Button>
-          <Button
-            type="primary"
-            icon={<Plus className="w-4 h-4" />}
-            onClick={() => {
-              resetForm();
-              setShowCreateModal(true);
-            }}
+              <Button
+                type="primary"
+                icon={<Plus className="w-4 h-4" />}
+                onClick={() => {
+                  resetForm();
+                  setShowCreateModal(true);
+                }}
                 className="bg-gradient-to-r from-purple-600 to-indigo-600 border-0 hover:from-purple-700 hover:to-indigo-700 shadow-lg"
                 size="large"
-          >
-            Create Plan
-          </Button>
+              >
+                Create Plan
+              </Button>
             </div>
           </div>
 
@@ -788,7 +788,7 @@ const Billing = () => {
                 size="large"
               />
             </div>
-            
+
             <div className="flex gap-2">
               <Select
                 value={filterType}
@@ -848,23 +848,23 @@ const Billing = () => {
             <CreditCard className="w-20 h-20 text-secondary mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-primary mb-2">No plans found</h3>
             <p className="text-secondary mb-6">
-              {searchTerm || filterType !== 'all' 
+              {searchTerm || filterType !== 'all'
                 ? 'Try adjusting your search or filters'
                 : 'Create your first pricing plan to get started'}
             </p>
             {(!searchTerm && filterType === 'all') && (
-            <Button
-              type="primary"
-              icon={<Plus className="w-4 h-4" />}
-              onClick={() => {
-                resetForm();
-                setShowCreateModal(true);
-              }}
+              <Button
+                type="primary"
+                icon={<Plus className="w-4 h-4" />}
+                onClick={() => {
+                  resetForm();
+                  setShowCreateModal(true);
+                }}
                 className="bg-gradient-to-r from-purple-600 to-indigo-600 border-0"
                 size="large"
-            >
-              Create Plan
-            </Button>
+              >
+                Create Plan
+              </Button>
             )}
           </div>
         ) : viewMode === 'grid' ? (
@@ -880,9 +880,8 @@ const Billing = () => {
               return (
                 <div
                   key={plan._id}
-                  className={`bg-card rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl ${
-                    plan.isDefault ? 'border-purple-300 ring-2 ring-purple-100' : 'border-theme hover:border-theme'
-                  }`}
+                  className={`bg-card rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl ${plan.isDefault ? 'border-purple-300 ring-2 ring-purple-100' : 'border-theme hover:border-theme'
+                    }`}
                 >
                   {/* ── Plan Header ── */}
                   <div className={`px-8 py-6 bg-gradient-to-r ${getPlanGradient(plan)} relative overflow-hidden`}>
@@ -930,23 +929,21 @@ const Billing = () => {
                       <>
                         {/* ── Billing Period Selector ── */}
                         <div className="flex justify-center mb-8">
-                          <div className="inline-flex bg-gray-100 rounded-2xl p-1 gap-1">
+                          <div className="inline-flex bg-card rounded-2xl p-1 gap-1">
                             {(['monthly', '6months', 'annual'] as const).map((tab) => (
                               <button
                                 key={tab}
                                 onClick={() => setPreviewTab(tab)}
-                                className={`relative px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex flex-col items-center min-w-[110px] ${
-                                  planTab === tab
+                                className={`relative px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex flex-col items-center min-w-[110px] ${planTab === tab
                                     ? 'bg-card shadow-md text-purple-700 ring-1 ring-purple-100'
                                     : 'text-secondary hover:text-primary'
-                                }`}
+                                  }`}
                               >
                                 <span>{tab === 'monthly' ? 'Monthly' : tab === '6months' ? '6 Months' : 'Annual'}</span>
-                                <span className={`text-[10px] font-bold mt-0.5 ${
-                                  planTab === tab
+                                <span className={`text-[10px] font-bold mt-0.5 ${planTab === tab
                                     ? tab === '6months' ? 'text-amber-500' : tab === 'annual' ? 'text-green-600' : 'text-transparent'
                                     : 'text-secondary'
-                                }`}>
+                                  }`}>
                                   {tab === '6months' ? `+${bonusDays} days free` : tab === 'annual' ? `+${freeMonths} mo free` : '‎'}
                                 </span>
                               </button>
@@ -995,11 +992,10 @@ const Billing = () => {
                             return (
                               <div
                                 key={idx}
-                                className={`relative rounded-2xl border-2 p-6 transition-all duration-200 flex flex-col ${
-                                  isPopular
+                                className={`relative rounded-2xl border-2 p-6 transition-all duration-200 flex flex-col ${isPopular
                                     ? 'border-purple-400 bg-gradient-to-b from-purple-50 to-indigo-50 shadow-xl ring-2 ring-purple-100'
                                     : 'border-theme bg-card hover:border-purple-200 hover:shadow-lg'
-                                }`}
+                                  }`}
                               >
                                 {isPopular && (
                                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg whitespace-nowrap">
@@ -1055,7 +1051,7 @@ const Billing = () => {
                                   );
                                 })()}
 
-                                <div className={`h-px mb-5 ${isPopular ? 'bg-purple-200' : 'bg-gray-100'}`} />
+                                <div className={`h-px mb-5 ${isPopular ? 'bg-purple-200' : 'bg-card'}`} />
 
                                 <div className="space-y-2">
                                   <div className="flex items-center gap-2 text-sm text-primary">
@@ -1150,11 +1146,11 @@ const Billing = () => {
                         <Tag color={plan.status === 'active' ? 'success' : 'default'}>
                           {plan.status}
                         </Tag>
-                  </div>
+                      </div>
                       {plan.description && (
                         <p className="text-sm text-secondary mb-3">{plan.description}</p>
                       )}
-                      
+
                       <div className="flex items-center gap-6 text-sm">
                         {plan.planType === 'lifetime' && plan.lifetime && (
                           <div>
@@ -1178,9 +1174,9 @@ const Billing = () => {
                       <Button icon={<Eye className="w-4 h-4" />} onClick={() => handleView(plan)}>View</Button>
                       <Button icon={<Edit className="w-4 h-4" />} onClick={() => handleEdit(plan)}>Edit</Button>
                       <Button icon={<Copy className="w-4 h-4" />} onClick={() => handleDuplicate(plan)}>Duplicate</Button>
-                      <Button 
-                        danger 
-                        icon={<Trash2 className="w-4 h-4" />} 
+                      <Button
+                        danger
+                        icon={<Trash2 className="w-4 h-4" />}
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -1190,9 +1186,9 @@ const Billing = () => {
                         Delete
                       </Button>
                     </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
             </div>
           </div>
         )}
@@ -1265,13 +1261,13 @@ const Billing = () => {
           onCancel={() => setShowViewModal(false)}
           footer={[
             <Button key="close" onClick={() => setShowViewModal(false)}>Close</Button>,
-            <Button 
-              key="edit" 
-              type="primary" 
+            <Button
+              key="edit"
+              type="primary"
               onClick={() => {
-              setShowViewModal(false);
-              handleEdit(selectedPlan);
-              }} 
+                setShowViewModal(false);
+                handleEdit(selectedPlan);
+              }}
               className="bg-gradient-to-r from-purple-600 to-indigo-600 border-0 hover:from-purple-700 hover:to-indigo-700"
               icon={<Edit className="w-4 h-4" />}
             >
@@ -1284,18 +1280,18 @@ const Billing = () => {
             {/* Header Info */}
             <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border border-theme">
               <div className="flex items-center justify-between">
-            <div>
+                <div>
                   <p className="text-sm text-secondary mb-1">Plan Type</p>
                   <Tag color={selectedPlan.planType === 'lifetime' ? 'blue' : 'green'} className="text-sm">
                     {selectedPlan.planType === 'lifetime' ? 'Lifetime Plan' : 'Monthly Plan'}
                   </Tag>
-            </div>
-            <div>
+                </div>
+                <div>
                   <p className="text-sm text-secondary mb-1">Status</p>
                   <Tag color={selectedPlan.status === 'active' ? 'success' : 'default'} className="text-sm">
                     {selectedPlan.status === 'active' ? 'Active' : 'Inactive'}
-              </Tag>
-            </div>
+                  </Tag>
+                </div>
                 {selectedPlan.createdAt && (
                   <div>
                     <p className="text-sm text-secondary mb-1">Created</p>
@@ -1326,7 +1322,7 @@ const Billing = () => {
                 <div className="space-y-3">
                   <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-5 rounded-xl border-2 border-blue-200">
                     <div className="flex items-center justify-between">
-                  <div>
+                      <div>
                         <p className="text-sm text-secondary mb-1">One-time Payment</p>
                         <p className="text-3xl font-bold text-primary">
                           {formatPrice(selectedPlan.lifetime.oneTime.price, selectedPlan.lifetime.oneTime.currency)}
@@ -1339,7 +1335,7 @@ const Billing = () => {
                   {selectedPlan.lifetime.installments.threeMonths.enabled && (
                     <div className="bg-card p-4 rounded-lg border border-theme">
                       <div className="flex items-center justify-between">
-                    <div>
+                        <div>
                           <p className="text-sm font-medium text-primary">3 Monthly Installments</p>
                           <p className="text-xl font-bold text-primary mt-1">
                             {formatPrice(selectedPlan.lifetime.installments.threeMonths.price, selectedPlan.lifetime.installments.threeMonths.currency)}
@@ -1353,7 +1349,7 @@ const Billing = () => {
                   {selectedPlan.lifetime.installments.sixMonths.enabled && (
                     <div className="bg-card p-4 rounded-lg border border-theme">
                       <div className="flex items-center justify-between">
-                    <div>
+                        <div>
                           <p className="text-sm font-medium text-primary">6 Monthly Installments</p>
                           <p className="text-xl font-bold text-primary mt-1">
                             {formatPrice(selectedPlan.lifetime.installments.sixMonths.price, selectedPlan.lifetime.installments.sixMonths.currency)}
@@ -1471,7 +1467,7 @@ const Billing = () => {
               ))}
             </div>
           </div>
-          
+
           {selectedPlans.length >= 2 && (
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
@@ -1486,8 +1482,8 @@ const Billing = () => {
                             <span>{plan.planName}</span>
                             <Tag color={plan.planType === 'lifetime' ? 'blue' : 'green'}>
                               {plan.planType === 'lifetime' ? 'Lifetime' : 'Monthly'}
-                </Tag>
-              </div>
+                            </Tag>
+                          </div>
                         </th>
                       ) : null;
                     })}
@@ -1553,8 +1549,8 @@ const Billing = () => {
                           {plan.planType === 'monthly' && plan.monthly?.fullApp.enabled
                             ? formatPrice(plan.monthly.fullApp.price, plan.monthly.fullApp.currency) + '/mo'
                             : plan.planType === 'lifetime'
-                            ? 'N/A'
-                            : 'N/A'}
+                              ? 'N/A'
+                              : 'N/A'}
                         </td>
                       ) : null;
                     })}
@@ -1574,14 +1570,14 @@ const Billing = () => {
               </table>
             </div>
           )}
-          
+
           {selectedPlans.length < 2 && (
             <div className="text-center py-8 text-secondary">
               Please select at least 2 plans to compare
             </div>
           )}
-          </div>
-        </Modal>
+        </div>
+      </Modal>
 
       {/* Delete Plan Confirmation Modal */}
       <Modal
@@ -1598,7 +1594,7 @@ const Billing = () => {
           setDeletePlanName('');
         }}
         footer={[
-          <Button 
+          <Button
             key="cancel"
             onClick={() => {
               setShowDeleteModal(false);
@@ -1632,12 +1628,12 @@ const Billing = () => {
                 Are you sure you want to delete this plan?
               </h3>
               <p className="text-secondary mb-4">
-                You are about to delete the plan <span className="font-semibold text-primary">"{deletePlanName}"</span>. 
+                You are about to delete the plan <span className="font-semibold text-primary">"{deletePlanName}"</span>.
                 This action cannot be undone.
               </p>
               <div className="bg-card border border-yellow-200 rounded-lg p-3">
                 <p className="text-sm text-yellow-800">
-                  <strong>Warning:</strong> If this plan is associated with any active subscriptions, 
+                  <strong>Warning:</strong> If this plan is associated with any active subscriptions,
                   you may need to update those subscriptions before deleting this plan.
                 </p>
               </div>

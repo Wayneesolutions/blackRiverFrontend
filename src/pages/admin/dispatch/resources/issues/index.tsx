@@ -61,7 +61,7 @@ const Issues: React.FC = () => {
     total: 0,
     limit: 10
   });
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -160,7 +160,7 @@ const Issues: React.FC = () => {
       case 'high': return 'text-[#A855F7] bg-red-100';
       case 'medium': return 'text-[#00FFA3] bg-yellow-100';
       case 'low': return 'text-green-600 bg-green-100';
-      default: return 'text-secondary bg-gray-100';
+      default: return 'text-secondary bg-card';
     }
   };
 
@@ -170,7 +170,7 @@ const Issues: React.FC = () => {
       case 'open': return 'text-[#A855F7] bg-red-100';
       case 'in-progress': return 'text-[#00D1FF] bg-blue-100';
       case 'closed': return 'text-green-600 bg-green-100';
-      default: return 'text-secondary bg-gray-100';
+      default: return 'text-secondary bg-card';
     }
   };
 
@@ -238,8 +238,8 @@ const Issues: React.FC = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -387,10 +387,10 @@ const Issues: React.FC = () => {
                 display: none; /* Chrome, Safari, Opera */
               }
             `}</style>
-            <div 
+            <div
               ref={topScrollRef}
               className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-              style={{ 
+              style={{
                 maxHeight: '20px',
                 marginBottom: '2px',
                 scrollbarWidth: 'thin',
@@ -400,7 +400,7 @@ const Issues: React.FC = () => {
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
             </div>
             {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-            <div 
+            <div
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
@@ -442,8 +442,8 @@ const Issues: React.FC = () => {
                     </tr>
                   ) : (
                     issues.map((issue) => (
-                      <tr 
-                        key={issue._id} 
+                      <tr
+                        key={issue._id}
                         className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedIssue(issue);
@@ -500,7 +500,7 @@ const Issues: React.FC = () => {
                         </td>
                         <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
-                         
+
                             <button
                               onClick={() => {
                                 setEditingIssue(issue);

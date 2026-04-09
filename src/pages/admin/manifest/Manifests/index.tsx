@@ -51,18 +51,18 @@ interface Manifest {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const STATUS_CFG: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
-  planned:          { label: "Planned",          color: "text-blue-700",   bg: "bg-card",   icon: <Clock size={10} /> },
-  manifest_pending: { label: "Manifest Pending", color: "text-amber-700",  bg: "bg-amber-50",  icon: <AlertCircle size={10} /> },
-  "in-progress":    { label: "In Progress",      color: "text-indigo-700", bg: "bg-indigo-50", icon: <Play size={10} /> },
-  completed:        { label: "Completed",         color: "text-green-700",  bg: "bg-green-50",  icon: <CheckCircle size={10} /> },
-  cancelled:        { label: "Cancelled",         color: "text-red-700",    bg: "bg-card",    icon: <XCircle size={10} /> },
+  planned: { label: "Planned", color: "text-blue-700", bg: "bg-card", icon: <Clock size={10} /> },
+  manifest_pending: { label: "Manifest Pending", color: "text-amber-700", bg: "bg-amber-50", icon: <AlertCircle size={10} /> },
+  "in-progress": { label: "In Progress", color: "text-indigo-700", bg: "bg-indigo-50", icon: <Play size={10} /> },
+  completed: { label: "Completed", color: "text-green-700", bg: "bg-green-50", icon: <CheckCircle size={10} /> },
+  cancelled: { label: "Cancelled", color: "text-red-700", bg: "bg-card", icon: <XCircle size={10} /> },
 };
 
 const fmt = (d: string | null | undefined) =>
   d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" }) : "—";
 
 const StatusBadge = ({ status }: { status: string }) => {
-  const c = STATUS_CFG[status] || { label: status, color: "text-primary", bg: "bg-gray-100", icon: null };
+  const c = STATUS_CFG[status] || { label: status, color: "text-primary", bg: "bg-card", icon: null };
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${c.bg} ${c.color}`}>
       {c.icon}{c.label}
@@ -250,16 +250,16 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
             <SecTitle icon={<Truck size={14} />} title="Truck" />
             {m.truck ? (
               <div className="grid grid-cols-2 gap-3">
-                <DR label="Unit #"       value={m.truck.unitNumber} />
-                <DR label="Plate #"      value={m.truck.plateNumber} />
-                <DR label="VIN"          value={m.truck.vinNumber} />
+                <DR label="Unit #" value={m.truck.unitNumber} />
+                <DR label="Plate #" value={m.truck.plateNumber} />
+                <DR label="VIN" value={m.truck.vinNumber} />
                 <DR label="Make / Model" value={[m.truck.make, m.truck.model].filter(Boolean).join(" ")} />
-                <DR label="Year"         value={m.truck.year} />
-                <DR label="Type"         value={m.truck.type} />
-                <DR label="Status"       value={m.truck.status} />
-                <DR label="Ownership"    value={m.truck.ownership} />
+                <DR label="Year" value={m.truck.year} />
+                <DR label="Type" value={m.truck.type} />
+                <DR label="Status" value={m.truck.status} />
+                <DR label="Ownership" value={m.truck.ownership} />
                 <DR label="Registration" value={[m.truck.registrationProvince, m.truck.registrationCountry].filter(Boolean).join(", ")} />
-                <DR label="Internal ID"  value={m.truck.internalId} />
+                <DR label="Internal ID" value={m.truck.internalId} />
               </div>
             ) : <p className="text-sm text-secondary">No truck assigned</p>}
           </div>
@@ -269,16 +269,16 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
             <SecTitle icon={<Package size={14} />} title="Trailer" />
             {m.trailer ? (
               <div className="grid grid-cols-2 gap-3">
-                <DR label="Unit #"       value={m.trailer.unitNumber} />
-                <DR label="Plate #"      value={m.trailer.plateNumber} />
-                <DR label="VIN"          value={m.trailer.vinNumber} />
+                <DR label="Unit #" value={m.trailer.unitNumber} />
+                <DR label="Plate #" value={m.trailer.plateNumber} />
+                <DR label="VIN" value={m.trailer.vinNumber} />
                 <DR label="Make / Model" value={[m.trailer.make, m.trailer.model].filter(Boolean).join(" ")} />
-                <DR label="Year"         value={m.trailer.year} />
-                <DR label="Type"         value={m.trailer.type} />
-                <DR label="Status"       value={m.trailer.status} />
-                <DR label="Ownership"    value={m.trailer.ownership} />
+                <DR label="Year" value={m.trailer.year} />
+                <DR label="Type" value={m.trailer.type} />
+                <DR label="Status" value={m.trailer.status} />
+                <DR label="Ownership" value={m.trailer.ownership} />
                 <DR label="Registration" value={[m.trailer.registrationProvince, m.trailer.registrationCountry].filter(Boolean).join(", ")} />
-                <DR label="Internal ID"  value={m.trailer.internalId} />
+                <DR label="Internal ID" value={m.trailer.internalId} />
               </div>
             ) : <p className="text-sm text-secondary">No trailer assigned</p>}
           </div>
@@ -288,11 +288,11 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
             <SecTitle icon={<Users size={14} />} title="Driver" />
             {m.driver ? (
               <div className="grid grid-cols-2 gap-3">
-                <DR label="Name"           value={m.driver.name} />
-                <DR label="Internal ID"    value={m.driver.internalId} />
-                <DR label="Phone"          value={m.driver.phone} />
-                <DR label="Email"          value={m.driver.email} />
-                <DR label="Licence #"      value={m.driver.licenceNumber} />
+                <DR label="Name" value={m.driver.name} />
+                <DR label="Internal ID" value={m.driver.internalId} />
+                <DR label="Phone" value={m.driver.phone} />
+                <DR label="Email" value={m.driver.email} />
+                <DR label="Licence #" value={m.driver.licenceNumber} />
                 <DR label="Licence Expiry" value={fmt(m.driver.licenceExpiry)} />
               </div>
             ) : <p className="text-sm text-secondary">No driver assigned</p>}
@@ -300,10 +300,10 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
               <div className="mt-3 pt-3 border-t border-theme">
                 <p className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-2">Co-Driver</p>
                 <div className="grid grid-cols-2 gap-3">
-                  <DR label="Name"        value={m.coDriver.name} />
-                  <DR label="Phone"       value={m.coDriver.phone} />
+                  <DR label="Name" value={m.coDriver.name} />
+                  <DR label="Phone" value={m.coDriver.phone} />
                   <DR label="Internal ID" value={m.coDriver.internalId} />
-                  <DR label="Email"       value={m.coDriver.email} />
+                  <DR label="Email" value={m.coDriver.email} />
                 </div>
               </div>
             )}
@@ -313,12 +313,12 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
           <div className="rounded-xl border border-theme p-4">
             <SecTitle icon={<MapPin size={14} />} title="Trip Details" />
             <div className="grid grid-cols-2 gap-3">
-              <DR label="Origin"        value={m.startLocation?.place} />
-              <DR label="Destination"   value={m.endLocation?.place} />
+              <DR label="Origin" value={m.startLocation?.place} />
+              <DR label="Destination" value={m.endLocation?.place} />
               <DR label="Planned Start" value={fmt(m.plannedStartDate)} />
-              <DR label="Planned End"   value={fmt(m.plannedEndDate)} />
-              <DR label="Actual Start"  value={fmt(m.actualStartDate)} />
-              <DR label="Actual End"    value={fmt(m.actualEndDate)} />
+              <DR label="Planned End" value={fmt(m.plannedEndDate)} />
+              <DR label="Actual Start" value={fmt(m.actualStartDate)} />
+              <DR label="Actual End" value={fmt(m.actualEndDate)} />
               <DR label="Docs Approved" value={m.documentsApproved
                 ? <span className="text-green-600 font-medium flex items-center gap-1"><CheckCircle size={12} />Yes</span>
                 : <span className="text-red-500 font-medium flex items-center gap-1"><X size={12} />No</span>} />
@@ -350,18 +350,18 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
                       <StatusBadge status={o.status} />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <DR label="Customer"      value={o.customer?.name} />
-                      <DR label="Type"          value={o.orderType} />
-                      <DR label="Pickup"        value={o.pickupLocation} />
-                      <DR label="Delivery"      value={o.deliveryLocation} />
-                      <DR label="Pickup Date"   value={fmt(o.pickupDate)} />
+                      <DR label="Customer" value={o.customer?.name} />
+                      <DR label="Type" value={o.orderType} />
+                      <DR label="Pickup" value={o.pickupLocation} />
+                      <DR label="Delivery" value={o.deliveryLocation} />
+                      <DR label="Pickup Date" value={fmt(o.pickupDate)} />
                       <DR label="Delivery Date" value={fmt(o.deliveryDate)} />
-                      <DR label="Commodity"     value={o.commodity} />
-                      <DR label="Weight"        value={o.weight ? `${o.weight} ${o.weightUnit}` : ""} />
-                      <DR label="Packages"      value={o.noOfPackages ? String(o.noOfPackages) : ""} />
-                      <DR label="Value"         value={o.valueOfGoods ? `$${o.valueOfGoods.toLocaleString()}` : ""} />
-                      <DR label="Shipper"       value={o.shipper} />
-                      <DR label="Receiver"      value={o.receiver} />
+                      <DR label="Commodity" value={o.commodity} />
+                      <DR label="Weight" value={o.weight ? `${o.weight} ${o.weightUnit}` : ""} />
+                      <DR label="Packages" value={o.noOfPackages ? String(o.noOfPackages) : ""} />
+                      <DR label="Value" value={o.valueOfGoods ? `$${o.valueOfGoods.toLocaleString()}` : ""} />
+                      <DR label="Shipper" value={o.shipper} />
+                      <DR label="Receiver" value={o.receiver} />
                       {o.paps && <DR label="PAPS" value={o.paps} />}
                       {o.pars && <DR label="PARS" value={o.pars} />}
                       {o.trailerSealNo && <DR label="Seal #" value={o.trailerSealNo} />}
@@ -539,7 +539,7 @@ const ManifestListPage = () => {
                       </div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-center">
-                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${m.orderCount > 0 ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]" : "bg-gray-100 text-secondary"}`}>
+                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${m.orderCount > 0 ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]" : "bg-card text-secondary"}`}>
                         {m.orderCount}
                       </span>
                     </td>

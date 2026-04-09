@@ -47,7 +47,7 @@ const YardManagement = () => {
     country: '',
     zipPostalCode: ''
   });
-  
+
   // Delete confirmation modal state
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -136,15 +136,15 @@ const YardManagement = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.yardName.trim() || !formData.yardCode.trim()) {
       addNotification('error', 'Yard name and code are required');
       return;
     }
 
     // Validate address fields
-    if (!formData.address.trim() || !formData.city.trim() || !formData.stateProvince.trim() || 
-        !formData.country.trim() || !formData.zipPostalCode.trim()) {
+    if (!formData.address.trim() || !formData.city.trim() || !formData.stateProvince.trim() ||
+      !formData.country.trim() || !formData.zipPostalCode.trim()) {
       addNotification('error', 'All address fields are required');
       return;
     }
@@ -181,7 +181,7 @@ const YardManagement = () => {
     if (!deleteTargetId) return;
 
     setShowDeleteConfirmation(false);
-    
+
     try {
       const response = await deleteYard(deleteTargetId);
       if (response.success) {
@@ -245,13 +245,12 @@ const YardManagement = () => {
           {notifications.map(notification => (
             <div
               key={notification.id}
-              className={`px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px] ${
-                notification.type === 'success'
+              className={`px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px] ${notification.type === 'success'
                   ? 'bg-green-50 border border-green-200 text-green-800'
                   : notification.type === 'error'
-                  ? 'bg-card border border-red-200 text-red-800'
-                  : 'bg-card border border-blue-200 text-blue-800'
-              }`}
+                    ? 'bg-card border border-red-200 text-red-800'
+                    : 'bg-card border border-blue-200 text-blue-800'
+                }`}
             >
               {notification.type === 'success' ? (
                 <FaCheckCircle />
@@ -313,7 +312,7 @@ const YardManagement = () => {
                 </thead>
                 <tbody className="bg-card divide-y divide-theme">
                   {filteredYards.map((yard) => (
-                    <tr key={yard._id} className="hover:bg-[rgba(255,255,255,0.03)]"    onClick={() => handleOpenModal(yard)}>
+                    <tr key={yard._id} className="hover:bg-[rgba(255,255,255,0.03)]" onClick={() => handleOpenModal(yard)}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                         {yard.yardId}
                       </td>
@@ -328,35 +327,34 @@ const YardManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            yard.status === 'active'
+                          className={`px-2 py-1 text-xs font-semibold rounded-full ${yard.status === 'active'
                               ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
-                          }`}
+                            }`}
                         >
                           {yard.status}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
-                        {yard.createdAt 
+                        {yard.createdAt
                           ? new Date(yard.createdAt).toLocaleString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
                           : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
-                        {yard.updatedAt 
+                        {yard.updatedAt
                           ? new Date(yard.updatedAt).toLocaleString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
                           : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -406,185 +404,185 @@ const YardManagement = () => {
 
               <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
                 <div className="p-6 space-y-4 overflow-y-auto flex-1">
-                <div>
-                  <label className="block text-sm font-medium text-primary mb-1">
-                    Yard Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.yardName}
-                    onChange={(e) => setFormData({ ...formData, yardName: e.target.value })}
-                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
-                    placeholder="Enter yard name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-primary mb-1">
-                    Yard Code / Short Code <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.yardCode}
-                    onChange={(e) => setFormData({ ...formData, yardCode: e.target.value.toUpperCase() })}
-                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
-                    placeholder="Enter yard code"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-primary mb-1">
-                    Yard Type <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    required
-                    value={formData.yardType}
-                    onChange={(e) => setFormData({ ...formData, yardType: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
-                  >
-                    {yardTypes.map(type => (
-                      <option key={type} value={type}>
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-primary mb-1">
-                    Status <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    required
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
-                  >
-                    {statusOptions.map(status => (
-                      <option key={status} value={status}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Address Section */}
-                <div className="pt-4 border-t border-theme">
-                  <h3 className="text-sm font-semibold text-primary mb-4">Address Information</h3>
-                  
-                  <div className="mb-4">
-                    <AddressSearch
-                      label="Search Address"
-                      placeholder="Search For An Address..."
-                      onAddressSelect={(addressData) => {
-                        // Populate address fields
-                        setFormData({
-                          ...formData,
-                          address: addressData.address || '',
-                          city: addressData.city || '',
-                          stateProvince: addressData.state || '',
-                          country: addressData.country || '',
-                          zipPostalCode: addressData.postalCode || ''
-                        });
-                      }}
-                      className=""
-                    />
-                  </div>
-
-                  <div className="mb-4">
+                  <div>
                     <label className="block text-sm font-medium text-primary mb-1">
-                      Address <span className="text-red-500">*</span>
+                      Yard Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
-                      value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      value={formData.yardName}
+                      onChange={(e) => setFormData({ ...formData, yardName: e.target.value })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
-                      placeholder="Enter street address"
+                      placeholder="Enter yard name"
                     />
                   </div>
 
-                  <div className="mb-4">
+                  <div>
                     <label className="block text-sm font-medium text-primary mb-1">
-                      Unit / Lot
+                      Yard Code / Short Code <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
-                      value={formData.unit}
-                      onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                      required
+                      value={formData.yardCode}
+                      onChange={(e) => setFormData({ ...formData, yardCode: e.target.value.toUpperCase() })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
-                      placeholder="Enter unit or lot number"
+                      placeholder="Enter yard code"
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-primary mb-1">
-                        City <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.city}
-                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
-                        placeholder="Enter city"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-primary mb-1">
-                        State / Province <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.stateProvince}
-                        onChange={(e) => setFormData({ ...formData, stateProvince: e.target.value })}
-                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
-                        placeholder="Enter state/province"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">
+                      Yard Type <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      required
+                      value={formData.yardType}
+                      onChange={(e) => setFormData({ ...formData, yardType: e.target.value as any })}
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                    >
+                      {yardTypes.map(type => (
+                        <option key={type} value={type}>
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-primary mb-1">
-                        Country <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.country}
-                        onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
-                        placeholder="Enter country"
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">
+                      Status <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      required
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                    >
+                      {statusOptions.map(status => (
+                        <option key={status} value={status}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Address Section */}
+                  <div className="pt-4 border-t border-theme">
+                    <h3 className="text-sm font-semibold text-primary mb-4">Address Information</h3>
+
+                    <div className="mb-4">
+                      <AddressSearch
+                        label="Search Address"
+                        placeholder="Search For An Address..."
+                        onAddressSelect={(addressData) => {
+                          // Populate address fields
+                          setFormData({
+                            ...formData,
+                            address: addressData.address || '',
+                            city: addressData.city || '',
+                            stateProvince: addressData.state || '',
+                            country: addressData.country || '',
+                            zipPostalCode: addressData.postalCode || ''
+                          });
+                        }}
+                        className=""
                       />
                     </div>
-                    <div>
+
+                    <div className="mb-4">
                       <label className="block text-sm font-medium text-primary mb-1">
-                        ZIP / Postal Code <span className="text-red-500">*</span>
+                        Address <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         required
-                        value={formData.zipPostalCode}
-                        onChange={(e) => setFormData({ ...formData, zipPostalCode: e.target.value })}
+                        value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                         className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
-                        placeholder="Enter ZIP/postal code"
+                        placeholder="Enter street address"
                       />
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-primary mb-1">
+                        Unit / Lot
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.unit}
+                        onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                        placeholder="Enter unit or lot number"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          City <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.city}
+                          onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                          placeholder="Enter city"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          State / Province <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.stateProvince}
+                          onChange={(e) => setFormData({ ...formData, stateProvince: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                          placeholder="Enter state/province"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Country <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.country}
+                          onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                          placeholder="Enter country"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          ZIP / Postal Code <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.zipPostalCode}
+                          onChange={(e) => setFormData({ ...formData, zipPostalCode: e.target.value })}
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                          placeholder="Enter ZIP/postal code"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
                 </div>
 
                 <div className="flex items-center justify-end gap-3 p-6 pt-4 border-t border-theme flex-shrink-0">
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="px-4 py-2 text-primary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
                   >
                     Cancel
                   </button>

@@ -223,7 +223,7 @@ const SafetyBulletins: React.FC = () => {
       case 'low':
         return 'bg-blue-100 text-blue-800 border-blue-500';
       default:
-        return 'bg-gray-100 text-primary border-gray-500';
+        return 'bg-card text-primary border-gray-500';
     }
   };
 
@@ -232,11 +232,11 @@ const SafetyBulletins: React.FC = () => {
       case 'published':
         return 'bg-green-100 text-green-800';
       case 'draft':
-        return 'bg-gray-100 text-primary';
+        return 'bg-card text-primary';
       case 'archived':
         return 'bg-blue-100 text-blue-800';
       default:
-        return 'bg-gray-100 text-primary';
+        return 'bg-card text-primary';
     }
   };
 
@@ -395,7 +395,7 @@ const SafetyBulletins: React.FC = () => {
                     {bulletin.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-4">
                         {bulletin.tags.map((tag, idx) => (
-                          <span key={idx} className="px-2 py-1 bg-gray-100 text-secondary rounded text-xs">
+                          <span key={idx} className="px-2 py-1 bg-card text-secondary rounded text-xs">
                             <FaTag className="inline mr-1" size={8} />
                             {tag}
                           </span>

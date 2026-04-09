@@ -351,11 +351,10 @@ const ELDDocuments = () => {
                                         <td className="px-6 py-4 border-r border-theme">
                                             <button
                                                 onClick={() => handleToggleActive(doc)}
-                                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-                                                    doc.isActive
+                                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${doc.isActive
                                                         ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-200'
-                                                        : 'bg-gray-100 text-secondary hover:bg-gray-200 border border-theme'
-                                                }`}
+                                                        : 'bg-card text-secondary hover:bg-gray-200 border border-theme'
+                                                    }`}
                                             >
                                                 {doc.isActive ? 'Active' : 'Inactive'}
                                             </button>
@@ -570,9 +569,8 @@ const ELDDocuments = () => {
             {/* Notification Toast */}
             {notification.show && (
                 <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
-                    <div className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${
-                        notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-                    } text-white`}>
+                    <div className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+                        } text-white`}>
                         {notification.type === 'success' ? (
                             <CheckCircle size={20} />
                         ) : (

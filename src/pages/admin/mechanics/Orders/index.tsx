@@ -304,11 +304,10 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
 
       {notification && (
         <div
-          className={`mb-4 rounded-lg border px-4 py-3 ${
-            notification.type === "success"
+          className={`mb-4 rounded-lg border px-4 py-3 ${notification.type === "success"
               ? "border-green-200 bg-green-50 text-green-800"
               : "border-red-200 bg-card text-red-800"
-          }`}
+            }`}
         >
           {notification.message}
         </div>
@@ -325,11 +324,10 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div
             onClick={() => { setStatusFilter("all"); setPage(1); }}
-            className={`p-4 rounded-lg border-2 cursor-pointer transition ${
-              statusFilter === "all"
+            className={`p-4 rounded-lg border-2 cursor-pointer transition ${statusFilter === "all"
                 ? "border-[var(--accent-blue)] bg-[var(--accent-blue)]/5"
                 : "border-theme bg-card hover:border-theme"
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2">
               <LayoutGrid className="text-[var(--accent-blue)]" size={20} />
@@ -339,11 +337,10 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
           </div>
           <div
             onClick={() => { setStatusFilter("pending"); setPage(1); }}
-            className={`p-4 rounded-lg border-2 cursor-pointer transition ${
-              statusFilter === "pending"
+            className={`p-4 rounded-lg border-2 cursor-pointer transition ${statusFilter === "pending"
                 ? "border-amber-500 bg-amber-50"
                 : "border-theme bg-card hover:border-theme"
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2">
               <Play className="text-amber-600" size={20} />
@@ -353,11 +350,10 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
           </div>
           <div
             onClick={() => { setStatusFilter("completed"); setPage(1); }}
-            className={`p-4 rounded-lg border-2 cursor-pointer transition ${
-              statusFilter === "completed"
+            className={`p-4 rounded-lg border-2 cursor-pointer transition ${statusFilter === "completed"
                 ? "border-green-500 bg-green-50"
                 : "border-theme bg-card hover:border-theme"
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2">
               <CheckCircle className="text-green-600" size={20} />
@@ -477,15 +473,14 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                            order.status === "completed" || order.status === "Completed"
+                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${order.status === "completed" || order.status === "Completed"
                               ? "bg-green-100 text-green-800"
                               : order.status === "in-progress"
                                 ? "bg-blue-100 text-blue-800"
                                 : order.status === "Assigned" || order.status === "Shared"
                                   ? "bg-amber-100 text-amber-800"
-                                  : "bg-gray-100 text-primary"
-                          }`}
+                                  : "bg-card text-primary"
+                            }`}
                         >
                           {order.status || "—"}
                         </span>
@@ -836,7 +831,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
                   <div className="flex items-center gap-3 rounded-lg border-2 border-dashed border-theme p-4 hover:border-[var(--accent-blue)]/50 hover:bg-[var(--accent-blue)]/5 transition">
-                    <div className="p-2 rounded-lg bg-gray-100">
+                    <div className="p-2 rounded-lg bg-card">
                       <FileText className="text-secondary" size={24} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -904,15 +899,14 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
               {/* Status & Completion */}
               <div className="flex flex-wrap items-center gap-3">
                 <span
-                  className={`inline-flex px-3 py-1.5 text-sm font-medium rounded-full ${
-                    detailsOrder.status === "completed" || detailsOrder.status === "Completed"
+                  className={`inline-flex px-3 py-1.5 text-sm font-medium rounded-full ${detailsOrder.status === "completed" || detailsOrder.status === "Completed"
                       ? "bg-green-100 text-green-800"
                       : detailsOrder.status === "in-progress"
                         ? "bg-blue-100 text-blue-800"
                         : detailsOrder.status === "Assigned" || detailsOrder.status === "Shared"
                           ? "bg-amber-100 text-amber-800"
-                          : "bg-gray-100 text-primary"
-                  }`}
+                          : "bg-card text-primary"
+                    }`}
                 >
                   {detailsOrder.status || "—"}
                 </span>

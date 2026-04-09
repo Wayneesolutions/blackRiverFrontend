@@ -373,9 +373,9 @@ const SafetyInspections: React.FC = () => {
       completed: 'bg-green-100 text-green-800',
       overdue: 'bg-red-100 text-red-800',
       'action-required': 'bg-orange-100 text-orange-800',
-      cancelled: 'bg-gray-100 text-primary',
+      cancelled: 'bg-card text-primary',
     };
-    return styles[status] || 'bg-gray-100 text-primary';
+    return styles[status] || 'bg-card text-primary';
   };
 
   const filteredInspections = inspections.filter(i => {
@@ -871,7 +871,7 @@ const SafetyInspections: React.FC = () => {
                 </h3>
                 <div className="grid grid-cols-3 gap-4">
                   {selectedInspection.photoEvidence.map((photo, idx) => (
-                    <div key={idx} className="bg-gray-100 p-3 rounded-lg">
+                    <div key={idx} className="bg-card p-3 rounded-lg">
                       <div className="aspect-video bg-gray-300 rounded mb-2 flex items-center justify-center">
                         <FaCamera size={32} className="text-secondary" />
                       </div>
@@ -1188,7 +1188,7 @@ const SafetyInspections: React.FC = () => {
             <div className="flex gap-4">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 px-4 py-3 bg-gray-100 text-primary rounded-xl font-semibold hover:bg-gray-200 transition"
+                className="flex-1 px-4 py-3 bg-card text-primary rounded-xl font-semibold hover:bg-gray-200 transition"
               >
                 Cancel
               </button>

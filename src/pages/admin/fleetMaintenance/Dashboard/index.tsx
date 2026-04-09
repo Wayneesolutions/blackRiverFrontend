@@ -412,54 +412,54 @@ const ComplianceDashboard: React.FC = () => {
 
   // Create dynamic service type cards from pending services
   // Deduplicate by service name (case-insensitive) to prevent duplicate cards
-  const pendingServiceCards = data?.pendingServicesByType 
+  const pendingServiceCards = data?.pendingServicesByType
     ? (() => {
-        console.log('🎴 Frontend: Received pendingServicesByType:', data.pendingServicesByType);
-        console.log('🎴 Frontend: Keys:', Object.keys(data.pendingServicesByType));
-        
-        const deduplicated = new Map();
-        
-        Object.entries(data.pendingServicesByType).forEach(([serviceName, count]) => {
-          const numCount = typeof count === 'number' ? count : 0;
-          console.log(`  🎴 Processing: "${serviceName}": ${numCount}`);
-          
-          if (numCount > 0) {
-            // Use lowercase as key for case-insensitive deduplication
-            const normalizedKey = serviceName.toLowerCase().trim();
-            
-            if (deduplicated.has(normalizedKey)) {
-              // Merge counts if duplicate found
-              const existing = deduplicated.get(normalizedKey);
-              if (existing) {
-                existing.count += numCount;
-                console.log(`  ⚠️ Frontend: Merged duplicate "${serviceName}" -> "${existing.name}": ${existing.count} total`);
-              }
-            } else {
-              // New service - use original name for display
-              deduplicated.set(normalizedKey, {
-                name: serviceName.trim(),
-                count: numCount
-              });
-              console.log(`  ➕ Frontend: Added "${serviceName}": ${numCount}`);
+      console.log('🎴 Frontend: Received pendingServicesByType:', data.pendingServicesByType);
+      console.log('🎴 Frontend: Keys:', Object.keys(data.pendingServicesByType));
+
+      const deduplicated = new Map();
+
+      Object.entries(data.pendingServicesByType).forEach(([serviceName, count]) => {
+        const numCount = typeof count === 'number' ? count : 0;
+        console.log(`  🎴 Processing: "${serviceName}": ${numCount}`);
+
+        if (numCount > 0) {
+          // Use lowercase as key for case-insensitive deduplication
+          const normalizedKey = serviceName.toLowerCase().trim();
+
+          if (deduplicated.has(normalizedKey)) {
+            // Merge counts if duplicate found
+            const existing = deduplicated.get(normalizedKey);
+            if (existing) {
+              existing.count += numCount;
+              console.log(`  ⚠️ Frontend: Merged duplicate "${serviceName}" -> "${existing.name}": ${existing.count} total`);
             }
+          } else {
+            // New service - use original name for display
+            deduplicated.set(normalizedKey, {
+              name: serviceName.trim(),
+              count: numCount
+            });
+            console.log(`  ➕ Frontend: Added "${serviceName}": ${numCount}`);
           }
-        });
-        
-        console.log('🎴 Frontend: Final deduplicated cards:', Array.from(deduplicated.values()));
-        
-        // Convert to array of card objects
-        return Array.from(deduplicated.values()).map(({ name, count }) => ({
-          id: `pending-${name.toLowerCase().replace(/\s+/g, '-')}`,
-          title: name,
-          value: count,
-          subtitle: 'Pending',
-          icon: Clock,
-          bgColor: 'bg-yellow-100',
-          iconColor: 'text-yellow-700',
-          cardBg: 'bg-gradient-to-br from-yellow-50 to-yellow-100',
-          onClick: () => navigate(`${getBasePath()}/scheduled-services-log`)
-        }));
-      })()
+        }
+      });
+
+      console.log('🎴 Frontend: Final deduplicated cards:', Array.from(deduplicated.values()));
+
+      // Convert to array of card objects
+      return Array.from(deduplicated.values()).map(({ name, count }) => ({
+        id: `pending-${name.toLowerCase().replace(/\s+/g, '-')}`,
+        title: name,
+        value: count,
+        subtitle: 'Pending',
+        icon: Clock,
+        bgColor: 'bg-yellow-100',
+        iconColor: 'text-yellow-700',
+        cardBg: 'bg-gradient-to-br from-yellow-50 to-yellow-100',
+        onClick: () => navigate(`${getBasePath()}/scheduled-services-log`)
+      }));
+    })()
     : [];
 
   const features = [
@@ -536,7 +536,7 @@ const ComplianceDashboard: React.FC = () => {
       value: inactiveUnits,
       subtitle: 'Retired / Maintenance',
       icon: Truck,
-      bgColor: 'bg-gray-100',
+      bgColor: 'bg-card',
       iconColor: 'text-primary',
       cardBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
       onClick: () => navigate(`${getBasePath()}/fleet-units`)
@@ -575,161 +575,107 @@ const ComplianceDashboard: React.FC = () => {
 
   return (
     <>
-    <div className="min-h-screen" >
+      <div className="min-h-screen" >
         <div className="w-full mx-auto p-2 relative">
-        {/* Gradient band */}
-        <div
-          className="absolute inset-x-0 top-0"
-          style={{
-            background: `linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)`,
-            height: '101px'
-          }}
-          aria-hidden="true"
-        />
+          {/* Gradient band */}
+          <div
+            className="absolute inset-x-0 top-0"
+            style={{
+              background: `linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)`,
+              height: '101px'
+            }}
+            aria-hidden="true"
+          />
 
-        {/* Main content */}
-        <div className="relative z-10 px-4 pt-3 pb-6">
-          {/* Header Section */}
-          <div className="mb-4 relative z-10">
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-white">Overview</h1>
-              <div className="flex items-center gap-2 text-white/90">
-                <span className="text-xs">Fleet Maintenance</span>
+          {/* Main content */}
+          <div className="relative z-10 px-4 pt-3 pb-6">
+            {/* Header Section */}
+            <div className="mb-4 relative z-10">
+              <div className="flex items-center justify-between">
+                <h1 className="text-xl font-bold text-white">Overview</h1>
+                <div className="flex items-center gap-2 text-white/90">
+                  <span className="text-xs">Fleet Maintenance</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Alert Messages */}
-          {requiresCompanySetup && (
-            <div className="mb-4 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg shadow-sm">
-              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-              <span className="text-sm font-medium">Please complete your company settings to view compliance data.</span>
-            </div>
-          )}
-
-          {error && !requiresCompanySetup && (
-            <div className="mb-4 flex items-center gap-3 bg-card border border-red-200 text-red-700 px-4 py-3 rounded-lg shadow-sm">
-              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-              <span className="text-sm font-medium">{error}</span>
-            </div>
-          )}
-
-          {/* Period Selector */}
-          <div className="mb-4 bg-card rounded-lg shadow-sm border border-theme p-4">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <p className="text-xs text-secondary">Reporting Period</p>
-                <h3 className="text-base font-bold text-primary">
-                  {selectedPeriod === 'month' ? 'This Month' : 'Year to Date'}
-                </h3>
+            {/* Alert Messages */}
+            {requiresCompanySetup && (
+              <div className="mb-4 flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg shadow-sm">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-medium">Please complete your company settings to view compliance data.</span>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setSelectedPeriod('month')}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${selectedPeriod === 'month'
-                    ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow'
-                    : 'bg-gray-100 text-secondary hover:bg-gray-200'
-                    }`}
-                >
-                  This Month
-                </button>
-                <button
-                  onClick={() => setSelectedPeriod('ytd')}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${selectedPeriod === 'ytd'
-                    ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow'
-                    : 'bg-gray-100 text-secondary hover:bg-gray-200'
-                    }`}
-                >
-                  Year to Date
-                </button>
+            )}
+
+            {error && !requiresCompanySetup && (
+              <div className="mb-4 flex items-center gap-3 bg-card border border-red-200 text-red-700 px-4 py-3 rounded-lg shadow-sm">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-medium">{error}</span>
+              </div>
+            )}
+
+            {/* Period Selector */}
+            <div className="mb-4 bg-card rounded-lg shadow-sm border border-theme p-4">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <p className="text-xs text-secondary">Reporting Period</p>
+                  <h3 className="text-base font-bold text-primary">
+                    {selectedPeriod === 'month' ? 'This Month' : 'Year to Date'}
+                  </h3>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectedPeriod('month')}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${selectedPeriod === 'month'
+                      ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow'
+                      : 'bg-card text-secondary hover:bg-gray-200'
+                      }`}
+                  >
+                    This Month
+                  </button>
+                  <button
+                    onClick={() => setSelectedPeriod('ytd')}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${selectedPeriod === 'ytd'
+                      ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow'
+                      : 'bg-card text-secondary hover:bg-gray-200'
+                      }`}
+                  >
+                    Year to Date
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            {/* Fleet Operational Stats - First Row (Active Trucks, Out of Service, Under Repair) */}
-            {features.slice(0, 3).map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={feature.id}
-                  onClick={feature.onClick}
-                  className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <h3 className="text-sm font-bold text-primary mb-1">
-                        {feature.title}
-                      </h3>
-                      <div className="flex items-baseline gap-2 mb-0.5">
-                        <span className="text-xl font-bold text-primary">{feature.value}</span>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+              {/* Fleet Operational Stats - First Row (Active Trucks, Out of Service, Under Repair) */}
+              {features.slice(0, 3).map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={feature.id}
+                    onClick={feature.onClick}
+                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <h3 className="text-sm font-bold text-primary mb-1">
+                          {feature.title}
+                        </h3>
+                        <div className="flex items-baseline gap-2 mb-0.5">
+                          <span className="text-xl font-bold text-primary">{feature.value}</span>
+                        </div>
+                        <p className="text-xs text-secondary">{feature.subtitle}</p>
                       </div>
-                      <p className="text-xs text-secondary">{feature.subtitle}</p>
-                    </div>
-                    <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
-                      <Icon className={feature.iconColor} size={21} strokeWidth={2} />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-            {/* Dynamic Pending Service Cards - Show first pending service card in first row if available */}
-            {pendingServiceCards.slice(0, 1).map((serviceCard) => (
-              <div
-                key={serviceCard.id}
-                onClick={serviceCard.onClick}
-                className={`${serviceCard.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-primary mb-1">
-                      {serviceCard.title}
-                    </h3>
-                    <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className="text-xl font-bold text-primary">{serviceCard.value}</span>
-                    </div>
-                    <p className="text-xs text-secondary">{serviceCard.subtitle}</p>
-                  </div>
-                  <div className={`${serviceCard.bgColor} rounded-lg p-2 shadow-sm`}>
-                    <Clock className={serviceCard.iconColor} size={21} strokeWidth={2} />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Additional Stats Cards - Second Row (Safety, Overdue, Maintenance, Inactive, and remaining Pending Service Cards) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            {/* Safety, Overdue, Maintenance, Inactive cards */}
-            {features.slice(3).map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={feature.id}
-                  onClick={feature.onClick}
-                  className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <h3 className="text-sm font-bold text-primary mb-1">
-                        {feature.title}
-                      </h3>
-                      <div className="flex items-baseline gap-2 mb-0.5">
-                        <span className="text-xl font-bold text-primary">{feature.value}</span>
+                      <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
+                        <Icon className={feature.iconColor} size={21} strokeWidth={2} />
                       </div>
-                      <p className="text-xs text-secondary">{feature.subtitle}</p>
-                    </div>
-                    <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
-                      <Icon className={feature.iconColor} size={21} strokeWidth={2} />
                     </div>
                   </div>
-                </div>
-              );
-            })}
-            {/* Remaining Pending Service Cards (skip first one as it's in first row) */}
-            {pendingServiceCards.slice(1).map((serviceCard) => {
-              return (
+                );
+              })}
+              {/* Dynamic Pending Service Cards - Show first pending service card in first row if available */}
+              {pendingServiceCards.slice(0, 1).map((serviceCard) => (
                 <div
                   key={serviceCard.id}
                   onClick={serviceCard.onClick}
@@ -750,362 +696,415 @@ const ComplianceDashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
 
-          {/* Invoice Breakdown Section */}
-          <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6 mb-6">
-            <h2 className="text-lg font-bold text-primary mb-4">Invoice Breakdown</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {invoiceBreakdown.map((item) => {
-                const Icon = item.icon;
+            {/* Additional Stats Cards - Second Row (Safety, Overdue, Maintenance, Inactive, and remaining Pending Service Cards) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+              {/* Safety, Overdue, Maintenance, Inactive cards */}
+              {features.slice(3).map((feature) => {
+                const Icon = feature.icon;
                 return (
                   <div
-                    key={item.id}
-                    onClick={() => navigate(`${getBasePath()}/invoices`)}
-                    className="group p-4 rounded-xl border border-theme hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
+                    key={feature.id}
+                    onClick={feature.onClick}
+                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className={`${item.bgColor} group-hover:bg-card p-2 rounded-lg transition-colors`}>
-                        <Icon className={`h-5 w-5 ${item.iconColor}`} />
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <h3 className="text-sm font-bold text-primary mb-1">
+                          {feature.title}
+                        </h3>
+                        <div className="flex items-baseline gap-2 mb-0.5">
+                          <span className="text-xl font-bold text-primary">{feature.value}</span>
+                        </div>
+                        <p className="text-xs text-secondary">{feature.subtitle}</p>
                       </div>
-                      <span className="text-lg font-bold text-primary group-hover:text-blue-700">
-                        {item.value}
-                      </span>
+                      <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
+                        <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                      </div>
                     </div>
-                    <p className="text-sm font-medium text-primary group-hover:text-blue-800">{item.title}</p>
-                    <p className="text-xs text-secondary mt-1 group-hover:text-[#00D1FF]">{item.subtitle}</p>
+                  </div>
+                );
+              })}
+              {/* Remaining Pending Service Cards (skip first one as it's in first row) */}
+              {pendingServiceCards.slice(1).map((serviceCard) => {
+                return (
+                  <div
+                    key={serviceCard.id}
+                    onClick={serviceCard.onClick}
+                    className={`${serviceCard.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <h3 className="text-sm font-bold text-primary mb-1">
+                          {serviceCard.title}
+                        </h3>
+                        <div className="flex items-baseline gap-2 mb-0.5">
+                          <span className="text-xl font-bold text-primary">{serviceCard.value}</span>
+                        </div>
+                        <p className="text-xs text-secondary">{serviceCard.subtitle}</p>
+                      </div>
+                      <div className={`${serviceCard.bgColor} rounded-lg p-2 shadow-sm`}>
+                        <Clock className={serviceCard.iconColor} size={21} strokeWidth={2} />
+                      </div>
+                    </div>
                   </div>
                 );
               })}
             </div>
-          </div>
 
-          {/* Safety Fleet Monitor */}
-          <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden mb-6">
-            <div
-              onClick={() => navigate(`${getBasePath()}/regulatory-safety`)}
-              className="px-6 py-4 border-b border-theme bg-card cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-primary flex items-center">
-                  <AlertTriangle className="h-5 w-5 mr-2 text-[#A855F7]" />
-                 Regulatory & Safety
-                </h3>
-                <span className="text-sm text-secondary">View All →</span>
-              </div>
-              <p className="text-xs text-secondary mt-1 ml-7">Units with safety expiry within 30 days or expired</p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-card">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Unit No.</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Make/Model</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Safety Expiry</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Days Until Expiry</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-theme">
-                  {safetyAlerts.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-secondary">
-                        <div className="flex flex-col items-center gap-2">
-                          <FaCheckCircle className="text-green-500" size={32} />
-                          <p>All safety certifications are up to date!</p>
+            {/* Invoice Breakdown Section */}
+            <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6 mb-6">
+              <h2 className="text-lg font-bold text-primary mb-4">Invoice Breakdown</h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {invoiceBreakdown.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => navigate(`${getBasePath()}/invoices`)}
+                      className="group p-4 rounded-xl border border-theme hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className={`${item.bgColor} group-hover:bg-card p-2 rounded-lg transition-colors`}>
+                          <Icon className={`h-5 w-5 ${item.iconColor}`} />
                         </div>
-                      </td>
+                        <span className="text-lg font-bold text-primary group-hover:text-blue-700">
+                          {item.value}
+                        </span>
+                      </div>
+                      <p className="text-sm font-medium text-primary group-hover:text-blue-800">{item.title}</p>
+                      <p className="text-xs text-secondary mt-1 group-hover:text-[#00D1FF]">{item.subtitle}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Safety Fleet Monitor */}
+            <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden mb-6">
+              <div
+                onClick={() => navigate(`${getBasePath()}/regulatory-safety`)}
+                className="px-6 py-4 border-b border-theme bg-card cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-primary flex items-center">
+                    <AlertTriangle className="h-5 w-5 mr-2 text-[#A855F7]" />
+                    Regulatory & Safety
+                  </h3>
+                  <span className="text-sm text-secondary">View All →</span>
+                </div>
+                <p className="text-xs text-secondary mt-1 ml-7">Units with safety expiry within 30 days or expired</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-card">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Unit No.</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Make/Model</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Safety Expiry</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Days Until Expiry</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Status</th>
                     </tr>
-                  ) : (
-                    safetyAlerts.map((alert) => (
-                      <tr
-                        key={`${alert.unitNo}-${alert.safetyExpiry}`}
-                        className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${alert.status === 'expired' ? 'bg-card' : 'bg-card'
-                          }`}
-                      >
-                        <td className="px-6 py-4 font-medium text-primary">{alert.unitNo}</td>
-                        <td className="px-6 py-4 text-primary">{alert.makeModel || '—'}</td>
-                        <td className="px-6 py-4 text-primary">{formatDate(alert.safetyExpiry)}</td>
-                        <td className="px-6 py-4">
-                          <span className={`font-semibold ${alert.daysUntilExpiry < 0 ? 'text-[#A855F7]' : 'text-[#00FFA3]'}`}>
-                            {alert.daysUntilExpiry < 0
-                              ? `Expired ${Math.abs(alert.daysUntilExpiry)} days ago`
-                              : `${alert.daysUntilExpiry} days remaining`}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${alert.status === 'expired'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                              }`}
-                          >
-                            {alert.status === 'expired' ? (
-                              <>
-                                <FaExclamationCircle className="mr-1" size={12} /> EXPIRED
-                              </>
-                            ) : (
-                              <>
-                                <AlertTriangle className="mr-1" size={12} /> WARNING
-                              </>
-                            )}
-                          </span>
+                  </thead>
+                  <tbody className="divide-y divide-theme">
+                    {safetyAlerts.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center text-secondary">
+                          <div className="flex flex-col items-center gap-2">
+                            <FaCheckCircle className="text-green-500" size={32} />
+                            <p>All safety certifications are up to date!</p>
+                          </div>
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Compliance Documents - Expired/Due Documents */}
-          <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden mb-6">
-            <div
-              onClick={() => navigate(`${getBasePath()}/vehicle-documents`)}
-              className="px-6 py-4 border-b border-theme bg-card cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-primary flex items-center">
-                  <FileText className="h-5 w-5 mr-2 text-purple-600" />
-                  Compliance Documents (7 Mandatory Regulatory Requirements)
-                </h3>
-                <span className="text-sm text-secondary">View All →</span>
-              </div>
-              <p className="text-xs text-secondary mt-1 ml-7">Expired, due, and documents going to expire for trucks and trailers</p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-card">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Unit No.</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Document Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Document Number</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Expiry Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Days Until Expiry</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-theme">
-                  {complianceDocuments.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-secondary">
-                        <div className="flex flex-col items-center gap-2">
-                          <FaCheckCircle className="text-green-500" size={32} />
-                          <p>All compliance documents are up to date!</p>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    complianceDocuments.map((doc) => {
-                      const isExpired = doc.daysUntilExpiry !== null && doc.daysUntilExpiry < 0;
-                      const isDueSoon = doc.daysUntilExpiry !== null && doc.daysUntilExpiry >= 0 && doc.daysUntilExpiry <= 30;
-                      const isGoingToExpire = doc.daysUntilExpiry !== null && doc.daysUntilExpiry > 30 && doc.daysUntilExpiry <= 60;
-                      
-                      let rowBgColor = '';
-                      let statusBadgeColor = '';
-                      let statusText = '';
-                      let statusIcon = null;
-                      let daysTextColor = '';
-
-                      if (isExpired) {
-                        rowBgColor = 'bg-card';
-                        statusBadgeColor = 'bg-red-100 text-red-800';
-                        statusText = 'EXPIRED';
-                        statusIcon = <FaExclamationCircle className="mr-1" size={12} />;
-                        daysTextColor = 'text-[#A855F7]';
-                      } else if (isDueSoon) {
-                        rowBgColor = 'bg-card';
-                        statusBadgeColor = 'bg-yellow-100 text-yellow-800';
-                        statusText = 'DUE SOON';
-                        statusIcon = <AlertTriangle className="mr-1" size={12} />;
-                        daysTextColor = 'text-[#00FFA3]';
-                      } else if (isGoingToExpire) {
-                        rowBgColor = 'bg-card';
-                        statusBadgeColor = 'bg-orange-100 text-orange-800';
-                        statusText = 'GOING TO EXPIRE';
-                        statusIcon = <Clock className="mr-1" size={12} />;
-                        daysTextColor = 'text-[#F59E0B]';
-                      } else {
-                        rowBgColor = 'bg-card';
-                        statusBadgeColor = 'bg-yellow-100 text-yellow-800';
-                        statusText = 'DUE';
-                        statusIcon = <AlertTriangle className="mr-1" size={12} />;
-                        daysTextColor = 'text-[#00FFA3]';
-                      }
-
-                      return (
+                    ) : (
+                      safetyAlerts.map((alert) => (
                         <tr
-                          key={doc._id}
-                          className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${rowBgColor}`}
-                        >
-                          <td className="px-6 py-4 font-medium text-primary">{doc.unitNo}</td>
-                          <td className="px-6 py-4 text-primary">
-                            <span className="inline-flex px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800">
-                              {doc.unitType}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-primary">
-                            <span className="capitalize">{doc.documentType.replace(/_/g, ' ')}</span>
-                          </td>
-                          <td className="px-6 py-4 text-primary">{doc.documentNumber}</td>
-                          <td className="px-6 py-4 text-primary">{formatDate(doc.expiryDate)}</td>
-                          <td className="px-6 py-4">
-                            <span className={`font-semibold ${daysTextColor}`}>
-                              {doc.daysUntilExpiry === null
-                                ? 'N/A'
-                                : doc.daysUntilExpiry < 0
-                                ? `Expired ${Math.abs(doc.daysUntilExpiry)} days ago`
-                                : `${doc.daysUntilExpiry} days remaining`}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusBadgeColor}`}>
-                              {statusIcon}
-                              {statusText}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Scheduled Service Status */}
-          <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
-            <div
-              onClick={() => navigate(`${getBasePath()}/scheduled-services-log`)}
-              className="px-6 py-4 border-b border-theme bg-card cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-primary flex items-center">
-                  <Calendar className="h-5 w-5 mr-2 text-[#00D1FF]" />
-                  Scheduled Service Status
-                </h3>
-                <span className="text-sm text-secondary">View All →</span>
-              </div>
-              <p className="text-xs text-secondary mt-1 ml-7">Next service due for each active unit</p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-card">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Unit No.</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Make/Model</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Current Odometer</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Next Service Due</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-theme">
-                  {pmStatus.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-secondary">
-                        No data available. Please configure custom services in Company Settings and ensure units have completed service history.
-                      </td>
-                    </tr>
-                  ) : (
-                    pmStatus.map((unit) => {
-                      // Get the earliest upcoming service (including "ok" status to show what's next)
-                      const nextService = [...unit.nextServices]
-                        .sort((a, b) => {
-                          // Sort by dueDate if available (days-based), otherwise by kmRemaining
-                          if (a.dueDate && b.dueDate) {
-                            return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-                          }
-                          if (a.dueDate) return -1; // Days-based services come first
-                          if (b.dueDate) return 1;
-                          return a.kmRemaining - b.kmRemaining;
-                        })[0];
-
-                      return (
-                        <tr
-                          key={unit.unitNo}
-                          className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${unit.overdueCount > 0 ? 'bg-card' : unit.dueCount > 0 ? 'bg-card' : ''
+                          key={`${alert.unitNo}-${alert.safetyExpiry}`}
+                          className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${alert.status === 'expired' ? 'bg-card' : 'bg-card'
                             }`}
                         >
-                          <td className="px-6 py-4 font-medium text-primary">{unit.unitNo}</td>
+                          <td className="px-6 py-4 font-medium text-primary">{alert.unitNo}</td>
+                          <td className="px-6 py-4 text-primary">{alert.makeModel || '—'}</td>
+                          <td className="px-6 py-4 text-primary">{formatDate(alert.safetyExpiry)}</td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              unit.unitType === 'Truck' 
-                                ? 'bg-blue-100 text-blue-800' 
-                                : 'bg-purple-100 text-purple-800'
-                            }`}>
-                              {unit.unitType || 'N/A'}
+                            <span className={`font-semibold ${alert.daysUntilExpiry < 0 ? 'text-[#A855F7]' : 'text-[#00FFA3]'}`}>
+                              {alert.daysUntilExpiry < 0
+                                ? `Expired ${Math.abs(alert.daysUntilExpiry)} days ago`
+                                : `${alert.daysUntilExpiry} days remaining`}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-primary">{unit.makeModel || '—'}</td>
-                          <td className="px-6 py-4 text-primary">{unit.currentOdometer.toLocaleString()} km</td>
                           <td className="px-6 py-4">
-                            {nextService ? (
-                              <div>
-                                <p className="font-medium text-primary">{nextService.type}</p>
-                                <p className="text-sm text-secondary">
-                                  {nextService.dueDate ? (
-                                    // Days-based service
-                                    (() => {
-                                      const today = new Date();
-                                      today.setHours(0, 0, 0, 0);
-                                      const dueDate = new Date(nextService.dueDate);
-                                      const daysRemaining = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                                      if (daysRemaining < 0) {
-                                        return `OVERDUE by ${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) !== 1 ? 's' : ''}`;
-                                      } else if (daysRemaining <= 7) {
-                                        return `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining (${dueDate.toLocaleDateString()})`;
-                                      } else {
-                                        return `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} until due (${dueDate.toLocaleDateString()})`;
-                                      }
-                                    })()
-                                  ) : (
-                                    // Km/miles-based service
-                                    nextService.kmRemaining <= 0
-                                      ? `OVERDUE by ${Math.abs(nextService.kmRemaining).toLocaleString()} km`
-                                      : nextService.status === 'ok'
-                                        ? `${nextService.kmRemaining.toLocaleString()} km until due`
-                                        : `${nextService.kmRemaining.toLocaleString()} km remaining`
-                                  )}
-                                </p>
-                              </div>
-                            ) : unit.nextServices.length === 0 ? (
-                              <span className="text-secondary text-sm">No services configured</span>
-                            ) : (
-                              <span className="text-secondary text-sm">No upcoming services</span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4">
-                            {unit.overdueCount > 0 ? (
-                              <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                                <XCircle className="mr-1" size={12} /> {unit.overdueCount} Overdue
-                              </span>
-                            ) : unit.dueCount > 0 ? (
-                              <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                <AlertTriangle className="mr-1" size={12} /> {unit.dueCount} Due Soon
-                              </span>
-                            ) : (
-                              <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                <FaCheckCircle className="mr-1" size={12} /> OK
-                              </span>
-                            )}
+                            <span
+                              className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${alert.status === 'expired'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                                }`}
+                            >
+                              {alert.status === 'expired' ? (
+                                <>
+                                  <FaExclamationCircle className="mr-1" size={12} /> EXPIRED
+                                </>
+                              ) : (
+                                <>
+                                  <AlertTriangle className="mr-1" size={12} /> WARNING
+                                </>
+                              )}
+                            </span>
                           </td>
                         </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Compliance Documents - Expired/Due Documents */}
+            <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden mb-6">
+              <div
+                onClick={() => navigate(`${getBasePath()}/vehicle-documents`)}
+                className="px-6 py-4 border-b border-theme bg-card cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-primary flex items-center">
+                    <FileText className="h-5 w-5 mr-2 text-purple-600" />
+                    Compliance Documents (7 Mandatory Regulatory Requirements)
+                  </h3>
+                  <span className="text-sm text-secondary">View All →</span>
+                </div>
+                <p className="text-xs text-secondary mt-1 ml-7">Expired, due, and documents going to expire for trucks and trailers</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-card">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Unit No.</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Document Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Document Number</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Expiry Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Days Until Expiry</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-theme">
+                    {complianceDocuments.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-6 py-12 text-center text-secondary">
+                          <div className="flex flex-col items-center gap-2">
+                            <FaCheckCircle className="text-green-500" size={32} />
+                            <p>All compliance documents are up to date!</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      complianceDocuments.map((doc) => {
+                        const isExpired = doc.daysUntilExpiry !== null && doc.daysUntilExpiry < 0;
+                        const isDueSoon = doc.daysUntilExpiry !== null && doc.daysUntilExpiry >= 0 && doc.daysUntilExpiry <= 30;
+                        const isGoingToExpire = doc.daysUntilExpiry !== null && doc.daysUntilExpiry > 30 && doc.daysUntilExpiry <= 60;
+
+                        let rowBgColor = '';
+                        let statusBadgeColor = '';
+                        let statusText = '';
+                        let statusIcon = null;
+                        let daysTextColor = '';
+
+                        if (isExpired) {
+                          rowBgColor = 'bg-card';
+                          statusBadgeColor = 'bg-red-100 text-red-800';
+                          statusText = 'EXPIRED';
+                          statusIcon = <FaExclamationCircle className="mr-1" size={12} />;
+                          daysTextColor = 'text-[#A855F7]';
+                        } else if (isDueSoon) {
+                          rowBgColor = 'bg-card';
+                          statusBadgeColor = 'bg-yellow-100 text-yellow-800';
+                          statusText = 'DUE SOON';
+                          statusIcon = <AlertTriangle className="mr-1" size={12} />;
+                          daysTextColor = 'text-[#00FFA3]';
+                        } else if (isGoingToExpire) {
+                          rowBgColor = 'bg-card';
+                          statusBadgeColor = 'bg-orange-100 text-orange-800';
+                          statusText = 'GOING TO EXPIRE';
+                          statusIcon = <Clock className="mr-1" size={12} />;
+                          daysTextColor = 'text-[#F59E0B]';
+                        } else {
+                          rowBgColor = 'bg-card';
+                          statusBadgeColor = 'bg-yellow-100 text-yellow-800';
+                          statusText = 'DUE';
+                          statusIcon = <AlertTriangle className="mr-1" size={12} />;
+                          daysTextColor = 'text-[#00FFA3]';
+                        }
+
+                        return (
+                          <tr
+                            key={doc._id}
+                            className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${rowBgColor}`}
+                          >
+                            <td className="px-6 py-4 font-medium text-primary">{doc.unitNo}</td>
+                            <td className="px-6 py-4 text-primary">
+                              <span className="inline-flex px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800">
+                                {doc.unitType}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-primary">
+                              <span className="capitalize">{doc.documentType.replace(/_/g, ' ')}</span>
+                            </td>
+                            <td className="px-6 py-4 text-primary">{doc.documentNumber}</td>
+                            <td className="px-6 py-4 text-primary">{formatDate(doc.expiryDate)}</td>
+                            <td className="px-6 py-4">
+                              <span className={`font-semibold ${daysTextColor}`}>
+                                {doc.daysUntilExpiry === null
+                                  ? 'N/A'
+                                  : doc.daysUntilExpiry < 0
+                                    ? `Expired ${Math.abs(doc.daysUntilExpiry)} days ago`
+                                    : `${doc.daysUntilExpiry} days remaining`}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusBadgeColor}`}>
+                                {statusIcon}
+                                {statusText}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Scheduled Service Status */}
+            <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+              <div
+                onClick={() => navigate(`${getBasePath()}/scheduled-services-log`)}
+                className="px-6 py-4 border-b border-theme bg-card cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-primary flex items-center">
+                    <Calendar className="h-5 w-5 mr-2 text-[#00D1FF]" />
+                    Scheduled Service Status
+                  </h3>
+                  <span className="text-sm text-secondary">View All →</span>
+                </div>
+                <p className="text-xs text-secondary mt-1 ml-7">Next service due for each active unit</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-card">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Unit No.</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Make/Model</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Current Odometer</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Next Service Due</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-theme">
+                    {pmStatus.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-12 text-center text-secondary">
+                          No data available. Please configure custom services in Company Settings and ensure units have completed service history.
+                        </td>
+                      </tr>
+                    ) : (
+                      pmStatus.map((unit) => {
+                        // Get the earliest upcoming service (including "ok" status to show what's next)
+                        const nextService = [...unit.nextServices]
+                          .sort((a, b) => {
+                            // Sort by dueDate if available (days-based), otherwise by kmRemaining
+                            if (a.dueDate && b.dueDate) {
+                              return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+                            }
+                            if (a.dueDate) return -1; // Days-based services come first
+                            if (b.dueDate) return 1;
+                            return a.kmRemaining - b.kmRemaining;
+                          })[0];
+
+                        return (
+                          <tr
+                            key={unit.unitNo}
+                            className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${unit.overdueCount > 0 ? 'bg-card' : unit.dueCount > 0 ? 'bg-card' : ''
+                              }`}
+                          >
+                            <td className="px-6 py-4 font-medium text-primary">{unit.unitNo}</td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${unit.unitType === 'Truck'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-purple-100 text-purple-800'
+                                }`}>
+                                {unit.unitType || 'N/A'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-primary">{unit.makeModel || '—'}</td>
+                            <td className="px-6 py-4 text-primary">{unit.currentOdometer.toLocaleString()} km</td>
+                            <td className="px-6 py-4">
+                              {nextService ? (
+                                <div>
+                                  <p className="font-medium text-primary">{nextService.type}</p>
+                                  <p className="text-sm text-secondary">
+                                    {nextService.dueDate ? (
+                                      // Days-based service
+                                      (() => {
+                                        const today = new Date();
+                                        today.setHours(0, 0, 0, 0);
+                                        const dueDate = new Date(nextService.dueDate);
+                                        const daysRemaining = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                                        if (daysRemaining < 0) {
+                                          return `OVERDUE by ${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) !== 1 ? 's' : ''}`;
+                                        } else if (daysRemaining <= 7) {
+                                          return `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining (${dueDate.toLocaleDateString()})`;
+                                        } else {
+                                          return `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} until due (${dueDate.toLocaleDateString()})`;
+                                        }
+                                      })()
+                                    ) : (
+                                      // Km/miles-based service
+                                      nextService.kmRemaining <= 0
+                                        ? `OVERDUE by ${Math.abs(nextService.kmRemaining).toLocaleString()} km`
+                                        : nextService.status === 'ok'
+                                          ? `${nextService.kmRemaining.toLocaleString()} km until due`
+                                          : `${nextService.kmRemaining.toLocaleString()} km remaining`
+                                    )}
+                                  </p>
+                                </div>
+                              ) : unit.nextServices.length === 0 ? (
+                                <span className="text-secondary text-sm">No services configured</span>
+                              ) : (
+                                <span className="text-secondary text-sm">No upcoming services</span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              {unit.overdueCount > 0 ? (
+                                <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                  <XCircle className="mr-1" size={12} /> {unit.overdueCount} Overdue
+                                </span>
+                              ) : unit.dueCount > 0 ? (
+                                <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                  <AlertTriangle className="mr-1" size={12} /> {unit.dueCount} Due Soon
+                                </span>
+                              ) : (
+                                <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                  <FaCheckCircle className="mr-1" size={12} /> OK
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </>
   );
 };

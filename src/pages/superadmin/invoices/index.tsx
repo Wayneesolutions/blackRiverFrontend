@@ -110,9 +110,9 @@ const InvoicesPage = () => {
       setLoading(true);
       setError(null);
       const response = await getSuperAdminInvoices();
-      
+
       console.log('Invoices API Response:', response);
-      
+
       if (response?.success && response?.data) {
         setInvoices(response.data);
       } else {
@@ -140,8 +140,8 @@ const InvoicesPage = () => {
       case 'paid': return 'bg-green-100 text-green-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'failed': return 'bg-red-100 text-red-800';
-      case 'refunded': return 'bg-gray-100 text-primary';
-      default: return 'bg-gray-100 text-primary';
+      case 'refunded': return 'bg-card text-primary';
+      default: return 'bg-card text-primary';
     }
   };
 
@@ -282,8 +282,8 @@ const InvoicesPage = () => {
       doc.setFontSize(9);
       doc.setTextColor(textR, textG, textB);
       doc.setFont('helvetica', 'bold');
-      const invoiceNum = invoice.invoiceNumber.length > 18 
-        ? invoice.invoiceNumber.substring(0, 15) + '...' 
+      const invoiceNum = invoice.invoiceNumber.length > 18
+        ? invoice.invoiceNumber.substring(0, 15) + '...'
         : invoice.invoiceNumber;
       doc.text(invoiceNum, boxX + 4, boxY + 13);
       doc.setFont('helvetica', 'normal');
@@ -387,8 +387,8 @@ const InvoicesPage = () => {
         doc.setTextColor(grayR, grayG, grayB);
         doc.text('Transaction ID:', margin, yPos);
         doc.setTextColor(textR, textG, textB);
-        const transId = invoice.transactionId.length > 35 
-          ? invoice.transactionId.substring(0, 32) + '...' 
+        const transId = invoice.transactionId.length > 35
+          ? invoice.transactionId.substring(0, 32) + '...'
           : invoice.transactionId;
         doc.text(transId, margin + 45, yPos);
         yPos += 6;
@@ -505,13 +505,13 @@ const InvoicesPage = () => {
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      const matchesSearch = 
+      const matchesSearch =
         invoice.invoiceNumber.toLowerCase().includes(searchLower) ||
         invoice.admin?.name?.toLowerCase().includes(searchLower) ||
         invoice.admin?.email?.toLowerCase().includes(searchLower) ||
         invoice.company?.companyName?.toLowerCase().includes(searchLower) ||
         invoice.planName.toLowerCase().includes(searchLower);
-      
+
       if (!matchesSearch) return false;
     }
 
@@ -842,8 +842,8 @@ const InvoicesPage = () => {
                             </button>
                             {activeDropdown === invoice._id && (
                               <>
-                                <div 
-                                  className="fixed inset-0 z-[9998]" 
+                                <div
+                                  className="fixed inset-0 z-[9998]"
                                   onClick={() => setActiveDropdown(null)}
                                 />
                                 <div className="absolute right-0 bottom-full mb-2 w-48 bg-card rounded-lg shadow-xl border border-theme z-[9999] py-1 overflow-hidden">

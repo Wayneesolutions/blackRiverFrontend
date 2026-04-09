@@ -360,8 +360,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 <button
                                     onClick={() => setLoadType("FTL")}
                                     className={`flex-1 px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${loadType === "FTL"
-                                            ? "!text-white shadow-md"
-                                            : "bg-gray-100 text-primary hover:bg-gray-200"
+                                        ? "!text-white shadow-md"
+                                        : "bg-card text-primary hover:bg-gray-200"
                                         }`}
                                     style={loadType === "FTL" ? {
                                         background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
@@ -372,8 +372,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 <button
                                     onClick={() => setLoadType("LTL")}
                                     className={`flex-1 px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${loadType === "LTL"
-                                            ? "!text-white shadow-md"
-                                            : "bg-gray-100 text-primary hover:bg-gray-200"
+                                        ? "!text-white shadow-md"
+                                        : "bg-card text-primary hover:bg-gray-200"
                                         }`}
                                     style={loadType === "LTL" ? {
                                         background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'

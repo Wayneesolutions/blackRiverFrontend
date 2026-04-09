@@ -210,9 +210,9 @@ const FuelReports = () => {
         report.unit?.makeModel ||
         "N/A";
       const secondary = [
-        report.vehicle?.makeModel, 
+        report.vehicle?.makeModel,
         report.unit?.makeModel,
-        report.vehicle?.plateNumber, 
+        report.vehicle?.plateNumber,
         report.vehicle?.vinNumber
       ]
         .filter(Boolean)
@@ -221,8 +221,8 @@ const FuelReports = () => {
         primary,
         secondary,
         badge: (report.vehicle?.unitType && report.vehicle.unitType !== 'N/A' ? report.vehicle.unitType : null) ||
-               (report.unit?.unitType && report.unit.unitType !== 'N/A' ? report.unit.unitType : null) ||
-               ""
+          (report.unit?.unitType && report.unit.unitType !== 'N/A' ? report.unit.unitType : null) ||
+          ""
       };
     },
     [unitsMap]
@@ -447,7 +447,7 @@ const FuelReports = () => {
     }
   };
 
- 
+
 
   // Fetch fuel types, units, and vendors for edit modal
   const fetchEditFuelTypes = useCallback(async () => {
@@ -585,13 +585,13 @@ const FuelReports = () => {
     fetchEditFuelTypes();
     fetchEditMeasurementUnits();
     fetchEditFuelVendors();
-    
+
     // Get location data
     const location = report.location || {};
     const fullAddress = location.address || report.state || '';
-    
+
     // Format date
-    const reportDate = report.date 
+    const reportDate = report.date
       ? (typeof report.date === 'string' ? report.date.split('T')[0] : new Date(report.date).toISOString().split('T')[0])
       : new Date().toISOString().split('T')[0];
 
@@ -806,7 +806,7 @@ const FuelReports = () => {
       if (response?.success) {
         setCsvImportResult(response.data);
         message.success(response.message || `Import completed: ${response.data?.success || 0} successful, ${response.data?.failed || 0} failed`);
-        
+
         if (response.data?.success > 0) {
           // Refresh fuel reports list
           await fetchFuelReports();
@@ -958,33 +958,33 @@ const FuelReports = () => {
       // Use the same logic as getVehicleDetails to extract unit number
       const vehicleId = r.vehicle?._id || "";
       const matched = vehicleId ? unitsMap.get(vehicleId) : undefined;
-      
+
       let unitNo = "Unknown";
       if (matched) {
         unitNo = matched.unitNo || matched.licensePlate || "Unknown";
       } else {
         // Fallback to report data
         const unitData = r.unit || r.vehicle;
-        unitNo = 
+        unitNo =
           (unitData?.unitNo && unitData.unitNo !== 'N/A' ? unitData.unitNo : null) ||
           (r.vehicle?.unitNo && r.vehicle.unitNo !== 'N/A' ? r.vehicle.unitNo : null) ||
           r.vehicle?.plateNumber ||
           r.vehicle?.vinNumber ||
           "Unknown";
       }
-      
+
       const amt = r.fuelAmount ?? (r.fuelAmounts?.[0] ?? parseFloat(r.volume || "0"));
       if (unitNo !== "Unknown" && amt > 0) {
         byUnit[unitNo] = (byUnit[unitNo] || 0) + amt;
       }
     });
-    
+
     const result = Object.entries(byUnit)
       .filter(([unitNo]) => unitNo !== "Unknown" && unitNo !== "N/A")
       .map(([unitNo, consumption]) => ({ unitNo, consumption }))
       .sort((a, b) => b.consumption - a.consumption)
       .slice(0, 5);
-    
+
     return result.length > 0 ? result : STATIC_TOP_TRUCKS;
   }, [fuelReports, unitsMap]);
 
@@ -1134,13 +1134,13 @@ const FuelReports = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 -mt-2 mb-4">
             <StatCard title="Total Reports" value={filteredReports.length} subtitle="Filtered" icon={FaClipboardList} bgColor="bg-card" iconColor="text-[#00D1FF]" />
             <StatCard title="Total Fuel Cost" value={`$${filteredReports.reduce((a, r) => a + (r.transactionAmount ?? Number(r.cost) ?? 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} subtitle="Filtered" icon={FaFileInvoiceDollar} bgColor="bg-green-50" iconColor="text-green-600" />
-            <StatCard 
-              title="Total Volume" 
-              value={`${filteredReports.reduce((a, r) => a + (r.fuelAmount ?? r.fuelAmounts?.[0] ?? parseFloat(r.volume || "0")), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${fuelReports[0]?.measurementUnit || "L"}`} 
-              subtitle="Filtered" 
-              icon={FaGasPump} 
-              bgColor="bg-card" 
-              iconColor="text-[#F59E0B]" 
+            <StatCard
+              title="Total Volume"
+              value={`${filteredReports.reduce((a, r) => a + (r.fuelAmount ?? r.fuelAmounts?.[0] ?? parseFloat(r.volume || "0")), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${fuelReports[0]?.measurementUnit || "L"}`}
+              subtitle="Filtered"
+              icon={FaGasPump}
+              bgColor="bg-card"
+              iconColor="text-[#F59E0B]"
             />
           </div>
 
@@ -1282,7 +1282,7 @@ const FuelReports = () => {
                     const transactionNumber = report.transactionNumber || report._id.slice(-8);
                     const city = report.city || report.cityLocation || 'N/A';
                     const paymentNotes = report.paymentNotes || '—';
-                    
+
                     return (
                       <tr key={report._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                         <td className="px-6 py-2 text-xs text-primary font-medium">
@@ -1337,7 +1337,7 @@ const FuelReports = () => {
                           ) : (fuelAmount !== null && fuelAmount !== undefined ? fuelAmount.toFixed(2) : (report.volume ? `${report.volume} ${report.type || ''}` : 'N/A'))}
                         </td>
                         <td className="px-6 py-2 text-xs text-secondary">
-                          {report.transactionAmount 
+                          {report.transactionAmount
                             ? `${report.currency === 'CAD' ? 'C$' : '$'}${Number(report.transactionAmount).toFixed(2)}`
                             : (report.cost ? `$${Number(report.cost).toFixed(2)}` : '-')}
                         </td>
@@ -1399,7 +1399,7 @@ const FuelReports = () => {
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
                     className={`px-3 py-2 rounded-lg border ${currentPage === 1
-                      ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
+                      ? 'bg-card text-secondary cursor-not-allowed border-theme'
                       : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                       }`}
                   >
@@ -1435,7 +1435,7 @@ const FuelReports = () => {
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
                     className={`px-3 py-2 rounded-lg border ${currentPage === totalPages
-                      ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
+                      ? 'bg-card text-secondary cursor-not-allowed border-theme'
                       : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                       }`}
                   >
@@ -1523,9 +1523,9 @@ const FuelReports = () => {
                       className="w-full"
                     />
                     {editForm.state && (
-                        <p className="text-xs text-secondary mt-1">
-                          Selected: {editForm.state} {editForm.city && `- ${editForm.city}`}
-                        </p>
+                      <p className="text-xs text-secondary mt-1">
+                        Selected: {editForm.state} {editForm.city && `- ${editForm.city}`}
+                      </p>
                     )}
                   </div>
 
@@ -2006,10 +2006,10 @@ const FuelReports = () => {
               </button>
             </div>
             <p className="text-sm text-secondary">Upload a CSV from your fuel provider (e.g., Flying J, Shell). Map columns to fields.</p>
-            
+
             {/* File Upload */}
             {!csvFile && (
-              <div 
+              <div
                 className="border-2 border-dashed border-theme rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 transition-colors"
                 onClick={() => csvFileInputRef.current?.click()}
               >
@@ -2286,15 +2286,15 @@ const FuelReports = () => {
 
                 {/* Actions */}
                 <div className="flex justify-end gap-3 pt-2 border-t">
-                  <button 
-                    onClick={closeImportModal} 
+                  <button
+                    onClick={closeImportModal}
                     disabled={csvImporting}
                     className="px-4 py-2 rounded-lg border border-theme text-primary hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-60"
                   >
                     {csvImportResult ? 'Close' : 'Cancel'}
                   </button>
                   {!csvImportResult && (
-                    <button 
+                    <button
                       onClick={handleCsvImport}
                       disabled={csvImporting || !csvMapping.date || !csvMapping.transactionAmount || !csvMapping.fuelAmount || !defaultUnitForImport}
                       className="px-4 py-2 rounded-lg !text-white disabled:opacity-60 disabled:cursor-not-allowed"
@@ -2321,10 +2321,10 @@ const FuelReports = () => {
               </button>
             </div>
             <p className="text-sm text-secondary">Upload a photo or PDF of your fuel receipt. AI will extract Total Amount, Gallons, Date, and other details.</p>
-            
+
             {/* File Upload */}
             {!ocrFile && (
-              <div 
+              <div
                 className="border-2 border-dashed border-theme rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 transition-colors"
                 onClick={() => ocrFileInputRef.current?.click()}
               >
@@ -2440,14 +2440,14 @@ const FuelReports = () => {
 
                 {/* Actions */}
                 <div className="flex justify-end gap-3 pt-2 border-t">
-                  <button 
+                  <button
                     onClick={closeOcrModal}
                     disabled={ocrExtracting}
                     className="px-4 py-2 rounded-lg border border-theme text-primary hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-60"
                   >
                     Cancel
                   </button>
-                  <button 
+                  <button
                     onClick={handleCreateFromOcr}
                     disabled={ocrExtracting}
                     className="px-4 py-2 rounded-lg !text-white disabled:opacity-60 disabled:cursor-not-allowed"

@@ -978,7 +978,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                         </span>
                                       )}
                                       {!message.tripStatus.summary.isCurrentlyDriving && message.tripStatus.summary.totalPending === 0 && (
-                                        <span className="px-2 py-0.5 bg-gray-100 text-primary text-xs font-semibold rounded-full">
+                                        <span className="px-2 py-0.5 bg-card text-primary text-xs font-semibold rounded-full">
                                           Available
                                         </span>
                                       )}
@@ -1065,7 +1065,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                                   order.status === 'delivered' ? 'bg-purple-100 text-purple-700' :
                                                     order.status === 'planned' ? 'bg-blue-100 text-[var(--accent-navyblue)]' :
                                                       order.status === 'quoted' ? 'bg-orange-100 text-orange-700' :
-                                                        'bg-gray-100 text-primary'
+                                                        'bg-card text-primary'
                                                   }`}>
                                                   {order.status}
                                                 </span>
@@ -1172,7 +1172,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                                 <span>Order {order.orderNumber}</span>
                                                 <span className={`px-2 py-0.5 rounded text-xs ${order.status === 'planned' ? 'bg-blue-100 text-[var(--accent-navyblue)]' :
                                                   order.status === 'quoted' ? 'bg-orange-100 text-orange-700' :
-                                                    'bg-gray-100 text-primary'
+                                                    'bg-card text-primary'
                                                   }`}>
                                                   {order.status}
                                                 </span>
@@ -1277,7 +1277,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                     }}
                                     className={`flex items-center gap-2 p-2 rounded-lg transition-all hover:opacity-80 ${isRightSide
                                       ? "bg-card/20 hover:bg-card/30 text-white"
-                                      : "bg-gray-100 hover:bg-gray-200 text-[var(--accent-navyblue)]"
+                                      : "bg-card hover:bg-gray-200 text-[var(--accent-navyblue)]"
                                       }`}
                                   >
                                     {message.fileType === "image" ? (

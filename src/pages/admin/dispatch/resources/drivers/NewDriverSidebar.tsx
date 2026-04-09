@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import type { FC } from "react";
 import { X, Plus, Upload, ChevronDown, ChevronUp, User } from 'lucide-react';
 
@@ -176,7 +176,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                 <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-20">
                     {/* User Account Section */}
                     <div>
-                        <div className="flex items-center justify-between mb-3 bg-gray-100 p-3 rounded-md">
+                        <div className="flex items-center justify-between mb-3 bg-card p-3 rounded-md">
                             <h3 className="text-sm font-medium text-primary">User Account</h3>
                             <div className="flex items-center space-x-2">
                                 <button
@@ -220,7 +220,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                             <label className="block text-xs text-secondary mb-1">Name</label>
                                             <input
                                                 type="text"
-                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-gray-100"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                                 value={formData.selectedUserName}
                                                 readOnly
                                             />
@@ -229,7 +229,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                             <label className="block text-xs text-secondary mb-1">Email</label>
                                             <input
                                                 type="email"
-                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-gray-100"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                                 value={formData.selectedUserEmail}
                                                 readOnly
                                             />
@@ -238,7 +238,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                             <label className="block text-xs text-secondary mb-1">Phone</label>
                                             <input
                                                 type="tel"
-                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-gray-100"
+                                                className="w-full px-3 py-2 border border-theme rounded-md text-sm bg-card"
                                                 value={formData.selectedUserPhone}
                                                 readOnly
                                             />
@@ -251,7 +251,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
 
                     {/* Driver Details Section */}
                     <div>
-                        <div className="flex items-center justify-between mb-3 bg-gray-100 p-3 rounded-md">
+                        <div className="flex items-center justify-between mb-3 bg-card p-3 rounded-md">
                             <h3 className="text-sm font-medium text-primary">Driver Details</h3>
                             <button onClick={() => toggleSection('driverDetails')}>
                                 {collapsedSections.driverDetails ? (
@@ -359,7 +359,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
 
                     {/* Location/Coordinates Section */}
                     <div>
-                        <div className="flex items-center justify-between mb-3 bg-gray-100 p-3 rounded-md">
+                        <div className="flex items-center justify-between mb-3 bg-card p-3 rounded-md">
                             <h3 className="text-sm font-medium text-primary">Location</h3>
                             <button onClick={() => toggleSection('location')}>
                                 {collapsedSections.location ?
@@ -379,7 +379,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                             onClick={() => setCoordinatesType('manual')}
                                             className={`px-3 py-1 text-xs !mr-2 rounded ${coordinatesType === 'manual'
                                                 ? 'bg-blue-600 !text-white'
-                                                : 'bg-gray-100 text-primary'
+                                                : 'bg-card text-primary'
                                                 }`}
                                         >
                                             Manual
@@ -389,7 +389,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
                                             onClick={() => setCoordinatesType('auto')}
                                             className={`px-3 py-1 text-xs rounded ${coordinatesType === 'auto'
                                                 ? 'bg-blue-600 !text-white'
-                                                : 'bg-gray-100 text-primary'
+                                                : 'bg-card text-primary'
                                                 }`}
                                         >
                                             Auto-detect
@@ -435,7 +435,7 @@ const NewDriverSidebar: FC<NewDriverSidebarProps> = ({ isOpen, onClose }) => {
 
                     {/* Avatar Section */}
                     <div>
-                        <div className="flex items-center justify-between mb-3 bg-gray-100 p-3 rounded-md">
+                        <div className="flex items-center justify-between mb-3 bg-card p-3 rounded-md">
                             <h3 className="text-sm font-medium text-primary">Avatar</h3>
                             <button onClick={() => toggleSection('avatar')}>
                                 {collapsedSections.avatar ?

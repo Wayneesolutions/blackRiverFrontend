@@ -365,8 +365,8 @@ const DocumentLibrary: React.FC = () => {
                   </tr>
                 ) : (
                   filteredDocuments.map((doc) => (
-                    <tr 
-                      key={doc._id} 
+                    <tr
+                      key={doc._id}
                       onClick={() => {
                         setSelectedDocument(doc);
                         setShowDetailModal(true);
@@ -382,7 +382,7 @@ const DocumentLibrary: React.FC = () => {
                             {doc.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {doc.tags.slice(0, 2).map((tag, idx) => (
-                                  <span key={idx} className="px-2 py-0.5 bg-gray-100 text-secondary rounded text-xs">
+                                  <span key={idx} className="px-2 py-0.5 bg-card text-secondary rounded text-xs">
                                     <FaTag className="inline mr-1" size={8} />
                                     {tag}
                                   </span>
@@ -871,7 +871,7 @@ const DocumentLibrary: React.FC = () => {
                   <h4 className="font-semibold text-primary mb-2">Tags</h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedDocument.tags.map((tag, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-gray-100 text-secondary rounded text-sm">
+                      <span key={idx} className="px-2 py-1 bg-card text-secondary rounded text-sm">
                         <FaTag className="inline mr-1" size={10} />
                         {tag}
                       </span>
@@ -960,7 +960,7 @@ const DocumentLibrary: React.FC = () => {
             <div className="flex gap-4">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 px-4 py-3 bg-gray-100 text-primary rounded-xl font-semibold hover:bg-gray-200 transition"
+                className="flex-1 px-4 py-3 bg-card text-primary rounded-xl font-semibold hover:bg-gray-200 transition"
               >
                 Cancel
               </button>

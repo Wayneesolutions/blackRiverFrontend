@@ -131,7 +131,7 @@ const Index = () => {
       case "inactive":
         return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-primary";
+        return "bg-card text-primary";
     }
   };
 
