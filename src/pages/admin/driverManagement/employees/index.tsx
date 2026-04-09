@@ -1135,7 +1135,7 @@ const EmployeesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-main p-6">
+    <div className="min-h-screen bg-main p-6 border-2 border-red-700">
       {/* Toast Notifications */}
       {notifications.map(notification => (
         <ToastNotificationComponent

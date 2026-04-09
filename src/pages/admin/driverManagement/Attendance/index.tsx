@@ -65,7 +65,7 @@ const AttendanceTracking = () => {
   const notificationIdRef = useRef<number>(0);
   const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
   const [showDetailsSidebar, setShowDetailsSidebar] = useState(false);
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -103,7 +103,7 @@ const AttendanceTracking = () => {
   const fetchAttendance = async () => {
     try {
       let params: any = {};
-      
+
       if (filterType === 'date' && filterDate) {
         // Filter by specific date
         params.date = filterDate;
@@ -117,7 +117,7 @@ const AttendanceTracking = () => {
         params.month = now.getMonth() + 1;
         params.year = now.getFullYear();
       }
-      
+
       const res = await apiListAttendance(params);
       if (res?.success) setAttendanceRecords(res.data || []);
     } catch { }
@@ -145,25 +145,25 @@ const AttendanceTracking = () => {
     if (!checkIn || !checkOut || checkIn === '--' || checkOut === '--') return 0;
     const [inHour, inMin] = checkIn.split(':').map(Number);
     const [outHour, outMin] = checkOut.split(':').map(Number);
-    
+
     // Handle invalid times
     if (isNaN(inHour) || isNaN(inMin) || isNaN(outHour) || isNaN(outMin)) return 0;
-    
+
     const totalMinutes = (outHour * 60 + outMin) - (inHour * 60 + inMin);
-    
+
     // Handle negative hours (checkOut before checkIn, likely wrong data)
     if (totalMinutes < 0) {
       // If checkOut is earlier than checkIn, it might be next day, but for now return 0
       return 0;
     }
-    
+
     return totalMinutes / 60;
   };
 
   // Deduplicate records by employee + date (keep the most complete record)
   const deduplicateRecords = (records: AttendanceRecord[]): AttendanceRecord[] => {
     const recordMap = new Map<string, AttendanceRecord>();
-    
+
     records.forEach(record => {
       // Extract employee ID - handle both string and object formats
       let employeeId = '';
@@ -172,12 +172,12 @@ const AttendanceTracking = () => {
       } else if (record.employee && typeof record.employee === 'object' && '_id' in record.employee) {
         employeeId = (record.employee as any)._id || '';
       }
-      
+
       if (!employeeId) {
         // Skip records without employee ID
         return;
       }
-      
+
       // Normalize date to YYYY-MM-DD format for consistent comparison
       // Handle dates with different times (e.g., 2026-03-04T18:30:00.000Z vs 2026-03-04T00:00:00.000Z)
       let dateStr = '';
@@ -198,24 +198,24 @@ const AttendanceTracking = () => {
           }
         }
       }
-      
+
       if (!dateStr) {
         // Skip records without valid date
         return;
       }
-      
+
       const key = `${employeeId}_${dateStr}`;
-      
+
       if (!recordMap.has(key)) {
         recordMap.set(key, record);
       } else {
         const existing = recordMap.get(key)!;
-        
+
         // Debug: Log when we find a duplicate
         const currentEmployeeName = typeof record.employee === 'string'
           ? (employees.find(e => e._id === record.employee)?.name || record.employee)
           : (record.employee as any)?.name || '';
-        
+
         console.log(`🔍 Found duplicate for ${currentEmployeeName} on ${dateStr}:`, {
           existing: { _id: existing._id, checkIn: existing.checkIn, checkOut: existing.checkOut, totalHours: existing.totalHours },
           current: { _id: record._id, checkIn: record.checkIn, checkOut: record.checkOut, totalHours: record.totalHours }
@@ -223,15 +223,15 @@ const AttendanceTracking = () => {
         // Keep the record with more complete data (has checkIn and checkOut)
         const existingComplete = existing.checkIn && existing.checkOut && existing.checkIn !== '--' && existing.checkOut !== '--';
         const currentComplete = record.checkIn && record.checkOut && record.checkIn !== '--' && record.checkOut !== '--';
-        
+
         // Calculate hours for both records
         const existingHours = existingComplete ? calculateHours(existing.checkIn!, existing.checkOut!) : (existing.totalHours || 0);
         const currentHours = currentComplete ? calculateHours(record.checkIn!, record.checkOut!) : (record.totalHours || 0);
-        
+
         // Skip records with invalid hours (like 0 hours or negative hours from wrong time calculation)
         const existingValid = existingHours > 0 && existingHours <= 24;
         const currentValid = currentHours > 0 && currentHours <= 24;
-        
+
         if (currentComplete && !existingComplete) {
           // Current has complete data, existing doesn't - keep current
           recordMap.set(key, record);
@@ -257,7 +257,7 @@ const AttendanceTracking = () => {
         }
       }
     });
-    
+
     return Array.from(recordMap.values());
   };
 
@@ -289,15 +289,15 @@ const AttendanceTracking = () => {
       // Check if a record already exists for this employee and date
       const selectedDate = new Date(attendanceForm.date);
       selectedDate.setHours(0, 0, 0, 0);
-      
+
       const existingRecord = attendanceRecords.find(record => {
         const recordEmployeeId = typeof record.employee === 'string' ? record.employee : record.employee?._id || '';
         const recordDate = new Date(record.date);
         recordDate.setHours(0, 0, 0, 0);
-        
-        return recordEmployeeId === attendanceForm.employeeId && 
-               recordDate.getTime() === selectedDate.getTime() &&
-               (!editingRecord || record._id !== editingRecord._id); // Exclude current record if editing
+
+        return recordEmployeeId === attendanceForm.employeeId &&
+          recordDate.getTime() === selectedDate.getTime() &&
+          (!editingRecord || record._id !== editingRecord._id); // Exclude current record if editing
       });
 
       if (existingRecord && !editingRecord) {
@@ -374,9 +374,9 @@ const AttendanceTracking = () => {
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      present: 'bg-green-100 text-green-800 border-green-200',
-      absent: 'bg-red-100 text-red-800 border-red-200',
-      leave: 'bg-purple-100 text-purple-800 border-purple-200'
+      present: 'bg-[var(--accent-green)]/10 border-theme',
+      absent: 'bg-[var(--accent-red)]/20 text-red-800 border-theme',
+      leave: 'bg-[var(--accent-purple)]/10 text-purple-800 border-theme'
     };
     return styles[status] || styles.present;
   };
@@ -390,10 +390,10 @@ const AttendanceTracking = () => {
     if (a._id && b._id) return b._id.localeCompare(a._id);
     return 0;
   });
-  
+
   // First deduplicate records, then filter
   const deduplicatedRecords = deduplicateRecords(sortedRecords);
-  
+
   // Debug logging
   if (attendanceRecords.length !== deduplicatedRecords.length) {
     console.log(`🔍 Deduplication: ${attendanceRecords.length} records → ${deduplicatedRecords.length} unique records`);
@@ -403,7 +403,7 @@ const AttendanceTracking = () => {
       console.log(`🔍 Removed ${duplicates} duplicate record(s)`);
     }
   }
-  
+
   const filteredRecords = deduplicatedRecords.filter(record => {
     const name = (typeof record.employee === 'string' ? (employees.find(e => e._id === record.employee)?.name || '') : (record.employee as any)?.name || '');
     const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -462,8 +462,8 @@ const AttendanceTracking = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -495,19 +495,19 @@ const AttendanceTracking = () => {
           <div
             key={notification.id}
             className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg min-w-[300px] max-w-md animate-slide-in ${notification.type === 'success'
-              ? 'bg-green-50 border-green-200'
+              ? 'bg-[var(--accent-green)]/10 border-[var(--accent-green)]/30'
               : notification.type === 'error'
-                ? 'bg-card border-red-200'
-                : 'bg-card border-blue-200'
+                ? 'bg-[var(--accent-red)]/10 border-[var(--accent-red)]/30'
+                : 'bg-[var(--accent-blue)]/10 border-[var(--accent-blue)]/30'
               }`}
           >
             <div className="flex-shrink-0 mt-0.5">
               {notification.type === 'success' ? (
-                <FaCheckCircle className="text-green-500" size={24} />
+                <FaCheckCircle className="text-[var(--accent-green)]" size={24} />
               ) : notification.type === 'error' ? (
-                <FaExclamationCircle className="text-red-500" size={24} />
+                <FaExclamationCircle className="text-[var(--accent-red)]" size={24} />
               ) : (
-                <FaExclamationCircle className="text-blue-500" size={24} />
+                <FaExclamationCircle className="text-[var(--accent-blue)]" size={24} />
               )}
             </div>
             <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
@@ -531,7 +531,10 @@ const AttendanceTracking = () => {
             </div>
             <button
               onClick={() => setShowAddModal(true)}
-              style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+              style={{
+                background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)",
+                boxShadow: "0 8px 20px var(--border-glow)"
+              }}
               className="px-4 py-2 !text-white rounded-lg transition-all font-medium flex items-center gap-2 shadow-sm hover:shadow-md"
             >
               <Plus size={20} />
@@ -545,47 +548,47 @@ const AttendanceTracking = () => {
           {/* Total Employees */}
           <div
             onClick={() => navigate(`${getBasePath()}/employee-profiles`)}
-            className="rounded-lg p-4 bg-card border border-purple-200 cursor-pointer hover:shadow-sm transition-shadow"
+            className="rounded-lg p-4 bg-card border border-theme cursor-pointer hover:shadow-sm transition-shadow"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-purple-600 mb-0.5">Total Employees</p>
-                <p className="text-2xl font-semibold text-purple-700">
+                <p className="text-xs text-[var(--accent-purple)] mb-0.5">Total Employees</p>
+                <p className="text-2xl font-semibold text-[var(--accent-purple)]">
                   {totalEmployees}
                 </p>
               </div>
-              <div className="p-2 bg-purple-100 rounded-full">
-                <Users className="text-purple-600" size={18} />
+              <div className="p-2 bg-[var(--accent-purple)]/10 rounded-full">
+                <Users className="text-[var(--accent-purple)]" size={18} />
               </div>
             </div>
           </div>
 
           {/* Present Today */}
-          <div className="rounded-lg p-4 bg-green-50 border border-green-200 hover:shadow-sm transition-shadow">
+          <div className="rounded-lg p-4 bg-[var(--accent-green)]/10 border-[var(--accent-green)]/30 hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-green-600 mb-0.5">Present Today</p>
+                <p className="text-xs text-[var(--accent-green)] mb-0.5">Present Today</p>
                 <p className="text-2xl font-semibold text-green-700">
                   {presentToday}
                 </p>
               </div>
-              <div className="p-2 bg-green-100 rounded-full">
-                <CheckCircle className="text-green-600" size={18} />
+              <div className="p-2 text-[var(--accent-green)]/20 rounded-full">
+                <CheckCircle className="text-[var(--accent-green)]" size={18} />
               </div>
             </div>
           </div>
 
           {/* Absent Today */}
-          <div className="rounded-lg p-4 bg-card border border-red-200 hover:shadow-sm transition-shadow">
+          <div className="rounded-lg p-4 bg-[var(--accent-red)]/10 border-[var(--accent-red)]/30 hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-[#A855F7] mb-0.5">Absent Today</p>
-                <p className="text-2xl font-semibold text-red-700">
+                <p className="text-xs text-[var(--accent-purple)] mb-0.5">Absent Today</p>
+                <p className="text-2xl font-semibold text-[var(--accent-red)]">
                   {absentToday}
                 </p>
               </div>
-              <div className="p-2 bg-red-100 rounded-full">
-                <XCircle className="text-[#A855F7]" size={18} />
+              <div className="p-2 bg-[var(--accent-red)]/20 rounded-full">
+                <XCircle className="text-[var(--accent-purple)]" size={18} />
               </div>
             </div>
           </div>
@@ -607,7 +610,9 @@ const AttendanceTracking = () => {
                     placeholder="Search employee..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="pl-10 pr-4 py-2 border border-theme rounded-lg bg-card text-primary
+focus:ring-[var(--accent-blue)]/30
+focus:border-[var(--accent-blue)]"
                   />
                 </div>
 
@@ -624,7 +629,8 @@ const AttendanceTracking = () => {
                       setFilterYear(now.getFullYear());
                     }
                   }}
-                  className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                 >
                   <option value="month">Filter by Month</option>
                   <option value="date">Filter by Date</option>
@@ -636,7 +642,8 @@ const AttendanceTracking = () => {
                     type="date"
                     value={filterDate}
                     onChange={(e) => setFilterDate(e.target.value)}
-                    className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                   />
                 )}
 
@@ -646,7 +653,8 @@ const AttendanceTracking = () => {
                     <select
                       value={filterMonth}
                       onChange={(e) => setFilterMonth(Number(e.target.value))}
-                      className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                     >
                       <option value={1}>January</option>
                       <option value={2}>February</option>
@@ -664,7 +672,8 @@ const AttendanceTracking = () => {
                     <select
                       value={filterYear}
                       onChange={(e) => setFilterYear(Number(e.target.value))}
-                      className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                     >
                       {Array.from({ length: 10 }, (_, i) => {
                         const year = new Date().getFullYear() - 5 + i;
@@ -681,7 +690,8 @@ const AttendanceTracking = () => {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                 >
                   <option value="all">All Status</option>
                   <option value="present">Present</option>
@@ -735,10 +745,10 @@ const AttendanceTracking = () => {
               background: #94a3b8;
             }
           `}</style>
-          <div 
+          <div
             ref={topScrollRef}
             className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-            style={{ 
+            style={{
               maxHeight: '20px',
               marginBottom: '2px',
               scrollbarWidth: 'thin',
@@ -748,7 +758,7 @@ const AttendanceTracking = () => {
             <div className="top-scroll-content" style={{ height: '1px' }}></div>
           </div>
           {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-          <div 
+          <div
             ref={bottomScrollRef}
             className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
           >
@@ -768,8 +778,8 @@ const AttendanceTracking = () => {
               <tbody className="divide-y divide-theme">
                 {filteredRecords.length > 0 ? (
                   filteredRecords.map((record, idx) => (
-                    <tr 
-                      key={record._id || idx} 
+                    <tr
+                      key={record._id || idx}
                       className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                       onClick={() => {
                         setSelectedRecord(record);
@@ -778,7 +788,7 @@ const AttendanceTracking = () => {
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                          <div className="w-8 h-8 bg-[var(--accent-blue)] text-black rounded-full flex items-center justify-center  text-sm font-semibold">
                             {((typeof record.employee === 'string' ? employees.find(e => e._id === record.employee)?.name : (record.employee as any)?.name) || '').split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </div>
                           <span className="font-medium text-primary">{typeof record.employee === 'string' ? (employees.find(e => e._id === record.employee)?.name || '') : (record.employee as any)?.name}</span>
@@ -791,7 +801,7 @@ const AttendanceTracking = () => {
                         <div className="flex items-center gap-2">
                           {record.checkIn || '--'}
                           {record.isAutoTracked && (
-                            <span className="text-xs text-[#00D1FF] bg-card px-1.5 py-0.5 rounded" title="Auto-tracked from login/logout">
+                            <span className="text-xs text-[var(--accent-blue)] bg-card px-1.5 py-0.5 rounded" title="Auto-tracked from login/logout">
                               Auto
                             </span>
                           )}
@@ -801,7 +811,7 @@ const AttendanceTracking = () => {
                         <div className="flex items-center gap-2">
                           {record.checkOut || '--'}
                           {record.isActiveSession && (
-                            <span className="text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded animate-pulse" title="Currently logged in">
+                            <span className="text-xs text-[var(--accent-green)] bg-[var(--accent-green)]/10 px-1.5 py-0.5 rounded animate-pulse" title="Currently logged in">
                               Active
                             </span>
                           )}
@@ -816,7 +826,7 @@ const AttendanceTracking = () => {
                           } else {
                             hours = record.totalHours || 0;
                           }
-                          
+
                           if (hours < 1 && hours > 0) {
                             // Show minutes for durations less than 1 hour
                             const minutes = Math.round(hours * 60);
@@ -840,13 +850,13 @@ const AttendanceTracking = () => {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEdit(record)}
-                              className="text-[#00D1FF] hover:text-blue-800 p-1 rounded hover:bg-blue-50"
+                              className="text-[var(--accent-blue)] hover:bg-[var(--accent-amber)]/10 p-1 rounded hover:bg-[rgba(0,209,255,0.1)]"
                             >
                               <Edit size={16} />
                             </button>
                             <button
                               onClick={() => handleDelete(record._id)}
-                              className="text-[#A855F7] hover:text-red-800 p-1 rounded hover:bg-red-50"
+                              className=" hover:text-red-800 p-1 rounded text-[var(--accent-purple)] hover:bg-[rgba(255,77,77,0.1)]"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -913,7 +923,8 @@ const AttendanceTracking = () => {
                 <select
                   value={attendanceForm.employeeId}
                   onChange={(e) => setAttendanceForm({ ...attendanceForm, employeeId: e.target.value })}
-                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                 >
                   <option value="">Select Employee</option>
                   {employees.map((emp) => (
@@ -928,7 +939,8 @@ const AttendanceTracking = () => {
                   type="date"
                   value={attendanceForm.date}
                   onChange={(e) => setAttendanceForm({ ...attendanceForm, date: e.target.value })}
-                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                 />
               </div>
 
@@ -937,7 +949,8 @@ const AttendanceTracking = () => {
                 <select
                   value={attendanceForm.status}
                   onChange={(e) => setAttendanceForm({ ...attendanceForm, status: e.target.value as any })}
-                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                 >
                   <option value="present">Present</option>
                   <option value="absent">Absent</option>
@@ -954,7 +967,8 @@ const AttendanceTracking = () => {
                         type="time"
                         value={attendanceForm.checkIn}
                         onChange={(e) => setAttendanceForm({ ...attendanceForm, checkIn: e.target.value })}
-                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                       />
                     </div>
                     <div>
@@ -963,14 +977,15 @@ const AttendanceTracking = () => {
                         type="time"
                         value={attendanceForm.checkOut}
                         onChange={(e) => setAttendanceForm({ ...attendanceForm, checkOut: e.target.value })}
-                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30"
                       />
                     </div>
                   </div>
 
                   {attendanceForm.checkIn && attendanceForm.checkOut && (
-                    <div className="p-3 bg-card border border-blue-200 rounded-lg">
-                      <p className="text-sm text-blue-800">
+                    <div className="p-3 bg-card border border-[var(--accent-blue)]/30 rounded-lg">
+                      <p className="text-sm text-[var(--accent-blue)]">
                         Total hours: <span className="font-bold">{calculateHours(attendanceForm.checkIn, attendanceForm.checkOut).toFixed(1)}h</span>
                       </p>
                     </div>
@@ -987,7 +1002,7 @@ const AttendanceTracking = () => {
                 <label className="block text-sm font-semibold text-primary mb-2">
                   Notes/Remarks
                   {(attendanceForm.status === 'absent' || attendanceForm.status === 'leave') && (
-                    <span className="text-red-500 ml-1">*</span>
+                    <span className="text-[var(--accent-red)] ml-1">*</span>
                   )}
                 </label>
                 <textarea
@@ -999,10 +1014,11 @@ const AttendanceTracking = () => {
                       : "Add any additional notes or remarks (optional)..."
                   }
                   rows={3}
-                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-blue)]/30 resize-none"
                 />
                 {(attendanceForm.status === 'absent' || attendanceForm.status === 'leave') && !attendanceForm.notes && (
-                  <p className="text-xs text-red-500 mt-1">Note is required for absent or leave status</p>
+                  <p className="text-xs text-[var(--accent-red)] mt-1">Note is required for absent or leave status</p>
                 )}
               </div>
             </div>
@@ -1029,7 +1045,7 @@ const AttendanceTracking = () => {
                 </button>
                 <button
                   onClick={handleAddAttendance}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 !text-white rounded-lg transition-colors font-medium"
+                  className="flex-1 px-4 py-2 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] !text-white rounded-lg transition-colors font-medium"
                 >
                   {editingRecord ? 'Update Record' : 'Add Record'}
                 </button>
@@ -1058,7 +1074,7 @@ const AttendanceTracking = () => {
             {/* Header - Fixed */}
             <div className="border-b border-theme px-6 py-4 flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent-amber)]/10">
                   <XCircle className="h-6 w-6 text-[#00FFA3]" />
                 </div>
                 <div className="flex-1">
@@ -1088,11 +1104,11 @@ const AttendanceTracking = () => {
                 <div className="mb-3">
                   <p className="text-sm font-medium text-primary mb-2">Date:</p>
                   <p className="text-base text-primary">
-                    {new Date(attendanceForm.date).toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
+                    {new Date(attendanceForm.date).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
                     })}
                   </p>
                 </div>
@@ -1135,8 +1151,8 @@ const AttendanceTracking = () => {
                   )}
                 </div>
               </div>
-              <div className="rounded-lg bg-card border border-blue-200 p-3">
-                <p className="text-sm text-blue-800">
+              <div className="rounded-lg bg-card border border-[var(--accent-amber)]/30 p-3">
+                <p className="text-sm bg-[var(--accent-amber)]/10">
                   <strong>Would you like to update the existing record</strong> with the new information you've entered?
                 </p>
               </div>
@@ -1157,7 +1173,7 @@ const AttendanceTracking = () => {
                   // Set the existing record as the editing record
                   setEditingRecord(duplicateRecord);
                   setShowDuplicateModal(false);
-                  
+
                   // Proceed with save - it will update the existing record
                   try {
                     const payload = {
@@ -1204,7 +1220,7 @@ const AttendanceTracking = () => {
         <>
           {/* Overlay */}
           <div
-            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
             onClick={() => {
               setShowDetailsSidebar(false);
               setTimeout(() => setSelectedRecord(null), 300);
@@ -1232,7 +1248,7 @@ const AttendanceTracking = () => {
 
               <div className="space-y-6">
                 {/* Employee Header */}
-                <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                <div className="bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] text-white p-6 rounded-lg">
                   <div className="flex items-center gap-4">
                     <div className="h-20 w-20 flex-shrink-0">
                       <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600">
@@ -1260,7 +1276,7 @@ const AttendanceTracking = () => {
                 {selectedRecord && (
                   <div className="bg-card p-6 rounded-lg border border-theme">
                     <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
-                      <Briefcase size={20} className="text-[#00D1FF]" />
+                      <Briefcase size={20} className="text-[var(--accent-blue)]" />
                       Attendance Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1316,7 +1332,7 @@ const AttendanceTracking = () => {
                         setShowDetailsSidebar(false);
                         setTimeout(() => setSelectedRecord(null), 300);
                       }}
-                      className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
+                      className="px-6 py-2.5 text-primary font-medium rounded-lg  transition-all from-[var(--accent-blue)] to-[var(--accent-purple)]"
                     >
                       Close
                     </button>
@@ -1367,8 +1383,8 @@ const ConfirmationModal = ({
 
   const confirmStyles =
     type === 'danger'
-      ? 'bg-red-600 hover:bg-red-700 text-white'
-      : 'bg-blue-600 hover:bg-blue-700 text-white';
+      ? 'bg-[var(--accent-red)] hover:bg-[var(--accent-red)] text-white'
+      : 'bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] text-white';
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
