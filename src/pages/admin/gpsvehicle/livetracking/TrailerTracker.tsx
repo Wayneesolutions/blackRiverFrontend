@@ -284,11 +284,11 @@ const ProfessionalTrailerTracker: React.FC = () => {
             >
                 <div className="h-full flex flex-col ">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-[rgba(0,209,255,0.2)] via-[rgba(0,209,255,0.15)] to-[rgba(168,85,247,0.2)] p-4 text-white border border-theme rounded-lg">
+                    <div className="bg-gradient-to-r from-[rgba(0,209,255,0.2)] via-[rgba(0,209,255,0.15)] to-[rgba(168,85,247,0.2)] p-4 border border-theme rounded-lg">
 
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
-                                <Package className="w-5 h-5 text-accent" />
+                            <h2 className="text-xl font-bold flex items-center gap-2 text-[var(--accent-navyblue)]">
+                                <Package className="w-5 h-5 text-[var(--accent-navyblue)]" />
                                 Trailer Tracker
                             </h2>
 
@@ -337,7 +337,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
                                     >
                                         {/* Plate Number & Status */}
                                         <div className="flex items-center justify-between mb-3">
-                                            <h3 className="font-bold text-base text-primary">
+                                            <h3 className="font-bold text-base text-[var(--accent-navyblue)]">
                                                 {t.plateNumber}
                                             </h3>
                                             <span
@@ -475,7 +475,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
                 {selectedTrailer && (
                     <div className="absolute top-4 right-4 bg-card rounded-lg shadow-lg p-3 max-w-xs z-[1000]">
                         <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-base font-bold text-primary">{selectedTrailer.plateNumber}</h3>
+                            <h3 className="text-base font-bold text-[var(--accent-navyblue)]">{selectedTrailer.plateNumber}</h3>
                             <button
                                 onClick={() => setSelectedTrailer(null)}
                                 className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded transition-colors"
@@ -523,7 +523,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
 
                 {/* Status Legend */}
                 <div className="absolute bottom-4 left-4 bg-card p-2 rounded-lg shadow-lg text-xs z-[1000]">
-                    <div className="font-semibold mb-2">Trailer Status:</div>
+                    <div className="font-semibold mb-2 text-[var(--accent-navyblue)]">Trailer Status:</div>
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#10b981' }}></div>

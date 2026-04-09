@@ -521,13 +521,13 @@ const VehicleList = () => {
         className = "",
     }) => (
         <th
-            className={`px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-card transition-colors duration-150 ${className}`}
+            className={`px-6 py-4 text-left text-xs font-semibold text-[var(--accent-blue)] uppercase tracking-wider cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors duration-150 ${className}`}
             onClick={() => handleSort(field)}
         >
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center gap-1">
                 <span>{children}</span>
                 {sortBy === field && (
-                    <span className="text-blue-500 text-sm font-bold">
+                    <span className="text-[var(--accent-blue)] text-sm font-bold">
                         {sortOrder === "asc" ? "↑" : "↓"}
                     </span>
                 )}
@@ -737,15 +737,15 @@ const VehicleList = () => {
 
                 {/* Filters and Search */}
                 <div className="bg-card rounded-xl shadow-sm border border-theme mb-6 overflow-hidden">
-                    <div className="p-6 border-b border-slate-100">
+                    <div className="p-6 border-b border-theme">
                         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                             <div className="flex-1">
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
                                     <input
                                         type="text"
                                         placeholder="Search by plate number, internal ID, or location..."
-                                        className="w-full pl-10 pr-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] transition-colors duration-150"
+                                        className="w-full pl-10 pr-4 py-2 bg-card text-primary text-sm border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] transition-colors duration-150"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -754,9 +754,9 @@ const VehicleList = () => {
 
                             <div className="flex gap-3">
                                 <div className="relative">
-                                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-4 h-4" />
                                     <select
-                                        className="pl-10 pr-8 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] appearance-none bg-card min-w-40 transition-colors duration-150 border-2 border-red-700"
+                                        className="pl-10 pr-8 py-2 text-sm border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] appearance-none bg-card text-primary min-w-40 transition-colors duration-150"
                                         value={filterStatus}
                                         onChange={(e) => setFilterStatus(e.target.value)}
                                     >
@@ -774,7 +774,11 @@ const VehicleList = () => {
                             <span>Showing {indexOfFirstVehicle + 1}-{Math.min(indexOfLastVehicle, sortedVehicles.length)} of {sortedVehicles.length} vehicles</span>
                             <div className="flex items-center space-x-2">
                                 <span>Show:</span>
-                                <select className="border border-theme rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)]">
+                                <select
+                                    className="border border-theme rounded-lg px-3 py-1 text-sm bg-card text-primary focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)]"
+                                    value={vehiclesPerPage}
+                                    onChange={(e) => { setVehiclesPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                                >
                                     <option value="10">10</option>
                                     <option value="25">25</option>
                                     <option value="50">50</option>
@@ -788,17 +792,17 @@ const VehicleList = () => {
                     {/* Top Scrollbar - Only visible horizontal scrollbar */}
                     <style>{`
                         .top-scrollbar-container::-webkit-scrollbar {
-                            height: 8px;
+                            height: 6px;
                         }
                         .top-scrollbar-container::-webkit-scrollbar-track {
-                            background: #f7fafc;
+                            background: transparent;
                         }
                         .top-scrollbar-container::-webkit-scrollbar-thumb {
-                            background: #cbd5e0;
+                            background: rgba(0,209,255,0.25);
                             border-radius: 4px;
                         }
                         .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                            background: #a0aec0;
+                            background: rgba(0,209,255,0.45);
                         }
                         .table-container-hidden-scrollbar {
                             scrollbar-width: none; /* Firefox */
@@ -815,7 +819,7 @@ const VehicleList = () => {
                             maxHeight: '20px',
                             marginBottom: '2px',
                             scrollbarWidth: 'thin',
-                            scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                            scrollbarColor: '#224c75 #111c24'  /* Firefox */
                         }}
                     >
                         <div className="top-scroll-content" style={{ height: '1px' }}></div>
@@ -825,7 +829,7 @@ const VehicleList = () => {
                         ref={bottomScrollRef}
                         className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
                     >
-                        <table className="min-w-full divide-y divide-theme" style={{ minWidth: '1400px' }}>
+                        <table className="min-w-full divide-theme" style={{ minWidth: '1400px' }}>
                             <thead className="bg-card">
                                 <tr>
                                     <SortHeader field="internalId">Vehicle ID</SortHeader>
@@ -835,19 +839,19 @@ const VehicleList = () => {
                                     <SortHeader field="assignment">Assigned Load</SortHeader>
                                     <SortHeader field="miles">Miles Driven</SortHeader>
                                     <SortHeader field="status">Status</SortHeader>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--accent-blue)] uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-theme">
+                            <tbody className="bg-card  divide-theme">
                                 {currentVehicles.length === 0 ? (
                                     <tr>
                                         <td colSpan={7} className="px-6 py-12 text-center">
                                             <div className="flex flex-col items-center justify-center">
-                                                <Car className="w-12 h-12 text-slate-400 mb-4" />
+                                                <Car className="w-12 h-12 text-secondary mb-4" />
                                                 <p className="text-secondary font-medium">No vehicles found</p>
-                                                <p className="text-slate-500 text-sm mt-1">
+                                                <p className="text-secondary text-sm mt-1">
                                                     {searchTerm || filterStatus !== 'all'
                                                         ? 'Try adjusting your search or filter criteria'
                                                         : 'No vehicles are available for your company'}
@@ -861,7 +865,7 @@ const VehicleList = () => {
                                         return (
                                             <tr
                                                 key={vehicle._id}
-                                                className="hover:bg-card transition-colors duration-150 cursor-pointer"
+                                                className="hover:bg-[rgba(255,255,255,0.03)] transition-colors duration-150 cursor-pointer"
                                                 onClick={() => {
                                                     setSelectedVehicle(vehicle);
                                                     setShowDetailsSidebar(true);
@@ -869,7 +873,7 @@ const VehicleList = () => {
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center">
-                                                        <div className="p-2 bg-card rounded-lg mr-3 border border-blue-100">
+                                                        <div className="p-2 bg-[var(--accent-blue)]/10 rounded-lg mr-3 border border-[var(--accent-blue)]/20">
                                                             <Car className="w-5 h-5 text-accent" />
                                                         </div>
                                                         <div className="text-sm font-semibold text-primary">
@@ -886,12 +890,12 @@ const VehicleList = () => {
 
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-start space-x-2">
-                                                        <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
+                                                        <MapPin className="w-4 h-4 text-secondary mt-0.5 flex-shrink-0" />
                                                         <div className="text-sm text-primary max-w-xs">
                                                             {vehicle.currentLocation.address}
                                                         </div>
                                                     </div>
-                                                    <div className="text-xs text-slate-500 mt-1 ml-6">
+                                                    <div className="text-xs text-secondary mt-1 ml-6">
                                                         {vehicle.currentLocation.latitude}, {vehicle.currentLocation.longitude}
                                                     </div>
                                                 </td>
@@ -908,13 +912,13 @@ const VehicleList = () => {
                                                 <td className="px-6 py-4">
                                                     <div className="space-y-1">
                                                         <div className="text-sm font-semibold text-primary flex items-center space-x-2">
-                                                            <Route className="w-4 h-4 text-blue-500" />
+                                                            <Route className="w-4 h-4 text-[var(--accent-blue)]" />
                                                             <span>{assignment.loadId}</span>
                                                         </div>
-                                                        <p className="text-xs text-slate-500">
+                                                        <p className="text-xs text-secondary">
                                                             {assignment.origin} → {assignment.destination}
                                                         </p>
-                                                        <p className="text-xs text-slate-400">
+                                                        <p className="text-xs text-secondary">
                                                             Dispatcher: {assignment.dispatcher}
                                                         </p>
                                                     </div>
@@ -923,7 +927,7 @@ const VehicleList = () => {
                                                     <div className="text-sm font-semibold text-primary">
                                                         {formatMiles(assignment.milesToday)} today
                                                     </div>
-                                                    <p className="text-xs text-slate-500">
+                                                    <p className="text-xs text-secondary">
                                                         {formatMiles(assignment.milesThisWeek)} this week
                                                     </p>
                                                 </td>
@@ -938,7 +942,7 @@ const VehicleList = () => {
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                                                     <button
                                                         onClick={() => handleViewDetails(vehicle)}
-                                                        className="inline-flex items-center space-x-1 text-accent hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-colors duration-150 text-sm font-medium"
+                                                        className="inline-flex items-center space-x-1 text-accent hover:text-[var(--accent-blue)] px-3 py-2 rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-colors duration-150 text-sm font-medium"
                                                     >
                                                         <Eye className="w-4 h-4" />
                                                         <span>Details</span>
@@ -959,14 +963,14 @@ const VehicleList = () => {
                                 <button
                                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                     disabled={currentPage === 1}
-                                    className="relative inline-flex items-center px-4 py-2 border text-secondary text-sm font-medium rounded-lg text-primary bg-card hover:bg-card disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                    className="relative inline-flex items-center px-4 py-2 border border-theme text-secondary text-sm font-medium rounded-lg bg-card hover:bg-[rgba(255,255,255,0.05)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
                                 >
                                     Previous
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                                     disabled={currentPage === totalPages}
-                                    className="ml-3 relative inline-flex items-center px-4 py-2 border text-secondary text-sm font-medium rounded-lg text-primary bg-card hover:bg-card disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-theme text-secondary text-sm font-medium rounded-lg bg-card hover:bg-[rgba(255,255,255,0.05)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
                                 >
                                     Next
                                 </button>
@@ -984,7 +988,7 @@ const VehicleList = () => {
                                         <button
                                             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                             disabled={currentPage === 1}
-                                            className="relative inline-flex items-center px-3 py-2 rounded-l-lg border text-secondary bg-card text-sm font-medium text-slate-500 hover:bg-card disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                            className="relative inline-flex items-center px-3 py-2 rounded-l-lg border border-theme text-secondary bg-card text-sm font-medium hover:bg-[rgba(255,255,255,0.05)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
                                         >
                                             <ChevronLeft className="h-4 w-4" />
                                         </button>
@@ -996,8 +1000,8 @@ const VehicleList = () => {
                                                     key={page}
                                                     onClick={() => setCurrentPage(page)}
                                                     className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-150 ${currentPage === page
-                                                        ? 'z-10 bg-card border-blue-500 text-accent'
-                                                        : 'bg-card text-secondary text-slate-500 hover:bg-card'
+                                                        ? 'z-10 bg-[var(--accent-blue)] border-[var(--accent-blue)] text-white font-semibold'
+                                                        : 'bg-card border-theme text-secondary hover:bg-[rgba(255,255,255,0.05)]'
                                                         }`}
                                                 >
                                                     {page}
@@ -1008,7 +1012,7 @@ const VehicleList = () => {
                                         <button
                                             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                                             disabled={currentPage === totalPages}
-                                            className="relative inline-flex items-center px-3 py-2 rounded-r-lg border text-secondary bg-card text-sm font-medium text-slate-500 hover:bg-card disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                            className="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-theme text-secondary bg-card text-sm font-medium hover:bg-[rgba(255,255,255,0.05)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
                                         >
                                             <ChevronRight className="h-4 w-4" />
                                         </button>
@@ -1032,8 +1036,8 @@ const VehicleList = () => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center space-x-3">
 
-                                                <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center border border-theme">
-                                                    <Truck className="w-6 h-6 text-black" />
+                                                <div className="w-12 h-12 rounded-lg bg-[rgba(255,255,255,0.08)] flex items-center justify-center border border-theme">
+                                                    <Truck className="w-6 h-6 text-[var(--accent-blue)]" />
                                                 </div>
 
                                                 <div>
@@ -1093,7 +1097,7 @@ const VehicleList = () => {
                                             {/* Driver Information */}
                                             <div className="bg-card border border-theme rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                                                    <User className="w-5 h-5 mr-2 text-green-600" />
+                                                    <User className="w-5 h-5 mr-2 text-[var(--accent-green)]" />
                                                     Driver Information
                                                 </h3>
                                                 {selectedVehicle.driver ? (
@@ -1108,14 +1112,14 @@ const VehicleList = () => {
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="text-sm text-slate-500 italic">No driver assigned</div>
+                                                    <div className="text-sm text-secondary italic">No driver assigned</div>
                                                 )}
                                             </div>
 
                                             {/* Current Status */}
                                             <div className="bg-card border border-theme rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                                                    <Activity className="w-5 h-5 mr-2 text-purple-600" />
+                                                    <Activity className="w-5 h-5 mr-2 text-[var(--accent-purple)]" />
                                                     Current Status
                                                 </h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1139,7 +1143,7 @@ const VehicleList = () => {
                                                         <p className="text-sm font-medium text-primary">
                                                             {formatMiles(assignmentDetails.milesToday)}
                                                         </p>
-                                                        <p className="text-xs text-slate-500">
+                                                        <p className="text-xs text-secondary">
                                                             {formatMiles(assignmentDetails.milesThisWeek)} this week
                                                         </p>
                                                     </div>
@@ -1147,7 +1151,7 @@ const VehicleList = () => {
                                                         <label className="text-sm font-medium text-secondary">Engine</label>
                                                         <p className="text-sm text-primary font-medium">
                                                             {selectedVehicle.engineOn ? (
-                                                                <span className="text-green-600">ON</span>
+                                                                <span className="text-[var(--accent-green)]">ON</span>
                                                             ) : (
                                                                 <span className="text-[var(--accent-purple)]">OFF</span>
                                                             )}
@@ -1194,17 +1198,17 @@ const VehicleList = () => {
                                                     <div>
                                                         <label className="text-sm font-medium text-secondary">Load ID</label>
                                                         <p className="text-sm text-primary font-semibold">{assignmentDetails.loadId}</p>
-                                                        <p className="text-xs text-slate-500">{assignmentDetails.customer}</p>
+                                                        <p className="text-xs text-secondary">{assignmentDetails.customer}</p>
                                                     </div>
                                                     <div>
                                                         <label className="text-sm font-medium text-secondary">Dispatcher</label>
                                                         <p className="text-sm text-primary font-medium">{assignmentDetails.dispatcher}</p>
-                                                        <p className="text-xs text-slate-500">{assignmentDetails.eta}</p>
+                                                        <p className="text-xs text-secondary">{assignmentDetails.eta}</p>
                                                     </div>
                                                     <div>
                                                         <label className="text-sm font-medium text-secondary">Route</label>
                                                         <p className="text-sm text-primary">{assignmentDetails.origin}</p>
-                                                        <p className="text-xs text-slate-500">→ {assignmentDetails.destination}</p>
+                                                        <p className="text-xs text-secondary">→ {assignmentDetails.destination}</p>
                                                     </div>
                                                     <div>
                                                         <label className="text-sm font-medium text-secondary">Last checkpoint</label>
@@ -1240,19 +1244,19 @@ const VehicleList = () => {
                                             {/* Driver Behaviour */}
                                             <div className="bg-card border border-theme rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                                                    <TrendingUp className="w-5 h-5 mr-2 text-indigo-600" />
+                                                    <TrendingUp className="w-5 h-5 mr-2 text-[var(--accent-blue)]" />
                                                     Driver Behaviour Metrics
                                                 </h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                    <div className="text-center p-4 bg-card rounded-lg">
+                                                    <div className="text-center p-4 bg-[rgba(255,255,255,0.03)] rounded-lg border border-theme">
                                                         <div className="text-2xl font-bold text-[var(--accent-purple)]">{selectedVehicle.driverBehaviour.harshBraking}</div>
                                                         <div className="text-sm text-secondary">Harsh Braking Events</div>
                                                     </div>
-                                                    <div className="text-center p-4 bg-amber-50 rounded-lg">
-                                                        <div className="text-2xl font-bold text-amber-600">{selectedVehicle.driverBehaviour.speedingEvents}</div>
+                                                    <div className="text-center p-4 bg-[var(--accent-orange)]/10 rounded-lg border border-[var(--accent-orange)]/20">
+                                                        <div className="text-2xl font-bold text-[var(--accent-orange)]">{selectedVehicle.driverBehaviour.speedingEvents}</div>
                                                         <div className="text-sm text-secondary">Speeding Events</div>
                                                     </div>
-                                                    <div className="text-center p-4 bg-card rounded-lg">
+                                                    <div className="text-center p-4 bg-[rgba(255,255,255,0.03)] rounded-lg border border-theme">
                                                         <div className="text-2xl font-bold text-accent">{selectedVehicle.driverBehaviour.idlingDuration}</div>
                                                         <div className="text-sm text-secondary">Idling Duration (min)</div>
                                                     </div>
@@ -1262,7 +1266,7 @@ const VehicleList = () => {
                                             {/* Engine Health */}
                                             <div className="bg-card border border-theme rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                                                    <Wrench className="w-5 h-5 mr-2 text-emerald-600" />
+                                                    <Wrench className="w-5 h-5 mr-2 text-[var(--accent-green)]" />
                                                     Engine Health
                                                 </h3>
                                                 <div className="space-y-4">
@@ -1283,19 +1287,19 @@ const VehicleList = () => {
                                                         {selectedVehicle.engineHealth.faultCodes.length > 0 ? (
                                                             <div className="space-y-2">
                                                                 {selectedVehicle.engineHealth.faultCodes.map((fault, index) => (
-                                                                    <div key={index} className="p-3 bg-card border border-red-200 rounded-lg">
+                                                                    <div key={index} className="p-3 bg-[var(--accent-red)]/10 border border-[var(--accent-red)]/30 rounded-lg">
                                                                         <div className="flex items-start space-x-2">
-                                                                            <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
+                                                                            <AlertTriangle className="w-4 h-4 text-[var(--accent-red)] mt-0.5" />
                                                                             <div>
-                                                                                <div className="text-sm font-medium text-red-900">{fault.code}</div>
-                                                                                <div className="text-sm text-red-700">{fault.description}</div>
+                                                                                <div className="text-sm font-medium text-[var(--accent-red)]">{fault.code}</div>
+                                                                                <div className="text-sm text-secondary">{fault.description}</div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                 ))}
                                                             </div>
                                                         ) : (
-                                                            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+                                                            <div className="p-3 bg-[var(--accent-green)]/10 border border-[var(--accent-green)]/30 rounded-lg text-sm text-[var(--accent-green)]">
                                                                 No fault codes detected
                                                             </div>
                                                         )}
@@ -1306,7 +1310,7 @@ const VehicleList = () => {
                                             {/* Recent Trips */}
                                             <div className="bg-card border border-theme rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                                                    <Route className="w-5 h-5 mr-2 text-cyan-600" />
+                                                    <Route className="w-5 h-5 mr-2 text-[var(--accent-blue)]" />
                                                     Recent Trips
                                                 </h3>
                                                 {selectedVehicle.trips.length > 0 ? (
@@ -1331,7 +1335,7 @@ const VehicleList = () => {
                                                         ))}
                                                     </div>
                                                 ) : (
-                                                    <div className="text-sm text-slate-500 italic">No recent trips recorded</div>
+                                                    <div className="text-sm text-secondary italic">No recent trips recorded</div>
                                                 )}
                                             </div>
 
@@ -1339,7 +1343,7 @@ const VehicleList = () => {
                                             {selectedVehicle.vehicleImage.length > 0 && (
                                                 <div className="bg-card border border-theme rounded-lg p-6">
                                                     <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                                                        <ImageIcon className="w-5 h-5 mr-2 text-pink-600" />
+                                                        <ImageIcon className="w-5 h-5 mr-2 text-[var(--accent-purple)]" />
                                                         Vehicle Images
                                                     </h3>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1359,7 +1363,7 @@ const VehicleList = () => {
                                             {selectedVehicle.documents.length > 0 && (
                                                 <div className="bg-card border border-theme rounded-lg p-6">
                                                     <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                                                        <FileText className="w-5 h-5 mr-2 text-violet-600" />
+                                                        <FileText className="w-5 h-5 mr-2 text-[var(--accent-purple)]" />
                                                         Documents
                                                     </h3>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1420,27 +1424,27 @@ const VehicleList = () => {
 
                                 <div className="space-y-6">
                                     {/* Vehicle Header */}
-                                    <div className="bg-gradient-to-r from-[var(--accent-blue)]/80 to-[var(--accent-purple)]/60 text-accentp-6 rounded-lg">
+                                    <div className="bg-gradient-to-r from-[var(--accent-blue)]/20 to-[var(--accent-purple)]/20 border border-white/10 p-6 rounded-lg">
                                         <div className="flex items-center gap-4">
-                                            <div className="h-20 w-20 flex-shrink-0">
-                                                <div className="h-20 w-20 rounded-full flex items-center justify-center text-accentfont-bold text-2xl border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600">
-                                                    <Truck size={32} />
+                                            <div className="h-16 w-16 flex-shrink-0">
+                                                <div className="h-16 w-16 rounded-full flex items-center justify-center text-white text-2xl border-2 border-white/20 bg-[rgba(255,255,255,0.1)]">
+                                                    <Truck size={28} />
                                                 </div>
                                             </div>
                                             <div className="flex-1">
-                                                <h3 className="text-2xl font-bold mb-1">{selectedVehicle.plateNumber}</h3>
-                                                <p className="text-blue-100 text-sm flex items-center gap-2">
+                                                <h3 className="text-xl font-bold text-primary mb-1">{selectedVehicle.plateNumber}</h3>
+                                                <p className="text-secondary text-sm flex items-center gap-2">
                                                     <Car size={16} />
-                                                    Vehicle ID: <span className="font-semibold">{selectedVehicle.internalId}</span>
+                                                    Vehicle ID: <span className="font-semibold text-primary">{selectedVehicle.internalId}</span>
                                                 </p>
                                                 <span
-                                                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mt-2 ${selectedVehicle.status === "moving"
-                                                        ? "bg-emerald-500 text-white"
+                                                    className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mt-2 ${selectedVehicle.status === "moving"
+                                                        ? "bg-[var(--accent-green)]/20 text-[var(--accent-green)] border border-[var(--accent-green)]/30"
                                                         : selectedVehicle.status === "idle"
-                                                            ? "bg-amber-500 text-white"
+                                                            ? "bg-[var(--accent-orange)]/20 text-[var(--accent-orange)] border border-[var(--accent-orange)]/30"
                                                             : selectedVehicle.status === "maintenance"
-                                                                ? "bg-red-500 text-white"
-                                                                : "bg-gray-500 text-white"
+                                                                ? "bg-[var(--accent-red)]/20 text-[var(--accent-red)] border border-[var(--accent-red)]/30"
+                                                                : "bg-[rgba(255,255,255,0.08)] text-secondary border border-theme"
                                                         }`}
                                                 >
                                                     {selectedVehicle.status === "moving" ? (
@@ -1507,7 +1511,7 @@ const VehicleList = () => {
 
                                     {/* Location Information */}
                                     {selectedVehicle.currentLocation && (
-                                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+                                        <div className="bg-card p-6 rounded-lg border border-theme">
                                             <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
                                                 <MapPin size={20} className="text-accent" />
                                                 Current Location
@@ -1599,7 +1603,7 @@ const VehicleList = () => {
                                                 setShowDetailsSidebar(false);
                                                 setTimeout(() => setSelectedVehicle(null), 300);
                                             }}
-                                            className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
+                                            className="px-6 py-2.5 bg-[rgba(255,255,255,0.08)] text-secondary font-medium rounded-lg hover:bg-[rgba(255,255,255,0.12)] border border-theme transition-all"
                                         >
                                             Close
                                         </button>

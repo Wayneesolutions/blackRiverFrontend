@@ -1,22 +1,7 @@
 import { useState, useEffect } from "react";
 import { Loader2, Calendar, TrendingUp, MapPin, Truck, User, Package, Route, Users } from "lucide-react";
-import { getGpsVehicleDashboardStats, getTodayDeliveries, getTomorrowPickups } from "../../../axios/api/distapcher";
-import { listFleetUnits } from "../../../axios/api/fleet.units";
+import { getDispatcherDashboard, getTodayDeliveries, getTomorrowPickups } from "../../../axios/api/distapcher";
 
-
-interface FleetUnit {
-  _id?: string;
-  unitNo?: string;
-  unitType?: string;
-  makeModel?: string;
-  make?: string;
-  model?: string;
-  vinNo?: string;
-  licensePlate?: string;
-  year?: string | number;
-  currentOdometer?: string | number;
-  status?: string;
-}
 
 interface Delivery {
   id: string;
@@ -106,9 +91,6 @@ const Dashboard = () => {
 
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [, setFleetUnits] = useState<FleetUnit[]>([]);
-  const [, setFleetLoading] = useState(false);
-  const [, setFleetError] = useState<string | null>(null);
   const [deliveriesToday, setDeliveriesToday] = useState<Delivery[]>([]);
   const [pickupsTomorrow, setPickupsTomorrow] = useState<Pickup[]>([]);
   const [deliveriesLoading, setDeliveriesLoading] = useState(false);
@@ -129,82 +111,39 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const fetchAll = async () => {
       try {
         setLoading(true);
-        const [gpsRes] = await Promise.all([
-          getGpsVehicleDashboardStats()
-        ]);
-
-        if (gpsRes.success) {
-          setDashboardData(gpsRes.data);
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
-
-  useEffect(() => {
-    const fetchDeliveriesAndPickups = async () => {
-      try {
         setDeliveriesLoading(true);
         setPickupsLoading(true);
 
-        const [deliveriesRes, pickupsRes] = await Promise.all([
+        const [dashRes, deliveriesRes, pickupsRes] = await Promise.all([
+          getDispatcherDashboard(),
           getTodayDeliveries(),
-          getTomorrowPickups()
+          getTomorrowPickups(),
         ]);
 
-        if (deliveriesRes.success && deliveriesRes.data) {
+        if (dashRes?.success && dashRes.data) {
+          setDashboardData(dashRes.data);
+        }
+
+        if (deliveriesRes?.success && deliveriesRes.data) {
           setDeliveriesToday(deliveriesRes.data || []);
         }
 
-        if (pickupsRes.success && pickupsRes.data) {
+        if (pickupsRes?.success && pickupsRes.data) {
           setPickupsTomorrow(pickupsRes.data || []);
         }
       } catch (error) {
-        console.error("Error fetching deliveries and pickups:", error);
+        console.error("Error fetching GPS dashboard data:", error);
       } finally {
+        setLoading(false);
         setDeliveriesLoading(false);
         setPickupsLoading(false);
       }
     };
 
-    fetchDeliveriesAndPickups();
-  }, []);
-
-  useEffect(() => {
-    const fetchFleetUnits = async () => {
-      try {
-        setFleetLoading(true);
-        setFleetError(null);
-        const res = await listFleetUnits({ category: "all" });
-        if (res?.success && res.data) {
-          const data = res.data;
-          const payload = Array.isArray(data)
-            ? data
-            : (typeof data === 'object' && data !== null && ('data' in data || 'units' in data))
-              ? (data as any).data || (data as any).units || []
-              : [];
-          setFleetUnits(Array.isArray(payload) ? payload : []);
-        } else {
-          setFleetUnits([]);
-        }
-      } catch (error: any) {
-        console.error("Error loading fleet units:", error);
-        setFleetUnits([]);
-        setFleetError(error?.response?.data?.message || "Unable to load fleet units");
-      } finally {
-        setFleetLoading(false);
-      }
-    };
-
-    fetchFleetUnits();
+    fetchAll();
   }, []);
 
   const getStatusBadge = (status: string) => {
@@ -245,21 +184,21 @@ const Dashboard = () => {
     }
   };
 
-  const totalTrucks = dashboardData?.totalVehicles ?? dashboardData?.trucks?.total ?? 0;
-  const activeTrucks = dashboardData?.activeVehicles ?? dashboardData?.trucks?.active ?? 0;
-  const totalTrailers = dashboardData?.totalTrailers ?? dashboardData?.trailers?.total ?? 0;
-  const activeTrailers = dashboardData?.activeTrailers ?? dashboardData?.trailers?.active ?? 0;
-  const totalDrivers = dashboardData?.totalDrivers ?? dashboardData?.drivers?.total ?? 0;
-  const activeDrivers = dashboardData?.activeDrivers ?? dashboardData?.drivers?.active ?? 0;
-  const totalTrips = dashboardData?.totalTrips ?? dashboardData?.trips?.total ?? 0;
-  const inProgressTrips = dashboardData?.inProgressTrips ?? dashboardData?.trips?.inProgress ?? 0;
+  const totalTrucks = dashboardData?.totalVehicles ?? dashboardData?.truckUtilization?.total ?? 0;
+  const activeTrucks = dashboardData?.activeVehicles ?? dashboardData?.truckUtilization?.active ?? 0;
+  const totalTrailers = dashboardData?.totalTrailers ?? dashboardData?.trailerUtilization?.total ?? 0;
+  const activeTrailers = dashboardData?.activeTrailers ?? dashboardData?.trailerUtilization?.active ?? 0;
+  const totalDrivers = dashboardData?.totalDrivers ?? 0;
+  const activeDrivers = dashboardData?.activeDrivers ?? dashboardData?.driversOnShift ?? 0;
+  const totalTrips = dashboardData?.totalTrips ?? 0;
+  const inProgressTrips = dashboardData?.inProgressTrips ?? 0;
 
   const statCards = [
     {
       id: "trucks",
       title: "Total Trucks",
       value: totalTrucks,
-      subtitle: `Active: ${activeTrucks}`,
+      subtitle: `Active: ${activeTrucks} | With Driver: ${dashboardData?.vehiclesWithDriver ?? 0}`,
       icon: Truck,
       iconColor: "text-[#00D1FF]",
       accentColor: "bg-blue-600",
@@ -270,7 +209,7 @@ const Dashboard = () => {
       id: "trailers",
       title: "Total Trailers",
       value: totalTrailers,
-      subtitle: `Active: ${activeTrailers}`,
+      subtitle: `Active: ${activeTrailers} | In Use: ${dashboardData?.trailersInUse ?? 0}`,
       icon: Package,
       iconColor: "text-purple-400",
       accentColor: "bg-purple-600",
@@ -281,7 +220,7 @@ const Dashboard = () => {
       id: "drivers",
       title: "Total Drivers",
       value: totalDrivers,
-      subtitle: `Active: ${activeDrivers}`,
+      subtitle: `On Shift: ${dashboardData?.driversOnShift ?? 0} | Active: ${activeDrivers}`,
       icon: Users,
       iconColor: "text-[#00FFA3]",
       accentColor: "bg-green-600",
@@ -290,9 +229,9 @@ const Dashboard = () => {
     },
     {
       id: "trips",
-      title: "Active Trips",
+      title: "Total Trips",
       value: totalTrips,
-      subtitle: `In Progress: ${inProgressTrips}`,
+      subtitle: `In Progress: ${inProgressTrips} | Today: ${dashboardData?.todayTrips ?? 0}`,
       icon: Route,
       iconColor: "text-[#F59E0B]",
       accentColor: "bg-orange-600",
@@ -321,7 +260,7 @@ const Dashboard = () => {
             {/* Header Section */}
             <div className="mb-4 relative z-10">
               <div className="flex items-center justify-between">
-                <h1 className="text-xl font-bold text-white">GPS Vehicle Tracking</h1>
+                <h1 className="text-xl font-bold text-[var(--accent-navyblue)]">GPS Vehicle Tracking</h1>
                 <div className="flex items-center gap-2 text-white/90">
                   <span className="text-xs">Dashboard</span>
                 </div>
@@ -381,7 +320,7 @@ const Dashboard = () => {
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <h3 className="text-sm font-bold text-primary mb-1">Deliveries Today</h3>
+                    <h3 className="text-sm font-bold text-[var(--accent-navyblue)] mb-1">Deliveries Today</h3>
                     <div className="flex items-baseline gap-2 mb-0.5">
                       <span className="text-xl font-bold text-primary">{deliveriesToday.length}</span>
                     </div>
@@ -400,7 +339,7 @@ const Dashboard = () => {
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <h3 className="text-sm font-bold text-primary mb-1">Pickups Tomorrow</h3>
+                    <h3 className="text-sm font-bold text-[var(--accent-navyblue)] mb-1">Pickups Tomorrow</h3>
                     <div className="flex items-baseline gap-2 mb-0.5">
                       <span className="text-xl font-bold text-primary">{pickupsTomorrow.length}</span>
                     </div>
@@ -416,35 +355,35 @@ const Dashboard = () => {
             {/* Deliveries Today Listing */}
             <div id="deliveries-today-table" className="bg-card rounded-lg shadow-sm border border-theme mb-4">
               <div className="p-4 border-b border-theme">
-                <h2 className="text-lg font-bold text-primary">Deliveries Today</h2>
+                <h2 className="text-lg font-bold text-[var(--accent-navyblue)]">Deliveries Today</h2>
                 <p className="text-sm text-secondary mt-1">Scheduled deliveries for today</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-card border-b border-theme">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Order Number
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Customer
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Delivery Location
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Time
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Driver
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Truck
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Items
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Status
                       </th>
                     </tr>
@@ -453,7 +392,7 @@ const Dashboard = () => {
                     {deliveriesLoading ? (
                       <tr>
                         <td colSpan={8} className="px-4 py-8 text-center">
-                          <Loader2 className="w-5 h-5 animate-spin text-blue-500 mx-auto" />
+                          <Loader2 className="w-5 h-5 animate-spin text-[var(--accent-navyblue)] mx-auto" />
                         </td>
                       </tr>
                     ) : deliveriesToday.length === 0 ? (
@@ -471,7 +410,7 @@ const Dashboard = () => {
                               <div className="text-xs text-secondary">Cust: {delivery.customerOrderNo}</div>
                             )}
                             {delivery.tripNo && (
-                              <div className="text-xs text-[#00D1FF]">Trip: {delivery.tripNo}</div>
+                              <div className="text-xs text-[var(--accent-navyblue)]">Trip: {delivery.tripNo}</div>
                             )}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
@@ -525,35 +464,35 @@ const Dashboard = () => {
             {/* Pickups Tomorrow Listing */}
             <div id="pickups-tomorrow-table" className="bg-card rounded-lg shadow-sm border border-theme">
               <div className="p-4 border-b border-theme">
-                <h2 className="text-lg font-bold text-primary">Pickups Tomorrow</h2>
+                <h2 className="text-lg font-bold text-[var(--accent-navyblue)]">Pickups Tomorrow</h2>
                 <p className="text-sm text-secondary mt-1">Scheduled pickups for tomorrow</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-card border-b border-theme">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Order Number
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Customer
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Pickup Location
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Time
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Driver
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Truck
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Items
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                         Status
                       </th>
                     </tr>
@@ -562,7 +501,7 @@ const Dashboard = () => {
                     {pickupsLoading ? (
                       <tr>
                         <td colSpan={8} className="px-4 py-8 text-center">
-                          <Loader2 className="w-5 h-5 animate-spin text-blue-500 mx-auto" />
+                          <Loader2 className="w-5 h-5 animate-spin text-[var(--accent-navyblue)] mx-auto" />
                         </td>
                       </tr>
                     ) : pickupsTomorrow.length === 0 ? (
@@ -580,7 +519,7 @@ const Dashboard = () => {
                               <div className="text-xs text-secondary">Cust: {pickup.customerOrderNo}</div>
                             )}
                             {pickup.tripNo && (
-                              <div className="text-xs text-[#00D1FF]">Trip: {pickup.tripNo}</div>
+                              <div className="text-xs text-[var(--accent-navyblue)]">Trip: {pickup.tripNo}</div>
                             )}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
