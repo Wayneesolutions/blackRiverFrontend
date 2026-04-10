@@ -150,7 +150,7 @@ const VehicleList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
-    const [vehiclesPerPage] = useState(10);
+    const [vehiclesPerPage, setVehiclesPerPage] = useState(10);
     const [sortBy, setSortBy] = useState('plateNumber');
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);

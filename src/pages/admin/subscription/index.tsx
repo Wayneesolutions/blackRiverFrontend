@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import { message, Modal, Button, Tag, Card, Spin, Tabs, Progress, Alert } from 'antd';
 import { getAllPlans, getMySubscription, getMySubscriptions, createCheckoutSession, cancelSubscription, getTrialStatus, verifyCheckoutSession, addExtraTrucksCheckout } from '../../../axios/api/subscription';
-import { FLEET_COLORS } from '../fleetMaintenance/colorUtils';
 
 interface Plan {
   _id: string;

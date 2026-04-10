@@ -365,7 +365,7 @@ const UserProfilesPortfolio: React.FC = () => {
 
     return (
         <div
-            className="min-h-screen p-6 border-2 border-red-700 "
+            className="min-h-screen p-6"
             style={{
                 ...ACCENT_VARS,
                 background: "var(--bg-main)"

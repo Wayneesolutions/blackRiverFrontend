@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
 import { FaSignOutAlt, FaCog, FaBars } from "react-icons/fa";
-import { Search, X, LogOut, AlertCircle, ArrowRight, ArrowLeft } from "lucide-react";
+import { Search, X, LogOut, ArrowRight, ArrowLeft } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useNavigate } from "react-router-dom";
 import { useQuickActions } from "../common/QuickAction";

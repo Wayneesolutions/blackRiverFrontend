@@ -14,7 +14,6 @@ import { socketService } from "../../../../../services/socketService";
 // Color constants
 const PRIMARY_GRADIENT = 'linear-gradient(90deg, #0ea5c0 0%, #1e3a8a 100%)';
 const PRIMARY_COLOR = '#0ea5c0';
-const PRIMARY_LIGHT_BG = 'rgba(14, 165, 192, 0.08)';
 
 
 interface Place {
