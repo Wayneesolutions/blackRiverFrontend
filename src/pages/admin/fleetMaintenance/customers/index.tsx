@@ -633,7 +633,7 @@ const FleetMaintenanceCustomers = () => {
                       className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
                       onClick={() => openEdit(row.id)}
                     >
-                      <td className="px-6 py-4 font-medium text-headings">{row.name}</td>
+                      <td className="px-6 py-4 font-medium text-secondary">{row.name}</td>
                       <td className="px-6 py-4 text-secondary">{row.email || '—'}</td>
                       <td className="px-6 py-4 text-secondary">{row.phone || '—'}</td>
                       <td className="px-6 py-4 text-secondary">{row.billingCity || '—'}</td>

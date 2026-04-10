@@ -588,7 +588,7 @@ const YardManagement = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-[var(--accent-blue)] !text-white rounded-lg hover:bg-[#3598c7] transition-colors"
+                    className="px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[#3598c7] transition-colors"
                   >
                     {editingYard ? 'Update' : 'Create'}
                   </button>
