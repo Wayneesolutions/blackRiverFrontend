@@ -15,11 +15,11 @@ import { getTruckProfile } from "../../../../axios/api/admin";
 import { listVehicle, listTrailers } from "../../../../axios/api/distapcher";
 
 // Helper Component for Stats
-const StatCard = ({ title, value, subtitle, icon: Icon, bgColor, iconColor }: any) => (
+const StatCard = ({ title, value, subtitle, icon: Icon, bgColor, iconColor, textColor }: any) => (
   <div className="bg-card rounded-xl p-6 border border-theme shadow-lg flex items-start justify-between">
     <div>
-      <p className="text-xs font-semibold text-secondary uppercase tracking-wide">{title}</p>
-      <h3 className="text-2xl font-bold text-primary mt-2">{value}</h3>
+      <p className={`text-xs font-semibold text-secondary uppercase tracking-wide ${textColor}`}>{title}</p>
+      <h3 className={`text-2xl font-bold mt-2 ${textColor}`}>{value}</h3>
       <p className="text-xs text-secondary mt-1">{subtitle}</p>
     </div>
     <div className={`p-3 rounded-lg ${bgColor}`}>
@@ -302,7 +302,7 @@ const TruckProfile = () => {
         <div className="max-w-7xl mx-auto text-center py-20">
           <div className="bg-card rounded-2xl p-10 shadow-lg inline-block">
             <FaExclamationTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-primary">No Units Found</h3>
+            <h3 className="text-xl font-bold text-headings">No Units Found</h3>
             <p className="text-secondary mt-2">No {activeTab === "truck" ? "trucks" : "trailers"} are currently available in the system.</p>
           </div>
         </div>
@@ -317,7 +317,7 @@ const TruckProfile = () => {
         <div className="max-w-7xl mx-auto text-center py-20">
           <div className="bg-card rounded-2xl p-10 shadow-lg inline-block">
             <FaExclamationTriangle className="w-12 h-12 text-secondary mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-primary">No Profile Data</h3>
+            <h3 className="text-xl font-bold text-headings">No Profile Data</h3>
             <p className="text-secondary mt-2">No profile data available for the selected unit.</p>
           </div>
         </div>
@@ -326,7 +326,7 @@ const TruckProfile = () => {
   }
 
   return (
-    <div className="min-h-screen pb-10 p-5" >
+    <div className="min-h-screen pb-10 p-5 bg-main" >
       <div className="relative w-full mx-auto">
 
 
@@ -337,7 +337,7 @@ const TruckProfile = () => {
             <div>
               <div className="flex items-center gap-3 text-white mb-2">
                 {activeTab === "truck" ? <FaTruck className="w-6 h-6 text-[var(--accent-navyblue)]" /> : <FaTrailer className="w-6 h-6 text-[var(--accent-navyblue)]" />}
-                <h1 className="text-3xl font-bold text-primary tracking-tight">{activeTab === "truck" ? "Truck Profile" : "Trailer Profile"}</h1>
+                <h1 className="text-3xl font-bold text-headings tracking-tight">{activeTab === "truck" ? "Truck Profile" : "Trailer Profile"}</h1>
               </div>
               <p className="text-secondary text-sm font-medium ml-9">
                 Comprehensive analytics and maintenance history for {selectedVehicle.makeModel}
@@ -370,7 +370,7 @@ const TruckProfile = () => {
                 <select
                   value={selectedUnit}
                   onChange={(e) => setSelectedUnit(e.target.value)}
-                  className="w-full sm:w-40 px-3 py-2 bg-card text-primary text-sm font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 border-none"
+                  className="w-full sm:w-40 px-3 py-2 bg-card text-headings text-sm font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 border-none"
                 >
                   {units.map((unit) => (
                     <option key={unit._id} value={unit.unitNo}>{unit.unitNo}</option>
@@ -382,7 +382,7 @@ const TruckProfile = () => {
                 <select
                   value={timeFilter}
                   onChange={(e) => setTimeFilter(e.target.value as any)}
-                  className="w-full sm:w-40 px-3 py-2 bg-card text-primary text-sm font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 border-none"
+                  className="w-full sm:w-40 px-3 py-2 bg-card text-headings text-sm font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 border-none"
                 >
                   <option value="30d">Last 30 Days</option>
                   <option value="60d">Last 60 Days</option>
@@ -402,6 +402,7 @@ const TruckProfile = () => {
               icon={FaWrench}
               bgColor="bg-card"
               iconColor="text-[var(--accent-navyblue)]"
+              textColor="text-[var(--accent-navyblue)]"
             />
             <StatCard
               title="Repair Downtime"
@@ -409,7 +410,8 @@ const TruckProfile = () => {
               subtitle="Total operational loss"
               icon={FaExclamationTriangle}
               bgColor="bg-card"
-              iconColor="text-[#F59E0B]"
+              iconColor="text-[var(--accent-orange)]"
+              textColor="text-[var(--accent-orange)]"
             />
             <StatCard
               title="Tickets Issued"
@@ -417,7 +419,8 @@ const TruckProfile = () => {
               subtitle="Compliance violations"
               icon={FaTicketAlt}
               bgColor="bg-card"
-              iconColor="text-[#00FFA3]"
+              iconColor="text-[var(--accent-green)]"
+              textColor="text-[var(--accent-green)]"
             />
             <StatCard
               title="Incidents & Accidents"
@@ -425,7 +428,8 @@ const TruckProfile = () => {
               subtitle="Safety events reported"
               icon={FaShieldAlt}
               bgColor="bg-card"
-              iconColor="text-[#A855F7]"
+              iconColor="text-[var(--accent-purple)]"
+              textColor="text-[var(--accent-purple)]"
             />
           </div>
 
@@ -439,12 +443,12 @@ const TruckProfile = () => {
             <div className="lg:col-span-2 space-y-2">
               <p className="text-xs font-bold uppercase text-secondary tracking-wider">Vehicle Details</p>
               <div className="flex items-center gap-3">
-                <h2 className="text-2xl font-bold text-primary">{selectedVehicle.makeModel}</h2>
+                <h2 className="text-2xl font-bold text-headings">{selectedVehicle.makeModel}</h2>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[rgba(255,255,255,0.06)] text-secondary border border-theme">{selectedVehicle.year}</span>
               </div>
 
               <p className="text-sm text-secondary font-medium">
-                VIN: <span className="text-primary">{selectedVehicle.vinNo}</span> • Plate: <span className="text-primary">{selectedVehicle.licensePlate}</span>
+                VIN: <span className="text-headings">{selectedVehicle.vinNo}</span> • Plate: <span className="text-headings">{selectedVehicle.licensePlate}</span>
               </p>
               {activeTab === "truck" && selectedVehicle.currentDriver && (
                 <p className="text-sm text-secondary mt-2">
@@ -465,14 +469,14 @@ const TruckProfile = () => {
             <div className="space-y-4 pt-2">
               <div>
                 <p className="text-xs font-bold uppercase text-secondary tracking-wider">Odometer</p>
-                <p className="text-xl font-bold text-primary font-mono">
+                <p className="text-xl font-bold text-headings font-mono">
                   {activeTab === "truck" ? selectedVehicle.currentOdometer.toLocaleString() : "N/A"} <span className="text-sm text-secondary font-sans">{activeTab === "truck" ? "mi" : ""}</span>
                 </p>
               </div>
               {selectedVehicle.currentLocation && (
                 <div>
                   <p className="text-xs font-bold uppercase text-secondary tracking-wider">Location</p>
-                  <p className="text-sm font-semibold text-primary truncate">{selectedVehicle.currentLocation.address || "Unknown"}</p>
+                  <p className="text-sm font-semibold text-headings truncate">{selectedVehicle.currentLocation.address || "Unknown"}</p>
                 </div>
               )}
             </div>
@@ -485,7 +489,7 @@ const TruckProfile = () => {
                     <span className="inline-block px-2 py-1 rounded-md bg-[rgba(168,85,247,0.1)] text-[#A78BFA] border border-[rgba(168,85,247,0.3)] text-xs font-bold mb-1">
                       {selectedVehicle.currentAssignment.type === "order" ? "Order" : selectedVehicle.currentAssignment.type === "trip" ? "Trip" : "Load"}
                     </span>
-                    <p className="text-lg font-bold text-primary">
+                    <p className="text-lg font-bold text-headings">
                       {selectedVehicle.currentAssignment.orderNumber || selectedVehicle.currentAssignment.tripNumber}
                     </p>
                   </div>
@@ -505,7 +509,7 @@ const TruckProfile = () => {
           <section className="bg-card rounded-xl shadow-lg border border-theme p-6 mb-6">
             <div className="flex items-center gap-2 mb-6 border-b border-theme pb-4">
               <FaShieldAlt className="w-5 h-5 text-[var(--accent-navyblue)]" />
-              <h3 className="text-lg font-bold text-primary">Compliance & Safety</h3>
+              <h3 className="text-lg font-bold text-headings">Compliance & Safety</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -517,7 +521,7 @@ const TruckProfile = () => {
                     <div className="p-2 bg-[rgba(0,209,255,0.1)] rounded-lg text-[var(--accent-navyblue)]">
                       <FaClipboardCheck className="w-4 h-4" />
                     </div>
-                    <span className="text-sm font-bold text-primary">Last CVSA Inspection</span>
+                    <span className="text-sm font-bold text-headings">Last CVSA Inspection</span>
                   </div>
                   <span className={`px-2 py-1 text-xs font-bold rounded border ${selectedVehicle.compliance?.cvsa?.result === "Pass" ? "bg-[rgba(0,255,163,0.1)] text-[#00FFA3] border-[rgba(0,255,163,0.3)]" : "bg-[rgba(248,113,113,0.1)] text-[#F87171] border-[rgba(248,113,113,0.3)]"
                     }`}>
@@ -528,11 +532,11 @@ const TruckProfile = () => {
                 <div className="space-y-2 pl-1">
                   <div className="flex justify-between text-sm">
                     <span className="text-secondary">Date</span>
-                    <span className="font-semibold text-primary">{selectedVehicle.compliance?.cvsa?.lastInspection || "N/A"}</span>
+                    <span className="font-semibold text-headings">{selectedVehicle.compliance?.cvsa?.lastInspection || "N/A"}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-secondary">Officer</span>
-                    <span className="font-semibold text-primary">{selectedVehicle.compliance?.cvsa?.officer || "N/A"}</span>
+                    <span className="font-semibold text-headings">{selectedVehicle.compliance?.cvsa?.officer || "N/A"}</span>
                   </div>
                 </div>
 
@@ -557,7 +561,7 @@ const TruckProfile = () => {
                     <div className="p-2 bg-[rgba(0,255,163,0.1)] rounded-lg text-[#00FFA3]">
                       <FaTicketAlt className="w-4 h-4" />
                     </div>
-                    <span className="text-sm font-bold text-primary">Tickets</span>
+                    <span className="text-sm font-bold text-headings">Tickets</span>
                   </div>
                   {timeFilter !== "all" && (
                     <span className="text-xs font-medium text-secondary bg-card px-2 py-1 rounded border border-theme">
@@ -571,13 +575,13 @@ const TruckProfile = () => {
                     {filteredData.tickets.map((ticket) => (
                       <div key={ticket.id} className="bg-card p-3 rounded-lg border border-theme shadow-sm text-xs">
                         <div className="flex justify-between items-start mb-1">
-                          <span className="font-bold text-primary">{ticket.category}</span>
+                          <span className="font-bold text-headings">{ticket.category}</span>
                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${ticket.status === "Paid" ? "bg-[rgba(0,255,163,0.1)] text-[#00FFA3] border-[rgba(0,255,163,0.3)]" : "bg-[rgba(252,211,77,0.1)] text-[#FCD34D] border-[rgba(252,211,77,0.3)]"
                             }`}>{ticket.status}</span>
                         </div>
                         <div className="flex justify-between text-secondary mt-1">
                           <span>{ticket.issued}</span>
-                          <span className="font-medium text-primary">CA$ {ticket.amount}</span>
+                          <span className="font-medium text-headings">CA$ {ticket.amount}</span>
                         </div>
                       </div>
                     ))}
@@ -597,14 +601,14 @@ const TruckProfile = () => {
           <section className="bg-card rounded-xl shadow-lg border border-theme p-6 mb-6">
             <div className="flex items-center gap-2 mb-6 border-b border-theme pb-4">
               <FaWrench className="w-5 h-5 text-[var(--accent-navyblue)]" />
-              <h3 className="text-lg font-bold text-primary">Fleet Maintenance</h3>
+              <h3 className="text-lg font-bold text-headings">Fleet Maintenance</h3>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Service Logs */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-bold text-primary">Service Logs</h4>
+                  <h4 className="text-sm font-bold text-headings">Service Logs</h4>
                   <span className="text-xs text-secondary bg-[rgba(255,255,255,0.06)] px-2 py-1 rounded-full border border-theme">{filteredData.serviceLogs.length} Records</span>
                 </div>
                 <div className="space-y-3">
@@ -613,13 +617,13 @@ const TruckProfile = () => {
                       <div key={log.id} className="group border border-theme rounded-lg p-3 hover:border-blue-400 hover:shadow-sm transition-all bg-card">
                         <div className="flex justify-between items-start mb-1.5">
                           <div className="flex-1">
-                            <p className="text-sm font-bold text-primary group-hover:text-[#00D1FF] transition-colors">{log.description}</p>
+                            <p className="text-sm font-bold text-headings group-hover:text-[#00D1FF] transition-colors">{log.description}</p>
                             <p className="text-xs text-secondary mt-1 flex items-center gap-2">
                               <span className="bg-[rgba(255,255,255,0.06)] px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wide text-secondary">{log.vendor}</span>
                               <span>{log.date}</span>
                             </p>
                           </div>
-                          <p className="text-sm font-bold text-primary">CA$ {log.cost}</p>
+                          <p className="text-sm font-bold text-headings">CA$ {log.cost}</p>
                         </div>
                       </div>
                     ))
@@ -634,7 +638,7 @@ const TruckProfile = () => {
               {/* Repairs */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-bold text-primary">Repairs & Issues</h4>
+                  <h4 className="text-sm font-bold text-headings">Repairs & Issues</h4>
                   <span className="text-xs text-secondary bg-[rgba(255,255,255,0.06)] px-2 py-1 rounded-full border border-theme">{filteredData.repairs.length} Records</span>
                 </div>
                 <div className="space-y-3">
@@ -643,13 +647,13 @@ const TruckProfile = () => {
                       <div key={repair.id} className="group border border-theme rounded-lg p-3 hover:border-orange-400 hover:shadow-sm transition-all bg-card">
                         <div className="flex justify-between items-start mb-1.5">
                           <div className="flex-1">
-                            <p className="text-sm font-bold text-primary group-hover:text-[#F59E0B] transition-colors">{repair.issue}</p>
+                            <p className="text-sm font-bold text-headings group-hover:text-[#F59E0B] transition-colors">{repair.issue}</p>
                             <p className="text-xs text-secondary mt-1">{repair.date}</p>
                           </div>
                           <p className="text-xs font-bold text-[#F59E0B] bg-card px-2 py-1 rounded-lg">{repair.downtimeHours}h Downtime</p>
                         </div>
                         <p className="text-xs text-secondary mt-2 p-2 bg-card rounded-md">
-                          <span className="font-semibold text-primary">Resolution:</span> {repair.resolution}
+                          <span className="font-semibold text-headings">Resolution:</span> {repair.resolution}
                         </p>
                       </div>
                     ))
@@ -663,17 +667,17 @@ const TruckProfile = () => {
             </div>
 
             <div className="mt-8 pt-6 border-t border-theme">
-              <h4 className="text-sm font-bold text-primary mb-4">Spare Parts Usage</h4>
+              <h4 className="text-sm font-bold text-headings mb-4">Spare Parts Usage</h4>
               {selectedVehicle.fleet?.spareParts && selectedVehicle.fleet.spareParts.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {selectedVehicle.fleet.spareParts.map((part) => (
                     <div key={part.partNumber} className="border border-theme bg-card rounded-lg p-3 flex justify-between items-center">
                       <div>
-                        <p className="text-sm font-bold text-primary">{part.partName}</p>
+                        <p className="text-sm font-bold text-headings">{part.partName}</p>
                         <p className="text-[10px] font-mono text-secondary mt-0.5">{part.partNumber}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-bold text-primary">Qty: {part.quantity}</p>
+                        <p className="text-xs font-bold text-headings">Qty: {part.quantity}</p>
                         <p className="text-xs font-medium text-secondary">CA$ {part.cost}</p>
                       </div>
                     </div>
@@ -691,7 +695,7 @@ const TruckProfile = () => {
               <div className="flex items-center justify-between mb-6 border-b border-theme pb-4">
                 <div className="flex items-center gap-2">
                   <FaRoute className="w-5 h-5 text-[var(--accent-navyblue)]" />
-                  <h3 className="text-lg font-bold text-primary">Assignment History</h3>
+                  <h3 className="text-lg font-bold text-headings">Assignment History</h3>
                 </div>
                 <span className="text-xs font-medium text-secondary bg-[rgba(255,255,255,0.06)] px-3 py-1 rounded-full border border-theme">
                   {filteredData.assignmentHistory.length} assignments
@@ -703,10 +707,10 @@ const TruckProfile = () => {
                   <div key={assignment.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-theme rounded-xl hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                     <div className="flex items-start gap-4">
                       <div className={`p-2 rounded-full ${assignment.type === 'order' ? 'bg-[rgba(168,85,247,0.1)] text-[#A78BFA]' : 'bg-[rgba(129,140,248,0.1)] text-[#818CF8]'}`}>
-                        {(assignment.type === 'order') ? <FaTruck className="w-4 h-4" /> : <FaRoute className="w-4 h-4" />}
+                        {(assignment.type === 'order') ? <FaTruck className="w-4 h-4 text-[var(--accent-navyblue)]" /> : <FaRoute className="w-4 h-4" />}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-primary">
+                        <p className="text-sm font-bold text-headings">
                           {assignment.orderNumber || assignment.tripNumber}
                         </p>
                         <p className="text-xs text-secondary mt-1">
