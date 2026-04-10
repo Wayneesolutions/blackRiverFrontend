@@ -292,7 +292,7 @@ const HRRoleBasedTraining: React.FC = () => {
     <div className="p-6 bg-main min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-primary mb-2">Role-Based Training</h1>
+          <h1 className="text-3xl font-bold text-[var(--accent-navyblue)] mb-2">Role-Based Training</h1>
           <p className="text-secondary">Upload and manage training materials for different roles</p>
         </div>
 
@@ -301,7 +301,7 @@ const HRRoleBasedTraining: React.FC = () => {
           <div className="w-64 flex-shrink-0">
             <div className="bg-card rounded-lg shadow-sm">
               <div className="p-4 border-b border-theme">
-                <h2 className="font-semibold text-primary">Roles</h2>
+                <h2 className="font-semibold text-[var(--accent-navyblue)]">Roles</h2>
               </div>
               <div className="p-2">
                 {roles.map((role) => (
@@ -309,8 +309,8 @@ const HRRoleBasedTraining: React.FC = () => {
                     key={role.value}
                     onClick={() => setActiveRole(role.value)}
                     className={`w-full text-left px-4 py-3 rounded-lg mb-1 transition-colors ${activeRole === role.value
-                        ? "bg-[rgba(0,209,255,0.15)] !text-white"
-                        : "text-primary hover:bg-[rgba(255,255,255,0.03)]"
+                      ? "bg-[rgba(0,209,255,0.15)] !text-white"
+                      : "text-primary hover:bg-[rgba(255,255,255,0.03)]"
                       }`}
                   >
                     {role.label}
@@ -339,7 +339,7 @@ const HRRoleBasedTraining: React.FC = () => {
                       <div className="p-6 border-b border-theme">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h2 className="text-xl font-semibold text-primary">Training Materials</h2>
+                            <h2 className="text-xl font-semibold text-[var(--accent-navyblue)]">Training Materials</h2>
                             <p className="text-sm text-secondary mt-1">
                               Upload videos, PDFs, and images for {role.label} training
                             </p>
@@ -413,7 +413,7 @@ const HRRoleBasedTraining: React.FC = () => {
                       <div className="p-6 border-b border-theme">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h2 className="text-xl font-semibold text-primary">Q&A Content</h2>
+                            <h2 className="text-xl font-semibold text-[var(--accent-navyblue)]">Q&A Content</h2>
                             <p className="text-sm text-secondary mt-1">
                               Manage questions and answers for {role.label} training
                             </p>
@@ -505,7 +505,7 @@ const HRRoleBasedTraining: React.FC = () => {
           <div className="bg-card rounded-lg shadow-lg w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-theme">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-primary">Upload Training Content</h3>
+                <h3 className="text-lg font-semibold text-[var(--accent-navyblue)]">Upload Training Content</h3>
                 <button
                   onClick={() => !uploading && setShowUploadModal(false)}
                   className="text-secondary hover:text-secondary"
@@ -518,15 +518,15 @@ const HRRoleBasedTraining: React.FC = () => {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-primary mb-2">Content Type</label>
+                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-2">Content Type</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setUploadType('VIDEO')}
                     disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${uploadType === 'VIDEO'
-                        ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
-                        : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
+                      ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
+                      : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
                       } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Video className="w-4 h-4 inline mr-2" />
@@ -537,8 +537,8 @@ const HRRoleBasedTraining: React.FC = () => {
                     onClick={() => setUploadType('PDF')}
                     disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${uploadType === 'PDF'
-                        ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
-                        : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
+                      ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
+                      : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
                       } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <FileText className="w-4 h-4 inline mr-2" />
@@ -549,8 +549,8 @@ const HRRoleBasedTraining: React.FC = () => {
                     onClick={() => setUploadType('IMAGE')}
                     disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${uploadType === 'IMAGE'
-                        ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
-                        : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
+                      ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
+                      : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
                       } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Image className="w-4 h-4 inline mr-2" />
@@ -559,7 +559,7 @@ const HRRoleBasedTraining: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-primary mb-2">
+                <label htmlFor="title" className="block text-sm font-medium text-[var(--accent-navyblue)] mb-2">
                   Title *
                 </label>
                 <input
@@ -573,7 +573,7 @@ const HRRoleBasedTraining: React.FC = () => {
                 />
               </div>
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-primary mb-2">
+                <label htmlFor="description" className="block text-sm font-medium text-[var(--accent-navyblue)] mb-2">
                   Description
                 </label>
                 <textarea
@@ -587,7 +587,7 @@ const HRRoleBasedTraining: React.FC = () => {
                 />
               </div>
               <div>
-                <label htmlFor="file" className="block text-sm font-medium text-primary mb-2">
+                <label htmlFor="file" className="block text-sm font-medium text-[var(--accent-navyblue)] mb-2">
                   File *
                 </label>
                 <input
