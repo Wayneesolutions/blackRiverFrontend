@@ -695,7 +695,7 @@ const GeneralRepairsLog: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
+    <div className="min-h-screen pb-10 bg-main" >
       <div className="relative w-full mx-auto p-2">
         {/* Gradient band */}
 
@@ -721,8 +721,8 @@ const GeneralRepairsLog: React.FC = () => {
                 </button>
                 <button
                   onClick={handleAddRepair}
-                  className="flex items-center gap-2 px-4 py-2 !text-white rounded-lg shadow-sm transition-all font-bold text-sm hover:opacity-90"
-                  style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+                  className="flex items-center gap-2 px-4 py-2 !text-white rounded-lg shadow-sm transition-all font-bold text-sm hover:opacity-90 bg-[var(--accent-navyblue)]"
+
                 >
                   <Plus className="w-5 h-5" />
                   Add Maintenance Order
@@ -767,19 +767,19 @@ const GeneralRepairsLog: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-secondary">Last 30 Days</span>
-                  <span className="font-semibold text-primary">{summaryStats.incomingMaintenance}</span>
+                  <span className="font-semibold text-headings">{summaryStats.incomingMaintenance}</span>
                 </div>
                 {summaryStats.mostRecentRepairDate && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-secondary">Most Recent</span>
-                    <span className="font-semibold text-primary">
+                    <span className="font-semibold text-headings">
                       {formatDate(summaryStats.mostRecentRepairDate.toISOString())}
                     </span>
                   </div>
                 )}
                 <div className="flex items-center justify-between text-sm pt-1.5 border-t border-theme">
                   <span className="text-secondary">Units Affected</span>
-                  <span className="font-semibold text-primary">{summaryStats.unitsWithRecentRepairs}</span>
+                  <span className="font-semibold text-headings">{summaryStats.unitsWithRecentRepairs}</span>
                 </div>
               </div>
             </div>
@@ -800,7 +800,7 @@ const GeneralRepairsLog: React.FC = () => {
                 {summaryStats.mostRecentRepairDate && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-secondary">Most Recent</span>
-                    <span className="font-semibold text-primary">
+                    <span className="font-semibold text-headings">
                       {formatDate(summaryStats.mostRecentRepairDate.toISOString())}
                     </span>
                   </div>
@@ -815,7 +815,7 @@ const GeneralRepairsLog: React.FC = () => {
                 )}
                 <div className="flex items-center justify-between text-sm pt-1.5 border-t border-theme">
                   <span className="text-secondary">Total Maintenance Orders</span>
-                  <span className="font-semibold text-primary">{summaryStats.recentActivity}</span>
+                  <span className="font-semibold text-headings">{summaryStats.recentActivity}</span>
                 </div>
               </div>
             </div>
@@ -846,8 +846,8 @@ const GeneralRepairsLog: React.FC = () => {
               <button
                 onClick={() => setFilterMechanicType('all')}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${filterMechanicType === 'all'
-                    ? 'bg-gray-800 !text-white border-gray-800'
-                    : 'bg-card text-secondary border-theme hover:border-gray-400'
+                  ? 'bg-gray-800 !text-white border-gray-800'
+                  : 'bg-card text-secondary border-theme hover:border-gray-400'
                   }`}
               >
                 All Mechanics
@@ -855,8 +855,8 @@ const GeneralRepairsLog: React.FC = () => {
               <button
                 onClick={() => setFilterMechanicType('internal')}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${filterMechanicType === 'internal'
-                    ? 'bg-blue-600 !text-white border-blue-600'
-                    : 'bg-card text-secondary border-theme hover:border-blue-300'
+                  ? 'bg-blue-600 !text-white border-blue-600'
+                  : 'bg-card text-secondary border-theme hover:border-blue-300'
                   }`}
               >
                 Internal
@@ -864,8 +864,8 @@ const GeneralRepairsLog: React.FC = () => {
               <button
                 onClick={() => setFilterMechanicType('external')}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors flex items-center gap-1.5 ${filterMechanicType === 'external'
-                    ? 'bg-orange-500 !text-white border-orange-500'
-                    : 'bg-card text-secondary border-theme hover:border-orange-300'
+                  ? 'bg-orange-500 !text-white border-orange-500'
+                  : 'bg-card text-secondary border-theme hover:border-orange-300'
                   }`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${filterMechanicType === 'external' ? 'bg-card' : 'bg-orange-400'}`} />
@@ -876,36 +876,14 @@ const GeneralRepairsLog: React.FC = () => {
 
           <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
-            <style>{`
-              .top-scrollbar-container::-webkit-scrollbar {
-                height: 8px;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-track {
-                background: #f7fafc;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-thumb {
-                background: #cbd5e0;
-                border-radius: 4px;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                background: #a0aec0;
-              }
-              .table-container-hidden-scrollbar {
-                scrollbar-width: none; /* Firefox */
-                -ms-overflow-style: none; /* IE and Edge */
-              }
-              .table-container-hidden-scrollbar::-webkit-scrollbar {
-                display: none; /* Chrome, Safari, Opera */
-              }
-            `}</style>
+
             <div
               ref={topScrollRef}
               className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
               style={{
                 maxHeight: '20px',
                 marginBottom: '2px',
-                scrollbarWidth: 'thin',
-                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+
               }}
             >
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
@@ -916,7 +894,7 @@ const GeneralRepairsLog: React.FC = () => {
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
               <table className="w-full" style={{ minWidth: '1200px' }}>
-                <thead className="text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
+                <thead className="text-headings" >
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Service Date</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Unit Number</th>
@@ -931,7 +909,7 @@ const GeneralRepairsLog: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-theme">
+                <tbody className="divide-y divide-theme divide-white/5">
                   {loading ? (
                     <tr>
                       <td colSpan={12} className="px-6 py-12 text-center text-secondary">
@@ -967,19 +945,19 @@ const GeneralRepairsLog: React.FC = () => {
                             setShowRepairDetails(true);
                           }}
                         >
-                          <td className="px-6 py-4 text-primary">{formatDate(repair.serviceDate)}</td>
-                          <td className="px-6 py-4 font-medium text-primary">{repair.unitNumber}</td>
-                          <td className="px-6 py-4 text-primary">{repair.makeModel || '—'}</td>
+                          <td className="px-6 py-4 text-secondary">{formatDate(repair.serviceDate)}</td>
+                          <td className="px-6 py-4 font-medium text-secondary">{repair.unitNumber}</td>
+                          <td className="px-6 py-4 text-secondary">{repair.makeModel || '—'}</td>
                           <td className="px-6 py-4 text-secondary font-mono text-sm">{repair.vinLicensePlate || '—'}</td>
-                          <td className="px-6 py-4 text-primary max-w-xs">
+                          <td className="px-6 py-4 text-secondary max-w-xs">
                             <div className="truncate" title={repair.description}>
                               {repair.description}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-primary">
+                          <td className="px-6 py-4 text-secondary">
                             {typeof repair.odometer === 'number' ? `${repair.odometer.toLocaleString()} km` : '—'}
                           </td>
-                          <td className="px-6 py-4 text-primary">
+                          <td className="px-6 py-4 text-secondary">
                             {repair.mechanicType === 'external' ? (
                               <div className="flex items-center gap-1">
                                 <span className="inline-flex items-center text-xs font-semibold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">Ext</span>
@@ -992,14 +970,14 @@ const GeneralRepairsLog: React.FC = () => {
                           <td className="px-6 py-4 text-secondary font-mono text-sm">{repair.invoiceNumber || '—'}</td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${status === 'completed'
-                                ? 'bg-blue-100 text-blue-700'
-                                : status === 'in-progress'
-                                  ? 'bg-yellow-100 text-yellow-700'
-                                  : status === 'Shared'
-                                    ? 'bg-purple-100 text-purple-700'
-                                    : status === 'Assigned'
-                                      ? 'bg-green-100 text-green-700'
-                                      : 'bg-card text-primary'
+                              ? 'bg-blue-100 text-blue-700'
+                              : status === 'in-progress'
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : status === 'Shared'
+                                  ? 'bg-purple-100 text-purple-700'
+                                  : status === 'Assigned'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-card text-headings'
                               }`}>
                               {status === 'in-progress' ? 'In Progress' : status}
                             </span>
@@ -1026,8 +1004,8 @@ const GeneralRepairsLog: React.FC = () => {
                                 }}
                                 disabled={(repair as any).verificationStatus === 'verified'}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${(repair as any).verificationStatus === 'verified'
-                                    ? 'bg-green-100 text-green-700 border-green-300 cursor-not-allowed'
-                                    : 'bg-yellow-100 text-yellow-700 border-yellow-300 cursor-pointer hover:bg-yellow-200'
+                                  ? 'bg-green-100 text-green-700 border-green-300 cursor-not-allowed'
+                                  : 'bg-yellow-100 text-yellow-700 border-yellow-300 cursor-pointer hover:bg-yellow-200'
                                   }`}
                               >
                                 <option value="not-verified">Not Verified</option>
@@ -1083,7 +1061,7 @@ const GeneralRepairsLog: React.FC = () => {
                 <div className="p-6">
                   {/* Header */}
                   <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
-                    <h2 className="text-2xl font-bold text-primary">Maintenance Order Details</h2>
+                    <h2 className="text-2xl font-bold text-headings">Maintenance Order Details</h2>
                     <button
                       onClick={() => {
                         setShowRepairDetails(false);
@@ -1097,7 +1075,7 @@ const GeneralRepairsLog: React.FC = () => {
 
                   <div className="space-y-6">
                     {/* Repair Header */}
-                    <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                    <div className="border-4 border-theme  text-white p-6 rounded-lg">
                       <div className="flex items-center gap-4">
                         <div className="flex-1">
                           <h3 className="text-2xl font-bold mb-1">{selectedRepair.unitNumber || 'N/A'}</h3>
@@ -1110,27 +1088,27 @@ const GeneralRepairsLog: React.FC = () => {
 
                     {/* Repair Information */}
                     <div className="bg-card p-6 rounded-lg border border-theme">
-                      <h4 className="font-semibold text-primary mb-4 text-lg">Maintenance Order Information</h4>
+                      <h4 className="font-semibold text-headings mb-4 text-lg">Maintenance Order Information</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm text-secondary mb-1">Unit Number</p>
-                          <p className="font-medium text-primary">{selectedRepair.unitNumber || "—"}</p>
+                          <p className="font-medium text-headings">{selectedRepair.unitNumber || "—"}</p>
                         </div>
                         <div>
                           <p className="text-sm text-secondary mb-1">Make / Model</p>
-                          <p className="font-medium text-primary">{selectedRepair.makeModel || "—"}</p>
+                          <p className="font-medium text-headings">{selectedRepair.makeModel || "—"}</p>
                         </div>
                         <div>
                           <p className="text-sm text-secondary mb-1">VIN / License Plate</p>
-                          <p className="font-medium text-primary">{selectedRepair.vinLicensePlate || "—"}</p>
+                          <p className="font-medium text-headings">{selectedRepair.vinLicensePlate || "—"}</p>
                         </div>
                         <div>
                           <p className="text-sm text-secondary mb-1">Service Date</p>
-                          <p className="font-medium text-primary">{formatDate(selectedRepair.serviceDate)}</p>
+                          <p className="font-medium text-headings">{formatDate(selectedRepair.serviceDate)}</p>
                         </div>
                         <div>
                           <p className="text-sm text-secondary mb-1">Odometer</p>
-                          <p className="font-medium text-primary">
+                          <p className="font-medium text-headings">
                             {typeof selectedRepair.odometer === 'number' ? `${selectedRepair.odometer.toLocaleString()} km` : '—'}
                           </p>
                         </div>
@@ -1139,23 +1117,23 @@ const GeneralRepairsLog: React.FC = () => {
                           {selectedRepair.mechanicType === 'external' ? (
                             <div className="space-y-0.5">
                               <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 mb-1">External Mechanic</span>
-                              <p className="font-medium text-primary">{selectedRepair.serviceProvider || '—'}</p>
+                              <p className="font-medium text-headings">{selectedRepair.serviceProvider || '—'}</p>
                               {selectedRepair.externalMechanicCompany && <p className="text-sm text-secondary">{selectedRepair.externalMechanicCompany}</p>}
                               {selectedRepair.externalMechanicPhone && <p className="text-sm text-secondary">{selectedRepair.externalMechanicPhone}</p>}
                               {selectedRepair.externalMechanicEmail && <p className="text-sm text-secondary">{selectedRepair.externalMechanicEmail}</p>}
                             </div>
                           ) : (
-                            <p className="font-medium text-primary">{selectedRepair.serviceProvider || "—"}</p>
+                            <p className="font-medium text-headings">{selectedRepair.serviceProvider || "—"}</p>
                           )}
                         </div>
                         <div>
                           <p className="text-sm text-secondary mb-1">Invoice Number</p>
-                          <p className="font-medium text-primary">{selectedRepair.invoiceNumber || "—"}</p>
+                          <p className="font-medium text-headings">{selectedRepair.invoiceNumber || "—"}</p>
                         </div>
                       </div>
                       <div className="mt-4">
                         <p className="text-sm text-secondary mb-1">Description</p>
-                        <p className="font-medium text-primary">{selectedRepair.description || "—"}</p>
+                        <p className="font-medium text-headings">{selectedRepair.description || "—"}</p>
                       </div>
                       {selectedRepair.parts && (
                         <div className="mt-4">
@@ -1163,20 +1141,20 @@ const GeneralRepairsLog: React.FC = () => {
                           {Array.isArray(selectedRepair.parts) && selectedRepair.parts.length > 0 ? (
                             <div className="space-y-1">
                               {selectedRepair.parts.map((p: any, idx: number) => (
-                                <p key={idx} className="font-medium text-primary">
+                                <p key={idx} className="font-medium text-headings">
                                   {p.partName || p.partNumber || 'Part'} - Quantity: {p.quantity || 1}
                                 </p>
                               ))}
                             </div>
                           ) : (
-                            <p className="font-medium text-primary">{typeof selectedRepair.parts === 'string' ? selectedRepair.parts : 'N/A'}</p>
+                            <p className="font-medium text-headings">{typeof selectedRepair.parts === 'string' ? selectedRepair.parts : 'N/A'}</p>
                           )}
                         </div>
                       )}
                       {selectedRepair.notes && (
                         <div className="mt-4">
                           <p className="text-sm text-secondary mb-1">Notes</p>
-                          <p className="font-medium text-primary">{selectedRepair.notes}</p>
+                          <p className="font-medium text-headings">{selectedRepair.notes}</p>
                         </div>
                       )}
                     </div>
@@ -1184,14 +1162,14 @@ const GeneralRepairsLog: React.FC = () => {
                     {/* Completion Details - Show if order is completed */}
                     {((selectedRepair as any).status === 'completed') && (
                       <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-                        <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                        <h4 className="font-semibold text-headings mb-4 text-lg flex items-center gap-2">
                           <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                           Completion Details
                         </h4>
                         {(selectedRepair as any).repairDetails && (
                           <div className="mb-4">
                             <p className="text-sm text-secondary mb-1">Repair Details</p>
-                            <p className="font-medium text-primary">{(selectedRepair as any).repairDetails}</p>
+                            <p className="font-medium text-headings">{(selectedRepair as any).repairDetails}</p>
                           </div>
                         )}
                         {(selectedRepair as any).completedParts && Array.isArray((selectedRepair as any).completedParts) && (selectedRepair as any).completedParts.length > 0 && (
@@ -1200,7 +1178,7 @@ const GeneralRepairsLog: React.FC = () => {
                             <div className="space-y-2">
                               {(selectedRepair as any).completedParts.map((part: any, idx: number) => (
                                 <div key={idx} className="bg-card p-3 rounded border border-theme">
-                                  <p className="font-medium text-primary">
+                                  <p className="font-medium text-headings">
                                     {part.partName || part.partNumber || 'Part'}
                                     {part.quantity > 1 && ` (Qty: ${part.quantity})`}
                                     {part.cost > 0 && ` - $${part.cost.toFixed(2)}`}
@@ -1216,7 +1194,7 @@ const GeneralRepairsLog: React.FC = () => {
                         {(selectedRepair as any).completionTotalAmount && (
                           <div className="mb-4">
                             <p className="text-sm text-secondary mb-1">Total Amount</p>
-                            <p className="font-semibold text-lg text-primary">
+                            <p className="font-semibold text-lg text-headings">
                               {new Intl.NumberFormat('en-CA', {
                                 style: 'currency',
                                 currency: 'CAD',
@@ -1229,7 +1207,7 @@ const GeneralRepairsLog: React.FC = () => {
                         {(selectedRepair as any).completionDate && (
                           <div className="mb-4">
                             <p className="text-sm text-secondary mb-1">Completion Date</p>
-                            <p className="font-medium text-primary">
+                            <p className="font-medium text-headings">
                               {formatDate((selectedRepair as any).completionDate)}
                             </p>
                           </div>
@@ -1265,7 +1243,7 @@ const GeneralRepairsLog: React.FC = () => {
                           setShowRepairDetails(false);
                           setTimeout(() => setSelectedRepair(null), 300);
                         }}
-                        className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
+                        className="px-6 py-2.5 bg-gray-700 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
                       >
                         Close
                       </button>
@@ -1274,7 +1252,7 @@ const GeneralRepairsLog: React.FC = () => {
                           setShowRepairDetails(false);
                           handleEditRepair(selectedRepair);
                         }}
-                        className="px-6 py-2.5 bg-blue-600 !text-white font-medium rounded-lg hover:bg-blue-700 transition-all"
+                        className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white font-medium rounded-lg hover:bg-blue-700 transition-all"
                       >
                         Edit Maintenance Order
                       </button>
@@ -1290,7 +1268,7 @@ const GeneralRepairsLog: React.FC = () => {
               <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={closeModals} />
               <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-card shadow-2xl z-[101] border-l border-theme">
                 <div className="h-full flex flex-col">
-                  <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
+                  <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-primary bg-[var(--accent-navyblue)]" >
                     <h2 className="text-2xl font-bold">{showAddModal ? 'Add Maintenance Order' : 'Edit Maintenance Order'}</h2>
                     <button onClick={closeModals} className="p-2 hover:bg-card/20 rounded-lg transition-colors">
                       <FaTimes className="w-5 h-5" />
@@ -1302,7 +1280,7 @@ const GeneralRepairsLog: React.FC = () => {
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Service Date *</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Service Date *</label>
                         <input
                           type="date"
                           value={formData.serviceDate}
@@ -1320,7 +1298,7 @@ const GeneralRepairsLog: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Status</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Status</label>
                         <div className="w-full px-4 py-2 border border-theme rounded-lg bg-card">
                           <span className={`font-medium ${formData.status === 'Assigned' ? 'text-green-600' : 'text-secondary'
                             }`}>
@@ -1329,7 +1307,7 @@ const GeneralRepairsLog: React.FC = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Unit Number *</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Unit Number *</label>
                         <select
                           value={formData.unitNumber}
                           onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
@@ -1353,7 +1331,7 @@ const GeneralRepairsLog: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Odometer</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Odometer</label>
                         <input
                           type="number"
                           value={formData.odometer}
@@ -1372,7 +1350,7 @@ const GeneralRepairsLog: React.FC = () => {
                         />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-primary mb-2">Service Provider *</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Service Provider *</label>
                         {/* Toggle */}
                         <div className="flex rounded-lg border border-theme overflow-hidden mb-3 w-fit">
                           <button
@@ -1478,7 +1456,7 @@ const GeneralRepairsLog: React.FC = () => {
                         )}
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-primary mb-2">Description *</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Description *</label>
                         <textarea
                           value={formData.description}
                           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -1497,7 +1475,7 @@ const GeneralRepairsLog: React.FC = () => {
                         />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-primary mb-2">Notes</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Notes</label>
                         <textarea
                           value={formData.notes}
                           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -1525,8 +1503,8 @@ const GeneralRepairsLog: React.FC = () => {
                         onClick={handleSendEmail}
                         disabled={sending || formData.shared || (selectedRepair as any).shared}
                         className={`px-6 py-2 rounded-lg transition-colors flex items-center gap-2 ${sending || formData.shared || (selectedRepair as any).shared
-                            ? 'opacity-60 cursor-not-allowed bg-gray-300 text-secondary'
-                            : 'bg-green-600 hover:bg-green-700 !text-white'
+                          ? 'opacity-60 cursor-not-allowed bg-gray-300 text-secondary'
+                          : 'bg-green-600 hover:bg-green-700 !text-white'
                           }`}
                       >
                         <Mail className="w-4 h-4" />
@@ -1543,9 +1521,9 @@ const GeneralRepairsLog: React.FC = () => {
                       <button
                         onClick={handleSaveRepair}
                         disabled={saving}
-                        className={`px-6 py-2 !text-white rounded-lg transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
+                        className={`px-6 py-2 !text-white rounded-lg transition-colors bg-[var(--accent-navyblue)] ${saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
                           }`}
-                        style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+
                       >
                         {saving ? 'Saving...' : showAddModal ? 'Add Maintenance Order' : 'Save Changes'}
                       </button>
@@ -1572,11 +1550,11 @@ const GeneralRepairsLog: React.FC = () => {
                       <FaExclamationCircle className="text-[#A855F7]" size={24} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-primary">Delete Maintenance Order</h3>
+                      <h3 className="text-lg font-bold text-headings">Delete Maintenance Order</h3>
                       <p className="text-sm text-secondary">This action cannot be undone</p>
                     </div>
                   </div>
-                  <p className="text-primary mb-6">
+                  <p className="text-headings mb-6">
                     Are you sure you want to delete this maintenance order record for unit <strong>{selectedRepair.unitNumber}</strong>?
                   </p>
                   <div className="flex justify-end gap-3">
@@ -1585,7 +1563,7 @@ const GeneralRepairsLog: React.FC = () => {
                         setShowDeleteModal(false);
                         setSelectedRepair(null);
                       }}
-                      className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                      className="px-6 py-2 border border-theme rounded-lg text-headings hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     >
                       Cancel
                     </button>
