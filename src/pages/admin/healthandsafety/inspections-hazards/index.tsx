@@ -465,7 +465,7 @@ const HazardControl = () => {
             case 'overdue': case 'action-assigned': return 'bg-orange-100 text-orange-800';
             case 'follow-up-required': case 'pending': return 'bg-purple-100 text-purple-800';
             case 'coached': return 'bg-blue-100 text-blue-800';
-            default: return 'bg-gray-100 text-primary';
+            default: return 'bg-card text-primary';
         }
     };
 
@@ -944,110 +944,110 @@ const HazardControl = () => {
     );
 
     const renderTruckingHazards = () => (
-            <div className="space-y-4">
-                <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
-                    <div className="px-4 py-3 border-b border-theme flex justify-between items-center bg-card">
-                        <h3 className="text-sm font-bold text-primary">Trucking-Specific Hazards</h3>
-                        <button
-                            onClick={() => {
-                                if (!checkCompanySetup()) return;
-                                setEditingHazard(null);
-                                setNewTruckingHazard({ truckingType: '', description: '', location: '', reporter: '', severity: 'Medium' });
-                                setSidebarType('trucking-hazard');
-                                setShowSidebar(true);
-                            }}
-                            className="px-3 py-1.5 !text-white rounded-lg hover:opacity-90 transition flex items-center gap-2 text-xs font-bold shadow-sm"
-                            style={{ background: CUSTOM_COLORS.primary }}
-                        >
-                            <FaPlus size={10} /> Report Hazard
-                        </button>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-card border-b border-theme">
+        <div className="space-y-4">
+            <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
+                <div className="px-4 py-3 border-b border-theme flex justify-between items-center bg-card">
+                    <h3 className="text-sm font-bold text-primary">Trucking-Specific Hazards</h3>
+                    <button
+                        onClick={() => {
+                            if (!checkCompanySetup()) return;
+                            setEditingHazard(null);
+                            setNewTruckingHazard({ truckingType: '', description: '', location: '', reporter: '', severity: 'Medium' });
+                            setSidebarType('trucking-hazard');
+                            setShowSidebar(true);
+                        }}
+                        className="px-3 py-1.5 !text-white rounded-lg hover:opacity-90 transition flex items-center gap-2 text-xs font-bold shadow-sm"
+                        style={{ background: CUSTOM_COLORS.primary }}
+                    >
+                        <FaPlus size={10} /> Report Hazard
+                    </button>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className="bg-card border-b border-theme">
+                            <tr>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Hazard ID</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Type</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Description</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Location</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Severity</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Assigned To</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Status</th>
+                                <th className="px-4 py-3 text-center text-[10px] font-bold text-secondary uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {loading && filteredTruckingHazards.length === 0 ? (
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Hazard ID</th>
-                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Type</th>
-                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Description</th>
-                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Location</th>
-                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Severity</th>
-                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Assigned To</th>
-                                    <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Status</th>
-                                    <th className="px-4 py-3 text-center text-[10px] font-bold text-secondary uppercase tracking-wider">Actions</th>
+                                    <td colSpan={8} className="px-6 py-8 text-center text-xs text-secondary">Loading...</td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {loading && filteredTruckingHazards.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={8} className="px-6 py-8 text-center text-xs text-secondary">Loading...</td>
+                            ) : filteredTruckingHazards.length === 0 ? (
+                                <tr>
+                                    <td colSpan={8} className="px-6 py-8 text-center text-xs text-secondary">No trucking hazards found.</td>
+                                </tr>
+                            ) : (
+                                filteredTruckingHazards.map((hazard) => (
+                                    <tr key={hazard._id} onClick={() => setSelectedHazard(hazard as any)} className="hover:bg-blue-50/30 transition-colors group cursor-pointer">
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <div className="text-xs font-bold text-primary group-hover:text-[#00D1FF] transition-colors">{hazard.hazardId}</div>
+                                            <div className="text-[10px] text-secondary">{new Date(hazard.dateReported).toLocaleDateString()}</div>
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-xs font-semibold text-primary">{hazard.truckingType}</td>
+                                        <td className="px-4 py-3 text-xs text-primary truncate max-w-[200px]" title={hazard.description}>{hazard.description}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-xs text-primary">{hazard.location}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className={`px-2 py-0.5 inline-flex text-[10px] font-bold rounded border ${hazard.severity === 'Critical' ? 'bg-card text-[#A855F7] border-red-100' :
+                                                hazard.severity === 'High' ? 'bg-card text-[#F59E0B] border-orange-100' :
+                                                    hazard.severity === 'Medium' ? 'bg-card text-[#00FFA3] border-yellow-100' :
+                                                        'bg-green-50 text-green-600 border-green-100'
+                                                }`}>
+                                                {hazard.severity.toUpperCase()}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-xs text-primary">{hazard.assignedTo || 'Unassigned'}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getStatusColor(hazard.status)}`}>
+                                                {hazard.status.replace('-', ' ').toUpperCase()}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-center">
+                                            <div className="flex items-center justify-center gap-1">
+                                                <button
+                                                    className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-100"
+                                                    title="Edit"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setEditingHazard(hazard);
+                                                        setNewTruckingHazard({ truckingType: '', description: '', location: '', reporter: '', severity: 'Medium' });
+                                                        setSidebarType('trucking-hazard');
+                                                        setShowSidebar(true);
+                                                    }}
+                                                >
+                                                    <FaEdit size={12} />
+                                                </button>
+                                                <button
+                                                    className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded-lg transition border border-transparent hover:border-red-100"
+                                                    title="Delete"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setItemToDelete(hazard._id);
+                                                        setDeleteType('trucking-hazard');
+                                                        setShowDeleteModal(true);
+                                                    }}
+                                                >
+                                                    <FaTrash size={12} />
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
-                                ) : filteredTruckingHazards.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={8} className="px-6 py-8 text-center text-xs text-secondary">No trucking hazards found.</td>
-                                    </tr>
-                                ) : (
-                                    filteredTruckingHazards.map((hazard) => (
-                                        <tr key={hazard._id} onClick={() => setSelectedHazard(hazard as any)} className="hover:bg-blue-50/30 transition-colors group cursor-pointer">
-                                            <td className="px-4 py-3 whitespace-nowrap">
-                                                <div className="text-xs font-bold text-primary group-hover:text-[#00D1FF] transition-colors">{hazard.hazardId}</div>
-                                                <div className="text-[10px] text-secondary">{new Date(hazard.dateReported).toLocaleDateString()}</div>
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-xs font-semibold text-primary">{hazard.truckingType}</td>
-                                            <td className="px-4 py-3 text-xs text-primary truncate max-w-[200px]" title={hazard.description}>{hazard.description}</td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-xs text-primary">{hazard.location}</td>
-                                            <td className="px-4 py-3 whitespace-nowrap">
-                                                <span className={`px-2 py-0.5 inline-flex text-[10px] font-bold rounded border ${hazard.severity === 'Critical' ? 'bg-card text-[#A855F7] border-red-100' :
-                                                    hazard.severity === 'High' ? 'bg-card text-[#F59E0B] border-orange-100' :
-                                                        hazard.severity === 'Medium' ? 'bg-card text-[#00FFA3] border-yellow-100' :
-                                                            'bg-green-50 text-green-600 border-green-100'
-                                                    }`}>
-                                                    {hazard.severity.toUpperCase()}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-xs text-primary">{hazard.assignedTo || 'Unassigned'}</td>
-                                            <td className="px-4 py-3 whitespace-nowrap">
-                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getStatusColor(hazard.status)}`}>
-                                                    {hazard.status.replace('-', ' ').toUpperCase()}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-center">
-                                                <div className="flex items-center justify-center gap-1">
-                                                    <button
-                                                        className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-100"
-                                                        title="Edit"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setEditingHazard(hazard);
-                                                            setNewTruckingHazard({ truckingType: '', description: '', location: '', reporter: '', severity: 'Medium' });
-                                                            setSidebarType('trucking-hazard');
-                                                            setShowSidebar(true);
-                                                        }}
-                                                    >
-                                                        <FaEdit size={12} />
-                                                    </button>
-                                                    <button
-                                                        className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded-lg transition border border-transparent hover:border-red-100"
-                                                        title="Delete"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setItemToDelete(hazard._id);
-                                                            setDeleteType('trucking-hazard');
-                                                            setShowDeleteModal(true);
-                                                        }}
-                                                    >
-                                                        <FaTrash size={12} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        );
+        </div>
+    );
 
     // Inspections are now managed in the dedicated SafetyInspections module
 
@@ -1325,7 +1325,7 @@ const HazardControl = () => {
                                     {hazardTypes.length > 0 && (
                                         <div className="mt-2 flex flex-wrap gap-1">
                                             {hazardTypes.map(t => (
-                                                <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded text-xs">
+                                                <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 bg-card rounded text-xs">
                                                     {t}
                                                     <button type="button" onClick={() => deleteHazardType(t)} className="text-red-500 hover:text-red-700" title="Delete type">
                                                         <FaTimes size={10} />
@@ -1641,7 +1641,7 @@ const HazardControl = () => {
                                     {truckingHazardTypes.length > 0 && (
                                         <div className="mt-2 flex flex-wrap gap-1">
                                             {truckingHazardTypes.map(t => (
-                                                <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded text-xs">
+                                                <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 bg-card rounded text-xs">
                                                     {t}
                                                     <button type="button" onClick={() => deleteTruckingHazardType(t)} className="text-red-500 hover:text-red-700" title="Delete type">
                                                         <FaTimes size={10} />
@@ -1937,7 +1937,7 @@ const HazardControl = () => {
                             <div className="flex gap-3 w-full">
                                 <button
                                     onClick={() => setShowDeleteModal(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-100 text-primary font-bold rounded-xl hover:bg-gray-200 transition-colors"
+                                    className="flex-1 px-4 py-2 bg-card text-primary font-bold rounded-xl hover:bg-gray-200 transition-colors"
                                 >
                                     Cancel
                                 </button>

@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import {
     Truck,
     MapPin,
@@ -131,7 +131,7 @@ const VehicleEldMonitor = () => {
                                 </div>
                                 <div className="mt-4 flex gap-2">
                                     <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">3 Active</span>
-                                    <span className="text-xs font-medium text-secondary bg-gray-100 px-2 py-0.5 rounded">1 Offline</span>
+                                    <span className="text-xs font-medium text-secondary bg-card px-2 py-0.5 rounded">1 Offline</span>
                                 </div>
                             </div>
 
@@ -228,7 +228,7 @@ const VehicleEldMonitor = () => {
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wide
                              ${v.status === 'active' || v.status === 'moving' ? 'bg-green-100 text-green-700' :
-                                                        v.status === 'idle' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-secondary'}`}>
+                                                        v.status === 'idle' ? 'bg-amber-100 text-amber-700' : 'bg-card text-secondary'}`}>
                                                     {v.status === 'moving' && <Activity size={12} className="animate-pulse" />}
                                                     {v.status}
                                                 </span>

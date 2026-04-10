@@ -3171,7 +3171,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         value={selectedSalesman}
                                                         onChange={(e) => setSelectedSalesman(e.target.value)}
                                                         disabled={loadingSalespersons}
-                                                        className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                                        className="flex-1 p-2 border border-theme rounded focus:outline-none focus:ring-2 text-sm disabled:bg-card disabled:cursor-not-allowed"
                                                     >
                                                         <option value="">Select</option>
                                                         {loadingSalespersons ? (
@@ -3833,7 +3833,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     onClick={() => setShipperType(type)}
                                                                     className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${shipperType === type
                                                                         ? "!bg-[var(--accent-navyblue)] !text-white"
-                                                                        : "!bg-gray-100 !text-black hover:bg-gray-200"
+                                                                        : "!bg-card !text-black hover:bg-gray-200"
                                                                         }`}
                                                                 >
                                                                     {type}
@@ -3949,7 +3949,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     type="button"
                                                                     className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-all ${pickupAppointmentType === type
                                                                         ? "bg-[var(--accent-navyblue)] !text-white shadow-sm"
-                                                                        : "bg-gray-100 !text-black hover:bg-gray-200"
+                                                                        : "bg-card !text-black hover:bg-gray-200"
                                                                         }`}
                                                                 >
                                                                     {type}
@@ -6359,7 +6359,7 @@ focus:outline-none focus:ring-2 focus:ring-[#00D1FF]"
                                                         </div>
                                                     ))}
                                                     {routeSegments.length === 0 && (
-                                                        <div className="p-2 bg-gray-100 border border-theme rounded text-sm text-secondary">
+                                                        <div className="p-2 bg-card border border-theme rounded text-sm text-secondary">
                                                             No route segments configured
                                                         </div>
                                                     )}

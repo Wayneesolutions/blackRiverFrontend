@@ -79,7 +79,7 @@ export default function TaxConfigurationPage() {
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: TabType } | null>(null);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // Detail modal states
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<IftaRate | SalesTaxRule | PayrollTaxFormula | VendorTax | null>(null);
@@ -464,8 +464,8 @@ export default function TaxConfigurationPage() {
                   </tr>
                 ) : (
                   iftaRates.map((item) => (
-                    <tr 
-                      key={item._id || item.id} 
+                    <tr
+                      key={item._id || item.id}
                       className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
                       onClick={() => {
                         setSelectedItem(item);
@@ -515,8 +515,8 @@ export default function TaxConfigurationPage() {
                   </tr>
                 ) : (
                   salesTaxRules.map((item) => (
-                    <tr 
-                      key={item._id || item.id} 
+                    <tr
+                      key={item._id || item.id}
                       className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
                       onClick={() => {
                         setSelectedItem(item);
@@ -570,8 +570,8 @@ export default function TaxConfigurationPage() {
                   </tr>
                 ) : (
                   payrollFormulas.map((item) => (
-                    <tr 
-                      key={item._id || item.id} 
+                    <tr
+                      key={item._id || item.id}
                       className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
                       onClick={() => {
                         setSelectedItem(item);
@@ -626,8 +626,8 @@ export default function TaxConfigurationPage() {
                   </tr>
                 ) : (
                   vendorTaxes.map((item) => (
-                    <tr 
-                      key={item._id || item.id} 
+                    <tr
+                      key={item._id || item.id}
                       className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
                       onClick={() => {
                         setSelectedItem(item);
@@ -981,7 +981,7 @@ export default function TaxConfigurationPage() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-primary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>
@@ -1061,11 +1061,10 @@ export default function TaxConfigurationPage() {
                     </div>
                     <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                       <label className="text-sm font-medium text-green-900 mb-2 block">QuickBooks Sync</label>
-                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
-                        (selectedItem as SalesTaxRule).qbSync 
-                          ? 'bg-green-100 text-green-800 border-green-300' 
+                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as SalesTaxRule).qbSync
+                          ? 'bg-green-100 text-green-800 border-green-300'
                           : 'bg-red-100 text-red-800 border-red-300'
-                      }`}>
+                        }`}>
                         {(selectedItem as SalesTaxRule).qbSync ? 'Enabled' : 'Disabled'}
                       </span>
                     </div>
@@ -1088,11 +1087,10 @@ export default function TaxConfigurationPage() {
                     </div>
                     <div className="bg-card p-4 rounded-lg border border-purple-200">
                       <label className="text-sm font-medium text-purple-900 mb-2 block">Classification</label>
-                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
-                        (selectedItem as PayrollTaxFormula).classification === 'Employee'
+                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as PayrollTaxFormula).classification === 'Employee'
                           ? 'bg-blue-100 text-blue-800 border-blue-300'
                           : 'bg-purple-100 text-purple-800 border-purple-300'
-                      }`}>
+                        }`}>
                         {(selectedItem as PayrollTaxFormula).classification}
                       </span>
                     </div>

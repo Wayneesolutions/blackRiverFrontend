@@ -51,7 +51,7 @@ const TrailersPage: React.FC = () => {
     const [sortBy, setSortBy] = useState('');
     const [complianceStatus, setComplianceStatus] = useState('All');
     const [operatingStatus, setOperatingStatus] = useState('All');
-    
+
     // API state
     const [trailers, setTrailers] = useState<Trailer[]>([]);
     const [loading, setLoading] = useState(false);
@@ -226,7 +226,7 @@ const TrailersPage: React.FC = () => {
                 // Determine filter parameters based on activeTab (same logic as Trucks)
                 let yardFilter: string | undefined = undefined;
                 let ownershipFilter: string | undefined = undefined;
-                
+
                 if (activeTab === 'All') {
                     // No filters - fetch all
                 } else if (activeTab === 'External') {
@@ -250,9 +250,9 @@ const TrailersPage: React.FC = () => {
                     yardFilter, // yard
                     ownershipFilter // ownership
                 );
-                
+
                 console.log('📥 Trailers API response:', response);
-                
+
                 if (response?.success && response?.data) {
                     // Transform backend data to match frontend interface
                     const transformedTrailers = response.data.map((trailer: any) => ({
@@ -363,7 +363,7 @@ const TrailersPage: React.FC = () => {
 
         try {
             let count = 0;
-            
+
             if (tabId === 'All') {
                 const response = await getAllTrailers(1, 1);
                 count = response?.pagination?.total || 0;
@@ -374,7 +374,7 @@ const TrailersPage: React.FC = () => {
                 // For unassigned, we need to fetch all and filter
                 const response = await getAllTrailers(1, 1000);
                 if (response?.success && response?.data) {
-                    count = response.data.filter((trailer: any) => 
+                    count = response.data.filter((trailer: any) =>
                         !assignedTrailerIds.has(trailer._id)
                     ).length;
                 }
@@ -383,10 +383,10 @@ const TrailersPage: React.FC = () => {
                 const response = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, tabId);
                 count = response?.pagination?.total || 0;
             }
-            
+
             setYardCounts(prev => ({ ...prev, [tabId]: count }));
             setFetchedCounts(prev => new Set([...prev, tabId]));
-            
+
             console.log(`✅ Fetched count for tab "${tabId}":`, count);
         } catch (error) {
             console.error(`Error fetching count for tab "${tabId}":`, error);
@@ -419,7 +419,7 @@ const TrailersPage: React.FC = () => {
             try {
                 console.log('📥 Loading trailer for edit:', editingId);
                 const response = await getTrailerById(editingId);
-                
+
                 if (response?.success && response?.data) {
                     const trailer = response.data;
                     console.log('📋 Loaded trailer data:', trailer);
@@ -506,7 +506,7 @@ const TrailersPage: React.FC = () => {
     const handleEditInspection = (inspection: any, type: 'oneTime' | 'recurring') => {
         setEditingInspectionId(inspection.id);
         setEditingInspectionType(type);
-        
+
         if (type === 'oneTime') {
             setInspectionType('One Time');
             setInspectionForm({
@@ -653,7 +653,7 @@ const TrailersPage: React.FC = () => {
     // Validate required fields
     const validateTrailerForm = (): boolean => {
         const errors: string[] = [];
-        
+
         if (!formData.unitNumber.trim()) errors.push('Unit # is required');
         if (!formData.plateNumber.trim()) errors.push('Plate # is required');
         if (!formData.vinNumber.trim()) errors.push('VIN is required');
@@ -664,7 +664,7 @@ const TrailersPage: React.FC = () => {
         if (!formData.registrationCountry.trim()) errors.push('Registration Country is required');
         if (!formData.ownership.trim()) errors.push('Ownership is required');
         if (!formData.weight || formData.weight === '0') errors.push('Weight is required');
-        
+
         setValidationErrors(errors);
         return errors.length === 0;
     };
@@ -678,7 +678,7 @@ const TrailersPage: React.FC = () => {
         setLoading(true);
         try {
             const formDataToSend = new FormData();
-            
+
             if (editingId && originalTrailerData) {
                 // Partial update - only send changed fields
                 if (formData.unitNumber !== originalTrailerData.unitNumber) {
@@ -728,7 +728,7 @@ const TrailersPage: React.FC = () => {
                 if (formData.yard !== originalTrailerData.yard) {
                     formDataToSend.append('yard', formData.yard || '');
                 }
-                
+
                 if (selectedImageFile) {
                     formDataToSend.append('image', selectedImageFile);
                 }
@@ -751,7 +751,7 @@ const TrailersPage: React.FC = () => {
                 formDataToSend.append('subType', formData.subType || '');
                 formDataToSend.append('yard', formData.yard || '');
                 formDataToSend.append('operationStatus', formData.status === 'In Service' ? 'IN SERVICE' : formData.status === 'Out of Service' ? 'OUT OF SERVICE' : 'MAINTENANCE');
-                
+
                 if (selectedImageFile) {
                     formDataToSend.append('image', selectedImageFile);
                 }
@@ -830,9 +830,9 @@ const TrailersPage: React.FC = () => {
                     // For new trailers, get ID from response
                     trailerId = response.data?._id || response.data?._id || response.data?.id;
                 }
-                
+
                 console.log('💾 Saving trailer, ID:', trailerId);
-                
+
                 // Save documents if trailer was created/updated successfully (single list, no tabs)
                 if (trailerId) {
                     const newDocs = documents.filter((doc) => !doc.isExisting && (doc.file || doc.description || doc.title));
@@ -877,7 +877,7 @@ const TrailersPage: React.FC = () => {
                         }
                     }
                 }
-                
+
                 setShowSidebar(false);
                 setEditingId(null);
                 setFormData({
@@ -985,7 +985,7 @@ const TrailersPage: React.FC = () => {
     // Handle delete trailer after confirmation
     const handleDeleteTrailer = async () => {
         if (!deleteTargetId) return;
-        
+
         setShowDeleteConfirmation(false);
         setLoading(true);
         try {
@@ -1039,7 +1039,7 @@ const TrailersPage: React.FC = () => {
                     subType: trailer.subType || '',
                     yard: trailer.yard || ''
                 };
-                
+
                 setFormData(trailerFormData);
                 // Store original data for partial updates
                 setOriginalTrailerData(trailerFormData);
@@ -1048,12 +1048,12 @@ const TrailersPage: React.FC = () => {
                 // Reset selectedImageFile when loading existing trailer (so we only upload if user selects new image)
                 setSelectedImageFile(null);
                 setEditingId(id);
-                
+
                 // Load documents from trailer response (documents are now included in getTrailerById)
                 try {
                     const trailerDocuments = trailer.documents || [];
                     console.log('📥 Documents from trailer response:', trailerDocuments.length);
-                    
+
                     if (Array.isArray(trailerDocuments) && trailerDocuments.length > 0) {
                         const flatDocs = trailerDocuments.map((doc: any) => {
                             const fileUrl = doc.files?.[0]?.fileUrl || doc.documentLocation || null;
@@ -1081,7 +1081,7 @@ const TrailersPage: React.FC = () => {
                     console.error('❌ Error loading documents:', docError);
                     setDocuments([]);
                 }
-                
+
                 // Load inspections from trailer response
                 console.log('📋 [FRONTEND] Loading inspections from trailer:', {
                     oneTimeInspections: trailer.oneTimeInspections?.length || 0,
@@ -1123,7 +1123,7 @@ const TrailersPage: React.FC = () => {
                 } else {
                     setRecurringInspections([]);
                 }
-                
+
                 setShowSidebar(true);
                 setActiveStep('Details');
             } else {
@@ -1244,22 +1244,22 @@ const TrailersPage: React.FC = () => {
         const sheet = workbook.addWorksheet('Trailers', { views: [{ state: 'frozen', ySplit: 1 }] });
 
         sheet.columns = [
-            { header: 'Unit Number',         key: 'unitNumber',          width: 16 },
-            { header: 'Plate Number',         key: 'plateNumber',         width: 16 },
-            { header: 'VIN Number',           key: 'vinNumber',           width: 22 },
-            { header: 'Type',                 key: 'type',                width: 16 },
-            { header: 'Make',                 key: 'make',                width: 14 },
-            { header: 'Model',                key: 'model',               width: 14 },
-            { header: 'Year',                 key: 'year',                width: 10 },
-            { header: 'Ownership',            key: 'ownership',           width: 20 },
-            { header: 'Operating Status',     key: 'operatingStatus',     width: 18 },
-            { header: 'Loaded Status',        key: 'loadedStatus',        width: 16 },
-            { header: 'Compliance',           key: 'compliance',          width: 18 },
-            { header: 'Category',             key: 'category',            width: 14 },
-            { header: 'Reg. Country',         key: 'registrationCountry', width: 16 },
-            { header: 'Reg. Province',        key: 'registrationProvince',width: 16 },
-            { header: 'Last Drop Location',   key: 'lastDropLocation',    width: 24 },
-            { header: 'Notes',                key: 'notes',               width: 30 },
+            { header: 'Unit Number', key: 'unitNumber', width: 16 },
+            { header: 'Plate Number', key: 'plateNumber', width: 16 },
+            { header: 'VIN Number', key: 'vinNumber', width: 22 },
+            { header: 'Type', key: 'type', width: 16 },
+            { header: 'Make', key: 'make', width: 14 },
+            { header: 'Model', key: 'model', width: 14 },
+            { header: 'Year', key: 'year', width: 10 },
+            { header: 'Ownership', key: 'ownership', width: 20 },
+            { header: 'Operating Status', key: 'operatingStatus', width: 18 },
+            { header: 'Loaded Status', key: 'loadedStatus', width: 16 },
+            { header: 'Compliance', key: 'compliance', width: 18 },
+            { header: 'Category', key: 'category', width: 14 },
+            { header: 'Reg. Country', key: 'registrationCountry', width: 16 },
+            { header: 'Reg. Province', key: 'registrationProvince', width: 16 },
+            { header: 'Last Drop Location', key: 'lastDropLocation', width: 24 },
+            { header: 'Notes', key: 'notes', width: 30 },
         ];
 
         const headerRow = sheet.getRow(1);
@@ -1270,22 +1270,22 @@ const TrailersPage: React.FC = () => {
 
         filteredTrailers.forEach((t: any) => {
             const row = sheet.addRow({
-                unitNumber:           t.unitNumber || t.trailerNumber || t.trailer || '',
-                plateNumber:          t.plateNumber          || '',
-                vinNumber:            t.vinNumber            || '',
-                type:                 t.type                 || '',
-                make:                 t.make                 || '',
-                model:                t.model                || '',
-                year:                 t.year                 || '',
-                ownership:            t.ownership            || '',
-                operatingStatus:      t.operatingStatus      || '',
-                loadedStatus:         t.loadedStatus         || '',
-                compliance:           t.compliance           || '',
-                category:             t.category             || '',
-                registrationCountry:  t.registrationCountry  || '',
+                unitNumber: t.unitNumber || t.trailerNumber || t.trailer || '',
+                plateNumber: t.plateNumber || '',
+                vinNumber: t.vinNumber || '',
+                type: t.type || '',
+                make: t.make || '',
+                model: t.model || '',
+                year: t.year || '',
+                ownership: t.ownership || '',
+                operatingStatus: t.operatingStatus || '',
+                loadedStatus: t.loadedStatus || '',
+                compliance: t.compliance || '',
+                category: t.category || '',
+                registrationCountry: t.registrationCountry || '',
                 registrationProvince: t.registrationProvince || '',
-                lastDropLocation:     t.lastDropLocation     || '',
-                notes:                t.notes || t.note      || '',
+                lastDropLocation: t.lastDropLocation || '',
+                notes: t.notes || t.note || '',
             });
             row.alignment = { vertical: 'middle' };
         });
@@ -1362,7 +1362,7 @@ const TrailersPage: React.FC = () => {
 
     // Navigation helper functions for sidebar steps
     const steps: Array<'Details' | 'Inspections' | 'Documents' | 'Notes'> = ['Details', 'Inspections', 'Documents', 'Notes'];
-    
+
     const getNextStep = () => {
         const currentIndex = steps.indexOf(activeStep);
         if (currentIndex < steps.length - 1) {
@@ -1546,7 +1546,7 @@ const TrailersPage: React.FC = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="flex-1 px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                             />
-                          
+
                         </div>
 
                         {/* Global Filters */}
@@ -1593,7 +1593,7 @@ const TrailersPage: React.FC = () => {
                             </select>
                         </div>
 
-                      
+
                     </div>
                 </div>
 
@@ -1808,8 +1808,8 @@ const TrailersPage: React.FC = () => {
                                 ) : (
                                     filteredTrailers.map((trailer) => (
                                         <tr
-                                        onClick={() => handleEditTrailer(trailer._id || trailer.id || '')}
-                                        key={trailer._id || trailer.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                            onClick={() => handleEditTrailer(trailer._id || trailer.id || '')}
+                                            key={trailer._id || trailer.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                                             <td className="px-4 py-3 text-sm text-primary">{trailer.trailerNumber || trailer.trailer || trailer.unitNumber}</td>
                                             <td className="px-4 py-3 text-sm text-primary">{trailer.plateNumber}</td>
                                             <td className="px-4 py-3 text-sm text-primary">{trailer.type}</td>
@@ -2032,7 +2032,7 @@ const TrailersPage: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, registrationProvince: e.target.value })}
                                                     disabled={!formData.registrationCountry}
                                                     placeholder={formData.registrationCountry ? "Enter Province/State" : "Select country first"}
-                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent disabled:bg-card disabled:cursor-not-allowed"
                                                 />
                                             </div>
                                             <div>
@@ -2266,7 +2266,7 @@ const TrailersPage: React.FC = () => {
                                         {/* One Time Inspections */}
                                         {inspectionType === 'One Time' && (
                                             <div className="space-y-4">
-                                                <div className="flex gap-2 items-end bg-gray-100 p-4 rounded-lg">
+                                                <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                                     <div className="flex-1">
                                                         <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
                                                         <div className="relative">
@@ -2402,8 +2402,8 @@ const TrailersPage: React.FC = () => {
                                                                 </tr>
                                                             ) : (
                                                                 oneTimeInspections.map((inspection) => (
-                                                                    <tr 
-                                                                        key={inspection.id} 
+                                                                    <tr
+                                                                        key={inspection.id}
                                                                         onClick={() => handleEditInspection(inspection, 'oneTime')}
                                                                         className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingInspectionId === inspection.id ? 'bg-card' : ''}`}
                                                                     >
@@ -2467,7 +2467,7 @@ const TrailersPage: React.FC = () => {
                                         {/* Recurring Inspections */}
                                         {inspectionType === 'Recurring' && (
                                             <div className="space-y-4">
-                                                <div className="flex gap-2 items-end bg-gray-100 p-4 rounded-lg">
+                                                <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                                     <div className="flex-1">
                                                         <label className="block text-sm font-medium text-primary mb-1">Scheduled On</label>
                                                         <div className="relative">
@@ -2634,8 +2634,8 @@ const TrailersPage: React.FC = () => {
                                                                 </tr>
                                                             ) : (
                                                                 recurringInspections.map((inspection) => (
-                                                                    <tr 
-                                                                        key={inspection.id} 
+                                                                    <tr
+                                                                        key={inspection.id}
                                                                         onClick={() => handleEditInspection(inspection, 'recurring')}
                                                                         className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingInspectionId === inspection.id ? 'bg-card' : ''}`}
                                                                     >
@@ -2706,7 +2706,7 @@ const TrailersPage: React.FC = () => {
                                         <h3 className="text-base font-semibold text-primary">Documents</h3>
 
                                         {/* Document Form */}
-                                        <div className="bg-gray-100 p-4 rounded-lg space-y-4">
+                                        <div className="bg-card p-4 rounded-lg space-y-4">
                                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                                 <div>
                                                     <label className="block text-sm font-medium text-primary mb-1">Title</label>
@@ -2907,7 +2907,7 @@ const TrailersPage: React.FC = () => {
                                         <h3 className="text-base font-semibold text-primary">Notes</h3>
 
                                         {/* Note Form */}
-                                        <div className="flex gap-4 items-end bg-gray-100 p-4 rounded-lg">
+                                        <div className="flex gap-4 items-end bg-card p-4 rounded-lg">
                                             <div className="flex-1">
                                                 <label className="block text-sm font-medium text-primary mb-1">Note</label>
                                                 <input
@@ -3038,11 +3038,10 @@ const TrailersPage: React.FC = () => {
                                     <button
                                         onClick={handlePrevious}
                                         disabled={!getPreviousStep()}
-                                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                            getPreviousStep()
+                                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${getPreviousStep()
                                                 ? 'bg-gray-700 !text-white hover:bg-gray-800'
                                                 : 'bg-gray-200 text-secondary cursor-not-allowed'
-                                        }`}
+                                            }`}
                                     >
                                         <ChevronLeft className="w-3.5 h-3.5" />
                                         Previous
@@ -3050,11 +3049,10 @@ const TrailersPage: React.FC = () => {
                                     <button
                                         onClick={handleNext}
                                         disabled={!getNextStep()}
-                                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                            getNextStep()
+                                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${getNextStep()
                                                 ? 'bg-gray-700 !text-white hover:bg-gray-800'
                                                 : 'bg-gray-200 text-secondary cursor-not-allowed'
-                                        }`}
+                                            }`}
                                     >
                                         Next
                                         <ChevronRight className="w-3.5 h-3.5" />

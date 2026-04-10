@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { FaSignOutAlt, FaUser, FaBars } from "react-icons/fa";
-import { Search, X, LogOut, AlertCircle, ArrowRight, ArrowLeft , LayoutDashboard, ClipboardList, UserCheck } from "lucide-react";
+import { Search, X, LogOut, AlertCircle, ArrowRight, ArrowLeft, LayoutDashboard, ClipboardList, UserCheck } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -211,9 +211,8 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
                     <button
                       key={action.id}
                       onClick={() => handleActionSelect(action)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${
-                        index === selectedIndex ? "bg-card border-blue-500" : "border-transparent hover:border-blue-300"
-                      }`}
+                      className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${index === selectedIndex ? "bg-card border-blue-500" : "border-transparent hover:border-blue-300"
+                        }`}
                     >
                       <div className={`flex-shrink-0 p-2 rounded-lg bg-blue-100 text-blue-700`}>{action.icon}</div>
                       <div className="flex-1 text-left min-w-0">
@@ -221,9 +220,8 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
                         <p className="text-sm text-secondary mt-0.5 truncate">{action.description}</p>
                       </div>
                       <ArrowRight
-                        className={`flex-shrink-0 transition-all ${
-                          index === selectedIndex ? "text-[#00D1FF] opacity-100" : "text-secondary opacity-0"
-                        }`}
+                        className={`flex-shrink-0 transition-all ${index === selectedIndex ? "text-[#00D1FF] opacity-100" : "text-secondary opacity-0"
+                          }`}
                         size={18}
                       />
                     </button>
@@ -274,7 +272,7 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
               </div>
             </div>
             <div className="p-6 border-t border-theme flex justify-end gap-3">
-              <button onClick={() => setShowLogoutModal(false)} className="px-6 py-2.5 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium">
+              <button onClick={() => setShowLogoutModal(false)} className="px-6 py-2.5 text-primary bg-card hover:bg-gray-200 rounded-lg transition-colors font-medium">
                 Cancel
               </button>
               <button

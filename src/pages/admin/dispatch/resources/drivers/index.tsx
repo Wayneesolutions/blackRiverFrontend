@@ -311,7 +311,7 @@ const DriversTable = () => {
 
         const statusConfig: Record<string, { bg: string; text: string }> = {
             active: { bg: 'bg-green-100', text: 'text-green-800' },
-            inactive: { bg: 'bg-gray-100', text: 'text-primary' },
+            inactive: { bg: 'bg-card', text: 'text-primary' },
             suspended: { bg: 'bg-red-100', text: 'text-red-800' },
         };
 
@@ -758,7 +758,7 @@ const DriversTable = () => {
                                         <tr>
                                             <td colSpan={10} className="px-6 py-12 text-center text-secondary">
                                                 <div className="flex flex-col items-center space-y-3">
-                                                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                                                    <div className="w-16 h-16 bg-card rounded-full flex items-center justify-center">
                                                         <User className="w-8 h-8 text-gray-300" />
                                                     </div>
                                                     <div>

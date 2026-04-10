@@ -188,7 +188,7 @@ const TrainingCertificates = () => {
       case 'expiring': return 'bg-yellow-100 text-yellow-800';
       case 'expired': return 'bg-red-100 text-red-800';
       case 'in-progress': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-primary';
+      default: return 'bg-card text-primary';
     }
   };
 
@@ -817,7 +817,7 @@ const TrainingCertificates = () => {
                   </p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${module.status === 'active' ? 'bg-green-100 text-green-800' :
-                  module.status === 'draft' ? 'bg-gray-100 text-primary' :
+                  module.status === 'draft' ? 'bg-card text-primary' :
                     'bg-red-100 text-red-800'
                   }`}>
                   {module.status.toUpperCase()}

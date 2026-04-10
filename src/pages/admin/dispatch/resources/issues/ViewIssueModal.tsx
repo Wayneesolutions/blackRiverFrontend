@@ -39,7 +39,7 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
       case 'high': return 'text-[#A855F7] bg-red-100';
       case 'medium': return 'text-[#00FFA3] bg-yellow-100';
       case 'low': return 'text-green-600 bg-green-100';
-      default: return 'text-secondary bg-gray-100';
+      default: return 'text-secondary bg-card';
     }
   };
 
@@ -49,7 +49,7 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
       case 'open': return 'text-[#A855F7] bg-red-100';
       case 'in-progress': return 'text-[#00D1FF] bg-blue-100';
       case 'closed': return 'text-green-600 bg-green-100';
-      default: return 'text-secondary bg-gray-100';
+      default: return 'text-secondary bg-card';
     }
   };
 

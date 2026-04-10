@@ -70,9 +70,9 @@ const RevenueDashboard = () => {
             setLoading(true);
             setError(null);
             const response = await getSuperAdminRevenue(revenueFilter, currentPage, limit);
-            
+
             console.log('Full API Response:', response);
-            
+
             if (response?.success && response?.data) {
                 console.log('Setting revenue data:', response.data);
                 setRevenueData(response.data);
@@ -133,23 +133,23 @@ const RevenueDashboard = () => {
     console.log('Revenue Entries:', revenueEntries);
 
     // Revenue metrics from API - ensure proper number handling
-    const totalRevenue = typeof metrics.totalRevenue === 'number' 
-        ? metrics.totalRevenue 
+    const totalRevenue = typeof metrics.totalRevenue === 'number'
+        ? metrics.totalRevenue
         : (metrics.totalRevenue != null ? parseFloat(String(metrics.totalRevenue)) : 0);
-    const monthlyRecurring = typeof metrics.monthlyRecurring === 'number' 
-        ? metrics.monthlyRecurring 
+    const monthlyRecurring = typeof metrics.monthlyRecurring === 'number'
+        ? metrics.monthlyRecurring
         : (metrics.monthlyRecurring != null ? parseFloat(String(metrics.monthlyRecurring)) : 0);
-    const overdueAmount = typeof metrics.overdueAmount === 'number' 
-        ? metrics.overdueAmount 
+    const overdueAmount = typeof metrics.overdueAmount === 'number'
+        ? metrics.overdueAmount
         : (metrics.overdueAmount != null ? parseFloat(String(metrics.overdueAmount)) : 0);
-    const trialRevenuePotential = typeof metrics.trialRevenuePotential === 'number' 
-        ? metrics.trialRevenuePotential 
+    const trialRevenuePotential = typeof metrics.trialRevenuePotential === 'number'
+        ? metrics.trialRevenuePotential
         : (metrics.trialRevenuePotential != null ? parseFloat(String(metrics.trialRevenuePotential)) : 0);
-    const revenueGrowth = typeof metrics.revenueGrowth === 'number' 
-        ? metrics.revenueGrowth 
+    const revenueGrowth = typeof metrics.revenueGrowth === 'number'
+        ? metrics.revenueGrowth
         : (metrics.revenueGrowth != null ? parseFloat(String(metrics.revenueGrowth)) : 0);
-    const monthlyRecurringGrowth = typeof metrics.monthlyRecurringGrowth === 'number' 
-        ? metrics.monthlyRecurringGrowth 
+    const monthlyRecurringGrowth = typeof metrics.monthlyRecurringGrowth === 'number'
+        ? metrics.monthlyRecurringGrowth
         : (metrics.monthlyRecurringGrowth != null ? parseFloat(String(metrics.monthlyRecurringGrowth)) : 0);
 
     console.log('Metrics object:', metrics);
@@ -162,7 +162,7 @@ const RevenueDashboard = () => {
             case 'Overdue': return 'bg-red-100 text-red-800';
             case 'Trial': return 'bg-blue-100 text-blue-800';
             case 'Pending': return 'bg-yellow-100 text-yellow-800';
-            default: return 'bg-gray-100 text-primary';
+            default: return 'bg-card text-primary';
         }
     };
 
@@ -185,7 +185,7 @@ const RevenueDashboard = () => {
         setShowViewModal(true);
     };
 
-    
+
 
     const handleCopyId = (id: string) => {
         navigator.clipboard.writeText(id);
@@ -308,41 +308,37 @@ const RevenueDashboard = () => {
                     <div className="flex space-x-2">
                         <button
                             onClick={() => setRevenueFilter('all')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                revenueFilter === 'all'
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${revenueFilter === 'all'
                                     ? 'bg-green-600 text-white'
-                                    : 'bg-gray-100 text-primary hover:bg-gray-200'
-                            }`}
+                                    : 'bg-card text-primary hover:bg-gray-200'
+                                }`}
                         >
                             All
                         </button>
                         <button
                             onClick={() => setRevenueFilter('paid')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                revenueFilter === 'paid'
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${revenueFilter === 'paid'
                                     ? 'bg-green-600 text-white'
-                                    : 'bg-gray-100 text-primary hover:bg-gray-200'
-                            }`}
+                                    : 'bg-card text-primary hover:bg-gray-200'
+                                }`}
                         >
                             Paid
                         </button>
                         <button
                             onClick={() => setRevenueFilter('overdue')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                revenueFilter === 'overdue'
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${revenueFilter === 'overdue'
                                     ? 'bg-green-600 text-white'
-                                    : 'bg-gray-100 text-primary hover:bg-gray-200'
-                            }`}
+                                    : 'bg-card text-primary hover:bg-gray-200'
+                                }`}
                         >
                             Overdue
                         </button>
                         <button
                             onClick={() => setRevenueFilter('trial')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                revenueFilter === 'trial'
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${revenueFilter === 'trial'
                                     ? 'bg-green-600 text-white'
-                                    : 'bg-gray-100 text-primary hover:bg-gray-200'
-                            }`}
+                                    : 'bg-card text-primary hover:bg-gray-200'
+                                }`}
                         >
                             Trial
                         </button>
@@ -434,13 +430,13 @@ const RevenueDashboard = () => {
                                                         className="text-secondary hover:text-secondary p-1 rounded transition-colors"
                                                         title="More Actions"
                                                     >
-                                                    <MoreHorizontal className="w-4 h-4" />
-                                                </button>
+                                                        <MoreHorizontal className="w-4 h-4" />
+                                                    </button>
                                                     {activeDropdown === revenue.id && (
                                                         <>
                                                             {/* Backdrop to close on click outside */}
-                                                            <div 
-                                                                className="fixed inset-0 z-[9998]" 
+                                                            <div
+                                                                className="fixed inset-0 z-[9998]"
                                                                 onClick={() => setActiveDropdown(null)}
                                                             />
                                                             {/* Dropdown menu */}
@@ -517,7 +513,7 @@ const RevenueDashboard = () => {
                         Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, pagination.total)} of {pagination.total} revenue entries
                     </div>
                     <div className="flex space-x-2">
-                        <button 
+                        <button
                             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                             disabled={currentPage === 1}
                             className="px-3 py-2 border border-theme rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -530,17 +526,16 @@ const RevenueDashboard = () => {
                                 <button
                                     key={pageNum}
                                     onClick={() => setCurrentPage(pageNum)}
-                                    className={`px-3 py-2 rounded-lg text-sm ${
-                                        currentPage === pageNum
+                                    className={`px-3 py-2 rounded-lg text-sm ${currentPage === pageNum
                                             ? 'bg-green-600 text-white hover:bg-green-700'
                                             : 'border border-theme hover:bg-[rgba(255,255,255,0.03)]'
-                                    }`}
+                                        }`}
                                 >
                                     {pageNum}
-                        </button>
+                                </button>
                             );
                         })}
-                        <button 
+                        <button
                             onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
                             disabled={currentPage >= pagination.totalPages}
                             className="px-3 py-2 border border-theme rounded-lg text-sm hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -630,8 +625,8 @@ const RevenueDashboard = () => {
                                 <div>
                                     <p className="text-xs text-secondary mb-1">Amount</p>
                                     <p className="text-lg font-bold text-primary">
-                                        ${typeof selectedRevenue.amount === 'number' && !isNaN(selectedRevenue.amount) 
-                                            ? selectedRevenue.amount.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) 
+                                        ${typeof selectedRevenue.amount === 'number' && !isNaN(selectedRevenue.amount)
+                                            ? selectedRevenue.amount.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
                                             : '0'}
                                     </p>
                                 </div>

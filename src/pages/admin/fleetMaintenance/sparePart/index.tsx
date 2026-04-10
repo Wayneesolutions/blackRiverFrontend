@@ -370,11 +370,11 @@ const SparePartsInventory = () => {
             // Fetch vehicles (trucks)
             const vehiclesResponse = await getAllVehicles(1, 1000);
             const vehicles = vehiclesResponse?.success && vehiclesResponse?.data ? vehiclesResponse.data : [];
-            
+
             // Fetch trailers
             const trailersResponse = await getAllTrailers(1, 1000);
             const trailers = trailersResponse?.success && trailersResponse?.data ? trailersResponse.data : [];
-            
+
             // Combine vehicles and trailers
             const allUnits: Array<{
                 _id: string;
@@ -386,7 +386,7 @@ const SparePartsInventory = () => {
                 model?: string;
                 vinNumber?: string;
             }> = [];
-            
+
             // Map vehicles
             vehicles.forEach((vehicle: any) => {
                 allUnits.push({
@@ -400,7 +400,7 @@ const SparePartsInventory = () => {
                     vinNumber: vehicle.vinNumber
                 });
             });
-            
+
             // Map trailers
             trailers.forEach((trailer: any) => {
                 allUnits.push({
@@ -414,7 +414,7 @@ const SparePartsInventory = () => {
                     vinNumber: trailer.vinNumber
                 });
             });
-            
+
             setUnits(allUnits);
             if (allUnits.length === 0) {
                 pushBannerMessage('No vehicles or trailers available');
@@ -1150,7 +1150,7 @@ const SparePartsInventory = () => {
                                             <td className="px-4 py-2 whitespace-nowrap">
                                                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${part.condition === 'new' ? 'bg-green-100 text-green-800' :
                                                     part.condition === 'refurbished' ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-gray-100 text-primary'
+                                                        'bg-card text-primary'
                                                     }`}>
                                                     {part.condition ? part.condition.charAt(0).toUpperCase() + part.condition.slice(1) : 'N/A'}
                                                 </span>
@@ -1247,7 +1247,7 @@ const SparePartsInventory = () => {
                                 </button>
                                 <button
                                     onClick={() => setShowSupplierModal(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-white border border-white/20 rounded-lg  backdrop-blur-sm transition-colors text-sm font-semibold"
+                                    className="flex items-center gap-2 px-4 py-2 bg-card text-white border border-white/20 rounded-lg  backdrop-blur-sm transition-colors text-sm font-semibold"
                                 >
                                     <FaBuilding />
                                     Add Supplier

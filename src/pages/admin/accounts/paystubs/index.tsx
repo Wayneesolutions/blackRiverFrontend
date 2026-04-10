@@ -128,7 +128,7 @@ const PaystubsList = () => {
     // Apply search filter (frontend filtering for instant results)
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(paystub => 
+      filtered = filtered.filter(paystub =>
         paystub.employeeName?.toLowerCase().includes(query) ||
         paystub.employeeId?.toLowerCase().includes(query) ||
         paystub.employeeEmail?.toLowerCase().includes(query) ||
@@ -162,7 +162,7 @@ const PaystubsList = () => {
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 15;
-      
+
       const checkPageBreak = (requiredSpace: number) => {
         if (yPos + requiredSpace > pageHeight - margin) {
           doc.addPage();
@@ -177,19 +177,19 @@ const PaystubsList = () => {
       let yPos = margin;
 
       // Determine if this is an employee (not a driver)
-      const isEmployee = (fullPaystub.employeeRole?.toLowerCase() !== 'driver' && 
-                         fullPaystub.userId?.role?.toLowerCase() !== 'driver') ||
-                         (fullPaystub.workType?.toLowerCase() === 'employee');
+      const isEmployee = (fullPaystub.employeeRole?.toLowerCase() !== 'driver' &&
+        fullPaystub.userId?.role?.toLowerCase() !== 'driver') ||
+        (fullPaystub.workType?.toLowerCase() === 'employee');
 
       if (isEmployee) {
         // Employee Pay Statement Format - Matching the image structure exactly
         doc.setTextColor(textR, textG, textB);
-        
+
         const companyName = fullPaystub.companyDetails?.companyName || fullPaystub.company?.name || 'Company Name';
         const companyAddress = fullPaystub.companyDetails?.companyAddress || fullPaystub.company?.address || '';
         const companyPhone = fullPaystub.companyDetails?.companyPhone || fullPaystub.company?.phone || '';
         const companyLogo = fullPaystub.companyDetails?.companyLogo || fullPaystub.company?.logoUrl || ''; // Signed URL from backend
-        
+
         // Format phone number: +1 (204) 306-4881 format if it's a 10-digit number
         let formattedPhone = companyPhone;
         if (companyPhone && /^\d{10}$/.test(companyPhone.replace(/\D/g, ''))) {
@@ -200,20 +200,20 @@ const PaystubsList = () => {
         } else if (companyPhone && !companyPhone.startsWith('+')) {
           formattedPhone = `+${companyPhone}`;
         }
-        
+
         // TOP SECTION - Company Logo and Name at the top (outside boxes, one line, half size of left box)
         let topY = margin;
         let logoWidth = 0;
         let logoHeight = 0;
-        
+
         // Calculate box dimensions first
         const boxHeight = 45;
         const boxWidth = (pageWidth - (margin * 2)) / 2;
-        
+
         // Company logo at the top left - fixed small size (200px = ~70mm, but using smaller 20mm for header)
         // Converting 200px to mm: 200px at 96dpi = ~53mm, but for header use 20mm (small)
         const logoSizeMm = 20; // Small fixed size in mm
-        
+
         if (companyLogo) {
           try {
             const img = new Image();
@@ -248,23 +248,23 @@ const PaystubsList = () => {
             console.log('Could not load logo:', err);
           }
         }
-        
+
         // Company name split into two lines - next to logo at the top
         // Format: "Logistiq" (first line) and "Innovations Ltd." (second line)
         const nameX = margin + logoWidth + (logoWidth > 0 ? 5 : 0);
         let nameY = topY;
-        
+
         // Split company name - look for "Logistiq" pattern
         let firstLine = '';
         let secondLine = '';
-        
+
         // Check if name contains "Logistiq" - split there
         const logistiqIndex = companyName.toLowerCase().indexOf('logistiq');
         if (logistiqIndex !== -1) {
           // Split at "Logistiq"
           const beforeLogistiq = companyName.substring(0, logistiqIndex + 'Logistiq'.length).trim();
           const afterLogistiq = companyName.substring(logistiqIndex + 'Logistiq'.length).trim();
-          
+
           if (beforeLogistiq) {
             firstLine = beforeLogistiq;
             secondLine = afterLogistiq || '';
@@ -289,36 +289,36 @@ const PaystubsList = () => {
             secondLine = nameWords.slice(1).join(' ');
           }
         }
-        
+
         // First line - bigger and bold
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         nameY = topY + (logoHeight > 0 ? logoHeight / 2 - 4 : 4);
         doc.text(firstLine, nameX, nameY);
-        
+
         // Second line - a little bit smaller but still bold
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         nameY += 6;
         doc.text(secondLine, nameX, nameY);
-        
+
         // TOP SECTION - Two boxes side by side (full width, no gap) - below logo/name
         const boxY = topY + Math.max(logoHeight, 8) + 8;
         // boxHeight and boxWidth already declared above
-        
+
         // LEFT BOX - Company Information
         const leftBoxX = margin;
         doc.setDrawColor(0, 0, 0);
         doc.rect(leftBoxX, boxY, boxWidth, boxHeight, 'S'); // Draw box border
-        
+
         let leftBoxY = boxY + 5;
-        
+
         // Company name in left box (bold)
         doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
         doc.text(companyName, leftBoxX + 3, leftBoxY);
         leftBoxY += 6;
-        
+
         // Company address
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
@@ -327,36 +327,36 @@ const PaystubsList = () => {
           doc.text(addressLines, leftBoxX + 3, leftBoxY);
           leftBoxY += addressLines.length * 4;
         }
-        
+
         // Company phone
         if (formattedPhone) {
           doc.text(formattedPhone, leftBoxX + 3, leftBoxY);
         }
-        
+
         // CENTER VERTICAL LINE
         const centerX = margin + boxWidth;
         doc.setDrawColor(0, 0, 0);
         doc.line(centerX, boxY, centerX, boxY + boxHeight);
-        
+
         // RIGHT BOX - Employee Information
         const rightBoxX = centerX; // Start right at the center line
         doc.rect(rightBoxX, boxY, boxWidth, boxHeight, 'S'); // Draw box border
-        
+
         let rightBoxY = boxY + 5;
-        
+
         // "COMPANY PAY STATEMENT" title (bold)
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.text('COMPANY PAY STATEMENT', rightBoxX + 3, rightBoxY);
         rightBoxY += 5;
-        
+
         // Employee name (bold)
         const employeeName = fullPaystub.employeeName || fullPaystub.userId?.name || 'Unknown';
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
         doc.text(employeeName, rightBoxX + 3, rightBoxY);
         rightBoxY += 5;
-        
+
         // Employee address
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
@@ -365,32 +365,32 @@ const PaystubsList = () => {
           doc.text(addrLines, rightBoxX + 3, rightBoxY);
           rightBoxY += addrLines.length * 4;
         }
-        
+
         // Employee ID with "#" symbol
         const empId = fullPaystub.employeeId || fullPaystub.userId?.internalId;
         if (empId) {
           doc.text('#', rightBoxX + 3, rightBoxY);
           rightBoxY += 5;
         }
-        
+
         // PAY PERIOD
         const startDate = new Date(fullPaystub.payPeriod.startDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
         const endDate = new Date(fullPaystub.payPeriod.endDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
         const periodText = `PAY PERIOD ${startDate} - ${endDate}`;
         doc.text(periodText, rightBoxX + 3, rightBoxY);
-        
+
         // Set yPos below the boxes
         yPos = boxY + boxHeight + 8;
-        
+
       } else {
         // Driver/Owner Operator Format - Matching employee format structure
         doc.setTextColor(textR, textG, textB);
-        
+
         const companyName = fullPaystub.companyDetails?.companyName || fullPaystub.company?.name || 'Company Name';
         const companyAddress = fullPaystub.companyDetails?.companyAddress || fullPaystub.company?.address || '';
         const companyPhone = fullPaystub.companyDetails?.companyPhone || fullPaystub.company?.phone || '';
         const companyLogo = fullPaystub.companyDetails?.companyLogo || fullPaystub.company?.logoUrl || ''; // Signed URL from backend
-        
+
         // Format phone number: +1 (204) 306-4881 format if it's a 10-digit number
         let formattedPhone = companyPhone;
         if (companyPhone && /^\d{10}$/.test(companyPhone.replace(/\D/g, ''))) {
@@ -401,19 +401,19 @@ const PaystubsList = () => {
         } else if (companyPhone && !companyPhone.startsWith('+')) {
           formattedPhone = `+${companyPhone}`;
         }
-        
+
         // TOP SECTION - Company Logo and Name at the top (outside boxes, one line, half size of left box)
         let topY = margin;
         let logoWidth = 0;
         let logoHeight = 0;
-        
+
         // Calculate box dimensions first
         const boxHeight = 45;
         const boxWidth = (pageWidth - (margin * 2)) / 2;
-        
+
         // Company logo at the top left - fixed small size
         const logoSizeMm = 20; // Small fixed size in mm
-        
+
         if (companyLogo) {
           try {
             const img = new Image();
@@ -448,20 +448,20 @@ const PaystubsList = () => {
             console.log('Could not load logo:', err);
           }
         }
-        
+
         // Company name split into two lines - next to logo at the top
         const nameX = margin + logoWidth + (logoWidth > 0 ? 5 : 0);
         let nameY = topY;
-        
+
         // Split company name - look for "Logistiq" pattern
         let firstLine = '';
         let secondLine = '';
-        
+
         const logistiqIndex = companyName.toLowerCase().indexOf('logistiq');
         if (logistiqIndex !== -1) {
           const beforeLogistiq = companyName.substring(0, logistiqIndex + 'Logistiq'.length).trim();
           const afterLogistiq = companyName.substring(logistiqIndex + 'Logistiq'.length).trim();
-          
+
           if (beforeLogistiq) {
             firstLine = beforeLogistiq;
             secondLine = afterLogistiq || '';
@@ -483,35 +483,35 @@ const PaystubsList = () => {
             secondLine = nameWords.slice(1).join(' ');
           }
         }
-        
+
         // First line - bigger and bold
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         nameY = topY + (logoHeight > 0 ? logoHeight / 2 - 4 : 4);
         doc.text(firstLine, nameX, nameY);
-        
+
         // Second line - a little bit smaller but still bold
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         nameY += 6;
         doc.text(secondLine, nameX, nameY);
-        
+
         // TOP SECTION - Two boxes side by side (full width, no gap) - below logo/name
         const boxY = topY + Math.max(logoHeight, 8) + 8;
-        
+
         // LEFT BOX - Company Information
         const leftBoxX = margin;
         doc.setDrawColor(0, 0, 0);
         doc.rect(leftBoxX, boxY, boxWidth, boxHeight, 'S'); // Draw box border
-        
+
         let leftBoxY = boxY + 5;
-        
+
         // Company name in left box (bold)
         doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
         doc.text(companyName, leftBoxX + 3, leftBoxY);
         leftBoxY += 6;
-        
+
         // Company address
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
@@ -520,36 +520,36 @@ const PaystubsList = () => {
           doc.text(addressLines, leftBoxX + 3, leftBoxY);
           leftBoxY += addressLines.length * 4;
         }
-        
+
         // Company phone
         if (formattedPhone) {
           doc.text(formattedPhone, leftBoxX + 3, leftBoxY);
         }
-        
+
         // CENTER VERTICAL LINE
         const centerX = margin + boxWidth;
         doc.setDrawColor(0, 0, 0);
         doc.line(centerX, boxY, centerX, boxY + boxHeight);
-        
+
         // RIGHT BOX - Driver Information
         const rightBoxX = centerX; // Start right at the center line
         doc.rect(rightBoxX, boxY, boxWidth, boxHeight, 'S'); // Draw box border
-        
+
         let rightBoxY = boxY + 5;
-        
+
         // "COMPANY PAY STATEMENT" title (bold)
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.text('COMPANY PAY STATEMENT', rightBoxX + 3, rightBoxY);
         rightBoxY += 5;
-        
+
         // Driver name (bold)
         const driverName = fullPaystub.employeeName || fullPaystub.userId?.name || 'Unknown';
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
         doc.text(driverName, rightBoxX + 3, rightBoxY);
         rightBoxY += 5;
-        
+
         // Driver address
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
@@ -558,7 +558,7 @@ const PaystubsList = () => {
           doc.text(addrLines, rightBoxX + 3, rightBoxY);
           rightBoxY += addrLines.length * 4;
         }
-        
+
         // City and State (if available)
         const city = fullPaystub.userId?.city || '';
         const state = fullPaystub.userId?.state || '';
@@ -567,7 +567,7 @@ const PaystubsList = () => {
           doc.text(cityState, rightBoxX + 3, rightBoxY);
           rightBoxY += 4;
         }
-        
+
         // Employee ID with "#" symbol (BILL: #757 | #1308 format)
         const empId = fullPaystub.employeeId || fullPaystub.userId?.internalId;
         if (empId) {
@@ -575,25 +575,25 @@ const PaystubsList = () => {
           doc.text(billText, rightBoxX + 3, rightBoxY);
           rightBoxY += 5;
         }
-        
+
         // PAY PERIOD
         const startDate = new Date(fullPaystub.payPeriod.startDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
         const endDate = new Date(fullPaystub.payPeriod.endDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
         const periodText = `PAY PERIOD ${startDate} - ${endDate}`;
         doc.text(periodText, rightBoxX + 3, rightBoxY);
         rightBoxY += 5;
-        
+
         // PAYROLL DUE
         const payDate = new Date(fullPaystub.payPeriod.payDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
         doc.text(`PAYROLL DUE: ${payDate}`, rightBoxX + 3, rightBoxY);
         rightBoxY += 5;
-        
+
         // CHEQUE # (if available from payment info)
         const chequeNumber = fullPaystub.payment?.chequeNumber || fullPaystub.payment?.bankLast4Digits || '';
         if (chequeNumber) {
           doc.text(`CHEQUE #: ${chequeNumber}`, rightBoxX + 3, rightBoxY);
         }
-        
+
         // Set yPos below the boxes
         yPos = boxY + boxHeight + 8;
 
@@ -607,14 +607,14 @@ const PaystubsList = () => {
           // Helper function to extract city and state from full address
           const extractCityState = (address: string): string => {
             if (!address) return '';
-            
+
             // Canadian provinces (prioritize these)
             const canadianProvinces = ['AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT'];
             // US states
             const usStates = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY',
               'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND',
               'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
-            
+
             const stateNames: { [key: string]: string } = {
               'alberta': 'AB', 'british columbia': 'BC', 'manitoba': 'MB', 'new brunswick': 'NB',
               'newfoundland': 'NL', 'northwest territories': 'NT', 'nova scotia': 'NS', 'nunavut': 'NU',
@@ -630,41 +630,41 @@ const PaystubsList = () => {
               'utah': 'UT', 'vermont': 'VT', 'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV',
               'wisconsin': 'WI', 'wyoming': 'WY'
             };
-            
+
             // Remove postal codes (patterns like T2A 7X6, R2X 2Y9, etc.)
             let cleaned = address.replace(/\b[A-Z]\d[A-Z]\s?\d[A-Z]\d\b/gi, '').trim();
             // Remove country codes (Canada, USA, United States) - but keep CA as it might be California
             cleaned = cleaned.replace(/\b(Canada|USA|United States)\b/gi, '').trim();
-            
+
             // Remove street addresses (numbers followed by street names)
             cleaned = cleaned.replace(/^\d+\s+[A-Za-z0-9\s]+(Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Way|Circle|Cir|Court|Ct|Place|Pl|Crescent|Cres)\s*/i, '').trim();
-            
+
             // Split by spaces, commas, and newlines
             const words = cleaned.split(/[\s,\n]+/).filter(w => w && w.length > 0);
-            
+
             let city = '';
             let state = '';
             let stateIndex = -1;
-            
+
             // Look backwards for state/province - prioritize Canadian provinces
             for (let i = words.length - 1; i >= 0; i--) {
               const word = words[i].toUpperCase();
               const wordLower = words[i].toLowerCase();
-              
+
               // Check if it's a Canadian province first
               if (canadianProvinces.includes(word) && word.length === 2) {
                 state = word;
                 stateIndex = i;
                 break;
               }
-              
+
               // Check if it's a US state (but not CA if we see other Canadian provinces)
               if (usStates.includes(word) && word.length === 2 && word !== 'CA') {
                 state = word;
                 stateIndex = i;
                 break;
               }
-              
+
               // Handle CA specially - if we see other Canadian provinces, CA is likely Canada, not California
               if (word === 'CA' && i < words.length - 1) {
                 // Check if previous word is a Canadian province
@@ -678,7 +678,7 @@ const PaystubsList = () => {
                 stateIndex = i;
                 break;
               }
-              
+
               // Check if it's a state name
               if (stateNames[wordLower]) {
                 state = stateNames[wordLower];
@@ -686,7 +686,7 @@ const PaystubsList = () => {
                 break;
               }
             }
-            
+
             // If we found a state, get the city (word before state)
             if (state && stateIndex > 0) {
               // City is the word before the state
@@ -700,17 +700,17 @@ const PaystubsList = () => {
                 }
               }
             }
-            
+
             // If we found city and state, return them
             if (city && state) {
               return `${city}, ${state}`;
             }
-            
+
             // Fallback: try to find last two words where second might be state
             if (words.length >= 2) {
               const lastWord = words[words.length - 1].toUpperCase();
               const secondLastWord = words[words.length - 2];
-              
+
               // If last word is a valid state code (2 letters)
               if (lastWord.length === 2 && (canadianProvinces.includes(lastWord) || usStates.includes(lastWord))) {
                 // Check if second last is also a state code
@@ -724,12 +724,12 @@ const PaystubsList = () => {
                 }
               }
             }
-            
+
             // Final fallback: return last meaningful word (likely city)
             if (words.length > 0) {
               return words[words.length - 1];
             }
-            
+
             return '';
           };
 
@@ -739,13 +739,13 @@ const PaystubsList = () => {
           const tableStartX = margin;
           // Calculate available width (page width - margins)
           const availableWidth = pageWidth - (margin * 2); // ~180mm for A4 with 15mm margins
-          
+
           // Calculate column widths to use full available width
           // Total padding: 10 gaps * padding amount
           const colPadding = 2; // More spacing between columns
           const totalPadding = colPadding * 10; // 10 gaps between 11 columns
           const totalColumnWidth = availableWidth - totalPadding;
-          
+
           // Distribute width proportionally based on content needs
           // Proportional widths (sum = 100)
           const truckColWidth = (totalColumnWidth * 8) / 100;      // 8%
@@ -832,7 +832,7 @@ const PaystubsList = () => {
             // Period From (first line)
             const periodFrom = trip.periodFrom ? new Date(trip.periodFrom).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : '';
             doc.text(periodFrom, rowX, rowStartY);
-            
+
             // Period To (second line, below From)
             const periodTo = trip.periodTo ? new Date(trip.periodTo).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : '';
             doc.text(periodTo, rowX, rowStartY + 4);
@@ -884,63 +884,63 @@ const PaystubsList = () => {
             // Row height - fixed for single line addresses, but period has 2 lines
             yPos += 8; // Fixed height for rows
           });
-          
+
           // Summary section below the table
           yPos += 5; // Space after table
-          
+
           // Calculate total miles
           const totalMiles = fullPaystub.tripDetails.reduce((sum: number, trip: any) => {
             return sum + (trip.miles || trip.hours || 0);
           }, 0);
-          
+
           // Format the value
           const totalMilesValue = totalMiles.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          
+
           // Set font for width calculation
           doc.setFontSize(7);
           doc.setFont('helvetica', 'bold');
-          
+
           // Calculate width of the value (which will be the widest part)
           const valueWidth = doc.getTextWidth(totalMilesValue);
           const labelWidth = doc.getTextWidth('Total Miles: ');
           const totalTextWidth = Math.max(labelWidth, valueWidth); // Use the wider of the two
-          
+
           // Draw first line with same width as the text (right-aligned)
           const lineStartX = pageWidth - margin - totalTextWidth;
           doc.setDrawColor(0, 0, 0);
           doc.line(lineStartX, yPos, pageWidth - margin, yPos);
           yPos += 5;
-          
+
           // Total Miles label (right-aligned, bold, black)
           doc.setTextColor(0, 0, 0); // Black color
           doc.text('Total Miles:', pageWidth - margin, yPos, { align: 'right' });
           yPos += 5;
-          
+
           // Total Miles value (right-aligned, bold, black)
           doc.text(totalMilesValue, pageWidth - margin, yPos, { align: 'right' });
           yPos += 5;
-          
+
           // Draw second line with same width as the first line (right-aligned)
           doc.setDrawColor(0, 0, 0);
           doc.line(lineStartX, yPos, pageWidth - margin, yPos);
         }
-        
+
         // Additions section below Total Miles (only show if additions exist in backend response)
         if (fullPaystub.additions && Array.isArray(fullPaystub.additions) && fullPaystub.additions.length > 0) {
           yPos += 10; // Space after Total Miles or after trip details table
-          
+
           // Additions title (left-aligned, bold, black)
           doc.setFontSize(10);
           doc.setFont('helvetica', 'bold');
           doc.setTextColor(0, 0, 0);
           doc.text('Additions', margin, yPos);
           yPos += 5;
-          
+
           // Full line below title (spanning full page width)
           doc.setDrawColor(0, 0, 0);
           doc.line(margin, yPos, pageWidth - margin, yPos);
           yPos += 5;
-          
+
           // Table headers - spanning full width
           doc.setFontSize(6);
           doc.setFont('helvetica', 'bold');
@@ -948,7 +948,7 @@ const PaystubsList = () => {
           const additionsTableStartX = margin;
           const availableWidth = pageWidth - (margin * 2);
           const additionsColPadding = 2;
-          
+
           // Distribute width proportionally across full available width
           const loadColWidth = (availableWidth * 8) / 100;
           const dateColWidth = (availableWidth * 12) / 100;
@@ -957,7 +957,7 @@ const PaystubsList = () => {
           const perColWidth = (availableWidth * 10) / 100;
           const gstColWidth = (availableWidth * 10) / 100;
           // Last column takes remaining space to ensure full width coverage
-          
+
           // Draw headers
           let headerX = additionsTableStartX;
           doc.text('Load', headerX, yPos);
@@ -974,105 +974,105 @@ const PaystubsList = () => {
           headerX += gstColWidth + additionsColPadding;
           doc.text('Total (CAD)', headerX, yPos);
           yPos += 5;
-          
+
           // Full line below headers (spanning full page width from margin to margin)
           doc.setDrawColor(0, 0, 0);
           doc.line(margin, yPos, pageWidth - margin, yPos);
           yPos += 5;
-          
+
           // Additions data rows (from backend response)
           console.log('Checking additions:', fullPaystub.additions);
           console.log('Additions length:', fullPaystub.additions?.length);
           console.log('Is array?', Array.isArray(fullPaystub.additions));
-          
+
           if (fullPaystub.additions && Array.isArray(fullPaystub.additions) && fullPaystub.additions.length > 0) {
-          console.log('Rendering additions data rows, count:', fullPaystub.additions.length);
-          // Additions data rows
-          doc.setFontSize(5.5);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(0, 0, 0);
-          
-          fullPaystub.additions.forEach((addition: any, index: number) => {
-            console.log(`Processing addition ${index}:`, addition);
-            checkPageBreak(8);
-            const rowStartY = yPos;
-            let rowX = additionsTableStartX;
-            
-            // Load (empty in examples)
-            const loadNum = addition.loadNumber || '';
-            doc.text(loadNum || '', rowX, rowStartY);
-            rowX += loadColWidth + additionsColPadding;
-            
-            // Date (format: MM/DD/YYYY)
-            const addDate = addition.loadDate || addition.date ? 
-              new Date(addition.loadDate || addition.date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : '';
-            if (addDate) {
-              doc.text(addDate, rowX, rowStartY);
-            }
-            rowX += dateColWidth + additionsColPadding;
-            
-            // Memo (may wrap if long) - format like "Delivery: TRIP 7876, LAREDO, TX"
-            const memo = addition.memo || addition.description || '';
-            let memoLines: string[] = [];
-            let memoHeight = 4; // Default height for memo column
-            if (memo) {
-              memoLines = doc.splitTextToSize(memo, memoColWidth - 2);
-              memoLines.forEach((line: string, idx: number) => {
-                doc.text(line, rowX, rowStartY + (idx * 4));
-              });
-              memoHeight = memoLines.length * 4;
-            }
-            const amountX = rowX + memoColWidth + additionsColPadding;
-            const perX = amountX + amountColWidth + additionsColPadding;
-            const gstX = perX + perColWidth + additionsColPadding;
-            const totalX = gstX + gstColWidth + additionsColPadding;
-            
-            // Amount (format: $12.00) - align to top of row
-            const amount = addition.amount || 0;
-            doc.text(`$${amount.toFixed(2)}`, amountX, rowStartY);
-            
-            // Per (format: One Time) - align to top of row
-            const per = addition.per || addition.perUnit || 'One Time';
-            doc.text(per, perX, rowStartY);
-            
-            // GST (format: $0.00) - align to top of row
-            const gst = addition.gst || 0;
-            doc.text(`$${gst.toFixed(2)}`, gstX, rowStartY);
-            
-            // Total (CAD) (format: $12.00) - align to top of row
-            const totalCAD = addition.totalCAD || (addition.amount || 0) + (addition.gst || 0);
-            doc.text(`$${totalCAD.toFixed(2)}`, totalX, rowStartY);
-            
-            // Calculate row height based on memo wrapping
-            yPos += Math.max(6, memoHeight);
-          });
-          console.log('Finished rendering additions data rows');
+            console.log('Rendering additions data rows, count:', fullPaystub.additions.length);
+            // Additions data rows
+            doc.setFontSize(5.5);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(0, 0, 0);
+
+            fullPaystub.additions.forEach((addition: any, index: number) => {
+              console.log(`Processing addition ${index}:`, addition);
+              checkPageBreak(8);
+              const rowStartY = yPos;
+              let rowX = additionsTableStartX;
+
+              // Load (empty in examples)
+              const loadNum = addition.loadNumber || '';
+              doc.text(loadNum || '', rowX, rowStartY);
+              rowX += loadColWidth + additionsColPadding;
+
+              // Date (format: MM/DD/YYYY)
+              const addDate = addition.loadDate || addition.date ?
+                new Date(addition.loadDate || addition.date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : '';
+              if (addDate) {
+                doc.text(addDate, rowX, rowStartY);
+              }
+              rowX += dateColWidth + additionsColPadding;
+
+              // Memo (may wrap if long) - format like "Delivery: TRIP 7876, LAREDO, TX"
+              const memo = addition.memo || addition.description || '';
+              let memoLines: string[] = [];
+              let memoHeight = 4; // Default height for memo column
+              if (memo) {
+                memoLines = doc.splitTextToSize(memo, memoColWidth - 2);
+                memoLines.forEach((line: string, idx: number) => {
+                  doc.text(line, rowX, rowStartY + (idx * 4));
+                });
+                memoHeight = memoLines.length * 4;
+              }
+              const amountX = rowX + memoColWidth + additionsColPadding;
+              const perX = amountX + amountColWidth + additionsColPadding;
+              const gstX = perX + perColWidth + additionsColPadding;
+              const totalX = gstX + gstColWidth + additionsColPadding;
+
+              // Amount (format: $12.00) - align to top of row
+              const amount = addition.amount || 0;
+              doc.text(`$${amount.toFixed(2)}`, amountX, rowStartY);
+
+              // Per (format: One Time) - align to top of row
+              const per = addition.per || addition.perUnit || 'One Time';
+              doc.text(per, perX, rowStartY);
+
+              // GST (format: $0.00) - align to top of row
+              const gst = addition.gst || 0;
+              doc.text(`$${gst.toFixed(2)}`, gstX, rowStartY);
+
+              // Total (CAD) (format: $12.00) - align to top of row
+              const totalCAD = addition.totalCAD || (addition.amount || 0) + (addition.gst || 0);
+              doc.text(`$${totalCAD.toFixed(2)}`, totalX, rowStartY);
+
+              // Calculate row height based on memo wrapping
+              yPos += Math.max(6, memoHeight);
+            });
+            console.log('Finished rendering additions data rows');
           }
         }
-        
+
         // Deductions section below additions table (only show if deductions exist in backend response)
         // Check if deductions is an array (new format) or if deductionsBreakdown exists (old format)
-        const deductionsArray = Array.isArray(fullPaystub.deductions) 
-          ? fullPaystub.deductions 
-          : (fullPaystub.deductions?.deductionsBreakdown && Array.isArray(fullPaystub.deductions.deductionsBreakdown) 
-            ? fullPaystub.deductions.deductionsBreakdown 
+        const deductionsArray = Array.isArray(fullPaystub.deductions)
+          ? fullPaystub.deductions
+          : (fullPaystub.deductions?.deductionsBreakdown && Array.isArray(fullPaystub.deductions.deductionsBreakdown)
+            ? fullPaystub.deductions.deductionsBreakdown
             : []);
-        
+
         if (deductionsArray && deductionsArray.length > 0) {
           yPos += 10; // Space after additions table or after trip details
-          
+
           // Deductions title (left-aligned, bold, black)
           doc.setFontSize(10);
           doc.setFont('helvetica', 'bold');
           doc.setTextColor(0, 0, 0);
           doc.text('Deductions', margin, yPos);
           yPos += 5;
-          
+
           // Full line below title (spanning full page width)
           doc.setDrawColor(0, 0, 0);
           doc.line(margin, yPos, pageWidth - margin, yPos);
           yPos += 5;
-          
+
           // Table headers - spanning full width (same as additions)
           doc.setFontSize(6);
           doc.setFont('helvetica', 'bold');
@@ -1080,7 +1080,7 @@ const PaystubsList = () => {
           const deductionsTableStartX = margin;
           const deductionsAvailableWidth = pageWidth - (margin * 2);
           const deductionsColPadding = 2;
-          
+
           // Distribute width proportionally across full available width (same as additions)
           const deductionsLoadColWidth = (deductionsAvailableWidth * 8) / 100;
           const deductionsDateColWidth = (deductionsAvailableWidth * 12) / 100;
@@ -1088,7 +1088,7 @@ const PaystubsList = () => {
           const deductionsAmountColWidth = (deductionsAvailableWidth * 12) / 100;
           const deductionsPerColWidth = (deductionsAvailableWidth * 10) / 100;
           const deductionsGstColWidth = (deductionsAvailableWidth * 10) / 100;
-          
+
           // Draw headers
           let deductionsHeaderX = deductionsTableStartX;
           doc.text('Load', deductionsHeaderX, yPos);
@@ -1105,35 +1105,35 @@ const PaystubsList = () => {
           deductionsHeaderX += deductionsGstColWidth + deductionsColPadding;
           doc.text('Total (CAD)', deductionsHeaderX, yPos);
           yPos += 5;
-          
+
           // Full line below headers (spanning full page width from margin to margin)
           doc.setDrawColor(0, 0, 0);
           doc.line(margin, yPos, pageWidth - margin, yPos);
           yPos += 5;
-          
+
           // Deductions data rows (from backend response, same format as additions)
           doc.setFontSize(5.5);
           doc.setFont('helvetica', 'normal');
           doc.setTextColor(0, 0, 0);
-          
+
           deductionsArray.forEach((deduction: any) => {
             checkPageBreak(8);
             const rowStartY = yPos;
             let rowX = deductionsTableStartX;
-            
+
             // Load (empty in examples, but check if it exists)
             const loadNum = deduction.loadNumber || '';
             doc.text(loadNum || '', rowX, rowStartY);
             rowX += deductionsLoadColWidth + deductionsColPadding;
-            
+
             // Date (format: MM/DD/YYYY) - use loadDate if available, otherwise empty
-            const dedDate = deduction.loadDate || deduction.date ? 
+            const dedDate = deduction.loadDate || deduction.date ?
               new Date(deduction.loadDate || deduction.date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : '';
             if (dedDate) {
               doc.text(dedDate, rowX, rowStartY);
             }
             rowX += deductionsDateColWidth + deductionsColPadding;
-            
+
             // Memo (deduction description/type) - may wrap if long
             const memo = deduction.memo || deduction.type || deduction.description || '';
             let memoLines: string[] = [];
@@ -1149,55 +1149,55 @@ const PaystubsList = () => {
             const perX = amountX + deductionsAmountColWidth + deductionsColPadding;
             const gstX = perX + deductionsPerColWidth + deductionsColPadding;
             const totalX = gstX + deductionsGstColWidth + deductionsColPadding;
-            
+
             // Amount (format: $XX.XX) - align to top of row
             const amount = deduction.amount || 0;
             doc.text(`$${amount.toFixed(2)}`, amountX, rowStartY);
-            
+
             // Per (format: One Time, Monthly, etc.) - align to top of row
             const per = deduction.per || deduction.perUnit || 'One Time';
             doc.text(per, perX, rowStartY);
-            
+
             // GST (format: $0.00) - align to top of row
             const gst = deduction.gst || 0;
             doc.text(`$${gst.toFixed(2)}`, gstX, rowStartY);
-            
+
             // Total (CAD) (format: $XX.XX) - align to top of row
             const totalCAD = deduction.totalCAD || (deduction.amount || 0) + (deduction.gst || 0);
             doc.text(`$${totalCAD.toFixed(2)}`, totalX, rowStartY);
-            
+
             // Calculate row height based on memo wrapping
             yPos += Math.max(6, memoHeight);
           });
         }
-        
+
         // Summary section below deductions table
         yPos += 10; // Space after deductions table
-        
+
         // Check for page break before summary
         checkPageBreak(50);
-        
+
         // Full line after deductions table
         doc.setDrawColor(0, 0, 0);
         doc.line(margin, yPos, pageWidth - margin, yPos);
         yPos += 5;
-        
+
         // Calculate line width (35% of page width)
         const summaryLineWidth = (pageWidth - (margin * 2)) * 0.35;
         const summaryLineStartX = pageWidth - margin - summaryLineWidth;
-        
+
         // "Amount" text on the right side
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(0, 0, 0);
         doc.text('Amount', pageWidth - margin, yPos, { align: 'right' });
         yPos += 5;
-        
+
         // First 35% width line (right-aligned)
         doc.setDrawColor(0, 0, 0);
         doc.line(summaryLineStartX, yPos, pageWidth - margin, yPos);
         yPos += 5;
-        
+
         // Gross Pay (right-aligned) - format: "Gross Pay 2,159.64"
         // For drivers/owner operators: Calculate Gross Pay as sum of all trip amounts (CAD)
         let grossPay = 0;
@@ -1210,19 +1210,19 @@ const PaystubsList = () => {
           // Fallback to summary/earnings if no trip details
           grossPay = fullPaystub.summary?.grossPay || fullPaystub.earnings?.totalEarnings || 0;
         }
-        
+
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(0, 0, 0);
         const grossPayText = `Gross Pay ${grossPay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         doc.text(grossPayText, pageWidth - margin, yPos, { align: 'right' });
         yPos += 6;
-        
+
         // Second 35% width line (right-aligned)
         doc.setDrawColor(0, 0, 0);
         doc.line(summaryLineStartX, yPos, pageWidth - margin, yPos);
         yPos += 5;
-        
+
         // Additions (+) (right-aligned) - total of all additions - format: "Additions (+) 105.25"
         const additionsTotal = fullPaystub.additions && Array.isArray(fullPaystub.additions) && fullPaystub.additions.length > 0
           ? fullPaystub.additions.reduce((sum: number, add: any) => sum + (add.totalCAD || (add.amount || 0) + (add.gst || 0)), 0)
@@ -1230,37 +1230,37 @@ const PaystubsList = () => {
         const additionsText = `Additions (+) ${additionsTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         doc.text(additionsText, pageWidth - margin, yPos, { align: 'right' });
         yPos += 6;
-        
+
         // Third 35% width line (right-aligned)
         doc.setDrawColor(0, 0, 0);
         doc.line(summaryLineStartX, yPos, pageWidth - margin, yPos);
         yPos += 5;
-        
+
         // Deductions (-) (right-aligned) - total of driver profile deductions only (NOT tax deductions)
         // Calculate total deductions from deductions array (driver profile only)
-        const driverDeductionsArray = Array.isArray(fullPaystub.deductions) 
-          ? fullPaystub.deductions 
+        const driverDeductionsArray = Array.isArray(fullPaystub.deductions)
+          ? fullPaystub.deductions
           : [];
         const totalDeductions = driverDeductionsArray.length > 0
           ? driverDeductionsArray.reduce((sum: number, ded: any) => sum + (ded.totalCAD || (ded.amount || 0) + (ded.gst || 0)), 0)
           : 0;
-        
+
         const deductionsText = `Deductions (-) ${totalDeductions.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         doc.text(deductionsText, pageWidth - margin, yPos, { align: 'right' });
         yPos += 6;
-        
+
         // Full line
         doc.setDrawColor(0, 0, 0);
         doc.line(margin, yPos, pageWidth - margin, yPos);
         yPos += 5;
-        
+
         // Net Pay (label left, value right)
         // Net Pay = Gross Pay + Additions - Driver Deductions (tax deductions not included)
         // Calculate Net Pay: Gross Pay + Additions - Driver Deductions
         const calculatedNetPay = grossPay + additionsTotal - totalDeductions;
         // Use calculated Net Pay
         const netPay = calculatedNetPay;
-        
+
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(0, 0, 0);
@@ -1270,7 +1270,7 @@ const PaystubsList = () => {
         const netPayText = `$${netPay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         doc.text(netPayText, pageWidth - margin, yPos, { align: 'right' });
         yPos += 5;
-        
+
         // Final full line
         doc.setDrawColor(0, 0, 0);
         doc.line(margin, yPos, pageWidth - margin, yPos);
@@ -1278,12 +1278,12 @@ const PaystubsList = () => {
 
       if (isEmployee) {
         // Employee format - Period table (matching image structure exactly)
-        
+
         // Draw FIRST horizontal line
         doc.setDrawColor(0, 0, 0);
         doc.line(margin, yPos, pageWidth - margin, yPos);
         yPos += 5;
-        
+
         // Table header - BETWEEN the two lines
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
@@ -1292,18 +1292,18 @@ const PaystubsList = () => {
         const rateColWidth = 35;
         const hoursColWidth = 30;
         const amountColWidth = 40;
-        
+
         doc.text('Period', tableStartX, yPos);
         doc.text('Pay Rate', tableStartX + periodColWidth, yPos);
         doc.text('Hours', tableStartX + periodColWidth + rateColWidth, yPos);
         doc.text('Amount', tableStartX + periodColWidth + rateColWidth + hoursColWidth + amountColWidth, yPos, { align: 'right' });
         yPos += 5;
-        
+
         // Draw SECOND horizontal line (below headers)
         doc.setDrawColor(0, 0, 0);
         doc.line(margin, yPos, pageWidth - margin, yPos);
         yPos += 6;
-        
+
         // Table row - VALUES below the second line
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
@@ -1311,55 +1311,55 @@ const PaystubsList = () => {
         const periodEnd = new Date(fullPaystub.payPeriod.endDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
         const periodText = `${periodStart} - ${periodEnd}`;
         doc.text(periodText, tableStartX, yPos);
-        
+
         // Calculate hourly rate and hours from payroll or user details
-        const hourlyRate = fullPaystub.payrollId?.hourlyRate || 
-                          fullPaystub.userId?.details?.payRate || 
-                          fullPaystub.earnings?.hourlyRate || 
-                          0;
-        const totalHours = fullPaystub.payrollId?.totalHours || 
-                          (fullPaystub.payrollId?.regularHours || 0) + (fullPaystub.payrollId?.overtimeHours || 0) ||
-                          (fullPaystub.earnings?.regularHours || 0) + (fullPaystub.earnings?.overtimeHours || 0) ||
-                          0;
+        const hourlyRate = fullPaystub.payrollId?.hourlyRate ||
+          fullPaystub.userId?.details?.payRate ||
+          fullPaystub.earnings?.hourlyRate ||
+          0;
+        const totalHours = fullPaystub.payrollId?.totalHours ||
+          (fullPaystub.payrollId?.regularHours || 0) + (fullPaystub.payrollId?.overtimeHours || 0) ||
+          (fullPaystub.earnings?.regularHours || 0) + (fullPaystub.earnings?.overtimeHours || 0) ||
+          0;
         const grossAmount = fullPaystub.summary?.grossPay || fullPaystub.earnings?.totalEarnings || 0;
-        
+
         doc.text(hourlyRate > 0 ? `$${hourlyRate.toFixed(2)}` : '-', tableStartX + periodColWidth, yPos);
         doc.text(totalHours > 0 ? totalHours.toFixed(2) : '-', tableStartX + periodColWidth + rateColWidth, yPos);
         doc.text(`$${grossAmount.toFixed(2)}`, tableStartX + periodColWidth + rateColWidth + hoursColWidth + amountColWidth, yPos, { align: 'right' });
         yPos += 10; // Space after table
-        
+
         // Summary section - matching image structure
         const lineWidth = (pageWidth - margin * 2) * 0.35; // 35% width line
         const lineStartX = pageWidth - margin - lineWidth; // Right-aligned line
-        
+
         // First 35% width line
         doc.setDrawColor(0, 0, 0);
         doc.line(lineStartX, yPos, pageWidth - margin, yPos);
         yPos += 5;
-        
+
         // "Amount" text below the line
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
         doc.text('Amount', pageWidth - margin, yPos, { align: 'right' });
         yPos += 5;
-        
+
         // Line below "Amount" field (35% width, same as above)
         doc.setDrawColor(0, 0, 0);
         doc.line(lineStartX, yPos, pageWidth - margin, yPos);
         yPos += 6;
-        
+
         // Gross Pay and value (both right side) with space between - same line
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         const grossPayText = `Gross Pay    ${grossAmount.toFixed(2)}`;
         doc.text(grossPayText, pageWidth - margin, yPos, { align: 'right' });
         yPos += 6;
-        
+
         // Full line below Gross Pay
         doc.setDrawColor(0, 0, 0);
         doc.line(margin, yPos, pageWidth - margin, yPos);
         yPos += 6;
-        
+
         // Net Pay (left aligned label, right aligned value with $)
         // Calculate Net Pay: Gross Pay - Total Deductions (which includes taxes)
         // totalDeductions from paystub already includes both deductions and taxes
@@ -1367,14 +1367,14 @@ const PaystubsList = () => {
         const calculatedNetPay = grossAmount - totalDeductions;
         // Use backend Net Pay (should already be correct), but verify with calculation
         const netPay = fullPaystub.summary?.netPay || calculatedNetPay || 0;
-        
+
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
         doc.text('Net Pay', margin, yPos);
         doc.setFontSize(11);
         doc.text(`$${netPay.toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
         yPos += 6;
-        
+
         // Full line at the bottom
         doc.setDrawColor(0, 0, 0);
         doc.line(margin, yPos, pageWidth - margin, yPos);
@@ -1400,14 +1400,14 @@ const PaystubsList = () => {
       // This ensures all paystubs use the same PDF format
       let successCount = 0;
       let errorCount = 0;
-      
+
       for (let i = 0; i < filteredPaystubs.length; i++) {
         const paystub = filteredPaystubs[i];
         try {
           // Use the same handleDownloadPDF function to ensure consistent PDF format
           await handleDownloadPDF(paystub);
           successCount++;
-          
+
           // Small delay between downloads to prevent browser blocking
           if (i < filteredPaystubs.length - 1) {
             await new Promise(resolve => setTimeout(resolve, 800));
@@ -1417,7 +1417,7 @@ const PaystubsList = () => {
           errorCount++;
         }
       }
-      
+
       if (successCount > 0) {
         alert(`Successfully downloaded ${successCount} paystub(s).${errorCount > 0 ? ` ${errorCount} failed.` : ''}`);
       } else {
@@ -1450,28 +1450,26 @@ const PaystubsList = () => {
           <div className="flex gap-2 border-b border-theme mb-4">
             <button
               onClick={() => setActiveTab('all')}
-              className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
-                activeTab === 'all'
+              className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'all'
                   ? 'border-blue-600 !text-[#00D1FF]'
                   : 'border-transparent text-secondary hover:text-primary'
-              }`}
+                }`}
             >
               All Paystubs
-              <span className="ml-2 px-2 py-0.5 bg-gray-100 rounded-full text-xs">
+              <span className="ml-2 px-2 py-0.5 bg-card rounded-full text-xs">
                 {paystubs.length}
               </span>
             </button>
             <button
               onClick={() => setActiveTab('employees')}
-              className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 ${
-                activeTab === 'employees'
+              className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'employees'
                   ? 'border-blue-600 !text-[#00D1FF]'
                   : 'border-transparent text-secondary hover:text-primary'
-              }`}
+                }`}
             >
               <Users size={18} />
               Employees
-              <span className="ml-2 px-2 py-0.5 bg-gray-100 rounded-full text-xs">
+              <span className="ml-2 px-2 py-0.5 bg-card rounded-full text-xs">
                 {paystubs.filter(p => {
                   const role = p.employeeRole?.toLowerCase() || p.userId?.role?.toLowerCase() || '';
                   return role !== 'driver';
@@ -1480,15 +1478,14 @@ const PaystubsList = () => {
             </button>
             <button
               onClick={() => setActiveTab('drivers')}
-              className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 ${
-                activeTab === 'drivers'
+              className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'drivers'
                   ? 'border-blue-600 text-[#00D1FF]'
                   : 'border-transparent text-secondary hover:text-primary'
-              }`}
+                }`}
             >
               <Users size={18} />
               Drivers
-              <span className="ml-2 px-2 py-0.5 bg-gray-100 rounded-full text-xs">
+              <span className="ml-2 px-2 py-0.5 bg-card rounded-full text-xs">
                 {paystubs.filter(p => {
                   // Company drivers: must be a driver role AND companyFlag should be false
                   const role = p.employeeRole?.toLowerCase() || p.userId?.role?.toLowerCase() || '';
@@ -1500,15 +1497,14 @@ const PaystubsList = () => {
             </button>
             <button
               onClick={() => setActiveTab('ownerOperators')}
-              className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 ${
-                activeTab === 'ownerOperators'
+              className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'ownerOperators'
                   ? 'border-blue-600 text-[#00D1FF]'
                   : 'border-transparent text-secondary hover:text-primary'
-              }`}
+                }`}
             >
               <Users size={18} />
               Owner Operators
-              <span className="ml-2 px-2 py-0.5 bg-gray-100 rounded-full text-xs">
+              <span className="ml-2 px-2 py-0.5 bg-card rounded-full text-xs">
                 {paystubs.filter(p => {
                   // Owner operators: must be a driver role AND companyFlag should be true
                   const role = p.employeeRole?.toLowerCase() || p.userId?.role?.toLowerCase() || '';
@@ -1669,11 +1665,10 @@ const PaystubsList = () => {
                       )}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            paystub.employeeRole?.toLowerCase() === 'driver' 
-                              ? 'bg-green-100 text-green-800' 
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${paystub.employeeRole?.toLowerCase() === 'driver'
+                              ? 'bg-green-100 text-green-800'
                               : 'bg-blue-100 text-blue-800'
-                          }`}>
+                            }`}>
                             {paystub.employeeRole || paystub.userId?.role || 'N/A'}
                           </span>
                           {paystub.employeeRole?.toLowerCase() === 'driver' || paystub.userId?.role?.toLowerCase() === 'driver' ? (
@@ -1683,13 +1678,13 @@ const PaystubsList = () => {
                               // companyFlag=false = Company Driver, companyFlag=true = Owner Operator
                               const displayWorkType = companyFlag === false ? 'Driver' : 'Owner-Operator';
                               return (
-                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-primary">
+                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-card text-primary">
                                   {displayWorkType}
                                 </span>
                               );
                             })()
                           ) : paystub.workType ? (
-                            <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-primary">
+                            <span className="px-2 py-1 text-xs font-medium rounded-full bg-card text-primary">
                               {paystub.workType}
                             </span>
                           ) : null}
@@ -1715,13 +1710,12 @@ const PaystubsList = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          paystub.status === 'issued' 
-                            ? 'bg-green-100 text-green-800' 
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${paystub.status === 'issued'
+                            ? 'bg-green-100 text-green-800'
                             : paystub.status === 'void'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-100 text-primary'
-                        }`}>
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-card text-primary'
+                          }`}>
                           {paystub.status.charAt(0).toUpperCase() + paystub.status.slice(1)}
                         </span>
                       </td>

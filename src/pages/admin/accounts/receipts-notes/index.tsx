@@ -83,7 +83,7 @@ export default function ReceiptsFinancialNotes() {
   const [loadingReceiptUrl, setLoadingReceiptUrl] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'receipt' | 'note' } | null>(null);
-  
+
   // Detail modal states (separate from view modal)
   const [showRowDetailModal, setShowRowDetailModal] = useState(false);
   const [selectedRowItem, setSelectedRowItem] = useState<ReceiptData | FinancialNoteData | null>(null);
@@ -734,8 +734,8 @@ export default function ReceiptsFinancialNotes() {
                   </thead>
                   <tbody className="bg-card divide-y divide-theme">
                     {filteredReceipts.map(receipt => (
-                      <tr 
-                        key={receipt._id} 
+                      <tr
+                        key={receipt._id}
                         className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedRowItem(receipt);
@@ -744,7 +744,7 @@ export default function ReceiptsFinancialNotes() {
                         }}
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-lg text-2xl">
+                          <div className="flex items-center justify-center w-12 h-12 bg-card rounded-lg text-2xl">
                             {receipt.thumbnail || '🧾'}
                           </div>
                         </td>
@@ -847,8 +847,8 @@ export default function ReceiptsFinancialNotes() {
                   </thead>
                   <tbody className="bg-card divide-y divide-theme">
                     {filteredNotes.map(note => (
-                      <tr 
-                        key={note._id} 
+                      <tr
+                        key={note._id}
                         className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedRowItem(note);
@@ -1235,7 +1235,7 @@ export default function ReceiptsFinancialNotes() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-primary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>
@@ -1302,13 +1302,12 @@ export default function ReceiptsFinancialNotes() {
 
                   <div className="bg-card p-4 rounded-lg border border-purple-200">
                     <label className="text-sm font-medium text-purple-900 mb-2 block">Expense Type</label>
-                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
-                      (selectedRowItem as ReceiptData).expenseType === 'Fuel' ? 'bg-blue-100 text-blue-800 border-blue-300' :
-                      (selectedRowItem as ReceiptData).expenseType === 'Repair' ? 'bg-orange-100 text-orange-800 border-orange-300' :
-                      (selectedRowItem as ReceiptData).expenseType === 'Permit Fees' ? 'bg-purple-100 text-purple-800 border-purple-300' :
-                      (selectedRowItem as ReceiptData).expenseType === 'Scales' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
-                      'bg-green-100 text-green-800 border-green-300'
-                    }`}>
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedRowItem as ReceiptData).expenseType === 'Fuel' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                        (selectedRowItem as ReceiptData).expenseType === 'Repair' ? 'bg-orange-100 text-orange-800 border-orange-300' :
+                          (selectedRowItem as ReceiptData).expenseType === 'Permit Fees' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                            (selectedRowItem as ReceiptData).expenseType === 'Scales' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                              'bg-green-100 text-green-800 border-green-300'
+                      }`}>
                       {(selectedRowItem as ReceiptData).expenseType}
                     </span>
                   </div>

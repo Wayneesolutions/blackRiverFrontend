@@ -1,7 +1,7 @@
 // components/Header.jsx
 import { useState, useRef, useEffect } from "react";
 import { FaUserCircle, FaSignOutAlt, FaUser, FaCog } from "react-icons/fa";
-import { Search, X, ArrowRight , ArrowLeft } from "lucide-react";
+import { Search, X, ArrowRight, ArrowLeft } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -275,7 +275,7 @@ const Header = () => {
                                             <div className={`flex-shrink-0 ${index === selectedIndex ? 'scale-110' : ''} transition-transform`}>
                                                 <div className={`p-2 rounded-lg ${action.type === 'create' ? 'bg-green-100 text-green-700' :
                                                     action.type === 'navigation' ? 'bg-blue-100 text-blue-700' :
-                                                        'bg-gray-100 text-primary'
+                                                        'bg-card text-primary'
                                                     }`}>
                                                     {action.icon}
                                                 </div>

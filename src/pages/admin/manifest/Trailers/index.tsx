@@ -33,19 +33,19 @@ interface TrailerData {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const STATUS_COLOR: Record<string, string> = {
-  "In Service":    "bg-green-50 text-green-700",
-  "Out of Service":"bg-card text-red-700",
-  Maintenance:     "bg-amber-50 text-amber-700",
-  moving:          "bg-card text-blue-700",
-  idle:            "bg-gray-100 text-secondary",
-  stopped:         "bg-gray-100 text-secondary",
+  "In Service": "bg-green-50 text-green-700",
+  "Out of Service": "bg-card text-red-700",
+  Maintenance: "bg-amber-50 text-amber-700",
+  moving: "bg-card text-blue-700",
+  idle: "bg-card text-secondary",
+  stopped: "bg-card text-secondary",
 };
 
 const fmt = (d?: string | null) =>
   d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" }) : "—";
 
 const StatusBadge = ({ status }: { status?: string }) => {
-  const cls = STATUS_COLOR[status || ""] || "bg-gray-100 text-secondary";
+  const cls = STATUS_COLOR[status || ""] || "bg-card text-secondary";
   return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${cls}`}>{status || "—"}</span>;
 };
 
@@ -60,15 +60,15 @@ const exportToExcel = async (trailers: TrailerData[]) => {
     alignment: { horizontal: "center", vertical: "middle" },
   };
   ws.columns = [
-    { header: "Unit #", key: "unit", width: 14 },{ header: "Plate #", key: "plate", width: 14 },
-    { header: "VIN", key: "vin", width: 22 },{ header: "Make", key: "make", width: 14 },
-    { header: "Model", key: "model", width: 14 },{ header: "Year", key: "year", width: 10 },
-    { header: "Type", key: "type", width: 18 },{ header: "Status", key: "status", width: 16 },
-    { header: "Ownership", key: "ownership", width: 18 },{ header: "Internal ID", key: "internalId", width: 14 },
-    { header: "Registration", key: "reg", width: 20 },{ header: "Attached", key: "attached", width: 12 },
-    { header: "Attached Truck", key: "truck", width: 16 },{ header: "Safety Expiry", key: "safety", width: 16 },
-    { header: "Capacity", key: "cap", width: 12 },{ header: "Cargo Type", key: "cargo", width: 16 },
-    { header: "Refrigerated", key: "refrig", width: 14 },{ header: "Location", key: "location", width: 30 },
+    { header: "Unit #", key: "unit", width: 14 }, { header: "Plate #", key: "plate", width: 14 },
+    { header: "VIN", key: "vin", width: 22 }, { header: "Make", key: "make", width: 14 },
+    { header: "Model", key: "model", width: 14 }, { header: "Year", key: "year", width: 10 },
+    { header: "Type", key: "type", width: 18 }, { header: "Status", key: "status", width: 16 },
+    { header: "Ownership", key: "ownership", width: 18 }, { header: "Internal ID", key: "internalId", width: 14 },
+    { header: "Registration", key: "reg", width: 20 }, { header: "Attached", key: "attached", width: 12 },
+    { header: "Attached Truck", key: "truck", width: 16 }, { header: "Safety Expiry", key: "safety", width: 16 },
+    { header: "Capacity", key: "cap", width: 12 }, { header: "Cargo Type", key: "cargo", width: 16 },
+    { header: "Refrigerated", key: "refrig", width: 14 }, { header: "Location", key: "location", width: 30 },
   ];
   ws.getRow(1).eachCell((c) => { Object.assign(c, { style: hStyle }); });
   ws.getRow(1).height = 24;
@@ -144,28 +144,28 @@ const SlidePanel = ({ trailer: t, onClose }: { trailer: TrailerData; onClose: ()
           <div className="rounded-xl border border-theme p-4">
             <p className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Identification</p>
             <div className="grid grid-cols-2 gap-3">
-              <DR label="Unit #"      value={t.unitNumber || t.trailer} />
-              <DR label="Plate #"     value={t.plateNumber} />
-              <DR label="VIN"         value={t.vinNumber} />
+              <DR label="Unit #" value={t.unitNumber || t.trailer} />
+              <DR label="Plate #" value={t.plateNumber} />
+              <DR label="VIN" value={t.vinNumber} />
               <DR label="Internal ID" value={t.internalId} />
-              <DR label="Make"        value={t.make} />
-              <DR label="Model"       value={t.model} />
-              <DR label="Year"        value={t.year} />
-              <DR label="Type"        value={t.type} />
+              <DR label="Make" value={t.make} />
+              <DR label="Model" value={t.model} />
+              <DR label="Year" value={t.year} />
+              <DR label="Type" value={t.type} />
             </div>
           </div>
 
           <div className="rounded-xl border border-theme p-4">
             <p className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Status & Registration</p>
             <div className="grid grid-cols-2 gap-3">
-              <DR label="Status"        value={<StatusBadge status={t.status} />} />
-              <DR label="Ownership"     value={t.ownership} />
+              <DR label="Status" value={<StatusBadge status={t.status} />} />
+              <DR label="Ownership" value={t.ownership} />
               <DR label="Safety Expiry" value={fmt(t.safetyExpiryDate)} />
-              <DR label="Registration"  value={[t.registrationProvince, t.registrationCountry].filter(Boolean).join(", ")} />
-              <DR label="Capacity"      value={t.capacity} />
-              <DR label="Attached"      value={t.isAttached ? "Yes" : "No"} />
+              <DR label="Registration" value={[t.registrationProvince, t.registrationCountry].filter(Boolean).join(", ")} />
+              <DR label="Capacity" value={t.capacity} />
+              <DR label="Attached" value={t.isAttached ? "Yes" : "No"} />
               <DR label="Attached Truck" value={t.attachedVehicle?.unitNumber || t.attachedVehicle?.plateNumber} />
-              <DR label="Location"      value={t.currentLocation?.address} />
+              <DR label="Location" value={t.currentLocation?.address} />
             </div>
           </div>
 
@@ -173,8 +173,8 @@ const SlidePanel = ({ trailer: t, onClose }: { trailer: TrailerData; onClose: ()
             <div className="rounded-xl border border-theme p-4">
               <p className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Cargo Details</p>
               <div className="grid grid-cols-2 gap-3">
-                <DR label="Cargo Type"   value={t.cargoDetails.cargoType} />
-                <DR label="Weight"       value={t.cargoDetails.weight ? `${t.cargoDetails.weight}` : ""} />
+                <DR label="Cargo Type" value={t.cargoDetails.cargoType} />
+                <DR label="Weight" value={t.cargoDetails.weight ? `${t.cargoDetails.weight}` : ""} />
                 <DR label="Refrigerated" value={t.cargoDetails.isRefrigerated ? "Yes" : "No"} />
               </div>
             </div>
@@ -225,7 +225,7 @@ const TrailersPage = () => {
           disabled={exporting || !trailers.length}
           className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] disabled:opacity-50 !text-white text-sm font-medium rounded-lg transition-colors"
         >
-          {exporting ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />} Export 
+          {exporting ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />} Export
         </button>
       </div>
 
@@ -288,7 +288,7 @@ const TrailersPage = () => {
                     <td className="px-4 py-3 whitespace-nowrap"><StatusBadge status={t.status} /></td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary">{t.ownership || "—"}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${t.isAttached ? "bg-card text-blue-700" : "bg-gray-100 text-secondary"}`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${t.isAttached ? "bg-card text-blue-700" : "bg-card text-secondary"}`}>
                         {t.isAttached ? "Attached" : "Free"}
                       </span>
                     </td>

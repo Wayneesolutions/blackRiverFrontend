@@ -7,86 +7,86 @@ import { listCustomer } from "../../../../../axios/api/distapcher";
 type NotificationType = 'success' | 'error' | 'warning';
 
 interface ToastNotification {
-  id: number;
-  type: NotificationType;
-  message: string;
+    id: number;
+    type: NotificationType;
+    message: string;
 }
 
 const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
-  const icons = {
-    success: <FaCheckCircle className="text-green-500" size={24} />,
-    error: <FaExclamationCircle className="text-red-500" size={24} />,
-    warning: <FaExclamationCircle className="text-yellow-500" size={24} />,
-  };
+    const icons = {
+        success: <FaCheckCircle className="text-green-500" size={24} />,
+        error: <FaExclamationCircle className="text-red-500" size={24} />,
+        warning: <FaExclamationCircle className="text-yellow-500" size={24} />,
+    };
 
-  const bgColors = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-card border-red-200',
-    warning: 'bg-card border-yellow-200',
-  };
+    const bgColors = {
+        success: 'bg-green-50 border-green-200',
+        error: 'bg-card border-red-200',
+        warning: 'bg-card border-yellow-200',
+    };
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose(notification.id);
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [notification.id, onClose]);
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            onClose(notification.id);
+        }, 5000);
+        return () => clearTimeout(timer);
+    }, [notification.id, onClose]);
 
-  return (
-    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in min-w-[300px] max-w-[500px]`}>
-      <div className="flex-shrink-0 mt-0.5">
-        {icons[notification.type]}
-      </div>
-      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
-      <button
-        onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
-      >
-        <FaTimes size={16} />
-      </button>
-    </div>
-  );
+    return (
+        <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in min-w-[300px] max-w-[500px]`}>
+            <div className="flex-shrink-0 mt-0.5">
+                {icons[notification.type]}
+            </div>
+            <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
+            <button
+                onClick={() => onClose(notification.id)}
+                className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
+            >
+                <FaTimes size={16} />
+            </button>
+        </div>
+    );
 };
 
 interface Place {
-  _id: string;
-  name?: string;
-  city?: string;
-  state?: string;
-  currentLocation?: {
-    address?: string;
-    latitude?: string | number;
-    longitude?: string | number;
-  };
+    _id: string;
+    name?: string;
+    city?: string;
+    state?: string;
+    currentLocation?: {
+        address?: string;
+        latitude?: string | number;
+        longitude?: string | number;
+    };
 }
 
 interface Customer {
-  _id: string;
-  name: string;
-  address?: string;
-  email?: string;
-  phone?: string;
+    _id: string;
+    name: string;
+    address?: string;
+    email?: string;
+    phone?: string;
 }
 
 const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
     const [notifications, setNotifications] = useState<ToastNotification[]>([]);
-    
+
     // Customers and Places
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
     const [customerSearch, setCustomerSearch] = useState("");
     const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
-    
+
     const [pickupPlaces, setPickupPlaces] = useState<Place[]>([]);
     const [selectedPickupPlace, setSelectedPickupPlace] = useState<Place | null>(null);
     const [pickupSearch, setPickupSearch] = useState("");
     const [pickupDropdownOpen, setPickupDropdownOpen] = useState(false);
-    
+
     const [deliveryPlaces, setDeliveryPlaces] = useState<Place[]>([]);
     const [selectedDeliveryPlace, setSelectedDeliveryPlace] = useState<Place | null>(null);
     const [deliverySearch, setDeliverySearch] = useState("");
     const [deliveryDropdownOpen, setDeliveryDropdownOpen] = useState(false);
-    
+
     const [commodity, setCommodity] = useState(order?.commodity || "");
     const [loadType, setLoadType] = useState(order?.loadType || "FTL");
     const [pickupDate, setPickupDate] = useState(order?.pickupDate?.split(" ")[0] || new Date().toISOString().split('T')[0]);
@@ -158,7 +158,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
             }
         } else if (order.pickupLocation) {
             // Try to find by address/name
-            const foundPlace = pickupPlaces.find(p => 
+            const foundPlace = pickupPlaces.find(p =>
                 p.currentLocation?.address === order.pickupLocation ||
                 p.name === order.pickupLocation ||
                 (order.pickupLocation && p.currentLocation?.address?.toLowerCase().includes(order.pickupLocation.toLowerCase()))
@@ -179,7 +179,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
             }
         } else if (order.deliveryLocation) {
             // Try to find by address/name
-            const foundPlace = deliveryPlaces.find(p => 
+            const foundPlace = deliveryPlaces.find(p =>
                 p.currentLocation?.address === order.deliveryLocation ||
                 p.name === order.deliveryLocation ||
                 (order.deliveryLocation && p.currentLocation?.address?.toLowerCase().includes(order.deliveryLocation.toLowerCase()))
@@ -441,9 +441,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                             setCustomerSearch("");
                                                             setCustomerDropdownOpen(false);
                                                         }}
-                                                        className={`px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm ${
-                                                            selectedCustomer?._id === customer._id ? 'bg-card' : ''
-                                                        }`}
+                                                        className={`px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm ${selectedCustomer?._id === customer._id ? 'bg-card' : ''
+                                                            }`}
                                                     >
                                                         <div className="font-medium text-[#00D1FF]">{customer.name || 'Unnamed Customer'}</div>
                                                         <div className="text-xs text-secondary">{customer.address || customer.email || customer.phone || ''}</div>
@@ -478,21 +477,19 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setLoadType("FTL")}
-                                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                        loadType === "FTL"
+                                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${loadType === "FTL"
                                             ? "bg-blue-600 !text-white"
-                                            : "bg-gray-100 text-primary hover:bg-gray-200"
-                                    }`}
+                                            : "bg-card text-primary hover:bg-gray-200"
+                                        }`}
                                 >
                                     FTL
                                 </button>
                                 <button
                                     onClick={() => setLoadType("LTL")}
-                                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                        loadType === "LTL"
+                                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${loadType === "LTL"
                                             ? "bg-blue-600 !text-white"
-                                            : "bg-gray-100 text-primary hover:bg-gray-200"
-                                    }`}
+                                            : "bg-card text-primary hover:bg-gray-200"
+                                        }`}
                                 >
                                     LTL
                                 </button>
@@ -512,8 +509,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                     className="flex items-center gap-1 p-2 border border-theme rounded-lg bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
                                 >
                                     <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${pickupDropdownOpen ? 'rotate-180' : ''}`} />
-                                <input
-                                    type="text"
+                                    <input
+                                        type="text"
                                         value={selectedPickupPlace ? `${selectedPickupPlace.name || ''} | ${selectedPickupPlace.currentLocation?.address || ''}` : pickupSearch}
                                         onChange={(e) => {
                                             setPickupSearch(e.target.value);
@@ -533,8 +530,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             }}
                                             className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                                         >
-                                        <X className="w-4 h-4 text-secondary" />
-                                    </button>
+                                            <X className="w-4 h-4 text-secondary" />
+                                        </button>
                                     )}
                                 </div>
                                 {pickupDropdownOpen && (
@@ -562,9 +559,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                             setPickupSearch("");
                                                             setPickupDropdownOpen(false);
                                                         }}
-                                                        className={`px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm ${
-                                                            selectedPickupPlace?._id === place._id ? 'bg-card' : ''
-                                                        }`}
+                                                        className={`px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm ${selectedPickupPlace?._id === place._id ? 'bg-card' : ''
+                                                            }`}
                                                     >
                                                         <div className="font-medium text-[#00D1FF]">{place.name || 'Unnamed Place'}</div>
                                                         <div className="text-xs text-secondary">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
@@ -573,7 +569,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             ) : (
                                                 <div className="px-3 py-2 text-sm text-secondary">No places found</div>
                                             )}
-                                </div>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -616,8 +612,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                     className="flex items-center gap-1 p-2 border border-theme rounded-lg bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
                                 >
                                     <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${deliveryDropdownOpen ? 'rotate-180' : ''}`} />
-                                <input
-                                    type="text"
+                                    <input
+                                        type="text"
                                         value={selectedDeliveryPlace ? `${selectedDeliveryPlace.name || ''} | ${selectedDeliveryPlace.currentLocation?.address || ''}` : deliverySearch}
                                         onChange={(e) => {
                                             setDeliverySearch(e.target.value);
@@ -637,8 +633,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             }}
                                             className="p-1 hover:bg-[rgba(255,255,255,0.03)] rounded flex-shrink-0"
                                         >
-                                        <X className="w-4 h-4 text-secondary" />
-                                    </button>
+                                            <X className="w-4 h-4 text-secondary" />
+                                        </button>
                                     )}
                                 </div>
                                 {deliveryDropdownOpen && (
@@ -666,9 +662,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                             setDeliverySearch("");
                                                             setDeliveryDropdownOpen(false);
                                                         }}
-                                                        className={`px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm ${
-                                                            selectedDeliveryPlace?._id === place._id ? 'bg-card' : ''
-                                                        }`}
+                                                        className={`px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm ${selectedDeliveryPlace?._id === place._id ? 'bg-card' : ''
+                                                            }`}
                                                     >
                                                         <div className="font-medium text-[#00D1FF]">{place.name || 'Unnamed Place'}</div>
                                                         <div className="text-xs text-secondary">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
@@ -677,7 +672,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             ) : (
                                                 <div className="px-3 py-2 text-sm text-secondary">No places found</div>
                                             )}
-                                </div>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -821,8 +816,8 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                     <span className="text-sm whitespace-nowrap">Tax 1</span>
                                 </label>
                                 <div className="flex items-center gap-1 flex-1">
-                                <input
-                                    type="number"
+                                    <input
+                                        type="number"
                                         step="0.01"
                                         value={tax1Percent}
                                         onChange={(e) => {
@@ -839,7 +834,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                 setGrossTotalFreight(gross.toFixed(2));
                                             }
                                         }}
-                                    placeholder="0.00"
+                                        placeholder="0.00"
                                         className="flex-1 px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-card"
                                     />
                                     <span className="text-sm text-secondary flex-shrink-0">%</span>

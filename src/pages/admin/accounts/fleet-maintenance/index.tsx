@@ -137,7 +137,7 @@ export default function FleetMaintenanceFinance() {
   const [editingPlan, setEditingPlan] = useState<MaintenancePlanItem | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'parts' | 'labor' | 'plan' } | null>(null);
-  
+
   // Detail modal states
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ExpenseSummaryItem | PartsCostLogItem | LaborRateItem | MaintenancePlanItem | null>(null);
@@ -817,8 +817,8 @@ export default function FleetMaintenanceFinance() {
                     </tr>
                   ) : (
                     expenseSummary.map((expense, idx) => (
-                      <tr 
-                        key={idx} 
+                      <tr
+                        key={idx}
                         className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedItem(expense);
@@ -880,8 +880,8 @@ export default function FleetMaintenanceFinance() {
                     </tr>
                   ) : (
                     partsCostLog.map((part) => (
-                      <tr 
-                        key={part._id || part.id} 
+                      <tr
+                        key={part._id || part.id}
                         className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedItem(part);
@@ -938,8 +938,8 @@ export default function FleetMaintenanceFinance() {
                     </tr>
                   ) : (
                     laborRates.map((rate) => (
-                      <tr 
-                        key={rate._id || rate.id} 
+                      <tr
+                        key={rate._id || rate.id}
                         className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedItem(rate);
@@ -951,7 +951,7 @@ export default function FleetMaintenanceFinance() {
                         <td className="px-6 py-4 text-sm text-secondary">{rate.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">${rate.rate.toFixed(2)}/hr</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${rate.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-primary'
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${rate.isActive ? 'bg-green-100 text-green-800' : 'bg-card text-primary'
                             }`}>
                             {rate.isActive ? 'Active' : 'Inactive'}
                           </span>
@@ -996,8 +996,8 @@ export default function FleetMaintenanceFinance() {
                     </tr>
                   ) : (
                     maintenancePlans.map((plan) => (
-                      <tr 
-                        key={plan._id || plan.id} 
+                      <tr
+                        key={plan._id || plan.id}
                         className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedItem(plan);
@@ -1398,7 +1398,7 @@ export default function FleetMaintenanceFinance() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-primary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>
@@ -1538,11 +1538,10 @@ export default function FleetMaintenanceFinance() {
 
                   <div className="bg-card p-4 rounded-lg border border-purple-200">
                     <label className="text-sm font-medium text-purple-900 mb-2 block">Status</label>
-                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${
-                      (selectedItem as LaborRateItem).isActive 
-                        ? 'bg-green-100 text-green-800 border-2 border-green-300' 
-                        : 'bg-gray-100 text-primary border-2 border-theme'
-                    }`}>
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${(selectedItem as LaborRateItem).isActive
+                        ? 'bg-green-100 text-green-800 border-2 border-green-300'
+                        : 'bg-card text-primary border-2 border-theme'
+                      }`}>
                       {(selectedItem as LaborRateItem).isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
@@ -1571,29 +1570,27 @@ export default function FleetMaintenanceFinance() {
                     <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
                       <label className="text-sm font-medium text-indigo-900 mb-1 block">Actual Cost</label>
                       <p className="text-xl font-semibold text-indigo-700">
-                        {(selectedItem as MaintenancePlanItem).actualCost > 0 
-                          ? `$${(selectedItem as MaintenancePlanItem).actualCost.toLocaleString()}` 
+                        {(selectedItem as MaintenancePlanItem).actualCost > 0
+                          ? `$${(selectedItem as MaintenancePlanItem).actualCost.toLocaleString()}`
                           : 'Not yet completed'}
                       </p>
                     </div>
                   </div>
 
-                  <div className={`p-4 rounded-lg border-2 ${
-                    (selectedItem as MaintenancePlanItem).variance > 0 
-                      ? 'bg-card border-red-300' 
+                  <div className={`p-4 rounded-lg border-2 ${(selectedItem as MaintenancePlanItem).variance > 0
+                      ? 'bg-card border-red-300'
                       : (selectedItem as MaintenancePlanItem).variance < 0
-                      ? 'bg-green-50 border-green-300'
-                      : 'bg-card border-theme'
-                  }`}>
-                    <label className="text-sm font-medium text-primary mb-1 block">Variance</label>
-                    <p className={`text-2xl font-bold ${
-                      (selectedItem as MaintenancePlanItem).variance > 0 
-                        ? 'text-red-700' 
-                        : (selectedItem as MaintenancePlanItem).variance < 0
-                        ? 'text-green-700'
-                        : 'text-primary'
+                        ? 'bg-green-50 border-green-300'
+                        : 'bg-card border-theme'
                     }`}>
-                      {(selectedItem as MaintenancePlanItem).variance !== 0 
+                    <label className="text-sm font-medium text-primary mb-1 block">Variance</label>
+                    <p className={`text-2xl font-bold ${(selectedItem as MaintenancePlanItem).variance > 0
+                        ? 'text-red-700'
+                        : (selectedItem as MaintenancePlanItem).variance < 0
+                          ? 'text-green-700'
+                          : 'text-primary'
+                      }`}>
+                      {(selectedItem as MaintenancePlanItem).variance !== 0
                         ? `${(selectedItem as MaintenancePlanItem).variance > 0 ? '+' : ''}$${(selectedItem as MaintenancePlanItem).variance.toLocaleString()}`
                         : 'No variance'}
                     </p>
@@ -1607,13 +1604,12 @@ export default function FleetMaintenanceFinance() {
 
                   <div className="bg-card p-4 rounded-lg border border-orange-200">
                     <label className="text-sm font-medium text-orange-900 mb-2 block">Status</label>
-                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
-                      (selectedItem as MaintenancePlanItem).status === 'Completed' 
-                        ? 'bg-green-100 text-green-800 border-green-300' 
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as MaintenancePlanItem).status === 'Completed'
+                        ? 'bg-green-100 text-green-800 border-green-300'
                         : (selectedItem as MaintenancePlanItem).status === 'In Progress'
-                        ? 'bg-blue-100 text-blue-800 border-blue-300'
-                        : 'bg-yellow-100 text-yellow-800 border-yellow-300'
-                    }`}>
+                          ? 'bg-blue-100 text-blue-800 border-blue-300'
+                          : 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                      }`}>
                       {(selectedItem as MaintenancePlanItem).status}
                     </span>
                   </div>

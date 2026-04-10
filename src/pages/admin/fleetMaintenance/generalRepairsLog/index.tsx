@@ -150,7 +150,7 @@ const GeneralRepairsLog: React.FC = () => {
   const [filterMechanicType, setFilterMechanicType] = useState<'all' | 'internal' | 'external'>('all');
   const [exporting, setExporting] = useState(false);
   const [sending, setSending] = useState(false);
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -313,8 +313,8 @@ const GeneralRepairsLog: React.FC = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -471,7 +471,7 @@ const GeneralRepairsLog: React.FC = () => {
           makeModel: repair.makeModel || 'N/A',
           description: repair.description,
           odometer: repair.odometer ?? 'N/A',
-          parts: Array.isArray(repair.parts) 
+          parts: Array.isArray(repair.parts)
             ? repair.parts.map((p: any) => `${p.partName || p.partNumber || 'Part'} (Qty: ${p.quantity || 1})`).join(', ')
             : (repair.parts || 'N/A'),
           notes: repair.notes || '',
@@ -649,11 +649,11 @@ const GeneralRepairsLog: React.FC = () => {
 
   const handleSendEmail = async () => {
     if (!selectedRepair) return;
-    
+
     // Check if mechanic is assigned
     const currentServiceProviderId = formData.serviceProviderId || (selectedRepair as any).serviceProviderId;
     const currentServiceProvider = formData.serviceProvider || selectedRepair.serviceProvider;
-    
+
     if (!currentServiceProviderId && !currentServiceProvider) {
       setNotification({ type: 'error', message: 'Please assign a mechanic before sending email.' });
       return;
@@ -814,7 +814,7 @@ const GeneralRepairsLog: React.FC = () => {
                   </div>
                 )}
                 <div className="flex items-center justify-between text-sm pt-1.5 border-t border-theme">
-                    <span className="text-secondary">Total Maintenance Orders</span>
+                  <span className="text-secondary">Total Maintenance Orders</span>
                   <span className="font-semibold text-primary">{summaryStats.recentActivity}</span>
                 </div>
               </div>
@@ -845,31 +845,28 @@ const GeneralRepairsLog: React.FC = () => {
               <span className="text-xs text-secondary font-medium mr-1">Mechanic:</span>
               <button
                 onClick={() => setFilterMechanicType('all')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
-                  filterMechanicType === 'all'
+                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${filterMechanicType === 'all'
                     ? 'bg-gray-800 !text-white border-gray-800'
                     : 'bg-card text-secondary border-theme hover:border-gray-400'
-                }`}
+                  }`}
               >
                 All Mechanics
               </button>
               <button
                 onClick={() => setFilterMechanicType('internal')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
-                  filterMechanicType === 'internal'
+                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${filterMechanicType === 'internal'
                     ? 'bg-blue-600 !text-white border-blue-600'
                     : 'bg-card text-secondary border-theme hover:border-blue-300'
-                }`}
+                  }`}
               >
                 Internal
               </button>
               <button
                 onClick={() => setFilterMechanicType('external')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors flex items-center gap-1.5 ${
-                  filterMechanicType === 'external'
+                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors flex items-center gap-1.5 ${filterMechanicType === 'external'
                     ? 'bg-orange-500 !text-white border-orange-500'
                     : 'bg-card text-secondary border-theme hover:border-orange-300'
-                }`}
+                  }`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${filterMechanicType === 'external' ? 'bg-card' : 'bg-orange-400'}`} />
                 External
@@ -901,10 +898,10 @@ const GeneralRepairsLog: React.FC = () => {
                 display: none; /* Chrome, Safari, Opera */
               }
             `}</style>
-            <div 
+            <div
               ref={topScrollRef}
               className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-              style={{ 
+              style={{
                 maxHeight: '20px',
                 marginBottom: '2px',
                 scrollbarWidth: 'thin',
@@ -914,7 +911,7 @@ const GeneralRepairsLog: React.FC = () => {
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
             </div>
             {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-            <div 
+            <div
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
@@ -953,115 +950,113 @@ const GeneralRepairsLog: React.FC = () => {
                       const dbStatus = (repair as any).status;
                       const hasServiceProvider = repair.serviceProvider && repair.serviceProvider.trim() !== '';
                       const isShared = (repair as any).shared === true;
-                      
+
                       // Valid statuses from database: 'Created', 'Assigned', 'Shared', 'in-progress', 'completed'
                       let status = dbStatus;
                       if (!status || !['Created', 'Assigned', 'Shared', 'in-progress', 'completed'].includes(status)) {
                         // Fallback calculation if status not set or invalid
                         status = isShared ? 'Shared' : (hasServiceProvider ? 'Assigned' : 'Created');
                       }
-                      
+
                       return (
-                      <tr 
-                        key={repair._id} 
-                        className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
-                        onClick={() => {
-                          setSelectedRepair(repair);
-                          setShowRepairDetails(true);
-                        }}
-                      >
-                        <td className="px-6 py-4 text-primary">{formatDate(repair.serviceDate)}</td>
-                        <td className="px-6 py-4 font-medium text-primary">{repair.unitNumber}</td>
-                        <td className="px-6 py-4 text-primary">{repair.makeModel || '—'}</td>
-                        <td className="px-6 py-4 text-secondary font-mono text-sm">{repair.vinLicensePlate || '—'}</td>
-                        <td className="px-6 py-4 text-primary max-w-xs">
-                          <div className="truncate" title={repair.description}>
-                            {repair.description}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-primary">
-                          {typeof repair.odometer === 'number' ? `${repair.odometer.toLocaleString()} km` : '—'}
-                        </td>
-                        <td className="px-6 py-4 text-primary">
-                          {repair.mechanicType === 'external' ? (
-                            <div className="flex items-center gap-1">
-                              <span className="inline-flex items-center text-xs font-semibold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">Ext</span>
-                              <span>{repair.serviceProvider || '—'}</span>
+                        <tr
+                          key={repair._id}
+                          className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
+                          onClick={() => {
+                            setSelectedRepair(repair);
+                            setShowRepairDetails(true);
+                          }}
+                        >
+                          <td className="px-6 py-4 text-primary">{formatDate(repair.serviceDate)}</td>
+                          <td className="px-6 py-4 font-medium text-primary">{repair.unitNumber}</td>
+                          <td className="px-6 py-4 text-primary">{repair.makeModel || '—'}</td>
+                          <td className="px-6 py-4 text-secondary font-mono text-sm">{repair.vinLicensePlate || '—'}</td>
+                          <td className="px-6 py-4 text-primary max-w-xs">
+                            <div className="truncate" title={repair.description}>
+                              {repair.description}
                             </div>
-                          ) : (
-                            repair.serviceProvider || '—'
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-secondary font-mono text-sm">{repair.invoiceNumber || '—'}</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                            status === 'completed'
-                              ? 'bg-blue-100 text-blue-700'
-                              : status === 'in-progress'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : status === 'Shared' 
-                              ? 'bg-purple-100 text-purple-700' 
-                              : status === 'Assigned'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-gray-100 text-primary'
-                          }`}>
-                            {status === 'in-progress' ? 'In Progress' : status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                          {status === 'completed' ? (
-                            <select
-                              value={(repair as any).verificationStatus || 'not-verified'}
-                              onChange={async (e) => {
-                                const newStatus = e.target.value;
-                                if (newStatus === 'verified' && (repair as any).verificationStatus !== 'verified') {
-                                  try {
-                                    const response = await verifyMaintenanceOrder(repair._id);
-                                    if (response?.success) {
-                                      setNotification({ type: 'success', message: 'Maintenance order verified successfully' });
-                                      await loadRepairs();
-                                    } else {
-                                      setNotification({ type: 'error', message: response?.message || 'Failed to verify order' });
+                          </td>
+                          <td className="px-6 py-4 text-primary">
+                            {typeof repair.odometer === 'number' ? `${repair.odometer.toLocaleString()} km` : '—'}
+                          </td>
+                          <td className="px-6 py-4 text-primary">
+                            {repair.mechanicType === 'external' ? (
+                              <div className="flex items-center gap-1">
+                                <span className="inline-flex items-center text-xs font-semibold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">Ext</span>
+                                <span>{repair.serviceProvider || '—'}</span>
+                              </div>
+                            ) : (
+                              repair.serviceProvider || '—'
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-secondary font-mono text-sm">{repair.invoiceNumber || '—'}</td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${status === 'completed'
+                                ? 'bg-blue-100 text-blue-700'
+                                : status === 'in-progress'
+                                  ? 'bg-yellow-100 text-yellow-700'
+                                  : status === 'Shared'
+                                    ? 'bg-purple-100 text-purple-700'
+                                    : status === 'Assigned'
+                                      ? 'bg-green-100 text-green-700'
+                                      : 'bg-card text-primary'
+                              }`}>
+                              {status === 'in-progress' ? 'In Progress' : status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                            {status === 'completed' ? (
+                              <select
+                                value={(repair as any).verificationStatus || 'not-verified'}
+                                onChange={async (e) => {
+                                  const newStatus = e.target.value;
+                                  if (newStatus === 'verified' && (repair as any).verificationStatus !== 'verified') {
+                                    try {
+                                      const response = await verifyMaintenanceOrder(repair._id);
+                                      if (response?.success) {
+                                        setNotification({ type: 'success', message: 'Maintenance order verified successfully' });
+                                        await loadRepairs();
+                                      } else {
+                                        setNotification({ type: 'error', message: response?.message || 'Failed to verify order' });
+                                      }
+                                    } catch (err: any) {
+                                      setNotification({ type: 'error', message: err?.response?.data?.message || err?.message || 'Failed to verify order' });
                                     }
-                                  } catch (err: any) {
-                                    setNotification({ type: 'error', message: err?.response?.data?.message || err?.message || 'Failed to verify order' });
                                   }
-                                }
-                              }}
-                              disabled={(repair as any).verificationStatus === 'verified'}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                                (repair as any).verificationStatus === 'verified'
-                                  ? 'bg-green-100 text-green-700 border-green-300 cursor-not-allowed'
-                                  : 'bg-yellow-100 text-yellow-700 border-yellow-300 cursor-pointer hover:bg-yellow-200'
-                              }`}
-                            >
-                              <option value="not-verified">Not Verified</option>
-                              <option value="verified">Verified</option>
-                            </select>
-                          ) : (
-                            <span className="text-secondary text-sm">—</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleEditRepair(repair)}
-                              className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Edit"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteRepair(repair)}
-                              className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
+                                }}
+                                disabled={(repair as any).verificationStatus === 'verified'}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${(repair as any).verificationStatus === 'verified'
+                                    ? 'bg-green-100 text-green-700 border-green-300 cursor-not-allowed'
+                                    : 'bg-yellow-100 text-yellow-700 border-yellow-300 cursor-pointer hover:bg-yellow-200'
+                                  }`}
+                              >
+                                <option value="not-verified">Not Verified</option>
+                                <option value="verified">Verified</option>
+                              </select>
+                            ) : (
+                              <span className="text-secondary text-sm">—</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleEditRepair(repair)}
+                                className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Edit"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteRepair(repair)}
+                                className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
                     })
                   )}
                 </tbody>
@@ -1327,9 +1322,8 @@ const GeneralRepairsLog: React.FC = () => {
                       <div>
                         <label className="block text-sm font-medium text-primary mb-2">Status</label>
                         <div className="w-full px-4 py-2 border border-theme rounded-lg bg-card">
-                          <span className={`font-medium ${
-                            formData.status === 'Assigned' ? 'text-green-600' : 'text-secondary'
-                          }`}>
+                          <span className={`font-medium ${formData.status === 'Assigned' ? 'text-green-600' : 'text-secondary'
+                            }`}>
                             {formData.status || 'Created'}
                           </span>
                         </div>
@@ -1530,11 +1524,10 @@ const GeneralRepairsLog: React.FC = () => {
                       <button
                         onClick={handleSendEmail}
                         disabled={sending || formData.shared || (selectedRepair as any).shared}
-                        className={`px-6 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-                          sending || formData.shared || (selectedRepair as any).shared
+                        className={`px-6 py-2 rounded-lg transition-colors flex items-center gap-2 ${sending || formData.shared || (selectedRepair as any).shared
                             ? 'opacity-60 cursor-not-allowed bg-gray-300 text-secondary'
                             : 'bg-green-600 hover:bg-green-700 !text-white'
-                        }`}
+                          }`}
                       >
                         <Mail className="w-4 h-4" />
                         {sending ? 'Sending...' : formData.shared || (selectedRepair as any).shared ? 'Email Sent' : 'Send to Mechanic'}

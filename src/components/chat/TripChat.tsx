@@ -257,7 +257,7 @@ const TripChat: React.FC<TripChatProps> = ({ tripId, tripNumber, onClose }) => {
 
   const currentUserInfo = getCurrentUserInfo();
   const currentUserId = currentUserInfo.userId;
- 
+
 
   const messageGroups = groupMessagesByDate(messages);
 
@@ -343,13 +343,12 @@ const TripChat: React.FC<TripChatProps> = ({ tripId, tripNumber, onClose }) => {
                           {message.senderName}
                         </span>
                       )}
-                      
+
                       <div
-                        className={`relative rounded-2xl px-4 py-2.5 shadow-md ${
-                          isRightSide
+                        className={`relative rounded-2xl px-4 py-2.5 shadow-md ${isRightSide
                             ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-tr-sm"
                             : "bg-card text-primary border border-theme rounded-tl-sm"
-                        }`}
+                          }`}
                       >
                         {/* Message Text */}
                         {message.message && (
@@ -360,9 +359,8 @@ const TripChat: React.FC<TripChatProps> = ({ tripId, tripNumber, onClose }) => {
 
                         {/* File Attachment */}
                         {message.fileUrl && (
-                          <div className={`mt-2 ${message.message ? "pt-2 border-t" : ""} ${
-                            isRightSide ? "border-blue-400/30" : "border-theme"
-                          }`}>
+                          <div className={`mt-2 ${message.message ? "pt-2 border-t" : ""} ${isRightSide ? "border-blue-400/30" : "border-theme"
+                            }`}>
                             <button
                               onClick={async (e) => {
                                 e.preventDefault();
@@ -378,11 +376,10 @@ const TripChat: React.FC<TripChatProps> = ({ tripId, tripNumber, onClose }) => {
                                   window.open(message.fileUrl, '_blank');
                                 }
                               }}
-                              className={`flex items-center gap-2 p-2 rounded-lg transition-all hover:opacity-80 ${
-                                isRightSide
+                              className={`flex items-center gap-2 p-2 rounded-lg transition-all hover:opacity-80 ${isRightSide
                                   ? "bg-card/20 hover:bg-card/30 text-white"
-                                  : "bg-gray-100 hover:bg-gray-200 text-[#00D1FF]"
-                              }`}
+                                  : "bg-card hover:bg-gray-200 text-[#00D1FF]"
+                                }`}
                             >
                               {message.fileType === "image" ? (
                                 <ImageIcon className="w-4 h-4" />
@@ -487,7 +484,7 @@ const TripChat: React.FC<TripChatProps> = ({ tripId, tripNumber, onClose }) => {
           >
             <Paperclip className="w-5 h-5" />
           </button>
-          
+
           <div className="flex-1 relative">
             <textarea
               ref={textareaRef}

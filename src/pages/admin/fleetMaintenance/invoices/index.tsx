@@ -669,9 +669,9 @@ const FleetInvoicesPage = () => {
       }
 
       if (response?.success) {
-        setNotification({ 
-          type: 'success', 
-          message: editingInvoiceId ? 'Invoice updated successfully' : 'Invoice created successfully' 
+        setNotification({
+          type: 'success',
+          message: editingInvoiceId ? 'Invoice updated successfully' : 'Invoice created successfully'
         });
         setSidebarOpen(false);
         resetForm();
@@ -680,9 +680,9 @@ const FleetInvoicesPage = () => {
         setNotification({ type: 'error', message: response?.message || 'Failed to save invoice' });
       }
     } catch (err: any) {
-      setNotification({ 
-        type: 'error', 
-        message: err?.response?.data?.message || err?.message || 'Failed to save invoice' 
+      setNotification({
+        type: 'error',
+        message: err?.response?.data?.message || err?.message || 'Failed to save invoice'
       });
     } finally {
       setSaving(false);
@@ -704,9 +704,9 @@ const FleetInvoicesPage = () => {
         setNotification({ type: 'error', message: response?.message || 'Failed to delete invoice' });
       }
     } catch (err: any) {
-      setNotification({ 
-        type: 'error', 
-        message: err?.response?.data?.message || err?.message || 'Failed to delete invoice' 
+      setNotification({
+        type: 'error',
+        message: err?.response?.data?.message || err?.message || 'Failed to delete invoice'
       });
     } finally {
       setDeleting(null);
@@ -726,24 +726,24 @@ const FleetInvoicesPage = () => {
     for (const item of items) {
       if (item.productService) {
         const [type, id] = item.productService.split(':');
-        
+
         if (type === 'service' && id) {
           try {
             const serviceRes = await listVehicleServices({});
             if (serviceRes?.success && Array.isArray(serviceRes.data)) {
               const service = (serviceRes.data as any[]).find((s: any) => s._id === id);
               if (service) {
-                const unitNo = service.unitNumber || 
-                              service.vehicleId?.internalId || 
-                              service.vehicleId?.plateNumber || 
-                              '';
+                const unitNo = service.unitNumber ||
+                  service.vehicleId?.internalId ||
+                  service.vehicleId?.plateNumber ||
+                  '';
                 if (unitNo && !vehicleMap.has(unitNo)) {
                   vehicleMap.set(unitNo, {
                     unitNumber: unitNo,
                     unitType: service.unitType || service.vehicleId?.type || 'Truck',
-                    makeModel: service.makeModel || 
-                               (service.vehicleId ? `${service.vehicleId.make || ''} ${service.vehicleId.model || ''}`.trim() : '') ||
-                               '',
+                    makeModel: service.makeModel ||
+                      (service.vehicleId ? `${service.vehicleId.make || ''} ${service.vehicleId.model || ''}`.trim() : '') ||
+                      '',
                     vinNumber: service.vehicleId?.vinNumber || '',
                     plateNumber: service.vehicleId?.plateNumber || ''
                   });
@@ -763,9 +763,9 @@ const FleetInvoicesPage = () => {
                   vehicleMap.set(repair.unitNumber, {
                     unitNumber: repair.unitNumber,
                     unitType: repair.unitType || 'Truck',
-                    makeModel: repair.makeModel || 
-                               (repair.vehicleId ? `${repair.vehicleId.make || ''} ${repair.vehicleId.model || ''}`.trim() : '') ||
-                               '',
+                    makeModel: repair.makeModel ||
+                      (repair.vehicleId ? `${repair.vehicleId.make || ''} ${repair.vehicleId.model || ''}`.trim() : '') ||
+                      '',
                     vinNumber: repair.vehicleId?.vinNumber || repair.vinNumber || '',
                     plateNumber: repair.vehicleId?.plateNumber || repair.plateNumber || ''
                   });
@@ -788,7 +788,7 @@ const FleetInvoicesPage = () => {
       if (response?.success && response.data) {
         const invoice = response.data;
         setEditingInvoiceId(invoice._id);
-        
+
         // Fetch vehicle information from invoice items
         if (Array.isArray(invoice.items) && invoice.items.length > 0) {
           const vehicles = await fetchVehicleInfoFromItems(invoice.items);
@@ -796,14 +796,14 @@ const FleetInvoicesPage = () => {
         } else {
           setVehicleInfo([]);
         }
-        
+
         // Set customer
-        const customerIdValue = invoice.customerId 
-          ? (typeof invoice.customerId === 'object' && invoice.customerId._id 
-              ? invoice.customerId._id 
-              : invoice.customerId)
+        const customerIdValue = invoice.customerId
+          ? (typeof invoice.customerId === 'object' && invoice.customerId._id
+            ? invoice.customerId._id
+            : invoice.customerId)
           : null;
-        
+
         if (customerIdValue) {
           setCustomerId(customerIdValue);
           const customer = customers.find(c => c._id === customerIdValue);
@@ -835,24 +835,24 @@ const FleetInvoicesPage = () => {
           setCustomerEmail(invoice.customerEmail || '');
           setBillingAddress(invoice.customerAddress || '');
         }
-        
+
         // Set dates and terms
-        const invoiceDateStr = invoice.invoiceDate 
-          ? (typeof invoice.invoiceDate === 'string' 
-              ? invoice.invoiceDate.split('T')[0] 
-              : new Date(invoice.invoiceDate).toISOString().split('T')[0])
+        const invoiceDateStr = invoice.invoiceDate
+          ? (typeof invoice.invoiceDate === 'string'
+            ? invoice.invoiceDate.split('T')[0]
+            : new Date(invoice.invoiceDate).toISOString().split('T')[0])
           : new Date().toISOString().split('T')[0];
-        const dueDateStr = invoice.dueDate 
-          ? (typeof invoice.dueDate === 'string' 
-              ? invoice.dueDate.split('T')[0] 
-              : new Date(invoice.dueDate).toISOString().split('T')[0])
+        const dueDateStr = invoice.dueDate
+          ? (typeof invoice.dueDate === 'string'
+            ? invoice.dueDate.split('T')[0]
+            : new Date(invoice.dueDate).toISOString().split('T')[0])
           : '';
         setInvoiceDate(invoiceDateStr);
         setDueDate(dueDateStr);
         setTerms(invoice.terms || '');
         setInvoiceNo(invoice.invoiceNumber || '');
         setMessageOnInvoice(invoice.messageOnInvoice || '');
-        
+
         // Set line items
         if (Array.isArray(invoice.items) && invoice.items.length > 0) {
           const items: LineItem[] = invoice.items.map((item: any, idx: number) => {
@@ -869,7 +869,7 @@ const FleetInvoicesPage = () => {
             };
           });
           setLineItems(items);
-          
+
           // Fetch vehicle info when items are loaded
           fetchVehicleInfoFromItems(invoice.items).then(vehicles => {
             setVehicleInfo(vehicles);
@@ -887,15 +887,15 @@ const FleetInvoicesPage = () => {
         } else {
           setLabourTax('gst');
         }
-        
+
         setSidebarOpen(true);
       } else {
         setNotification({ type: 'error', message: 'Failed to load invoice details' });
       }
     } catch (err: any) {
-      setNotification({ 
-        type: 'error', 
-        message: err?.response?.data?.message || err?.message || 'Failed to load invoice details' 
+      setNotification({
+        type: 'error',
+        message: err?.response?.data?.message || err?.message || 'Failed to load invoice details'
       });
     }
   };
@@ -992,12 +992,12 @@ const FleetInvoicesPage = () => {
     const contentWidth = pageWidth - margin * 2;
 
     // Palette
-    const blue: [number, number, number]    = [1, 106, 178];
-    const dark: [number, number, number]    = [31, 41, 55];
-    const gray: [number, number, number]    = [107, 114, 128];
+    const blue: [number, number, number] = [1, 106, 178];
+    const dark: [number, number, number] = [31, 41, 55];
+    const gray: [number, number, number] = [107, 114, 128];
     const lightBlue: [number, number, number] = [235, 246, 255];
-    const rowAlt: [number, number, number]  = [249, 250, 251];
-    const white: [number, number, number]   = [255, 255, 255];
+    const rowAlt: [number, number, number] = [249, 250, 251];
+    const white: [number, number, number] = [255, 255, 255];
     const lineGray: [number, number, number] = [209, 213, 219];
 
     let yPos = 0;
@@ -1144,9 +1144,9 @@ const FleetInvoicesPage = () => {
         if (parts.length > 1) vehRows.push(['Model', parts.slice(1).join(' ')]);
       }
       if (v.unitNumber) vehRows.push(['Unit', v.unitNumber]);
-      if (v.unitType)   vehRows.push(['Type', v.unitType]);
+      if (v.unitType) vehRows.push(['Type', v.unitType]);
       if (v.plateNumber) vehRows.push(['Plate', v.plateNumber]);
-      if (v.vinNumber)  vehRows.push(['VIN', v.vinNumber]);
+      if (v.vinNumber) vehRows.push(['VIN', v.vinNumber]);
     } else {
       vehRows.push(['', 'N/A']);
     }
@@ -1215,17 +1215,17 @@ const FleetInvoicesPage = () => {
 
     // Column layout: Type | Description | Qty/Hrs | Rate | Amount
     const tRight = pageWidth - margin;
-    const typeW  = 20;
-    const qtyW   = 18;
-    const rateW  = 24;
-    const amtW   = 24;
-    const descW  = contentWidth - typeW - qtyW - rateW - amtW;
+    const typeW = 20;
+    const qtyW = 18;
+    const rateW = 24;
+    const amtW = 24;
+    const descW = contentWidth - typeW - qtyW - rateW - amtW;
 
     const xType = margin;
     const xDesc = margin + typeW;
-    const xQty  = xDesc + descW + qtyW / 2;
+    const xQty = xDesc + descW + qtyW / 2;
     const xRate = xDesc + descW + qtyW + rateW;
-    const xAmt  = tRight;
+    const xAmt = tRight;
 
     // Table header row
     doc.setFillColor(...lightBlue);
@@ -1233,11 +1233,11 @@ const FleetInvoicesPage = () => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
     doc.setTextColor(...blue);
-    doc.text('Type',      xType + 1,     yPos);
-    doc.text('Description', xDesc + 1,   yPos);
-    doc.text('Qty/Hrs',   xQty,          yPos, { align: 'center' });
-    doc.text('Rate',      xRate,         yPos, { align: 'right' });
-    doc.text('Amount',    xAmt,          yPos, { align: 'right' });
+    doc.text('Type', xType + 1, yPos);
+    doc.text('Description', xDesc + 1, yPos);
+    doc.text('Qty/Hrs', xQty, yPos, { align: 'center' });
+    doc.text('Rate', xRate, yPos, { align: 'right' });
+    doc.text('Amount', xAmt, yPos, { align: 'right' });
     yPos += 2;
     hRule(yPos, blue, 0.4);
     yPos += 4;
@@ -1248,9 +1248,9 @@ const FleetInvoicesPage = () => {
 
     let rowIdx = 0;
     for (const item of items) {
-      const desc     = (item.description || '—').toString().trim();
+      const desc = (item.description || '—').toString().trim();
       const dLines: string[] = doc.splitTextToSize(desc, descW - 3);
-      const rh       = Math.max(dLines.length * 5.5, 7);
+      const rh = Math.max(dLines.length * 5.5, 7);
       checkPageBreak(rh + 3);
 
       // Alternating row background
@@ -1261,18 +1261,18 @@ const FleetInvoicesPage = () => {
 
       const qty = Number(item.quantity) || 1;
       const rate = Number(item.unitPrice) || 0;
-      const amt  = Number(item.totalPrice) || rate * qty;
-      const ps   = item.productService || '';
+      const amt = Number(item.totalPrice) || rate * qty;
+      const ps = item.productService || '';
       const itemType = ps.startsWith('service:') ? 'Labor' : ps.startsWith('repair:') ? 'Part' : 'Item';
 
       doc.setTextColor(...gray);
       doc.setFont('helvetica', 'normal');
-      doc.text(itemType,         xType + 1, yPos);
+      doc.text(itemType, xType + 1, yPos);
       doc.setTextColor(...dark);
-      doc.text(dLines,           xDesc + 1, yPos);
-      doc.text(String(qty),      xQty,      yPos, { align: 'center' });
+      doc.text(dLines, xDesc + 1, yPos);
+      doc.text(String(qty), xQty, yPos, { align: 'center' });
       doc.text(`$${rate.toFixed(2)}`, xRate, yPos, { align: 'right' });
-      doc.text(`$${amt.toFixed(2)}`,  xAmt,  yPos, { align: 'right' });
+      doc.text(`$${amt.toFixed(2)}`, xAmt, yPos, { align: 'right' });
 
       // Tax badge on second line if applicable
       if (item.taxName && Number(item.taxPercent) > 0) {
@@ -1288,8 +1288,8 @@ const FleetInvoicesPage = () => {
     }
 
     // Labour row if applicable
-    const labourHrs    = Number(invoice.labourHours)  || 0;
-    const labourRate   = Number(invoice.labourRate)   || 0;
+    const labourHrs = Number(invoice.labourHours) || 0;
+    const labourRate = Number(invoice.labourRate) || 0;
     const labourAmount = Number(invoice.labourAmount) || labourHrs * labourRate;
     const labourTaxPct = Number(invoice.labourTaxPercent) || 0;
     const labourTaxAmt = labourAmount * (labourTaxPct / 100);
@@ -1322,13 +1322,13 @@ const FleetInvoicesPage = () => {
       const base = (Number(it.quantity) || 1) * (Number(it.unitPrice) || 0);
       return sum + base * (Number(it.taxPercent) || 0) / 100;
     }, 0);
-    const subtotal  = Number(invoice.subtotal)  || (itemsSubtotal + labourAmount);
+    const subtotal = Number(invoice.subtotal) || (itemsSubtotal + labourAmount);
     const taxAmount = Number(invoice.taxAmount) || (itemsTax + labourTaxAmt);
-    const total     = Number(invoice.total)     || subtotal + taxAmount;
+    const total = Number(invoice.total) || subtotal + taxAmount;
 
     const sumLabelX = pageWidth - margin - 55;
-    const sumValX   = tRight;
-    const sumRowH   = 6.5;
+    const sumValX = tRight;
+    const sumRowH = 6.5;
 
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
@@ -1459,8 +1459,8 @@ const FleetInvoicesPage = () => {
           amount: Number(item.totalPrice) || (Number(item.quantity) || 1) * (Number(item.unitPrice) || 0),
           salesTax: d.taxName?.toLowerCase().includes('gst') ? 'gst'
             : d.taxName?.toLowerCase().includes('hst') ? 'hst'
-            : d.taxName?.toLowerCase().includes('pst') ? 'pst'
-            : 'none',
+              : d.taxName?.toLowerCase().includes('pst') ? 'pst'
+                : 'none',
         }));
         setLineItems(mapped);
       }
@@ -1556,7 +1556,7 @@ const FleetInvoicesPage = () => {
             </div>
           </div>
           {/* Auto-dismiss progress bar */}
-          <div className="h-0.5 bg-gray-100">
+          <div className="h-0.5 bg-card">
             <div
               className="h-full bg-emerald-400"
               style={{ animation: 'shrink 6s linear forwards' }}
@@ -1717,17 +1717,17 @@ const FleetInvoicesPage = () => {
                   </tr>
                 ) : (
                   invoices.map((row) => {
-                    const isOverdue = row.status === 'overdue' || 
+                    const isOverdue = row.status === 'overdue' ||
                       (row.status !== 'paid' && row.dueDate && new Date(row.dueDate) < new Date());
                     const displayStatus = isOverdue ? 'overdue' : row.status;
-                    
+
                     return (
                       <tr
                         key={row._id}
                         className={`hover:bg-blue-50/30 ${displayStatus === 'overdue' ? 'border-t-4 border-t-orange-500 bg-orange-50/20' : ''}`}
                       >
                         <td className="px-6 py-4 text-primary">
-                          {row.invoiceDate 
+                          {row.invoiceDate
                             ? formatDisplayDate(typeof row.invoiceDate === 'string' ? row.invoiceDate.split('T')[0] : new Date(row.invoiceDate).toISOString().split('T')[0])
                             : '—'}
                         </td>
@@ -1765,17 +1765,16 @@ const FleetInvoicesPage = () => {
                             value={INVOICE_STATUS_OPTIONS.some((o) => o.value === row.status) ? row.status : 'draft'}
                             onChange={(e) => handleStatusChange(row._id, e.target.value)}
                             disabled={updatingStatusId === row._id}
-                            className={`min-w-[100px] px-2.5 py-1.5 text-sm font-medium rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed ${
-                              row.status === 'paid'
+                            className={`min-w-[100px] px-2.5 py-1.5 text-sm font-medium rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed ${row.status === 'paid'
                                 ? 'border-green-200 bg-green-50 text-green-700'
                                 : row.status === 'sent'
-                                ? 'border-blue-200 bg-card text-blue-700'
-                                : row.status === 'cancelled'
-                                ? 'border-theme bg-card text-secondary'
-                                : displayStatus === 'overdue'
-                                ? 'border-orange-200 bg-card text-[#F59E0B]'
-                                : 'border-theme bg-card text-secondary'
-                            }`}
+                                  ? 'border-blue-200 bg-card text-blue-700'
+                                  : row.status === 'cancelled'
+                                    ? 'border-theme bg-card text-secondary'
+                                    : displayStatus === 'overdue'
+                                      ? 'border-orange-200 bg-card text-[#F59E0B]'
+                                      : 'border-theme bg-card text-secondary'
+                              }`}
                           >
                             {INVOICE_STATUS_OPTIONS.map((opt) => (
                               <option key={opt.value} value={opt.value}>
@@ -1789,10 +1788,10 @@ const FleetInvoicesPage = () => {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <button 
-                              type="button" 
+                            <button
+                              type="button"
                               onClick={() => handleEditInvoice(row._id)}
-                              className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors" 
+                              className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
                               title="View/Edit"
                             >
                               <FaEdit size={14} />
@@ -1808,11 +1807,11 @@ const FleetInvoicesPage = () => {
                                 ? <FaSpinner size={14} className="animate-spin" />
                                 : <FaEnvelope size={14} />}
                             </button>
-                            <button 
-                              type="button" 
+                            <button
+                              type="button"
                               onClick={() => handleDeleteInvoice(row._id)}
                               disabled={deleting === row._id}
-                              className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50" 
+                              className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                               title="Delete"
                             >
                               <FaTrash size={14} />
@@ -1851,11 +1850,10 @@ const FleetInvoicesPage = () => {
             </div>
             <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8">
               {notification && (
-                <div className={`rounded-lg border px-4 py-3 ${
-                  notification.type === 'success'
+                <div className={`rounded-lg border px-4 py-3 ${notification.type === 'success'
                     ? 'border-green-200 bg-green-50 text-green-800'
                     : 'border-red-200 bg-card text-red-800'
-                }`}>
+                  }`}>
                   {notification.message}
                 </div>
               )}
@@ -1931,7 +1929,7 @@ const FleetInvoicesPage = () => {
                           onClick={() => { setShowAddCustomer(true); setAddCustomerError(null); }}
                           className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[#00D1FF] hover:text-blue-700 transition-colors"
                         >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth="2"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v8M8 12h8"/></svg>
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth="2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v8M8 12h8" /></svg>
                           Add New Customer
                         </button>
                       ) : (
@@ -1944,7 +1942,7 @@ const FleetInvoicesPage = () => {
                               className="text-secondary hover:text-secondary transition-colors"
                               aria-label="Close"
                             >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                           </div>
                           <div className="px-4 py-3 space-y-2.5">
@@ -1982,7 +1980,7 @@ const FleetInvoicesPage = () => {
                             </div>
                             {addCustomerError && (
                               <p className="text-xs text-[#A855F7] flex items-center gap-1">
-                                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
+                                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
                                 {addCustomerError}
                               </p>
                             )}
@@ -2003,7 +2001,7 @@ const FleetInvoicesPage = () => {
                             >
                               {addingCustomer ? (
                                 <>
-                                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
                                   Saving...
                                 </>
                               ) : 'Save Customer'}
@@ -2096,81 +2094,81 @@ const FleetInvoicesPage = () => {
                             className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                           />
                         </div>
-                      <div>
-                        <label className="block text-sm font-medium text-primary mb-1">Product / Service</label>
-                        <select
-                          value={item.productService}
-                          onChange={async (e) => {
-                            updateLineItem(item.id, { productService: e.target.value });
-                            // Update vehicle info when a service/repair is selected
-                            if (e.target.value) {
-                              const [type, id] = e.target.value.split(':');
-                              if (type === 'service' && id) {
-                                try {
-                                  const serviceRes = await listVehicleServices({});
-                                  if (serviceRes?.success && Array.isArray(serviceRes.data)) {
-                                    const service = (serviceRes.data as any[]).find((s: any) => s._id === id);
-                                    if (service) {
-                                      const unitNo = service.unitNumber || 
-                                                    service.vehicleId?.internalId || 
-                                                    service.vehicleId?.plateNumber || 
-                                                    '';
-                                      if (unitNo) {
-                                        const existingVehicle = vehicleInfo.find(v => v.unitNumber === unitNo);
+                        <div>
+                          <label className="block text-sm font-medium text-primary mb-1">Product / Service</label>
+                          <select
+                            value={item.productService}
+                            onChange={async (e) => {
+                              updateLineItem(item.id, { productService: e.target.value });
+                              // Update vehicle info when a service/repair is selected
+                              if (e.target.value) {
+                                const [type, id] = e.target.value.split(':');
+                                if (type === 'service' && id) {
+                                  try {
+                                    const serviceRes = await listVehicleServices({});
+                                    if (serviceRes?.success && Array.isArray(serviceRes.data)) {
+                                      const service = (serviceRes.data as any[]).find((s: any) => s._id === id);
+                                      if (service) {
+                                        const unitNo = service.unitNumber ||
+                                          service.vehicleId?.internalId ||
+                                          service.vehicleId?.plateNumber ||
+                                          '';
+                                        if (unitNo) {
+                                          const existingVehicle = vehicleInfo.find(v => v.unitNumber === unitNo);
+                                          if (!existingVehicle) {
+                                            setVehicleInfo(prev => [...prev, {
+                                              unitNumber: unitNo,
+                                              unitType: service.unitType || service.vehicleId?.type || 'Truck',
+                                              makeModel: service.makeModel ||
+                                                (service.vehicleId ? `${service.vehicleId.make || ''} ${service.vehicleId.model || ''}`.trim() : '') ||
+                                                '',
+                                              vinNumber: service.vehicleId?.vinNumber || '',
+                                              plateNumber: service.vehicleId?.plateNumber || ''
+                                            }]);
+                                          }
+                                        }
+                                      }
+                                    }
+                                  } catch (err) {
+                                    console.error('Error fetching service for vehicle info:', err);
+                                  }
+                                } else if (type === 'repair' && id) {
+                                  try {
+                                    const repairRes = await listGeneralRepairs();
+                                    if (repairRes?.success && Array.isArray(repairRes.data)) {
+                                      const repair = (repairRes.data as any[]).find((r: any) => r._id === id);
+                                      if (repair && repair.unitNumber) {
+                                        const existingVehicle = vehicleInfo.find(v => v.unitNumber === repair.unitNumber);
                                         if (!existingVehicle) {
                                           setVehicleInfo(prev => [...prev, {
-                                            unitNumber: unitNo,
-                                            unitType: service.unitType || service.vehicleId?.type || 'Truck',
-                                            makeModel: service.makeModel || 
-                                                       (service.vehicleId ? `${service.vehicleId.make || ''} ${service.vehicleId.model || ''}`.trim() : '') ||
-                                                       '',
-                                            vinNumber: service.vehicleId?.vinNumber || '',
-                                            plateNumber: service.vehicleId?.plateNumber || ''
+                                            unitNumber: repair.unitNumber,
+                                            unitType: repair.unitType || 'Truck',
+                                            makeModel: repair.makeModel ||
+                                              (repair.vehicleId ? `${repair.vehicleId.make || ''} ${repair.vehicleId.model || ''}`.trim() : '') ||
+                                              '',
+                                            vinNumber: repair.vehicleId?.vinNumber || repair.vinNumber || '',
+                                            plateNumber: repair.vehicleId?.plateNumber || repair.plateNumber || ''
                                           }]);
                                         }
                                       }
                                     }
+                                  } catch (err) {
+                                    console.error('Error fetching repair for vehicle info:', err);
                                   }
-                                } catch (err) {
-                                  console.error('Error fetching service for vehicle info:', err);
-                                }
-                              } else if (type === 'repair' && id) {
-                                try {
-                                  const repairRes = await listGeneralRepairs();
-                                  if (repairRes?.success && Array.isArray(repairRes.data)) {
-                                    const repair = (repairRes.data as any[]).find((r: any) => r._id === id);
-                                    if (repair && repair.unitNumber) {
-                                      const existingVehicle = vehicleInfo.find(v => v.unitNumber === repair.unitNumber);
-                                      if (!existingVehicle) {
-                                        setVehicleInfo(prev => [...prev, {
-                                          unitNumber: repair.unitNumber,
-                                          unitType: repair.unitType || 'Truck',
-                                          makeModel: repair.makeModel || 
-                                                     (repair.vehicleId ? `${repair.vehicleId.make || ''} ${repair.vehicleId.model || ''}`.trim() : '') ||
-                                                     '',
-                                          vinNumber: repair.vehicleId?.vinNumber || repair.vinNumber || '',
-                                          plateNumber: repair.vehicleId?.plateNumber || repair.plateNumber || ''
-                                        }]);
-                                      }
-                                    }
-                                  }
-                                } catch (err) {
-                                  console.error('Error fetching repair for vehicle info:', err);
                                 }
                               }
-                            }
-                          }}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                        >
-                          <option value="">Select...</option>
-                          {productOptions.map((opt) => (
-                            <option key={opt.id} value={opt.id}>{opt.label}</option>
-                          ))}
-                        </select>
-                        {productOptionsLoading && (
-                          <p className="mt-1 text-xs text-secondary">Loading services and maintenance orders...</p>
-                        )}
-                      </div>
+                            }}
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                          >
+                            <option value="">Select...</option>
+                            {productOptions.map((opt) => (
+                              <option key={opt.id} value={opt.id}>{opt.label}</option>
+                            ))}
+                          </select>
+                          {productOptionsLoading && (
+                            <p className="mt-1 text-xs text-secondary">Loading services and maintenance orders...</p>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">Description</label>
@@ -2431,18 +2429,18 @@ const FleetInvoicesPage = () => {
               </section>
             </div>
             <div className="flex-shrink-0 px-8 py-4 border-t border-theme bg-card flex items-center justify-end gap-3">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => {
                   setSidebarOpen(false);
                   resetForm();
-                }} 
+                }}
                 className="px-5 py-2.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 Cancel
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={handleSaveAndClose}
                 disabled={saving}
                 className={`px-5 py-2.5 text-sm font-medium !text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : ''}`}
@@ -2488,9 +2486,8 @@ const FleetInvoicesPage = () => {
                   if (f) { setUploadFile(f); setUploadError(null); }
                 }}
                 onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-                  uploadDragging ? 'border-blue-400 bg-card' : 'border-theme hover:border-blue-300 hover:bg-[rgba(255,255,255,0.03)]'
-                }`}
+                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${uploadDragging ? 'border-blue-400 bg-card' : 'border-theme hover:border-blue-300 hover:bg-[rgba(255,255,255,0.03)]'
+                  }`}
               >
                 <input
                   ref={fileInputRef}
@@ -2536,7 +2533,7 @@ const FleetInvoicesPage = () => {
               <button
                 type="button"
                 onClick={() => { setUploadModalOpen(false); setUploadFile(null); setUploadError(null); }}
-                className="px-4 py-2 text-sm text-secondary bg-gray-100 rounded-lg hover:bg-gray-200"
+                className="px-4 py-2 text-sm text-secondary bg-card rounded-lg hover:bg-gray-200"
               >
                 Cancel
               </button>

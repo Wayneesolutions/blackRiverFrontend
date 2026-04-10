@@ -290,7 +290,7 @@ const ReportsAnalytics = () => {
       case 'generated': return 'bg-green-100 text-green-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'failed': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-primary';
+      default: return 'bg-card text-primary';
     }
   };
 
@@ -571,7 +571,7 @@ const ReportsAnalytics = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                      
+
                           <button
                             onClick={() => handleDeleteReport(report._id)}
                             className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition"
@@ -646,7 +646,7 @@ const ReportsAnalytics = () => {
                     <option value="yearly">Yearly</option>
                   </select>
                 </div>
-              
+
                 <div className="flex justify-end gap-4 pt-4 border-t">
                   <button
                     type="button"
@@ -686,7 +686,7 @@ const ReportsAnalytics = () => {
               <div className="flex gap-3 w-full">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-100 text-primary font-bold rounded-xl hover:bg-gray-200 transition-colors"
+                  className="flex-1 px-4 py-2 bg-card text-primary font-bold rounded-xl hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>

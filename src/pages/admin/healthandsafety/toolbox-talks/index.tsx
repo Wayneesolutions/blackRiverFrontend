@@ -352,7 +352,7 @@ const ToolboxTalks: React.FC = () => {
                           ? 'bg-green-100 text-green-800'
                           : talk.status === 'scheduled'
                             ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-100 text-primary'
+                            : 'bg-card text-primary'
                           }`}
                       >
                         {talk.status.toUpperCase()}

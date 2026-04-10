@@ -2010,7 +2010,7 @@ const EmployeesPage = () => {
                           onChange={(e) => setPersonalData({ ...personalData, stateProvince: e.target.value })}
                           disabled={!personalData.country}
                           placeholder={personalData.country ? "Enter Province/State" : "Select country first"}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent disabled:bg-card disabled:cursor-not-allowed"
                         />
                       </div>
                     </div>

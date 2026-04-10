@@ -116,32 +116,32 @@ const DrugTest = () => {
             // Fetch all users for drug test (excluding admin and superadmin)
             const response = await getAllUsersForDrugTest();
             console.log('🔍 getAllUsersForDrugTest response:', response);
-            
+
             if (response?.success) {
                 const userList = Array.isArray(response.data) ? response.data : [];
                 console.log('📋 User list from getAllUsersForDrugTest:', userList);
-                
+
                 // Filter: Only show drivers (role === 'driver') AND cross-border eligible (true)
                 const filteredUsers = userList.filter((user: any) => {
                     const role = user.role?.toLowerCase() || '';
                     const isDriver = role === 'driver';
-                    
+
                     // Check cross-border eligible from both possible locations
-                    const crossBorderEligible = user.details?.cross_border_eligible !== undefined 
-                        ? user.details.cross_border_eligible 
+                    const crossBorderEligible = user.details?.cross_border_eligible !== undefined
+                        ? user.details.cross_border_eligible
                         : (user.cross_border_eligible !== undefined ? user.cross_border_eligible : false);
-                    
+
                     return isDriver && crossBorderEligible === true;
                 });
-                
+
                 console.log('📋 Filtered to cross-border eligible drivers:', filteredUsers.length);
-                
+
                 const mappedDrivers = filteredUsers.map((user: any) => {
                     // Handle different name formats
-                    const userName = user.name || 
-                                   `${user.firstName || ''} ${user.lastName || ''}`.trim() || 
-                                   user.email?.split('@')[0] || 
-                                   'Unknown User';
+                    const userName = user.name ||
+                        `${user.firstName || ''} ${user.lastName || ''}`.trim() ||
+                        user.email?.split('@')[0] ||
+                        'Unknown User';
                     return {
                         _id: user._id,
                         name: userName
@@ -154,24 +154,24 @@ const DrugTest = () => {
                 console.log('⚠️ getAllUsersForDrugTest failed, trying getAllDrivers fallback...');
                 const fallbackResponse = await getAllDrivers(1, 1000);
                 console.log('🔍 getAllDrivers fallback response:', fallbackResponse);
-                
+
                 if (fallbackResponse?.success && Array.isArray(fallbackResponse.data)) {
                     const driverList = fallbackResponse.data;
                     // Filter: Only drivers (role === 'driver') AND cross-border eligible (true)
                     const filteredDrivers = driverList.filter((d: any) => {
                         const role = d.role?.toLowerCase() || '';
                         const isDriver = role === 'driver';
-                        
+
                         // Check cross-border eligible from both possible locations
-                        const crossBorderEligible = d.details?.cross_border_eligible !== undefined 
-                            ? d.details.cross_border_eligible 
+                        const crossBorderEligible = d.details?.cross_border_eligible !== undefined
+                            ? d.details.cross_border_eligible
                             : (d.cross_border_eligible !== undefined ? d.cross_border_eligible : false);
-                        
+
                         return isDriver && crossBorderEligible === true;
                     });
-                    
+
                     console.log('📋 Filtered to cross-border eligible drivers (fallback):', filteredDrivers.length);
-                    
+
                     const mappedDrivers = filteredDrivers.map((d: any) => ({
                         _id: d._id,
                         name: d.name || `${d.firstName || ''} ${d.lastName || ''}`.trim() || 'Unknown Driver'
@@ -202,7 +202,7 @@ const DrugTest = () => {
             const response = await getDrugTests(params);
             if (response?.success && Array.isArray(response.data)) {
                 setDrugTestRequests(response.data);
-                
+
                 // If no drug tests and message indicates no company, show info notification
                 if (response.data.length === 0 && response.message && response.message.includes('company')) {
                     // Don't show error, just set empty array - the empty state will show the message
@@ -289,7 +289,7 @@ const DrugTest = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!formData.driverId || !formData.testType || !formData.reason || !formData.scheduledDate || !formData.labName) {
             showNotification('error', 'Please fill in all required fields');
             return;
@@ -298,14 +298,14 @@ const DrugTest = () => {
         setSaving(true);
         try {
             let response;
-            
+
             // Check if we have files to upload
             const hasFiles = consentForm || drugTestDocument;
-            
+
             if (editingRequest?._id) {
                 // UPDATE: Only send changed fields
                 const changedFields: Partial<typeof formData> = {};
-                
+
                 // Compare each field with original value
                 if (formData.driverId !== editingRequest.driverId) {
                     changedFields.driverId = formData.driverId;
@@ -328,11 +328,11 @@ const DrugTest = () => {
                 if (formData.collectionSiteAddress !== (editingRequest.collectionSiteAddress || '')) {
                     changedFields.collectionSiteAddress = formData.collectionSiteAddress;
                 }
-                
+
                 if (hasFiles) {
                     // Use FormData for file uploads
                     const formDataToSend = new FormData();
-                    
+
                     // Add only changed fields
                     Object.keys(changedFields).forEach(key => {
                         const value = changedFields[key as keyof typeof changedFields];
@@ -340,7 +340,7 @@ const DrugTest = () => {
                             formDataToSend.append(key, value);
                         }
                     });
-                    
+
                     // Add files if they exist (new files are always considered updates)
                     if (consentForm) {
                         formDataToSend.append('consentForm', consentForm);
@@ -348,7 +348,7 @@ const DrugTest = () => {
                     if (drugTestDocument) {
                         formDataToSend.append('drugTestDocument', drugTestDocument);
                     }
-                    
+
                     response = await updateDrugTest(editingRequest._id, formDataToSend as any);
                 } else {
                     // No files, use regular JSON - only send changed fields
@@ -359,7 +359,7 @@ const DrugTest = () => {
                 if (hasFiles) {
                     // Use FormData for file uploads
                     const formDataToSend = new FormData();
-                    
+
                     // Add all form fields
                     Object.keys(formData).forEach(key => {
                         const value = formData[key as keyof typeof formData];
@@ -367,7 +367,7 @@ const DrugTest = () => {
                             formDataToSend.append(key, value);
                         }
                     });
-                    
+
                     // Add files if they exist
                     if (consentForm) {
                         formDataToSend.append('consentForm', consentForm);
@@ -375,7 +375,7 @@ const DrugTest = () => {
                     if (drugTestDocument) {
                         formDataToSend.append('drugTestDocument', drugTestDocument);
                     }
-                    
+
                     response = await createDrugTest(formDataToSend as any);
                 } else {
                     // No files, use regular JSON
@@ -438,7 +438,7 @@ const DrugTest = () => {
             case 'cancelled':
                 return 'bg-red-100 text-red-700';
             default:
-                return 'bg-gray-100 text-primary';
+                return 'bg-card text-primary';
         }
     };
 
@@ -451,13 +451,13 @@ const DrugTest = () => {
     const filteredRequests = drugTestRequests.filter(request => {
         if (searchQuery) {
             const searchLower = searchQuery.toLowerCase();
-            const matchesSearch = 
+            const matchesSearch =
                 request.driverName?.toLowerCase().includes(searchLower) ||
                 request.testType.toLowerCase().includes(searchLower) ||
                 request.reason.toLowerCase().includes(searchLower) ||
                 request.labName.toLowerCase().includes(searchLower) ||
                 request.collectionSiteAddress?.toLowerCase().includes(searchLower);
-            
+
             if (!matchesSearch) return false;
         }
         return true;
@@ -492,8 +492,8 @@ const DrugTest = () => {
             <div className="mb-6">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
-                            <FlaskConical className="text-[#00D1FF]" size={32} />
+                        <h1 className="text-3xl font-bold text-[var(--accent-navyblue)] flex items-center gap-3">
+                            <FlaskConical className="text-[var(--accent-navyblue)]" size={32} />
                             Drug Test Management
                         </h1>
                         <p className="text-secondary mt-2">Manage driver drug test requests and tracking</p>
@@ -501,7 +501,7 @@ const DrugTest = () => {
                     <button
                         onClick={handleCreateRequestClick}
                         style={{
-                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                            background: 'linear-gradient(90deg, var(--accent-navyblue) 0%, var(--accent-navyblue) 40%, rgba(0,209,255,0.15) 100%)',
                         }}
                         className="flex items-center gap-2 px-6 py-3 !text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
                     >
@@ -580,7 +580,7 @@ const DrugTest = () => {
                         </div>
                         <button
                             onClick={fetchDrugTestRequests}
-                            className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                            className="px-4 py-2 text-sm bg-card hover:bg-gray-200 rounded-lg transition-colors"
                         >
                             Refresh
                         </button>
@@ -600,7 +600,7 @@ const DrugTest = () => {
                         <FlaskConical className="mx-auto text-secondary mb-4" size={48} />
                         <p className="text-secondary text-lg mb-2">No drug test requests found</p>
                         <p className="text-secondary text-sm mb-4">
-                            {drugTestRequests.length === 0 
+                            {drugTestRequests.length === 0
                                 ? "No drug test requests are available. This may be because no company is assigned to your account."
                                 : "No drug test requests match your current filters."}
                         </p>
@@ -628,10 +628,10 @@ const DrugTest = () => {
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-theme">
+                            <tbody className="bg-card divide-y divide-theme divide-white/5">
                                 {filteredRequests.map((request) => (
-                                    <tr 
-                                        key={request._id} 
+                                    <tr
+                                        key={request._id}
                                         onClick={() => handleViewDetails(request)}
                                         className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                                     >
@@ -711,7 +711,7 @@ const DrugTest = () => {
 
             {/* Create/Edit Request Modal */}
             {showRequestModal && (
-                <div 
+                <div
                     className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                     onClick={(e) => {
                         if (e.target === e.currentTarget) {
@@ -719,7 +719,7 @@ const DrugTest = () => {
                         }
                     }}
                 >
-                    <div 
+                    <div
                         className="bg-card rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -970,7 +970,7 @@ const DrugTest = () => {
 
             {/* Details Modal */}
             {showDetailsModal && selectedRequest && (
-                <div 
+                <div
                     className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                     onClick={(e) => {
                         if (e.target === e.currentTarget) {
@@ -978,7 +978,7 @@ const DrugTest = () => {
                         }
                     }}
                 >
-                    <div 
+                    <div
                         className="bg-card rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >

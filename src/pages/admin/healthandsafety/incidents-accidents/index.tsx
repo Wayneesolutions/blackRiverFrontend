@@ -1122,7 +1122,7 @@ const IncidentManagement: React.FC = () => {
           <h2 className="text-2xl font-bold mb-4 text-primary">
             Incidents with Injuries
           </h2>
-          
+
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600" />
@@ -1164,13 +1164,12 @@ const IncidentManagement: React.FC = () => {
                   {injuryIncidents.map((incident) => {
                     const statusColors = getStatusColor(incident.status);
                     const isSelected = selectedInjuryIncidentId === incident._id;
-                    
+
                     return (
                       <tr
                         key={incident._id}
-                        className={`hover:bg-red-50/30 transition-colors cursor-pointer ${
-                          isSelected ? 'bg-card border-l-4 border-red-500' : ''
-                        }`}
+                        className={`hover:bg-red-50/30 transition-colors cursor-pointer ${isSelected ? 'bg-card border-l-4 border-red-500' : ''
+                          }`}
                         onClick={() => {
                           setSelectedInjuryIncidentId(incident._id);
                           // Populate form with existing data
@@ -1181,10 +1180,10 @@ const IncidentManagement: React.FC = () => {
                             setProgressNotes(
                               incident.injuryRecord.progressNotes && incident.injuryRecord.progressNotes.length > 0
                                 ? incident.injuryRecord.progressNotes.map((note: any) => ({
-                                    date: note.date ? new Date(note.date).toISOString().split('T')[0] : '',
-                                    note: note.note || '',
-                                    enteredBy: note.enteredBy || ''
-                                  }))
+                                  date: note.date ? new Date(note.date).toISOString().split('T')[0] : '',
+                                  note: note.note || '',
+                                  enteredBy: note.enteredBy || ''
+                                }))
                                 : [{ date: '', note: '', enteredBy: '' }]
                             );
                           }
@@ -1239,10 +1238,10 @@ const IncidentManagement: React.FC = () => {
                                 setProgressNotes(
                                   incident.injuryRecord.progressNotes && incident.injuryRecord.progressNotes.length > 0
                                     ? incident.injuryRecord.progressNotes.map((note: any) => ({
-                                        date: note.date ? new Date(note.date).toISOString().split('T')[0] : '',
-                                        note: note.note || '',
-                                        enteredBy: note.enteredBy || ''
-                                      }))
+                                      date: note.date ? new Date(note.date).toISOString().split('T')[0] : '',
+                                      note: note.note || '',
+                                      enteredBy: note.enteredBy || ''
+                                    }))
                                     : [{ date: '', note: '', enteredBy: '' }]
                                 );
                               }
@@ -1730,7 +1729,7 @@ const IncidentManagement: React.FC = () => {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {incident.photoEvidence.map((photo, idx) => (
                     <div key={idx} className="border-2 border-theme rounded-lg overflow-hidden">
-                      <div className="bg-gray-100 h-32 flex items-center justify-center">
+                      <div className="bg-card h-32 flex items-center justify-center">
                         <FaImage className="text-secondary" size={32} />
                       </div>
                       <div className="p-2">
@@ -1757,7 +1756,7 @@ const IncidentManagement: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {incident.videoEvidence.map((video, idx) => (
                     <div key={idx} className="border-2 border-theme rounded-lg overflow-hidden">
-                      <div className="bg-gray-100 h-32 flex items-center justify-center">
+                      <div className="bg-card h-32 flex items-center justify-center">
                         <FaVideo className="text-secondary" size={32} />
                       </div>
                       <div className="p-2">
@@ -1941,7 +1940,7 @@ const IncidentManagement: React.FC = () => {
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-primary rounded-xl font-semibold transition-colors"
+                  className="px-5 py-2.5 bg-card hover:bg-gray-200 text-primary rounded-xl font-semibold transition-colors"
                 >
                   Cancel
                 </button>

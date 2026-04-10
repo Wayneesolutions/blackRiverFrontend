@@ -244,8 +244,8 @@ const ELDDocuments = () => {
             <div className="mb-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
-                            <FileText className="text-[#00D1FF]" size={32} />
+                        <h1 className="text-3xl font-bold text-[var(--accent-navyblue)] flex items-center gap-3">
+                            <FileText className="text-[var(--accent-navyblue)]" size={32} />
                             ELD Documents
                         </h1>
                         <p className="text-sm text-secondary mt-2">
@@ -255,7 +255,7 @@ const ELDDocuments = () => {
                     <button
                         onClick={() => setShowUploadModal(true)}
                         style={{
-                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                            background: 'linear-gradient(90deg, var(--accent-navyblue) 0%, var(--accent-navyblue) 40%, rgba(0,209,255,0.15) 100%)',
                         }}
                         className="flex items-center gap-2 px-6 py-3 !text-white font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-md"
                     >
@@ -292,8 +292,8 @@ const ELDDocuments = () => {
             {/* Documents List */}
             <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
                 <div className="px-6 py-4 border-b border-theme bg-card">
-                    <h3 className="font-bold text-primary flex items-center gap-2">
-                        <FileText size={20} className="text-[#00D1FF]" />
+                    <h3 className="font-bold text-[var(--accent-navyblue)] flex items-center gap-2">
+                        <FileText size={20} className="text-[var(--accent-navyblue)]" />
                         Uploaded Documents ({filteredDocuments.length})
                         <span className="ml-2 text-xs font-normal text-secondary">
                             (Only active documents are visible to drivers)
@@ -319,10 +319,10 @@ const ELDDocuments = () => {
                         <table className="w-full text-sm text-left border-collapse">
                             <thead className="bg-card border-b border-theme">
                                 <tr>
-                                    <th className="px-6 py-4 text-secondary uppercase text-xs font-semibold border-r border-theme">Document</th>
-                                    <th className="px-6 py-4 text-secondary uppercase text-xs font-semibold border-r border-theme">Title</th>
-                                    <th className="px-6 py-4 text-secondary uppercase text-xs font-semibold border-r border-theme">Status</th>
-                                    <th className="px-6 py-4 text-secondary uppercase text-xs font-semibold text-center">Actions</th>
+                                    <th className="px-6 py-4 text-[var(--accent-navyblue)] uppercase text-xs font-semibold border-r border-theme">Document</th>
+                                    <th className="px-6 py-4 text-[var(--accent-navyblue)] uppercase text-xs font-semibold border-r border-theme">Title</th>
+                                    <th className="px-6 py-4 text-[var(--accent-navyblue)] uppercase text-xs font-semibold border-r border-theme">Status</th>
+                                    <th className="px-6 py-4 text-[var(--accent-navyblue)] uppercase text-xs font-semibold text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-theme">
@@ -351,11 +351,10 @@ const ELDDocuments = () => {
                                         <td className="px-6 py-4 border-r border-theme">
                                             <button
                                                 onClick={() => handleToggleActive(doc)}
-                                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
-                                                    doc.isActive
-                                                        ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-200'
-                                                        : 'bg-gray-100 text-secondary hover:bg-gray-200 border border-theme'
-                                                }`}
+                                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${doc.isActive
+                                                    ? 'bg-[var(--accent-teal)]text-green-700 hover:bg-green-200 border border-green-200'
+                                                    : 'bg-card text-secondary hover:bg-gray-200 border border-theme'
+                                                    }`}
                                             >
                                                 {doc.isActive ? 'Active' : 'Inactive'}
                                             </button>
@@ -570,9 +569,8 @@ const ELDDocuments = () => {
             {/* Notification Toast */}
             {notification.show && (
                 <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
-                    <div className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${
-                        notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-                    } text-white`}>
+                    <div className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+                        } text-white`}>
                         {notification.type === 'success' ? (
                             <CheckCircle size={20} />
                         ) : (

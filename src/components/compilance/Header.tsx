@@ -277,7 +277,7 @@ bg-gradient-to-r from-[#0B1220] via-[#121A2B] to-[#121A2B] border-b border-theme
                                             <div className={`flex-shrink-0 ${index === selectedIndex ? 'scale-110' : ''} transition-transform`}>
                                                 <div className={`p-2 rounded-lg ${action.type === 'create' ? 'bg-green-100 text-green-700' :
                                                     action.type === 'navigation' ? 'bg-blue-100 text-blue-700' :
-                                                        'bg-gray-100 text-primary'
+                                                        'bg-card text-primary'
                                                     }`}>
                                                     {action.icon}
                                                 </div>
@@ -374,7 +374,7 @@ bg-gradient-to-r from-[#0B1220] via-[#121A2B] to-[#121A2B] border-b border-theme
                         <div className="p-6 border-t border-theme flex justify-end gap-3">
                             <button
                                 onClick={cancelLogout}
-                                className="px-6 py-2.5 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                                className="px-6 py-2.5 text-primary bg-card hover:bg-gray-200 rounded-lg transition-colors font-medium"
                             >
                                 Cancel
                             </button>

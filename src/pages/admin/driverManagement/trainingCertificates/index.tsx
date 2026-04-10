@@ -127,7 +127,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
             const response = await getTrainingCertificates(params);
             if (response?.success && Array.isArray(response.data)) {
                 setCertificates(response.data);
-                
+
                 // If no certificates and message indicates no company, show info notification
                 if (response.data.length === 0 && response.message && response.message.includes('company')) {
                     // Don't show error, just set empty array - the empty state will show the message
@@ -225,7 +225,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!formData.driverId || !formData.certificateName || !formData.certificateType || !formData.issuedDate || !formData.issuingAuthority) {
             showNotification('error', 'Please fill in all required fields');
             return;
@@ -251,7 +251,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
             if (selectedFile) {
                 formDataToSend.append('file', selectedFile);
             }
-            
+
             let response;
             if (editingCertificate?._id) {
                 response = await updateTrainingCertificate(editingCertificate._id, formDataToSend);
@@ -309,19 +309,19 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
             case 'expiring_soon':
                 return 'bg-yellow-100 text-yellow-700';
             default:
-                return 'bg-gray-100 text-primary';
+                return 'bg-card text-primary';
         }
     };
 
     const filteredCertificates = certificates.filter(cert => {
         if (searchQuery) {
             const searchLower = searchQuery.toLowerCase();
-            const matchesSearch = 
+            const matchesSearch =
                 cert.certificateName.toLowerCase().includes(searchLower) ||
                 cert.driverName?.toLowerCase().includes(searchLower) ||
                 cert.certificateNumber?.toLowerCase().includes(searchLower) ||
                 cert.issuingAuthority.toLowerCase().includes(searchLower);
-            
+
             if (!matchesSearch) return false;
         }
         return true;
@@ -340,7 +340,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
     };
 
     return (
-        <div>
+        <div className=''>
             {/* Notifications */}
             <div className="fixed top-4 right-4 z-50 space-y-2">
                 {notifications.map(notification => (
@@ -355,7 +355,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
             {/* Header - Hide when used as child component */}
             {!hideHeader && (
                 <div className="mb-6">
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center ">
                         <div>
                             <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
                                 <FileText className="text-[#00D1FF]" size={32} />
@@ -366,7 +366,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                         <button
                             onClick={handleAddClick}
                             style={{
-                                background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                                background: 'linear-gradient(90deg, var(--accent-navyblue) 0%, var(--accent-navyblue) 40%, rgba(0,209,255,0.15) 100%)',
                             }}
                             className="flex items-center gap-2 px-6 py-3 !text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
                         >
@@ -379,11 +379,11 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
 
             {/* Add Certificate Button - Show when header is hidden */}
             {hideHeader && (
-                <div className="mb-6 flex justify-end">
+                <div className="mb-6 flex justify-end ">
                     <button
                         onClick={handleAddClick}
                         style={{
-                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                            background: 'var(--accent-navyblue)',
                         }}
                         className="flex items-center gap-2 px-6 py-3 !text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
                     >
@@ -462,7 +462,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                     </div>
                     <button
                         onClick={fetchCertificates}
-                        className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                        className="px-4 py-2 text-sm bg-card hover:bg-gray-200 rounded-lg transition-colors"
                     >
                         Refresh
                     </button>
@@ -481,7 +481,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                         <FileText className="mx-auto text-secondary mb-4" size={48} />
                         <p className="text-secondary text-lg mb-2">No certificates found</p>
                         <p className="text-secondary text-sm mb-4">
-                            {certificates.length === 0 
+                            {certificates.length === 0
                                 ? "No training certificates are available. This may be because no company is assigned to your account."
                                 : "No certificates match your current filters."}
                         </p>
@@ -497,18 +497,18 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-card border-b border-theme">
-                                <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Driver</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Certificate</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Type</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Issued Date</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Expiry Date</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">Actions</th>
+                            <thead className="bg-card border-b border-theme ">
+                                <tr className='text-[var(--accent-navyblue)]'>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold  uppercase tracking-wider">Driver</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold  uppercase tracking-wider">Certificate</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold  uppercase tracking-wider">Type</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold  uppercase tracking-wider">Issued Date</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold  uppercase tracking-wider">Expiry Date</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold  uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold  uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-theme">
+                            <tbody className="bg-card divide-y divide-theme divide-white/5">
                                 {filteredCertificates.map((cert) => (
                                     <tr key={cert._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -582,7 +582,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
 
             {/* Add/Edit Modal */}
             {showAddModal && (
-                <div 
+                <div
                     className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                     onClick={(e) => {
                         if (e.target === e.currentTarget) {
@@ -590,7 +590,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                         }
                     }}
                 >
-                    <div 
+                    <div
                         className="bg-card rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -796,7 +796,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
 
             {/* Details Modal */}
             {showDetailsModal && selectedCertificate && (
-                <div 
+                <div
                     className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                     onClick={(e) => {
                         if (e.target === e.currentTarget) {
@@ -804,7 +804,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                         }
                     }}
                 >
-                    <div 
+                    <div
                         className="bg-card rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -851,7 +851,7 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                 <div>
                                     <label className="block text-sm font-medium text-secondary mb-1">Expiry Date</label>
                                     <p className="text-base text-primary">
-                                        {selectedCertificate.expiryDate 
+                                        {selectedCertificate.expiryDate
                                             ? new Date(selectedCertificate.expiryDate).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'long',

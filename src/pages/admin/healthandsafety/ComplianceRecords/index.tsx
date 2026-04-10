@@ -307,7 +307,7 @@ const EnhancedComplianceRecords: React.FC = () => {
       'at-risk': 'bg-yellow-100 text-yellow-800',
       'pending': 'bg-blue-100 text-blue-800'
     };
-    return levelMap[level] || 'bg-gray-100 text-primary';
+    return levelMap[level] || 'bg-card text-primary';
   };
 
   const getTypeIcon = (type: string) => {
@@ -393,7 +393,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                 onClick={() => setActiveView(view.id as any)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition ${activeView === view.id
                   ? '!text-white shadow-lg'
-                  : 'bg-gray-100 text-primary hover:bg-gray-200'
+                  : 'bg-card text-primary hover:bg-gray-200'
                   }`}
                 style={activeView === view.id ? { background: CUSTOM_COLORS.gradient } : {}}
               >
@@ -573,7 +573,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                   {activeView === 'all' && 'Comprehensive view of all compliance modules from Compliance Dashboard'}
                 </p>
               </div>
-              <div className="text-xs text-secondary bg-gray-100 px-3 py-2 rounded-lg">
+              <div className="text-xs text-secondary bg-card px-3 py-2 rounded-lg">
                 <FaFileContract className="inline mr-1" />
                 Total: {filteredRecords.length} records
               </div>
@@ -611,8 +611,8 @@ const EnhancedComplianceRecords: React.FC = () => {
                     const complianceColor = getComplianceColor(record.complianceLevel);
 
                     return (
-                      <tr 
-                        key={record._id} 
+                      <tr
+                        key={record._id}
                         onClick={() => {
                           setSelectedRecord(record);
                           setShowSidebar(true);

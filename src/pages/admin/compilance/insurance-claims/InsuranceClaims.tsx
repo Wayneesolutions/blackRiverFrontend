@@ -156,11 +156,11 @@ const InsuranceClaims: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
-  
+
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -172,14 +172,14 @@ const InsuranceClaims: React.FC = () => {
   const [pageSize] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [total, setTotal] = useState<number>(0);
-  
+
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [showViewModal, setShowViewModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [selectedClaim, setSelectedClaim] = useState<InsuranceClaim | null>(null);
   const [claimToDelete, setClaimToDelete] = useState<InsuranceClaim | null>(null);
-  
+
   const [notifications, setNotifications] = useState<Array<{ id: number; type: 'success' | 'error' | 'info'; message: string }>>([]);
   const [notificationId, setNotificationId] = useState(0);
 
@@ -477,9 +477,9 @@ const InsuranceClaims: React.FC = () => {
       case 'submitted':
         return 'bg-blue-100 text-blue-800';
       case 'closed':
-        return 'bg-gray-100 text-primary';
+        return 'bg-card text-primary';
       default:
-        return 'bg-gray-100 text-primary';
+        return 'bg-card text-primary';
     }
   };
 
@@ -494,7 +494,7 @@ const InsuranceClaims: React.FC = () => {
       case 'liability':
         return 'bg-blue-100 text-blue-800';
       default:
-        return 'bg-gray-100 text-primary';
+        return 'bg-card text-primary';
     }
   };
 
@@ -769,7 +769,7 @@ const InsuranceClaims: React.FC = () => {
                         <td className="px-6 py-4">
                           <div className="flex flex-col h-[3.5rem] justify-center">
                             <div className="text-sm text-primary leading-5">
-                              {typeof claim.vehicle === 'object' 
+                              {typeof claim.vehicle === 'object'
                                 ? claim.vehicle?.internalId || claim.vehicle?.plateNumber || 'N/A'
                                 : 'N/A'}
                             </div>
@@ -1209,7 +1209,7 @@ const InsuranceClaims: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-secondary mb-1">Vehicle</label>
                   <p className="text-primary">
-                    {typeof selectedClaim.vehicle === 'object' 
+                    {typeof selectedClaim.vehicle === 'object'
                       ? `${selectedClaim.vehicle?.internalId || selectedClaim.vehicle?.plateNumber || 'N/A'} - ${selectedClaim.vehicle?.make || ''} ${selectedClaim.vehicle?.model || ''}`
                       : 'N/A'}
                   </p>

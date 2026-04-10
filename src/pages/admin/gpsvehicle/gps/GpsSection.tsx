@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-    Truck, Activity, Clock, Wifi, AlertTriangle, 
+    Truck, Activity, Clock, Wifi, AlertTriangle,
     Wrench, Navigation, Zap
 } from 'lucide-react';
 import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
@@ -25,11 +25,11 @@ L.Icon.Default.mergeOptions({
 // Component to handle map center updates
 const MapController: React.FC<{ center: [number, number]; zoom: number }> = ({ center, zoom }) => {
     const map = useMap();
-    
+
     useEffect(() => {
         map.setView(center, zoom);
     }, [map, center, zoom]);
-    
+
     return null;
 };
 
@@ -41,7 +41,7 @@ const createVehicleIcon = (color: string) => {
             <circle cx="16" cy="16" r="8" fill="${color}"/>
         </svg>
     `;
-    
+
     return L.divIcon({
         html: svg,
         className: 'custom-vehicle-icon',
@@ -51,347 +51,346 @@ const createVehicleIcon = (color: string) => {
 };
 
 interface VehicleLocation {
-  _id: string;
-  unitNo: string;
-  internalId: string;
-  licensePlate: string;
-  makeModel: string;
-  status: string;
-  operationStatus: string;
-  location: {
-    latitude: number;
-    longitude: number;
-    address: string;
-    updatedAt: Date;
-  };
-  yard?: {
-    _id?: string;
-    yardName?: string;
-    coordinates?: {
-      latitude: number | null;
-      longitude: number | null;
+    _id: string;
+    unitNo: string;
+    internalId: string;
+    licensePlate: string;
+    makeModel: string;
+    status: string;
+    operationStatus: string;
+    location: {
+        latitude: number;
+        longitude: number;
+        address: string;
+        updatedAt: Date;
     };
-  };
-  speed: number;
-  engineOn: boolean;
-  engineHours: number;
-  driver?: string;
-  orderNumber?: string;
-  tripNumber?: string;
+    yard?: {
+        _id?: string;
+        yardName?: string;
+        coordinates?: {
+            latitude: number | null;
+            longitude: number | null;
+        };
+    };
+    speed: number;
+    engineOn: boolean;
+    engineHours: number;
+    driver?: string;
+    orderNumber?: string;
+    tripNumber?: string;
 }
 
 const GpsSection = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'gps' | 'maintenance'>('overview');
- 
-  const [, setLoading] = useState(false);
-  const [vehicles, setVehicles] = useState<any[]>([]);
-  const [summary, setSummary] = useState({
-    totalVehicles: 0,
-    activeVehicles: 0,
-    totalDrivers: 0,
-    compliantDrivers: 0,
-    activeViolations: 0,
-    uncertifiedLogs: 0
-  });
-  
-  // GPS Tab State
-  const [vehicleLocations, setVehicleLocations] = useState<VehicleLocation[]>([]);
-  const [yards, setYards] = useState<Yard[]>([]);
-  const [mapCenter, setMapCenter] = useState<[number, number]>([43.6532, -79.3832]); // Default to Toronto [lat, lng]
-  const [mapZoom, setMapZoom] = useState<number>(6);
-  const socketRef = useRef<any>(null);
+    const [activeTab, setActiveTab] = useState<'overview' | 'gps' | 'maintenance'>('overview');
 
-  // Helper function to get vehicle location (Samsara or yard fallback)
-  const getVehicleLocation = (vehicle: VehicleLocation): { lat: number; lng: number; address: string; isYardLocation: boolean } | null => {
-    // First, try to use Samsara location if valid
-    const samsaraLat = vehicle.location?.latitude;
-    const samsaraLng = vehicle.location?.longitude;
-    
-    if (samsaraLat && samsaraLng && !isNaN(samsaraLat) && !isNaN(samsaraLng) && samsaraLat !== 0 && samsaraLng !== 0) {
-      return {
-        lat: samsaraLat,
-        lng: samsaraLng,
-        address: vehicle.location.address || 'Location from Samsara',
-        isYardLocation: false
-      };
-    }
-
-    // Fallback to yard location if available
-    if (vehicle.yard?.coordinates?.latitude && vehicle.yard?.coordinates?.longitude) {
-      const yardLat = vehicle.yard.coordinates.latitude;
-      const yardLng = vehicle.yard.coordinates.longitude;
-      
-      if (!isNaN(yardLat) && !isNaN(yardLng) && yardLat !== 0 && yardLng !== 0) {
-        return {
-          lat: yardLat,
-          lng: yardLng,
-          address: `${vehicle.yard.yardName || 'Yard'} - Yard Location`,
-          isYardLocation: true
-        };
-      }
-    }
-
-    return null;
-  };
-
-  // Fetch yards data
-  const fetchYards = async () => {
-    try {
-      const response = await getAllYards();
-      if (response?.success && response?.data) {
-        setYards(response.data || []);
-      }
-    } catch (error) {
-      console.error('Error fetching yards:', error);
-    }
-  };
-
-  // Fetch HOS/ELD data
-  const fetchHOSData = async () => {
-    setLoading(true);
-    try {
-      const response = await getHOSEldData();
-      if (response?.success && response?.data) {
-        const vehicleList = response.data.vehicleStatusList || [];
-        const vehiclesData = response.data.vehicles || [];
-        
-        // If no vehicles returned, clear state (likely no company assigned)
-        if (vehicleList.length === 0 && vehiclesData.length === 0) {
-          console.log('⚠️ No vehicles returned from API - likely no company assigned');
-          setVehicles([]);
-          setVehicleLocations([]);
-          setSummary({
-            totalVehicles: 0,
-            activeVehicles: 0,
-            totalDrivers: 0,
-            compliantDrivers: 0,
-            activeViolations: 0,
-            uncertifiedLogs: 0
-          });
-          setLoading(false);
-          return;
-        }
-        
-        // Enrich vehicles with yard information from backend response
-        const enrichedVehicles = vehicleList.map((vehicle: any) => {
-          // Find the full vehicle data
-          const fullVehicle = vehiclesData.find((v: any) => 
-            v._id === vehicle._id || 
-            v.unitNumber === vehicle.unitNo || 
-            v.internalId === vehicle.internalId ||
-            v.plateNumber === vehicle.licensePlate
-          );
-          
-          // Use yard from backend response if available, otherwise try to find from yards list
-          let yardData = null;
-          if (fullVehicle?.yard) {
-            // Backend already provides yard data
-            if (fullVehicle.yard.coordinates) {
-              yardData = {
-                _id: fullVehicle.yard._id,
-                yardName: fullVehicle.yard.yardName,
-                coordinates: fullVehicle.yard.coordinates
-              };
-            } else {
-              // Fallback: find from yards list
-              const yardId = typeof fullVehicle.yard === 'string' ? fullVehicle.yard : (fullVehicle.yard._id || fullVehicle.yard);
-              const foundYard = yards.find(y => y._id === yardId || y._id?.toString() === yardId?.toString());
-              if (foundYard) {
-                yardData = {
-                  _id: foundYard._id,
-                  yardName: foundYard.yardName,
-                  coordinates: foundYard.coordinates
-                };
-              }
-            }
-          }
-          
-          return {
-            ...vehicle,
-            yard: yardData || undefined
-          };
-        });
-        
-        setVehicles(enrichedVehicles);
-        setSummary(response.data.summary || {
-          totalVehicles: 0,
-          activeVehicles: 0,
-          totalDrivers: 0,
-          compliantDrivers: 0,
-          activeViolations: 0,
-          uncertifiedLogs: 0
-        });
-      } else {
-        // API returned unsuccessful response - clear data
-        console.log('⚠️ API returned unsuccessful response - clearing vehicle data');
-        setVehicles([]);
-        setVehicleLocations([]);
-        setSummary({
-          totalVehicles: 0,
-          activeVehicles: 0,
-          totalDrivers: 0,
-          compliantDrivers: 0,
-          activeViolations: 0,
-          uncertifiedLogs: 0
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching HOS/ELD data:', error);
-      // On error, clear data to prevent showing stale data
-      setVehicles([]);
-      setVehicleLocations([]);
-      setSummary({
+    const [, setLoading] = useState(false);
+    const [vehicles, setVehicles] = useState<any[]>([]);
+    const [summary, setSummary] = useState({
         totalVehicles: 0,
         activeVehicles: 0,
         totalDrivers: 0,
         compliantDrivers: 0,
         activeViolations: 0,
         uncertifiedLogs: 0
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    });
 
-  // Initialize Socket.IO for GPS tracking
-  useEffect(() => {
-    if (activeTab === 'gps') {
-      const socket = getSocket();
-      socketRef.current = socket;
+    // GPS Tab State
+    const [vehicleLocations, setVehicleLocations] = useState<VehicleLocation[]>([]);
+    const [yards, setYards] = useState<Yard[]>([]);
+    const [mapCenter, setMapCenter] = useState<[number, number]>([43.6532, -79.3832]); // Default to Toronto [lat, lng]
+    const [mapZoom, setMapZoom] = useState<number>(6);
+    const socketRef = useRef<any>(null);
 
-      // Join compliance GPS room
-      socket.emit('joinComplianceGPS');
+    // Helper function to get vehicle location (Samsara or yard fallback)
+    const getVehicleLocation = (vehicle: VehicleLocation): { lat: number; lng: number; address: string; isYardLocation: boolean } | null => {
+        // First, try to use Samsara location if valid
+        const samsaraLat = vehicle.location?.latitude;
+        const samsaraLng = vehicle.location?.longitude;
 
-      // Listen for vehicle location updates
-      socket.on('vehicleLocationsUpdate', (locations: VehicleLocation[]) => {
-        console.log('📍 Received vehicle locations update:', locations.length, 'vehicles');
-        
-        // CRITICAL: Only show vehicles that match the vehicles from API (company-filtered)
-        // Create a set of vehicle IDs from the API response to filter socket updates
-        const apiVehicleIds = new Set(vehicles.map(v => 
-          v._id || v.unitNo || v.internalId || v.licensePlate
-        ));
-        
-        // Filter socket locations to only include vehicles from API response
-        const filteredLocations = locations.filter(location => {
-          const vehicleId = location._id || location.unitNo || location.internalId || location.licensePlate;
-          return apiVehicleIds.has(vehicleId);
-        });
-        
-        console.log(`📍 Filtered ${filteredLocations.length} vehicles from ${locations.length} socket updates (company-filtered)`);
-        
-        // Enrich locations with yard data from vehicles state (if not already included from socket)
-        const enrichedLocations = filteredLocations.map((location) => {
-          // Use yard from socket if available, otherwise try to find from vehicles state
-          if (!location.yard) {
-            const vehicle = vehicles.find(v => 
-              v._id === location._id || 
-              v.unitNo === location.unitNo || 
-              v.internalId === location.internalId ||
-              v.licensePlate === location.licensePlate
-            );
-            
-            if (vehicle?.yard) {
-              location.yard = vehicle.yard;
-            }
-          }
-          
-          // Debug logging for vehicles with yard location
-          const vehicleLocation = getVehicleLocation(location);
-          if (vehicleLocation?.isYardLocation) {
-            console.log(`🏭 Vehicle ${location.unitNo || location.licensePlate} using yard location:`, vehicleLocation);
-          }
-          
-          return location;
-        });
-        
-        setVehicleLocations(enrichedLocations);
-        
-        // Update map center to first vehicle if available (using yard as fallback)
-        if (enrichedLocations.length > 0) {
-          const firstVehicle = enrichedLocations[0];
-          const vehicleLocation = getVehicleLocation(firstVehicle);
-          
-          if (vehicleLocation) {
-            setMapCenter([vehicleLocation.lat, vehicleLocation.lng]);
-            setMapZoom(10);
-          }
+        if (samsaraLat && samsaraLng && !isNaN(samsaraLat) && !isNaN(samsaraLng) && samsaraLat !== 0 && samsaraLng !== 0) {
+            return {
+                lat: samsaraLat,
+                lng: samsaraLng,
+                address: vehicle.location.address || 'Location from Samsara',
+                isYardLocation: false
+            };
         }
-      });
 
-      return () => {
-        socket.emit('leaveComplianceGPS');
-        socket.off('vehicleLocationsUpdate');
-      };
-    }
-  }, [activeTab, vehicles]);
+        // Fallback to yard location if available
+        if (vehicle.yard?.coordinates?.latitude && vehicle.yard?.coordinates?.longitude) {
+            const yardLat = vehicle.yard.coordinates.latitude;
+            const yardLng = vehicle.yard.coordinates.longitude;
 
-  useEffect(() => {
-    fetchYards();
-  }, []);
+            if (!isNaN(yardLat) && !isNaN(yardLng) && yardLat !== 0 && yardLng !== 0) {
+                return {
+                    lat: yardLat,
+                    lng: yardLng,
+                    address: `${vehicle.yard.yardName || 'Yard'} - Yard Location`,
+                    isYardLocation: true
+                };
+            }
+        }
 
-  useEffect(() => {
-    // Always fetch HOS data, even if no yards (yards might be empty if no company)
-    fetchHOSData();
-  }, [yards]);
+        return null;
+    };
+
+    // Fetch yards data
+    const fetchYards = async () => {
+        try {
+            const response = await getAllYards();
+            if (response?.success && response?.data) {
+                setYards(response.data || []);
+            }
+        } catch (error) {
+            console.error('Error fetching yards:', error);
+        }
+    };
+
+    // Fetch HOS/ELD data
+    const fetchHOSData = async () => {
+        setLoading(true);
+        try {
+            const response = await getHOSEldData();
+            if (response?.success && response?.data) {
+                const vehicleList = response.data.vehicleStatusList || [];
+                const vehiclesData = response.data.vehicles || [];
+
+                // If no vehicles returned, clear state (likely no company assigned)
+                if (vehicleList.length === 0 && vehiclesData.length === 0) {
+                    console.log('⚠️ No vehicles returned from API - likely no company assigned');
+                    setVehicles([]);
+                    setVehicleLocations([]);
+                    setSummary({
+                        totalVehicles: 0,
+                        activeVehicles: 0,
+                        totalDrivers: 0,
+                        compliantDrivers: 0,
+                        activeViolations: 0,
+                        uncertifiedLogs: 0
+                    });
+                    setLoading(false);
+                    return;
+                }
+
+                // Enrich vehicles with yard information from backend response
+                const enrichedVehicles = vehicleList.map((vehicle: any) => {
+                    // Find the full vehicle data
+                    const fullVehicle = vehiclesData.find((v: any) =>
+                        v._id === vehicle._id ||
+                        v.unitNumber === vehicle.unitNo ||
+                        v.internalId === vehicle.internalId ||
+                        v.plateNumber === vehicle.licensePlate
+                    );
+
+                    // Use yard from backend response if available, otherwise try to find from yards list
+                    let yardData = null;
+                    if (fullVehicle?.yard) {
+                        // Backend already provides yard data
+                        if (fullVehicle.yard.coordinates) {
+                            yardData = {
+                                _id: fullVehicle.yard._id,
+                                yardName: fullVehicle.yard.yardName,
+                                coordinates: fullVehicle.yard.coordinates
+                            };
+                        } else {
+                            // Fallback: find from yards list
+                            const yardId = typeof fullVehicle.yard === 'string' ? fullVehicle.yard : (fullVehicle.yard._id || fullVehicle.yard);
+                            const foundYard = yards.find(y => y._id === yardId || y._id?.toString() === yardId?.toString());
+                            if (foundYard) {
+                                yardData = {
+                                    _id: foundYard._id,
+                                    yardName: foundYard.yardName,
+                                    coordinates: foundYard.coordinates
+                                };
+                            }
+                        }
+                    }
+
+                    return {
+                        ...vehicle,
+                        yard: yardData || undefined
+                    };
+                });
+
+                setVehicles(enrichedVehicles);
+                setSummary(response.data.summary || {
+                    totalVehicles: 0,
+                    activeVehicles: 0,
+                    totalDrivers: 0,
+                    compliantDrivers: 0,
+                    activeViolations: 0,
+                    uncertifiedLogs: 0
+                });
+            } else {
+                // API returned unsuccessful response - clear data
+                console.log('⚠️ API returned unsuccessful response - clearing vehicle data');
+                setVehicles([]);
+                setVehicleLocations([]);
+                setSummary({
+                    totalVehicles: 0,
+                    activeVehicles: 0,
+                    totalDrivers: 0,
+                    compliantDrivers: 0,
+                    activeViolations: 0,
+                    uncertifiedLogs: 0
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching HOS/ELD data:', error);
+            // On error, clear data to prevent showing stale data
+            setVehicles([]);
+            setVehicleLocations([]);
+            setSummary({
+                totalVehicles: 0,
+                activeVehicles: 0,
+                totalDrivers: 0,
+                compliantDrivers: 0,
+                activeViolations: 0,
+                uncertifiedLogs: 0
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Initialize Socket.IO for GPS tracking
+    useEffect(() => {
+        if (activeTab === 'gps') {
+            const socket = getSocket();
+            socketRef.current = socket;
+
+            // Join compliance GPS room
+            socket.emit('joinComplianceGPS');
+
+            // Listen for vehicle location updates
+            socket.on('vehicleLocationsUpdate', (locations: VehicleLocation[]) => {
+                console.log('📍 Received vehicle locations update:', locations.length, 'vehicles');
+
+                // CRITICAL: Only show vehicles that match the vehicles from API (company-filtered)
+                // Create a set of vehicle IDs from the API response to filter socket updates
+                const apiVehicleIds = new Set(vehicles.map(v =>
+                    v._id || v.unitNo || v.internalId || v.licensePlate
+                ));
+
+                // Filter socket locations to only include vehicles from API response
+                const filteredLocations = locations.filter(location => {
+                    const vehicleId = location._id || location.unitNo || location.internalId || location.licensePlate;
+                    return apiVehicleIds.has(vehicleId);
+                });
+
+                console.log(`📍 Filtered ${filteredLocations.length} vehicles from ${locations.length} socket updates (company-filtered)`);
+
+                // Enrich locations with yard data from vehicles state (if not already included from socket)
+                const enrichedLocations = filteredLocations.map((location) => {
+                    // Use yard from socket if available, otherwise try to find from vehicles state
+                    if (!location.yard) {
+                        const vehicle = vehicles.find(v =>
+                            v._id === location._id ||
+                            v.unitNo === location.unitNo ||
+                            v.internalId === location.internalId ||
+                            v.licensePlate === location.licensePlate
+                        );
+
+                        if (vehicle?.yard) {
+                            location.yard = vehicle.yard;
+                        }
+                    }
+
+                    // Debug logging for vehicles with yard location
+                    const vehicleLocation = getVehicleLocation(location);
+                    if (vehicleLocation?.isYardLocation) {
+                        console.log(`🏭 Vehicle ${location.unitNo || location.licensePlate} using yard location:`, vehicleLocation);
+                    }
+
+                    return location;
+                });
+
+                setVehicleLocations(enrichedLocations);
+
+                // Update map center to first vehicle if available (using yard as fallback)
+                if (enrichedLocations.length > 0) {
+                    const firstVehicle = enrichedLocations[0];
+                    const vehicleLocation = getVehicleLocation(firstVehicle);
+
+                    if (vehicleLocation) {
+                        setMapCenter([vehicleLocation.lat, vehicleLocation.lng]);
+                        setMapZoom(10);
+                    }
+                }
+            });
+
+            return () => {
+                socket.emit('leaveComplianceGPS');
+                socket.off('vehicleLocationsUpdate');
+            };
+        }
+    }, [activeTab, vehicles]);
+
+    useEffect(() => {
+        fetchYards();
+    }, []);
+
+    useEffect(() => {
+        // Always fetch HOS data, even if no yards (yards might be empty if no company)
+        fetchHOSData();
+    }, [yards]);
 
 
 
-  // Calculate engine hours data for chart
-  const engineHoursData = vehicles
-    .filter((v: any) => v.engineHours && v.engineHours > 0) // Only show vehicles with engine hours data
-    .map((v: any) => ({
-      name: v.id || v.unitNo || v.unitNumber || 'Unknown',
-      hours: v.engineHours || 0
-    }))
-    .sort((a, b) => b.hours - a.hours) // Sort by hours descending
-    .slice(0, 10); // Limit to top 10 for readability
+    // Calculate engine hours data for chart
+    const engineHoursData = vehicles
+        .filter((v: any) => v.engineHours && v.engineHours > 0) // Only show vehicles with engine hours data
+        .map((v: any) => ({
+            name: v.id || v.unitNo || v.unitNumber || 'Unknown',
+            hours: v.engineHours || 0
+        }))
+        .sort((a, b) => b.hours - a.hours) // Sort by hours descending
+        .slice(0, 10); // Limit to top 10 for readability
 
-  // Calculate status distribution for pie chart
-  const statusDistribution = {
-    moving: vehicles.filter((v: any) => v.status === 'moving' || v.status === 'active').length,
-    idle: vehicles.filter((v: any) => v.status === 'idle' || v.status === 'stopped').length,
-    offline: vehicles.filter((v: any) => v.status === 'offline' || !v.status).length
-  };
+    // Calculate status distribution for pie chart
+    const statusDistribution = {
+        moving: vehicles.filter((v: any) => v.status === 'moving' || v.status === 'active').length,
+        idle: vehicles.filter((v: any) => v.status === 'idle' || v.status === 'stopped').length,
+        offline: vehicles.filter((v: any) => v.status === 'offline' || !v.status).length
+    };
 
-  const STATUS_DATA = [
-    { name: 'Moving', value: statusDistribution.moving, color: '#10b981' },
-    { name: 'Idle', value: statusDistribution.idle, color: '#f59e0b' },
-    { name: 'Offline', value: statusDistribution.offline, color: '#6b7280' },
-  ];
+    const STATUS_DATA = [
+        { name: 'Moving', value: statusDistribution.moving, color: '#10b981' },
+        { name: 'Idle', value: statusDistribution.idle, color: '#f59e0b' },
+        { name: 'Offline', value: statusDistribution.offline, color: '#6b7280' },
+    ];
 
-  // Mock maintenance alerts (can be replaced with real data later)
-  const MAINTENANCE_ALERTS: any[] = [];
+    // Mock maintenance alerts (can be replaced with real data later)
+    const MAINTENANCE_ALERTS: any[] = [];
 
-  return (
-      <div className="min-h-screen bg-main font-sans pb-12">
-          {/* Header */}
-          <div className="top-0 z-30 bg-card shadow-sm">
-              <div className="px-8 py-5 flex justify-between items-center">
-                  <div>
-                      <h1 className="text-2xl font-bold text-primary flex items-center gap-3">
-                          <Navigation size={28} className="text-[#00D1FF]" />
-                          GPS Tracking & Monitoring
-                      </h1>
-                      <p className="text-sm text-secondary mt-1 ml-10">Real-time vehicle location and operational data</p>
-                  </div>
-              </div>
+    return (
+        <div className="min-h-screen bg-main font-sans pb-12">
+            {/* Header */}
+            <div className="top-0 z-30 bg-card shadow-sm">
+                <div className="px-8 py-5 flex justify-between items-center">
+                    <div>
+                        <h1 className="text-2xl font-bold text-primary flex items-center gap-3">
+                            <Navigation size={28} className="text-[#00D1FF]" />
+                            GPS Tracking & Monitoring
+                        </h1>
+                        <p className="text-sm text-secondary mt-1 ml-10">Real-time vehicle location and operational data</p>
+                    </div>
+                </div>
 
-              {/* Navigation Tabs */}
-              <div className="px-8 flex gap-6">
-                  {['overview', 'gps', 'maintenance'].map((tab) => (
-                      <button
-                          key={tab}
-                          onClick={() => setActiveTab(tab as any)}
-                          className={`pb-3 px-2 text-sm font-bold capitalize transition-colors border-b-2 ${
-                              activeTab === tab ? 'border-blue-500 text-[#00D1FF]' : 'border-transparent text-secondary'
-                          }`}
-                      >
-                          {tab === 'overview' ? 'Overview' : tab === 'gps' ? 'GPS Map' : 'Maintenance'}
-                      </button>
-                  ))}
-              </div>
-          </div>
+                {/* Navigation Tabs */}
+                <div className="px-8 flex gap-6">
+                    {['overview', 'gps', 'maintenance'].map((tab) => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab as any)}
+                            className={`pb-3 px-2 text-sm font-bold capitalize transition-colors border-b-2 ${activeTab === tab ? 'border-blue-500 text-[#00D1FF]' : 'border-transparent text-secondary'
+                                }`}
+                        >
+                            {tab === 'overview' ? 'Overview' : tab === 'gps' ? 'GPS Map' : 'Maintenance'}
+                        </button>
+                    ))}
+                </div>
+            </div>
 
             <div className="w-full mx-auto px-4 mt-8">
                 {/* --- OVERVIEW TAB --- */}
@@ -411,7 +410,7 @@ const GpsSection = () => {
                                 </div>
                                 <div className="mt-4 flex gap-2">
                                     <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">{summary.activeVehicles || 0} Active</span>
-                                    <span className="text-xs font-medium text-secondary bg-gray-100 px-2 py-0.5 rounded">{statusDistribution.offline || 0} Offline</span>
+                                    <span className="text-xs font-medium text-secondary bg-card px-2 py-0.5 rounded">{statusDistribution.offline || 0} Offline</span>
                                 </div>
                             </div>
 
@@ -420,7 +419,7 @@ const GpsSection = () => {
                                     <div>
                                         <p className="text-xs text-secondary uppercase tracking-wide font-medium">Avg Idle Time</p>
                                         <h3 className="text-2xl font-bold text-primary mt-1">
-                                          {vehicles.length > 0 ? 'Calculating...' : 'N/A'}
+                                            {vehicles.length > 0 ? 'Calculating...' : 'N/A'}
                                         </h3>
                                     </div>
                                     <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
@@ -429,7 +428,7 @@ const GpsSection = () => {
                                 </div>
                                 <div className="mt-4">
                                     <span className="text-xs text-secondary">
-                                      {vehicles.length > 0 ? 'Data will appear when available' : 'No vehicles to track'}
+                                        {vehicles.length > 0 ? 'Data will appear when available' : 'No vehicles to track'}
                                     </span>
                                 </div>
                             </div>
@@ -439,7 +438,7 @@ const GpsSection = () => {
                                     <div>
                                         <p className="text-xs text-secondary uppercase tracking-wide font-medium">Total Distance</p>
                                         <h3 className="text-2xl font-bold text-primary mt-1">
-                                          {vehicles.length > 0 ? 'Calculating...' : '0 mi'}
+                                            {vehicles.length > 0 ? 'Calculating...' : '0 mi'}
                                         </h3>
                                     </div>
                                     <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
@@ -448,7 +447,7 @@ const GpsSection = () => {
                                 </div>
                                 <div className="mt-4">
                                     <span className="text-xs text-secondary">
-                                      {vehicles.length > 0 ? 'This week (Fleet)' : 'No data available'}
+                                        {vehicles.length > 0 ? 'This week (Fleet)' : 'No data available'}
                                     </span>
                                 </div>
                             </div>
@@ -458,7 +457,7 @@ const GpsSection = () => {
                                     <div>
                                         <p className="text-xs text-secondary uppercase tracking-wide font-medium">Fuel Efficiency</p>
                                         <h3 className="text-2xl font-bold text-primary mt-1">
-                                          {vehicles.length > 0 ? 'Calculating...' : 'N/A'}
+                                            {vehicles.length > 0 ? 'Calculating...' : 'N/A'}
                                         </h3>
                                     </div>
                                     <div className="p-2 bg-green-50 text-green-600 rounded-lg">
@@ -467,7 +466,7 @@ const GpsSection = () => {
                                 </div>
                                 <div className="mt-4">
                                     <span className="text-xs text-secondary">
-                                      {vehicles.length > 0 ? 'Data will appear when available' : 'No vehicles to track'}
+                                        {vehicles.length > 0 ? 'Data will appear when available' : 'No vehicles to track'}
                                     </span>
                                 </div>
                             </div>
@@ -542,7 +541,7 @@ const GpsSection = () => {
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wide
                              ${v.status === 'active' || v.status === 'moving' ? 'bg-green-100 text-green-700' :
-                                                        v.status === 'idle' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-secondary'}`}>
+                                                        v.status === 'idle' ? 'bg-amber-100 text-amber-700' : 'bg-card text-secondary'}`}>
                                                     {v.status === 'moving' && <Activity size={12} className="animate-pulse" />}
                                                     {v.status}
                                                 </span>
@@ -598,48 +597,48 @@ const GpsSection = () => {
                                     />
                                     <MapController center={mapCenter} zoom={mapZoom} />
                                     {vehicleLocations.map((vehicle) => {
-                                    const vehicleLocation = getVehicleLocation(vehicle);
-                                    
-                                    if (!vehicleLocation) {
-                                        return null;
-                                    }
+                                        const vehicleLocation = getVehicleLocation(vehicle);
 
-                                    const statusColor = vehicle.status === 'moving' ? '#10b981' :
-                                                       vehicle.status === 'idle' ? '#f59e0b' :
-                                                       vehicle.status === 'active' ? '#3b82f6' : '#6b7280';
+                                        if (!vehicleLocation) {
+                                            return null;
+                                        }
 
-                                    return (
-                                        <Marker
-                                            key={vehicle._id}
-                                            position={[vehicleLocation.lat, vehicleLocation.lng]}
-                                            icon={createVehicleIcon(statusColor)}
-                                        >
-                                            <Popup>
-                                                <div className="p-2">
-                                                    <p className="font-semibold text-sm">{vehicle.unitNo || vehicle.internalId || vehicle.licensePlate}</p>
-                                                    <p className="text-xs text-secondary">{vehicle.licensePlate || vehicle.makeModel || 'Vehicle'}</p>
-                                                    <p className="text-xs text-secondary mt-1">
-                                                        {vehicleLocation.address}
-                                                        {vehicleLocation.isYardLocation && (
-                                                            <span className="ml-1 text-xs text-amber-600 font-medium">(Yard Location)</span>
-                                                        )}
-                                                    </p>
-                                                    {vehicle.driver && (
-                                                        <p className="text-xs text-[#00D1FF] mt-1">Driver: {vehicle.driver}</p>
-                                                    )}
-                                                    {(vehicle.orderNumber || vehicle.tripNumber) && (
-                                                        <p className="text-xs text-purple-600 mt-1">
-                                                            Order: {vehicle.orderNumber || vehicle.tripNumber}
+                                        const statusColor = vehicle.status === 'moving' ? '#10b981' :
+                                            vehicle.status === 'idle' ? '#f59e0b' :
+                                                vehicle.status === 'active' ? '#3b82f6' : '#6b7280';
+
+                                        return (
+                                            <Marker
+                                                key={vehicle._id}
+                                                position={[vehicleLocation.lat, vehicleLocation.lng]}
+                                                icon={createVehicleIcon(statusColor)}
+                                            >
+                                                <Popup>
+                                                    <div className="p-2">
+                                                        <p className="font-semibold text-sm">{vehicle.unitNo || vehicle.internalId || vehicle.licensePlate}</p>
+                                                        <p className="text-xs text-secondary">{vehicle.licensePlate || vehicle.makeModel || 'Vehicle'}</p>
+                                                        <p className="text-xs text-secondary mt-1">
+                                                            {vehicleLocation.address}
+                                                            {vehicleLocation.isYardLocation && (
+                                                                <span className="ml-1 text-xs text-amber-600 font-medium">(Yard Location)</span>
+                                                            )}
                                                         </p>
-                                                    )}
-                                                </div>
-                                            </Popup>
-                                        </Marker>
-                                    );
-                                })}
+                                                        {vehicle.driver && (
+                                                            <p className="text-xs text-[#00D1FF] mt-1">Driver: {vehicle.driver}</p>
+                                                        )}
+                                                        {(vehicle.orderNumber || vehicle.tripNumber) && (
+                                                            <p className="text-xs text-purple-600 mt-1">
+                                                                Order: {vehicle.orderNumber || vehicle.tripNumber}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </Popup>
+                                            </Marker>
+                                        );
+                                    })}
                                 </MapContainer>
                             )}
-                            
+
                             {/* Info Card */}
                             {vehicleLocations.length > 0 && (
                                 <div className="absolute top-4 left-4 bg-card/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-theme z-[1000]">
@@ -663,12 +662,12 @@ const GpsSection = () => {
                                     <div className="space-y-2">
                                         {vehicleLocations.map((vehicle) => (
                                             <div key={vehicle._id} className="flex items-center gap-2 p-2 hover:bg-[rgba(255,255,255,0.03)] rounded cursor-pointer">
-                                                <div 
+                                                <div
                                                     className="w-3 h-3 rounded-full"
                                                     style={{
                                                         backgroundColor: vehicle.status === 'moving' ? '#10b981' :
-                                                                       vehicle.status === 'idle' ? '#f59e0b' :
-                                                                       vehicle.status === 'active' ? '#3b82f6' : '#6b7280'
+                                                            vehicle.status === 'idle' ? '#f59e0b' :
+                                                                vehicle.status === 'active' ? '#3b82f6' : '#6b7280'
                                                     }}
                                                 />
                                                 <div className="flex-1 min-w-0">

@@ -7,7 +7,8 @@ import {
   FaSync,
   FaPlus,
   FaTrash,
-  FaEye} from 'react-icons/fa';
+  FaEye
+} from 'react-icons/fa';
 import { message, Modal, Spin } from 'antd';
 import {
   getDriverViolations,
@@ -188,7 +189,7 @@ const DriverViolationsPage: React.FC = () => {
       case 'major': return 'bg-orange-100 text-orange-800';
       case 'moderate': return 'bg-yellow-100 text-yellow-800';
       case 'minor': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-primary';
+      default: return 'bg-card text-primary';
     }
   };
 
@@ -198,8 +199,8 @@ const DriverViolationsPage: React.FC = () => {
       case 'acknowledged': return 'bg-blue-100 text-blue-800';
       case 'resolved': return 'bg-green-100 text-green-800';
       case 'disputed': return 'bg-purple-100 text-purple-800';
-      case 'dismissed': return 'bg-gray-100 text-primary';
-      default: return 'bg-gray-100 text-primary';
+      case 'dismissed': return 'bg-card text-primary';
+      default: return 'bg-card text-primary';
     }
   };
 
@@ -490,14 +491,14 @@ const DriverViolationsPage: React.FC = () => {
                   <button
                     onClick={() => fetchViolations(pagination.page - 1)}
                     disabled={pagination.page === 1}
-                    className="px-4 py-2 border border-theme rounded-lg text-sm font-medium text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:bg-gray-100 disabled:text-secondary disabled:cursor-not-allowed"
+                    className="px-4 py-2 border border-theme rounded-lg text-sm font-medium text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:bg-card disabled:text-secondary disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => fetchViolations(pagination.page + 1)}
                     disabled={pagination.page === pagination.totalPages}
-                    className="px-4 py-2 border border-theme rounded-lg text-sm font-medium text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:bg-gray-100 disabled:text-secondary disabled:cursor-not-allowed"
+                    className="px-4 py-2 border border-theme rounded-lg text-sm font-medium text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:bg-card disabled:text-secondary disabled:cursor-not-allowed"
                   >
                     Next
                   </button>

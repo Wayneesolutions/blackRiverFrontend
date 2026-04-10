@@ -201,8 +201,8 @@ const ExpensesPage = () => {
   useEffect(() => {
     if (formData.categoryId) {
       // Ensure categoryId is a string
-      const categoryIdStr = typeof formData.categoryId === 'string' 
-        ? formData.categoryId 
+      const categoryIdStr = typeof formData.categoryId === 'string'
+        ? formData.categoryId
         : (formData.categoryId as any)?._id || String(formData.categoryId);
       if (categoryIdStr) {
         fetchExpenseTypes(categoryIdStr);
@@ -261,13 +261,13 @@ const ExpensesPage = () => {
       } else if (categoryId && typeof categoryId === 'object' && categoryId !== null) {
         categoryIdStr = (categoryId as any)._id || String(categoryId);
       }
-      
+
       if (!categoryIdStr || categoryIdStr.trim() === '') {
         setExpenseTypes([]);
         setLoadingTypes(false);
         return;
       }
-      
+
       const response = await listExpenseTypes(categoryIdStr);
       if (response?.success && Array.isArray(response.data)) {
         // Normalize categoryId to string for all types
@@ -411,16 +411,16 @@ const ExpensesPage = () => {
     try {
       let response;
       if (editingType) {
-        response = await updateExpenseType(editingType._id, { 
-          name, 
-          categoryId: typeFormData.categoryId, 
-          status: typeFormData.status 
+        response = await updateExpenseType(editingType._id, {
+          name,
+          categoryId: typeFormData.categoryId,
+          status: typeFormData.status
         });
       } else {
-        response = await createExpenseType({ 
-          name, 
-          categoryId: typeFormData.categoryId, 
-          status: typeFormData.status 
+        response = await createExpenseType({
+          name,
+          categoryId: typeFormData.categoryId,
+          status: typeFormData.status
         });
       }
 
@@ -459,12 +459,12 @@ const ExpensesPage = () => {
     try {
       const deletedType = deleteTypeConfirm.type;
       const categoryId = deletedType.categoryId?.toString() || deletedType.categoryId || '';
-      
+
       const response = await deleteExpenseType(deletedType._id);
       if (response?.success) {
         addNotification('success', 'Expense type deleted successfully');
         setDeleteTypeConfirm({ show: false, type: null });
-        
+
         // Refresh types for the category that had the deleted type
         if (categoryId) {
           await fetchExpenseTypes(categoryId);
@@ -708,8 +708,8 @@ const ExpensesPage = () => {
       : expense.userId || '';
     const categoryId = expense.categoryId || (expense.category?._id) || '';
     // Ensure categoryId is a string
-    const categoryIdStr = typeof categoryId === 'string' 
-      ? categoryId 
+    const categoryIdStr = typeof categoryId === 'string'
+      ? categoryId
       : (categoryId as any)?._id || String(categoryId);
     // Get typeId if available (from typeId field or from type object)
     const typeId = (expense as any).typeId || (typeof (expense as any).type === 'object' && (expense as any).type?._id) || '';
@@ -865,7 +865,7 @@ const ExpensesPage = () => {
       'Cash': 'bg-purple-100 text-purple-800',
       'Cash Advance': 'bg-purple-100 text-purple-800',
     };
-    return typeMap[typeName] || 'bg-gray-100 text-primary';
+    return typeMap[typeName] || 'bg-card text-primary';
   };
 
   const getTypeIcon = (typeName: string) => {
@@ -895,7 +895,7 @@ const ExpensesPage = () => {
     // Category matching - handle both string and object categoryId
     if (selectedCategoryTab !== 'all') {
       const selectedCategoryIdStr = String(selectedCategoryTab);
-      
+
       // Get expense category ID - handle both string and populated object
       let expenseCategoryId: string | null = null;
       if (expense.categoryId) {
@@ -905,7 +905,7 @@ const ExpensesPage = () => {
           expenseCategoryId = String((expense.categoryId as any)._id || expense.categoryId);
         }
       }
-      
+
       // Get populated category object ID
       let expenseCategoryObjId: string | null = null;
       if (expense.category) {
@@ -913,31 +913,31 @@ const ExpensesPage = () => {
           expenseCategoryObjId = String(expense.category._id || (expense.category as any)._id);
         }
       }
-      
+
       // Compare normalized strings
       const categoryMatch = (expenseCategoryId && String(expenseCategoryId) === selectedCategoryIdStr) ||
-                           (expenseCategoryObjId && String(expenseCategoryObjId) === selectedCategoryIdStr);
-      
+        (expenseCategoryObjId && String(expenseCategoryObjId) === selectedCategoryIdStr);
+
       if (!categoryMatch) {
         return false;
       }
     }
-    
+
     // Type matching - handle both string and object type (legacy filter)
     if (filterType !== 'all') {
-      const expenseTypeName = typeof expense.type === 'string' 
-        ? expense.type 
+      const expenseTypeName = typeof expense.type === 'string'
+        ? expense.type
         : (expense.type as any)?.name;
       const expenseTypeIdName = typeof expense.typeId === 'object' && expense.typeId !== null
         ? (expense.typeId as any)?.name
         : null;
-      
+
       const typeMatch = expenseTypeName === filterType || expenseTypeIdName === filterType;
       if (!typeMatch) {
         return false;
       }
     }
-    
+
     return true;
   });
 
@@ -1072,10 +1072,10 @@ const ExpensesPage = () => {
                 }
               }
               return (expenseCategoryId && String(expenseCategoryId) === categoryIdStr) ||
-                     (expenseCategoryObjId && String(expenseCategoryObjId) === categoryIdStr);
+                (expenseCategoryObjId && String(expenseCategoryObjId) === categoryIdStr);
             });
             const categoryTotal = categoryExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-            
+
             const cardColors = [
               { bg: 'bg-[#E1F5FE]', border: 'border-cyan-100', icon: '⛽' },
               { bg: 'bg-[#E8F5E9]', border: 'border-green-100', icon: '🔧' },
@@ -1123,11 +1123,10 @@ const ExpensesPage = () => {
               <div className="flex gap-2 min-w-max pb-1">
                 <button
                   onClick={() => setSelectedCategoryTab('all')}
-                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-                    selectedCategoryTab === 'all'
+                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${selectedCategoryTab === 'all'
                       ? 'bg-card text-blue-700 border-2 border-blue-400 shadow-sm'
                       : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)] border-2 border-transparent hover:border-theme'
-                  }`}
+                    }`}
                 >
                   All Expenses <span className="font-normal">({expenses.length})</span>
                 </button>
@@ -1136,7 +1135,7 @@ const ExpensesPage = () => {
                     // Check if expense belongs to this category
                     // Normalize all IDs to strings for comparison
                     const categoryIdStr = String(category._id);
-                    
+
                     // Get expense category ID - handle both string and populated object
                     let expenseCategoryId: string | null = null;
                     if (e.categoryId) {
@@ -1146,7 +1145,7 @@ const ExpensesPage = () => {
                         expenseCategoryId = String((e.categoryId as any)._id || e.categoryId);
                       }
                     }
-                    
+
                     // Get populated category object ID
                     let expenseCategoryObjId: string | null = null;
                     if (e.category) {
@@ -1154,20 +1153,19 @@ const ExpensesPage = () => {
                         expenseCategoryObjId = String(e.category._id || (e.category as any)._id);
                       }
                     }
-                    
+
                     // Compare normalized strings
                     return (expenseCategoryId && String(expenseCategoryId) === categoryIdStr) ||
-                           (expenseCategoryObjId && String(expenseCategoryObjId) === categoryIdStr);
+                      (expenseCategoryObjId && String(expenseCategoryObjId) === categoryIdStr);
                   }).length;
                   return (
                     <button
                       key={category._id}
                       onClick={() => setSelectedCategoryTab(category._id)}
-                      className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
-                        selectedCategoryTab === category._id
+                      className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${selectedCategoryTab === category._id
                           ? 'bg-card text-blue-700 border-2 border-blue-400 shadow-sm'
                           : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)] border-2 border-transparent hover:border-theme'
-                      }`}
+                        }`}
                     >
                       {category.name} <span className="font-normal">({categoryExpenseCount})</span>
                     </button>
@@ -1175,7 +1173,7 @@ const ExpensesPage = () => {
                 })}
               </div>
             </div>
-            
+
             {/* Action Buttons */}
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
@@ -1205,11 +1203,10 @@ const ExpensesPage = () => {
             <div className="flex">
               <button
                 onClick={() => setActiveTab('list')}
-                className={`px-6 py-4 text-sm font-semibold transition-all duration-200 relative ${
-                  activeTab === 'list'
+                className={`px-6 py-4 text-sm font-semibold transition-all duration-200 relative ${activeTab === 'list'
                     ? 'text-[#00D1FF]'
                     : 'text-secondary hover:text-primary'
-                }`}
+                  }`}
               >
                 Expense List
                 {activeTab === 'list' && (
@@ -1218,11 +1215,10 @@ const ExpensesPage = () => {
               </button>
               <button
                 onClick={() => setActiveTab('create')}
-                className={`px-6 py-4 text-sm font-semibold transition-all duration-200 relative ${
-                  activeTab === 'create'
+                className={`px-6 py-4 text-sm font-semibold transition-all duration-200 relative ${activeTab === 'create'
                     ? 'text-[#00D1FF]'
                     : 'text-secondary hover:text-primary'
-                }`}
+                  }`}
               >
                 {editingExpense ? 'Edit Expense' : 'Add Expense'}
                 {activeTab === 'create' && (
@@ -1262,8 +1258,8 @@ const ExpensesPage = () => {
                 ) : (
                   <div className="space-y-4">
                     {filteredExpenses.map((expense) => (
-                      <div 
-                        key={expense._id} 
+                      <div
+                        key={expense._id}
                         className="border border-theme rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                         onClick={() => handleView(expense)}
                       >
@@ -1410,21 +1406,21 @@ const ExpensesPage = () => {
                       onChange={(e) => {
                         const selectedTypeId = e.target.value;
                         const selectedType = expenseTypes.find(t => t._id === selectedTypeId);
-                        setFormData(prev => ({ 
-                          ...prev, 
+                        setFormData(prev => ({
+                          ...prev,
                           typeId: selectedTypeId,
                           type: selectedType?.name || '' // Keep type for backward compatibility
                         }));
                       }}
                       required
                       disabled={!formData.categoryId || loadingTypes}
-                      className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-card disabled:cursor-not-allowed"
                     >
                       <option value="">
-                        {loadingTypes 
-                          ? 'Loading types...' 
-                          : !formData.categoryId 
-                            ? 'Select a category first' 
+                        {loadingTypes
+                          ? 'Loading types...'
+                          : !formData.categoryId
+                            ? 'Select a category first'
                             : 'Select Type'}
                       </option>
                       {expenseTypes.map((type: ExpenseType) => (
@@ -1497,7 +1493,7 @@ const ExpensesPage = () => {
                         value={formData.truckId}
                         onChange={handleInputChange}
                         disabled={loadingFleet}
-                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-card disabled:cursor-not-allowed"
                       >
                         <option value="">Select Truck (Optional)</option>
                         {trucks.map(truck => (
@@ -1518,7 +1514,7 @@ const ExpensesPage = () => {
                         value={formData.trailerId}
                         onChange={handleInputChange}
                         disabled={loadingFleet}
-                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-card disabled:cursor-not-allowed"
                       >
                         <option value="">Select Trailer (Optional)</option>
                         {trailers.map(trailer => (
@@ -1938,7 +1934,7 @@ const ExpensesPage = () => {
                     />
                   </div>
 
-              
+
                 </div>
 
                 {/* Categories List */}
@@ -1956,7 +1952,7 @@ const ExpensesPage = () => {
                         <div className="flex-1">
                           <p className="text-sm font-semibold text-primary">{category.name}</p>
                           <div className="flex items-center gap-2 mt-1">
-                           
+
                             <span className="text-xs text-secondary">
                               {expenses.filter(e => e.categoryId === category._id || e.category?._id === category._id).length} expenses
                             </span>
@@ -2147,11 +2143,10 @@ const ExpensesPage = () => {
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
                                 <p className="text-sm font-semibold text-primary">{type.name}</p>
-                                <span className={`px-2 py-0.5 text-xs rounded-full ${
-                                  type.status === 'active' 
-                                    ? 'bg-green-100 text-green-700' 
-                                    : 'bg-gray-100 text-secondary'
-                                }`}>
+                                <span className={`px-2 py-0.5 text-xs rounded-full ${type.status === 'active'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-card text-secondary'
+                                  }`}>
                                   {type.status === 'active' ? 'Active' : 'Inactive'}
                                 </span>
                               </div>
@@ -2179,12 +2174,12 @@ const ExpensesPage = () => {
                         const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
                         return typeCategoryId === formCategoryId;
                       }).length === 0 && (
-                        <div className="text-center py-8 bg-card rounded-lg border-2 border-dashed border-theme">
-                          <FileText className="mx-auto mb-2 text-secondary" size={32} />
-                          <p className="text-sm text-secondary">No types in this category yet</p>
-                          <p className="text-xs text-secondary mt-1">Create your first type above</p>
-                        </div>
-                      )}
+                          <div className="text-center py-8 bg-card rounded-lg border-2 border-dashed border-theme">
+                            <FileText className="mx-auto mb-2 text-secondary" size={32} />
+                            <p className="text-sm text-secondary">No types in this category yet</p>
+                            <p className="text-xs text-secondary mt-1">Create your first type above</p>
+                          </div>
+                        )}
                     </div>
                   </div>
                 )}

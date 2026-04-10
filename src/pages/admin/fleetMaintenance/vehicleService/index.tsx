@@ -1,8 +1,8 @@
-import  { useState, useEffect } from 'react';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
+import { useState, useEffect } from 'react';
+import {
+  Plus,
+  Edit,
+  Trash2,
   Search,
   X
 } from 'lucide-react';
@@ -229,7 +229,7 @@ const VehicleServiceManagement = () => {
       case 'high': return 'bg-orange-100 text-orange-800';
       case 'medium': return 'bg-yellow-100 text-yellow-800';
       case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-primary';
+      default: return 'bg-card text-primary';
     }
   };
 
@@ -238,7 +238,7 @@ const VehicleServiceManagement = () => {
       case 'completed': return 'bg-green-100 text-green-800';
       case 'in-progress': return 'bg-blue-100 text-blue-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-primary';
+      default: return 'bg-card text-primary';
     }
   };
 
@@ -383,7 +383,7 @@ const VehicleServiceManagement = () => {
                         {service.dueDate ? new Date(service.dueDate).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
-                        {typeof service.assignedMechanic === 'object' && service.assignedMechanic 
+                        {typeof service.assignedMechanic === 'object' && service.assignedMechanic
                           ? `${service.assignedMechanic.first_name || ''} ${service.assignedMechanic.last_name || ''}`.trim() || 'N/A'
                           : 'N/A'}
                       </td>

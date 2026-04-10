@@ -200,11 +200,11 @@ const Tickets: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [trailers, setTrailers] = useState<Trailer[]>([]);
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
-  
+
   const [activeTab, setActiveTab] = useState<'usa' | 'canada' | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -459,8 +459,8 @@ const Tickets: React.FC = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -640,7 +640,7 @@ const Tickets: React.FC = () => {
       case 'reduced':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       default:
-        return 'bg-gray-100 text-primary border-theme';
+        return 'bg-card text-primary border-theme';
     }
   };
 
@@ -1193,10 +1193,10 @@ const Tickets: React.FC = () => {
               `}</style>
               <div className="relative">
                 {/* Top Scrollbar - Only visible horizontal scrollbar */}
-                <div 
+                <div
                   ref={topScrollRef}
                   className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-                  style={{ 
+                  style={{
                     maxHeight: '20px',
                     marginBottom: '2px',
                     scrollbarWidth: 'thin',
@@ -1206,245 +1206,245 @@ const Tickets: React.FC = () => {
                   <div className="top-scroll-content" style={{ height: '1px' }}></div>
                 </div>
                 {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-                <div 
+                <div
                   ref={bottomScrollRef}
                   className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
                 >
                   <table className="w-full min-w-[1400px]">
-                  <thead className="bg-card">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky left-0 bg-card z-10">
-                        <button
-                          onClick={() => handleSort('ticketNumber')}
-                          className="flex items-center gap-2 hover:text-primary"
-                        >
-                          Ticket #
-                          {getSortIcon('ticketNumber')}
-                        </button>
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Country
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('violationType')}
-                          className="flex items-center gap-2 hover:text-primary"
-                        >
-                          Violation
-                          {getSortIcon('violationType')}
-                        </button>
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('dateIssued')}
-                          className="flex items-center gap-2 hover:text-primary"
-                        >
-                          Date Issued
-                          {getSortIcon('dateIssued')}
-                        </button>
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Location
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Officer
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Driver
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Vehicle
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Unit/Trailer
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('amount')}
-                          className="flex items-center gap-2 hover:text-primary"
-                        >
-                          Amount
-                          {getSortIcon('amount')}
-                        </button>
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        <button
-                          onClick={() => handleSort('status')}
-                          className="flex items-center gap-2 hover:text-primary"
-                        >
-                          Status
-                          {getSortIcon('status')}
-                        </button>
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Outcome
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Court Date
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Due Date
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky right-0 bg-card z-10">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-card divide-y divide-theme">
-                    {filteredTickets.map((ticket) => (
-                      <tr 
-                        key={ticket._id} 
-                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
-                        onClick={() => handleViewTicket(ticket)}
-                      >
-                        <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-card z-10">
-                          <div className="text-sm font-medium text-primary">
-                            {ticket.ticketNumber || 'N/A'}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">
-                            {ticket.country === 'usa' ? (
-                              <span className="flex items-center gap-1">
-                                <FaFlagUsa className="text-[#00D1FF]" size={14} />
-                                USA
-                              </span>
-                            ) : (
-                              <span className="flex items-center gap-1">
-                                <FaFlag className="text-[#A855F7]" size={14} />
-                                CA
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-primary max-w-[200px]">
-                            <div className="font-medium truncate" title={ticket.violationType || 'N/A'}>
-                              {ticket.violationType || 'N/A'}
-                            </div>
-                            <div className="text-secondary text-xs truncate" title={ticket.violationDescription || ''}>
-                              {ticket.violationDescription || ''}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">
-                            <div className="flex items-center gap-1">
-                              <FaCalendarAlt className="text-secondary" size={12} />
-                              {ticket.dateIssued ? formatDate(ticket.dateIssued) : 'N/A'}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-primary max-w-[150px] truncate" title={ticket.location || 'N/A'}>
-                            <div className="flex items-center gap-1">
-                              <FaMapMarkerAlt className="text-secondary flex-shrink-0" size={12} />
-                              {ticket.location || 'N/A'}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-primary max-w-[150px] truncate" title={ticket.officerName || 'N/A'}>
-                            {ticket.officerName || 'N/A'}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-primary max-w-[150px]">
-                            <div className="truncate" title={getDriverName(ticket.driver)}>
-                              {getDriverName(ticket.driver) || 'N/A'}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-primary max-w-[180px]">
-                            <div className="truncate" title={getVehicleInfo(ticket.vehicle)}>
-                              {getVehicleInfo(ticket.vehicle) || 'N/A'}
-                            </div>
-                            {typeof ticket.vehicle === 'object' && ticket.vehicle?.internalId && (
-                              <div className="text-xs text-secondary">
-                                ID: {ticket.vehicle.internalId}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">
-                            {ticket.unitNumber && (
-                              <div>Unit: {ticket.unitNumber}</div>
-                            )}
-                            {ticket.trailerNumber && (
-                              <div>Trailer: {ticket.trailerNumber}</div>
-                            )}
-                            {!ticket.unitNumber && !ticket.trailerNumber && (
-                              <span className="text-secondary">N/A</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">
-                            <div className="font-bold">{formatCurrency(ticket.amount || 0)}</div>
-                            {ticket.finalAmount && ticket.finalAmount !== ticket.amount && (
-                              <div className="text-green-600 text-xs">Final: {formatCurrency(ticket.finalAmount)}</div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            {getStatusIcon(ticket.status)}
-                            <span className={`text-xs px-2 py-1 rounded-full font-medium border ${getStatusBadgeColor(ticket.status)}`}>
-                              {ticket.status === 'fight' ? 'ON FIGHT' : ticket.status.toUpperCase()}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">
-                            {ticket.outcome ? (
-                              <span className="text-xs px-2 py-1 rounded bg-gray-100">
-                                {ticket.outcome.replace('on fight', 'On Fight').toUpperCase()}
-                              </span>
-                            ) : (
-                              <span className="text-secondary">N/A</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">
-                            {ticket.courtDate ? formatDate(ticket.courtDate) : 'N/A'}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">
-                            {ticket.dueDate ? formatDate(ticket.dueDate) : 'N/A'}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-card z-10" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleViewTicket(ticket)}
-                              className="text-[#00D1FF] hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="View Details"
-                            >
-                              <FaEye size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleEditTicket(ticket)}
-                              className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
-                              title="Edit Ticket"
-                            >
-                              <FaEdit size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteTicket(ticket)}
-                              className="text-[#A855F7] hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete Ticket"
-                            >
-                              <FaTrash size={16} />
-                            </button>
-                          </div>
-                        </td>
+                    <thead className="bg-card">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky left-0 bg-card z-10">
+                          <button
+                            onClick={() => handleSort('ticketNumber')}
+                            className="flex items-center gap-2 hover:text-primary"
+                          >
+                            Ticket #
+                            {getSortIcon('ticketNumber')}
+                          </button>
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Country
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          <button
+                            onClick={() => handleSort('violationType')}
+                            className="flex items-center gap-2 hover:text-primary"
+                          >
+                            Violation
+                            {getSortIcon('violationType')}
+                          </button>
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          <button
+                            onClick={() => handleSort('dateIssued')}
+                            className="flex items-center gap-2 hover:text-primary"
+                          >
+                            Date Issued
+                            {getSortIcon('dateIssued')}
+                          </button>
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Location
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Officer
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Driver
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Vehicle
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Unit/Trailer
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          <button
+                            onClick={() => handleSort('amount')}
+                            className="flex items-center gap-2 hover:text-primary"
+                          >
+                            Amount
+                            {getSortIcon('amount')}
+                          </button>
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          <button
+                            onClick={() => handleSort('status')}
+                            className="flex items-center gap-2 hover:text-primary"
+                          >
+                            Status
+                            {getSortIcon('status')}
+                          </button>
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Outcome
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Court Date
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Due Date
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky right-0 bg-card z-10">
+                          Actions
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
+                    </thead>
+                    <tbody className="bg-card divide-y divide-theme">
+                      {filteredTickets.map((ticket) => (
+                        <tr
+                          key={ticket._id}
+                          className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
+                          onClick={() => handleViewTicket(ticket)}
+                        >
+                          <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-card z-10">
+                            <div className="text-sm font-medium text-primary">
+                              {ticket.ticketNumber || 'N/A'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">
+                              {ticket.country === 'usa' ? (
+                                <span className="flex items-center gap-1">
+                                  <FaFlagUsa className="text-[#00D1FF]" size={14} />
+                                  USA
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1">
+                                  <FaFlag className="text-[#A855F7]" size={14} />
+                                  CA
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm text-primary max-w-[200px]">
+                              <div className="font-medium truncate" title={ticket.violationType || 'N/A'}>
+                                {ticket.violationType || 'N/A'}
+                              </div>
+                              <div className="text-secondary text-xs truncate" title={ticket.violationDescription || ''}>
+                                {ticket.violationDescription || ''}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">
+                              <div className="flex items-center gap-1">
+                                <FaCalendarAlt className="text-secondary" size={12} />
+                                {ticket.dateIssued ? formatDate(ticket.dateIssued) : 'N/A'}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm text-primary max-w-[150px] truncate" title={ticket.location || 'N/A'}>
+                              <div className="flex items-center gap-1">
+                                <FaMapMarkerAlt className="text-secondary flex-shrink-0" size={12} />
+                                {ticket.location || 'N/A'}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm text-primary max-w-[150px] truncate" title={ticket.officerName || 'N/A'}>
+                              {ticket.officerName || 'N/A'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm text-primary max-w-[150px]">
+                              <div className="truncate" title={getDriverName(ticket.driver)}>
+                                {getDriverName(ticket.driver) || 'N/A'}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm text-primary max-w-[180px]">
+                              <div className="truncate" title={getVehicleInfo(ticket.vehicle)}>
+                                {getVehicleInfo(ticket.vehicle) || 'N/A'}
+                              </div>
+                              {typeof ticket.vehicle === 'object' && ticket.vehicle?.internalId && (
+                                <div className="text-xs text-secondary">
+                                  ID: {ticket.vehicle.internalId}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">
+                              {ticket.unitNumber && (
+                                <div>Unit: {ticket.unitNumber}</div>
+                              )}
+                              {ticket.trailerNumber && (
+                                <div>Trailer: {ticket.trailerNumber}</div>
+                              )}
+                              {!ticket.unitNumber && !ticket.trailerNumber && (
+                                <span className="text-secondary">N/A</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">
+                              <div className="font-bold">{formatCurrency(ticket.amount || 0)}</div>
+                              {ticket.finalAmount && ticket.finalAmount !== ticket.amount && (
+                                <div className="text-green-600 text-xs">Final: {formatCurrency(ticket.finalAmount)}</div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              {getStatusIcon(ticket.status)}
+                              <span className={`text-xs px-2 py-1 rounded-full font-medium border ${getStatusBadgeColor(ticket.status)}`}>
+                                {ticket.status === 'fight' ? 'ON FIGHT' : ticket.status.toUpperCase()}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">
+                              {ticket.outcome ? (
+                                <span className="text-xs px-2 py-1 rounded bg-card">
+                                  {ticket.outcome.replace('on fight', 'On Fight').toUpperCase()}
+                                </span>
+                              ) : (
+                                <span className="text-secondary">N/A</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">
+                              {ticket.courtDate ? formatDate(ticket.courtDate) : 'N/A'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">
+                              {ticket.dueDate ? formatDate(ticket.dueDate) : 'N/A'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-card z-10" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleViewTicket(ticket)}
+                                className="text-[#00D1FF] hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="View Details"
+                              >
+                                <FaEye size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleEditTicket(ticket)}
+                                className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
+                                title="Edit Ticket"
+                              >
+                                <FaEdit size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteTicket(ticket)}
+                                className="text-[#A855F7] hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Delete Ticket"
+                              >
+                                <FaTrash size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
                   </table>
                 </div>
               </div>
@@ -1462,7 +1462,7 @@ const Tickets: React.FC = () => {
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
                       className={`px-3 py-2 rounded-lg border ${currentPage === 1
-                        ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
+                        ? 'bg-card text-secondary cursor-not-allowed border-theme'
                         : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                         }`}
                     >
@@ -1501,7 +1501,7 @@ const Tickets: React.FC = () => {
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
                       className={`px-3 py-2 rounded-lg border ${currentPage === totalPages
-                        ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
+                        ? 'bg-card text-secondary cursor-not-allowed border-theme'
                         : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                         }`}
                     >
@@ -2649,7 +2649,7 @@ const Tickets: React.FC = () => {
                 </div>
                 <p className="text-secondary mb-6">Are you sure you want to delete ticket <span className="font-semibold">{ticketToDelete.ticketNumber}</span>? This action cannot be undone.</p>
                 <div className="flex justify-end gap-3">
-                  <button onClick={() => { setShowDeleteModal(false); setTicketToDelete(null); }} className="px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 font-medium transition-colors" disabled={loading}>Cancel</button>
+                  <button onClick={() => { setShowDeleteModal(false); setTicketToDelete(null); }} className="px-4 py-2 bg-card text-primary rounded-lg hover:bg-gray-200 font-medium transition-colors" disabled={loading}>Cancel</button>
                   <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-60" disabled={loading}>
                     {loading ? 'Deleting...' : 'Delete'}
                   </button>

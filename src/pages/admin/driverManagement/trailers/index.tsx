@@ -51,7 +51,7 @@ const TrailersPage: React.FC = () => {
     const [sortBy, setSortBy] = useState('');
     const [complianceStatus, setComplianceStatus] = useState('All');
     const [operatingStatus, setOperatingStatus] = useState('All');
-    
+
     // API state
     const [trailers, setTrailers] = useState<Trailer[]>([]);
     const [loading, setLoading] = useState(false);
@@ -181,7 +181,7 @@ const TrailersPage: React.FC = () => {
         isExisting?: boolean;
     }>>([]);
 
-  
+
 
 
 
@@ -250,7 +250,7 @@ const TrailersPage: React.FC = () => {
                 // Determine filter parameters based on activeTab (same logic as Trucks)
                 let yardFilter: string | undefined = undefined;
                 let ownershipFilter: string | undefined = undefined;
-                
+
                 if (activeTab === 'All') {
                     // No filters - fetch all
                 } else if (activeTab === 'External') {
@@ -275,9 +275,9 @@ const TrailersPage: React.FC = () => {
                     yardFilter, // yard
                     ownershipFilter // ownership
                 );
-                
+
                 console.log('📥 Trailers API response:', response);
-                
+
                 if (response?.success && response?.data) {
                     // Transform backend data to match frontend interface
                     const transformedTrailers = response.data.map((trailer: any) => ({
@@ -306,14 +306,14 @@ const TrailersPage: React.FC = () => {
                         status: trailer.status,
                         yard: trailer.yard || null
                     }));
-                    
+
                     // Additional frontend filtering for yard tabs (in case backend doesn't filter properly)
                     if (yardFilter && activeTab !== 'All' && activeTab !== 'External' && activeTab !== 'Unassigned') {
                         const yardIdStr = String(yardFilter).trim();
                         const filteredTrailers = transformedTrailers.filter((trailer: any) => {
-                            const trailerYardId = trailer.yard 
-                                ? (typeof trailer.yard === 'string' 
-                                    ? trailer.yard 
+                            const trailerYardId = trailer.yard
+                                ? (typeof trailer.yard === 'string'
+                                    ? trailer.yard
                                     : trailer.yard._id?.toString() || '')
                                 : '';
                             const matches = trailerYardId === yardIdStr;
@@ -417,7 +417,7 @@ const TrailersPage: React.FC = () => {
 
         try {
             let count = 0;
-            
+
             if (tabId === 'All') {
                 const response = await getAllTrailers(1, 1);
                 count = response?.pagination?.total || 0;
@@ -428,7 +428,7 @@ const TrailersPage: React.FC = () => {
                 // For unassigned, we need to fetch all and filter
                 const response = await getAllTrailers(1, 1000);
                 if (response?.success && response?.data) {
-                    count = response.data.filter((trailer: any) => 
+                    count = response.data.filter((trailer: any) =>
                         !assignedTrailerIds.has(trailer._id)
                     ).length;
                 }
@@ -437,10 +437,10 @@ const TrailersPage: React.FC = () => {
                 const response = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, tabId);
                 count = response?.pagination?.total || 0;
             }
-            
+
             setYardCounts(prev => ({ ...prev, [tabId]: count }));
             setFetchedCounts(prev => new Set([...prev, tabId]));
-            
+
             console.log(`✅ Fetched count for tab "${tabId}":`, count);
         } catch (error) {
             console.error(`Error fetching count for tab "${tabId}":`, error);
@@ -473,7 +473,7 @@ const TrailersPage: React.FC = () => {
             try {
                 console.log('📥 Loading trailer for edit:', editingId);
                 const response = await getTrailerById(editingId);
-                
+
                 if (response?.success && response?.data) {
                     const trailer = response.data;
                     console.log('📋 Loaded trailer data:', trailer);
@@ -579,7 +579,7 @@ const TrailersPage: React.FC = () => {
     const handleEditInspection = (inspection: any, type: 'oneTime' | 'recurring') => {
         setEditingInspectionId(inspection.id);
         setEditingInspectionType(type);
-        
+
         if (type === 'oneTime') {
             setInspectionType('One Time');
             setInspectionForm({
@@ -751,7 +751,7 @@ const TrailersPage: React.FC = () => {
     // Validate required fields
     const validateTrailerForm = (): boolean => {
         const errors: string[] = [];
-        
+
         if (!formData.unitNumber.trim()) errors.push('Unit # is required');
         if (!formData.plateNumber.trim()) errors.push('Plate # is required');
         if (!formData.vinNumber.trim()) errors.push('VIN is required');
@@ -762,7 +762,7 @@ const TrailersPage: React.FC = () => {
         if (!formData.registrationCountry.trim()) errors.push('Registration Country is required');
         if (!formData.ownership.trim()) errors.push('Ownership is required');
         if (!formData.weight || formData.weight === '0') errors.push('Weight is required');
-        
+
         setValidationErrors(errors);
         return errors.length === 0;
     };
@@ -776,7 +776,7 @@ const TrailersPage: React.FC = () => {
         setLoading(true);
         try {
             const formDataToSend = new FormData();
-            
+
             if (editingId && originalTrailerData) {
                 // Partial update - only send changed fields
                 if (formData.unitNumber !== originalTrailerData.unitNumber) {
@@ -826,7 +826,7 @@ const TrailersPage: React.FC = () => {
                 if (formData.yard !== originalTrailerData.yard) {
                     formDataToSend.append('yard', formData.yard || '');
                 }
-                
+
                 if (selectedImageFile) {
                     formDataToSend.append('image', selectedImageFile);
                 }
@@ -849,7 +849,7 @@ const TrailersPage: React.FC = () => {
                 formDataToSend.append('subType', formData.subType || '');
                 formDataToSend.append('yard', formData.yard || '');
                 formDataToSend.append('operationStatus', formData.status === 'In Service' ? 'IN SERVICE' : formData.status === 'Out of Service' ? 'OUT OF SERVICE' : 'MAINTENANCE');
-                
+
                 if (selectedImageFile) {
                     formDataToSend.append('image', selectedImageFile);
                 }
@@ -950,15 +950,15 @@ const TrailersPage: React.FC = () => {
                     // For new trailers, get ID from response
                     trailerId = response.data?._id || response.data?._id || response.data?.id;
                 }
-                
+
                 console.log('💾 Saving trailer, ID:', trailerId);
-                
+
                 // Save documents if trailer was created/updated successfully
                 if (trailerId) {
                     // Separate new documents and existing documents that need updates
                     const newDocuments: Array<{ type: string; doc: any }> = [];
                     const updatedDocuments: Array<{ type: string; doc: any }> = [];
-                    
+
                     Object.keys(documents).forEach((docType) => {
                         documents[docType].forEach((doc) => {
                             if (!doc.isExisting) {
@@ -989,7 +989,7 @@ const TrailersPage: React.FC = () => {
                                 if (doc.file) {
                                     docFormData.append('file', doc.file);
                                 }
-                                
+
                                 console.log('📤 Creating document:', { type, description: doc.description, hasFile: !!doc.file });
                                 const docResponse = await createVehicleDocument(docFormData);
                                 if (!docResponse?.success) {
@@ -1013,7 +1013,7 @@ const TrailersPage: React.FC = () => {
                                 docFormData.append('assetType', 'trailer');
                                 docFormData.append('documentType', type);
                                 docFormData.append('documentNumber', doc.description || '');
-                                
+
                                 // Include expiryDate if it exists
                                 if (doc.expiryDate) {
                                     docFormData.append('expiryDate', doc.expiryDate);
@@ -1021,13 +1021,13 @@ const TrailersPage: React.FC = () => {
                                     // If no expiry date, send empty string to clear it
                                     docFormData.append('expiryDate', '');
                                 }
-                                
+
                                 // Only append file if a new file was selected (doc.file is a File object)
                                 if (doc.file && doc.file instanceof File) {
                                     docFormData.append('file', doc.file);
                                     console.log('📎 Including new file in update:', doc.file.name);
                                 }
-                                
+
                                 // Log FormData contents for debugging
                                 const formDataEntries: string[] = [];
                                 for (const [key, value] of docFormData.entries()) {
@@ -1038,7 +1038,7 @@ const TrailersPage: React.FC = () => {
                                     }
                                 }
                                 console.log('📤 Updating document payload:', { id: doc._id, type, entries: formDataEntries });
-                                
+
                                 const docResponse = await updateVehicleDocument(doc._id!, docFormData);
                                 if (!docResponse?.success) {
                                     console.error('❌ Error updating document:', docResponse);
@@ -1051,7 +1051,7 @@ const TrailersPage: React.FC = () => {
                         }
                     }
                 }
-                
+
                 setShowSidebar(false);
                 setEditingId(null);
                 setFormData({
@@ -1131,19 +1131,19 @@ const TrailersPage: React.FC = () => {
                         yard: trailer.yard || null
                     }));
                     setTrailers(transformedTrailers);
-                    
+
                     // Refresh all counts after update
                     try {
                         const counts: Record<string, number> = {};
-                        
+
                         // All count
                         const allResponse = await getAllTrailers(1, 1);
                         counts['All'] = allResponse?.pagination?.total || 0;
-                        
+
                         // External count
                         const externalResponse = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, undefined, 'THIRD PARTY ASSET');
                         counts['External'] = externalResponse?.pagination?.total || 0;
-                        
+
                         // Unassigned count
                         const unassignedResponse = await getAllTrailers(1, 1000);
                         if (unassignedResponse?.success && unassignedResponse?.data) {
@@ -1155,7 +1155,7 @@ const TrailersPage: React.FC = () => {
                         } else {
                             counts['Unassigned'] = 0;
                         }
-                        
+
                         // Yard counts
                         for (const yard of yards) {
                             if (yard.status === 'active' && yard._id) {
@@ -1167,7 +1167,7 @@ const TrailersPage: React.FC = () => {
                                 counts[yardId] = yardCount;
                             }
                         }
-                        
+
                         setYardCounts(counts);
                     } catch (error) {
                         console.error('Error refreshing counts:', error);
@@ -1193,7 +1193,7 @@ const TrailersPage: React.FC = () => {
     // Handle delete trailer after confirmation
     const handleDeleteTrailer = async () => {
         if (!deleteTargetId) return;
-        
+
         setShowDeleteConfirmation(false);
         setLoading(true);
         try {
@@ -1247,7 +1247,7 @@ const TrailersPage: React.FC = () => {
                     subType: trailer.subType || '',
                     yard: trailer.yard || ''
                 };
-                
+
                 setFormData(trailerFormData);
                 // Store original data for partial updates
                 setOriginalTrailerData(trailerFormData);
@@ -1256,12 +1256,12 @@ const TrailersPage: React.FC = () => {
                 // Reset selectedImageFile when loading existing trailer (so we only upload if user selects new image)
                 setSelectedImageFile(null);
                 setEditingId(id);
-                
+
                 // Load documents from trailer response (documents are now included in getTrailerById)
                 try {
                     const trailerDocuments = trailer.documents || [];
                     console.log('📥 Documents from trailer response:', trailerDocuments.length);
-                    
+
                     if (Array.isArray(trailerDocuments) && trailerDocuments.length > 0) {
                         const docsByType: Record<string, Array<any>> = {
                             General: [],
@@ -1270,20 +1270,20 @@ const TrailersPage: React.FC = () => {
                             Safety: [],
                             Insurance: []
                         };
-                        
+
                         // Process documents with signed URLs (already signed by backend)
                         for (const doc of trailerDocuments) {
                             const docType = doc.documentType || 'General';
                             // Map document types to match frontend categories
-                            const mappedType = docType === 'General' || docType === 'Ownership' || docType === 'Plate' || docType === 'Safety' || docType === 'Insurance' 
-                                ? docType 
+                            const mappedType = docType === 'General' || docType === 'Ownership' || docType === 'Plate' || docType === 'Safety' || docType === 'Insurance'
+                                ? docType
                                 : 'General';
-                            
+
                             if (mappedType in docsByType) {
                                 // Get file URL - use signed URL from backend (already signed)
                                 let fileUrl = doc.files?.[0]?.fileUrl || doc.documentLocation || null;
                                 let fileName = doc.files?.[0]?.fileName || 'Document';
-                                
+
                                 docsByType[mappedType].push({
                                     id: doc._id || `existing-${doc._id}`,
                                     _id: doc._id,
@@ -1297,7 +1297,7 @@ const TrailersPage: React.FC = () => {
                                 });
                             }
                         }
-                        
+
                         console.log('📋 Loaded documents by type:', docsByType);
                         console.log('📊 Document counts:', {
                             General: docsByType.General.length,
@@ -1329,7 +1329,7 @@ const TrailersPage: React.FC = () => {
                         Insurance: []
                     });
                 }
-                
+
                 // Load inspections from trailer response
                 console.log('📋 [FRONTEND] Loading inspections from trailer:', {
                     oneTimeInspections: trailer.oneTimeInspections?.length || 0,
@@ -1371,7 +1371,7 @@ const TrailersPage: React.FC = () => {
                 } else {
                     setRecurringInspections([]);
                 }
-                
+
                 setShowSidebar(true);
                 setActiveStep('Details');
             } else {
@@ -1388,15 +1388,15 @@ const TrailersPage: React.FC = () => {
     // Get filtered trailers
     const getFilteredTrailers = () => {
         let filtered = [...trailers];
-        
+
         // Filter by yard if a yard tab is selected (additional safety check)
         if (activeTab !== 'All' && activeTab !== 'External' && activeTab !== 'Unassigned') {
             const yardIdStr = String(activeTab).trim();
             const beforeCount = filtered.length;
             filtered = filtered.filter((trailer: any) => {
-                const trailerYardId = trailer.yard 
-                    ? (typeof trailer.yard === 'string' 
-                        ? trailer.yard 
+                const trailerYardId = trailer.yard
+                    ? (typeof trailer.yard === 'string'
+                        ? trailer.yard
                         : trailer.yard._id?.toString() || '')
                     : '';
                 const matches = trailerYardId === yardIdStr;
@@ -1520,22 +1520,22 @@ const TrailersPage: React.FC = () => {
         const sheet = workbook.addWorksheet('Trailers', { views: [{ state: 'frozen', ySplit: 1 }] });
 
         sheet.columns = [
-            { header: 'Unit Number',        key: 'unitNumber',          width: 16 },
-            { header: 'Plate Number',        key: 'plateNumber',         width: 16 },
-            { header: 'VIN Number',          key: 'vinNumber',           width: 22 },
-            { header: 'Type',                key: 'type',                width: 16 },
-            { header: 'Make',                key: 'make',                width: 14 },
-            { header: 'Model',               key: 'model',               width: 14 },
-            { header: 'Year',                key: 'year',                width: 10 },
-            { header: 'Ownership',           key: 'ownership',           width: 20 },
-            { header: 'Operating Status',    key: 'operatingStatus',     width: 18 },
-            { header: 'Loaded Status',       key: 'loadedStatus',        width: 16 },
-            { header: 'Compliance',          key: 'compliance',          width: 18 },
-            { header: 'Category',            key: 'category',            width: 14 },
-            { header: 'Reg. Country',        key: 'registrationCountry', width: 16 },
-            { header: 'Reg. Province',       key: 'registrationProvince',width: 16 },
-            { header: 'Last Drop Location',  key: 'lastDropLocation',    width: 24 },
-            { header: 'Notes',               key: 'notes',               width: 30 },
+            { header: 'Unit Number', key: 'unitNumber', width: 16 },
+            { header: 'Plate Number', key: 'plateNumber', width: 16 },
+            { header: 'VIN Number', key: 'vinNumber', width: 22 },
+            { header: 'Type', key: 'type', width: 16 },
+            { header: 'Make', key: 'make', width: 14 },
+            { header: 'Model', key: 'model', width: 14 },
+            { header: 'Year', key: 'year', width: 10 },
+            { header: 'Ownership', key: 'ownership', width: 20 },
+            { header: 'Operating Status', key: 'operatingStatus', width: 18 },
+            { header: 'Loaded Status', key: 'loadedStatus', width: 16 },
+            { header: 'Compliance', key: 'compliance', width: 18 },
+            { header: 'Category', key: 'category', width: 14 },
+            { header: 'Reg. Country', key: 'registrationCountry', width: 16 },
+            { header: 'Reg. Province', key: 'registrationProvince', width: 16 },
+            { header: 'Last Drop Location', key: 'lastDropLocation', width: 24 },
+            { header: 'Notes', key: 'notes', width: 30 },
         ];
 
         const headerRow = sheet.getRow(1);
@@ -1546,22 +1546,22 @@ const TrailersPage: React.FC = () => {
 
         filteredTrailers.forEach((t: any) => {
             const row = sheet.addRow({
-                unitNumber:           t.unitNumber || t.trailerNumber || t.trailer || '',
-                plateNumber:          t.plateNumber          || '',
-                vinNumber:            t.vinNumber            || '',
-                type:                 t.type                 || '',
-                make:                 t.make                 || '',
-                model:                t.model                || '',
-                year:                 t.year                 || '',
-                ownership:            t.ownership            || '',
-                operatingStatus:      t.operatingStatus      || '',
-                loadedStatus:         t.loadedStatus         || '',
-                compliance:           t.compliance           || '',
-                category:             t.category             || '',
-                registrationCountry:  t.registrationCountry  || '',
+                unitNumber: t.unitNumber || t.trailerNumber || t.trailer || '',
+                plateNumber: t.plateNumber || '',
+                vinNumber: t.vinNumber || '',
+                type: t.type || '',
+                make: t.make || '',
+                model: t.model || '',
+                year: t.year || '',
+                ownership: t.ownership || '',
+                operatingStatus: t.operatingStatus || '',
+                loadedStatus: t.loadedStatus || '',
+                compliance: t.compliance || '',
+                category: t.category || '',
+                registrationCountry: t.registrationCountry || '',
                 registrationProvince: t.registrationProvince || '',
-                lastDropLocation:     t.lastDropLocation      || '',
-                notes:                t.notes || t.note      || '',
+                lastDropLocation: t.lastDropLocation || '',
+                notes: t.notes || t.note || '',
             });
             row.alignment = { vertical: 'middle' };
         });
@@ -1638,7 +1638,7 @@ const TrailersPage: React.FC = () => {
 
     // Navigation helper functions for sidebar steps
     const steps: Array<'Details' | 'Inspections' | 'Documents' | 'Notes'> = ['Details', 'Inspections', 'Documents', 'Notes'];
-    
+
     const getNextStep = () => {
         const currentIndex = steps.indexOf(activeStep);
         if (currentIndex < steps.length - 1) {
@@ -1811,7 +1811,7 @@ const TrailersPage: React.FC = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="flex-1 px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                             />
-                          
+
                         </div>
 
                         {/* Global Filters */}
@@ -1858,7 +1858,7 @@ const TrailersPage: React.FC = () => {
                             </select>
                         </div>
 
-                      
+
                     </div>
                 </div>
 
@@ -2073,8 +2073,8 @@ const TrailersPage: React.FC = () => {
                                 ) : (
                                     filteredTrailers.map((trailer) => (
                                         <tr
-                                        onClick={() => handleEditTrailer(trailer._id || trailer.id || '')}
-                                        key={trailer._id || trailer.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                            onClick={() => handleEditTrailer(trailer._id || trailer.id || '')}
+                                            key={trailer._id || trailer.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                                             <td className="px-4 py-3 text-sm text-primary">{trailer.trailerNumber || trailer.trailer || trailer.unitNumber}</td>
                                             <td className="px-4 py-3 text-sm text-primary">{trailer.plateNumber}</td>
                                             <td className="px-4 py-3 text-sm text-primary">{trailer.type}</td>
@@ -2297,7 +2297,7 @@ const TrailersPage: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, registrationProvince: e.target.value })}
                                                     disabled={!formData.registrationCountry}
                                                     placeholder={formData.registrationCountry ? "Enter Province/State" : "Select country first"}
-                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent disabled:bg-card disabled:cursor-not-allowed"
                                                 />
                                             </div>
                                             <div>
@@ -2531,7 +2531,7 @@ const TrailersPage: React.FC = () => {
                                         {/* One Time Inspections */}
                                         {inspectionType === 'One Time' && (
                                             <div className="space-y-4">
-                                                <div className="flex gap-2 items-end bg-gray-100 p-4 rounded-lg">
+                                                <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                                     <div className="flex-1">
                                                         <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
                                                         <div className="relative">
@@ -2667,8 +2667,8 @@ const TrailersPage: React.FC = () => {
                                                                 </tr>
                                                             ) : (
                                                                 oneTimeInspections.map((inspection) => (
-                                                                    <tr 
-                                                                        key={inspection.id} 
+                                                                    <tr
+                                                                        key={inspection.id}
                                                                         onClick={() => handleEditInspection(inspection, 'oneTime')}
                                                                         className="border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
                                                                     >
@@ -2726,7 +2726,7 @@ const TrailersPage: React.FC = () => {
                                         {/* Recurring Inspections */}
                                         {inspectionType === 'Recurring' && (
                                             <div className="space-y-4">
-                                                <div className="flex gap-2 items-end bg-gray-100 p-4 rounded-lg">
+                                                <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                                     <div className="flex-1">
                                                         <label className="block text-sm font-medium text-primary mb-1">Scheduled On</label>
                                                         <div className="relative">
@@ -2893,8 +2893,8 @@ const TrailersPage: React.FC = () => {
                                                                 </tr>
                                                             ) : (
                                                                 recurringInspections.map((inspection) => (
-                                                                    <tr 
-                                                                        key={inspection.id} 
+                                                                    <tr
+                                                                        key={inspection.id}
                                                                         onClick={() => handleEditInspection(inspection, 'recurring')}
                                                                         className="border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
                                                                     >
@@ -2976,7 +2976,7 @@ const TrailersPage: React.FC = () => {
                                         </div>
 
                                         {/* Document Form */}
-                                        <div className="flex gap-2 items-end bg-gray-100 p-4 rounded-lg">
+                                        <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                             <div className="flex-1">
                                                 <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
                                                 <div className="relative">
@@ -3105,8 +3105,8 @@ const TrailersPage: React.FC = () => {
                                                         </tr>
                                                     ) : (
                                                         documents[documentType].map((doc) => (
-                                                            <tr 
-                                                                key={doc.id} 
+                                                            <tr
+                                                                key={doc.id}
                                                                 onClick={() => handleEditDocument(doc, documentType)}
                                                                 className="border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
                                                             >
@@ -3161,7 +3161,7 @@ const TrailersPage: React.FC = () => {
                                         <h3 className="text-base font-semibold text-primary">Notes</h3>
 
                                         {/* Note Form */}
-                                        <div className="flex gap-4 items-end bg-gray-100 p-4 rounded-lg">
+                                        <div className="flex gap-4 items-end bg-card p-4 rounded-lg">
                                             <div className="flex-1">
                                                 <label className="block text-sm font-medium text-primary mb-1">Note</label>
                                                 <input
@@ -3241,11 +3241,10 @@ const TrailersPage: React.FC = () => {
                                         <button
                                             onClick={handlePrevious}
                                             disabled={!getPreviousStep()}
-                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                                getPreviousStep()
+                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${getPreviousStep()
                                                     ? 'bg-gray-700 !text-white hover:bg-gray-800'
                                                     : 'bg-gray-200 text-secondary cursor-not-allowed'
-                                            }`}
+                                                }`}
                                         >
                                             <ChevronLeft className="w-3.5 h-3.5" />
                                             Previous
@@ -3253,11 +3252,10 @@ const TrailersPage: React.FC = () => {
                                         <button
                                             onClick={handleNext}
                                             disabled={!getNextStep()}
-                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                                getNextStep()
+                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${getNextStep()
                                                     ? 'bg-gray-700 !text-white hover:bg-gray-800'
                                                     : 'bg-gray-200 text-secondary cursor-not-allowed'
-                                            }`}
+                                                }`}
                                         >
                                             Next
                                             <ChevronRight className="w-3.5 h-3.5" />

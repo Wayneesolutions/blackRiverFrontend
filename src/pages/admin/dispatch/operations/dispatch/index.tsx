@@ -134,8 +134,8 @@ const Index = () => {
               // Find first pickup waypoint
               const pickupWaypoint = load.route.wayPoints.find((wp: any) => wp.pickup);
               if (pickupWaypoint) {
-                const address = typeof pickupWaypoint.address === 'string' 
-                  ? pickupWaypoint.address 
+                const address = typeof pickupWaypoint.address === 'string'
+                  ? pickupWaypoint.address
                   : pickupWaypoint.address?.place || '';
                 const parts = address.split(',').map((p: string) => p.trim());
                 shipperCity = parts[0] || '';
@@ -155,8 +155,8 @@ const Index = () => {
               const dropoffWaypoints = load.route.wayPoints.filter((wp: any) => wp.dropOff);
               if (dropoffWaypoints.length > 0) {
                 const lastDropoff = dropoffWaypoints[dropoffWaypoints.length - 1];
-                const address = typeof lastDropoff.address === 'string' 
-                  ? lastDropoff.address 
+                const address = typeof lastDropoff.address === 'string'
+                  ? lastDropoff.address
                   : lastDropoff.address?.place || '';
                 const parts = address.split(',').map((p: string) => p.trim());
                 receiverCity = parts[0] || '';
@@ -204,13 +204,13 @@ const Index = () => {
       setEmptyStateMessage('Failed to fetch loads: ' + (error as any)?.message);
       setLoads([]);
     } finally {
-    setLoading(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchLoads();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userInfo?.company]);
 
   const handleLoadAdded = () => {
@@ -225,7 +225,7 @@ const Index = () => {
 
   const getStatusBadge = (status: Load['status']) => {
     const statusConfig = {
-      available: { bg: 'bg-gray-100', text: 'text-primary', label: 'Available' },
+      available: { bg: 'bg-card', text: 'text-primary', label: 'Available' },
       planned: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Planned' },
       dispatched: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Dispatched' },
       'in-delivery': { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'In Delivery' },
@@ -375,9 +375,9 @@ const Index = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex flex-col">
-                      <span className="text-green-600 font-bold">
-                        {formatCurrency(load.amount || load.rate || 0)}
-                      </span>
+                        <span className="text-green-600 font-bold">
+                          {formatCurrency(load.amount || load.rate || 0)}
+                        </span>
                         {load.rate && load.rate !== load.amount && (
                           <span className="text-xs text-secondary">Rate: {formatCurrency(load.rate)}</span>
                         )}
@@ -442,8 +442,8 @@ const Index = () => {
                           <div className="text-xs space-y-0.5">
                             {load.route.wayPoints && load.route.wayPoints.length > 0 ? (
                               load.route.wayPoints.map((wp: any, idx: number) => {
-                                const address = typeof wp.address === 'string' 
-                                  ? wp.address 
+                                const address = typeof wp.address === 'string'
+                                  ? wp.address
                                   : wp.address?.place || 'N/A';
                                 const addressParts = address.split(',');
                                 const cityName = addressParts[0]?.trim() || address;
@@ -525,12 +525,12 @@ const Index = () => {
                   <p className="font-semibold text-green-600 text-lg">
                     {formatCurrency(selectedLoad.amount || selectedLoad.details?.amount || selectedLoad.rate || selectedLoad.details?.rate || 0)}
                   </p>
-                  {(selectedLoad.rate || selectedLoad.details?.rate) && 
-                   (selectedLoad.rate !== selectedLoad.amount || selectedLoad.details?.rate !== selectedLoad.details?.amount) && (
-                    <p className="text-xs text-secondary mt-1">
-                      Rate: {formatCurrency(selectedLoad.rate || selectedLoad.details?.rate || 0)}
-                    </p>
-                  )}
+                  {(selectedLoad.rate || selectedLoad.details?.rate) &&
+                    (selectedLoad.rate !== selectedLoad.amount || selectedLoad.details?.rate !== selectedLoad.details?.amount) && (
+                      <p className="text-xs text-secondary mt-1">
+                        Rate: {formatCurrency(selectedLoad.rate || selectedLoad.details?.rate || 0)}
+                      </p>
+                    )}
                 </div>
               </div>
 
@@ -574,7 +574,7 @@ const Index = () => {
                     <p className="font-medium text-primary">{selectedLoad.receiveTime || 'N/A'}</p>
                   </div>
                 </div>
-                
+
                 {/* Receiver Information */}
                 {(selectedLoad.receiver || selectedLoad.details?.receiver) && (
                   <div className="mt-4 bg-card rounded-lg p-4 border border-blue-200">
@@ -664,7 +664,7 @@ const Index = () => {
                               </p>
                               {waypoint.customer && (
                                 <p className="text-xs text-secondary mt-1">
-                                  Customer: {typeof waypoint.customer === 'object' 
+                                  Customer: {typeof waypoint.customer === 'object'
                                     ? waypoint.customer.name || waypoint.customer._id || 'N/A'
                                     : waypoint.customer}
                                 </p>
@@ -719,7 +719,7 @@ const Index = () => {
                     {!selectedLoad.route?.selectPickup && !selectedLoad.route?.selectDropOff && (
                       <p className="text-sm text-secondary">No route information available</p>
                     )}
-                </div>
+                  </div>
                 )}
               </div>
             </div>

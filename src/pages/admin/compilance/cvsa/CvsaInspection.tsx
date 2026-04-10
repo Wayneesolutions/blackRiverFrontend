@@ -379,8 +379,8 @@ const CvsaInspection: React.FC = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -482,7 +482,7 @@ const CvsaInspection: React.FC = () => {
       case 'out-of-service':
         return 'bg-red-200 text-red-900 border-red-300';
       default:
-        return 'bg-gray-100 text-primary border-theme';
+        return 'bg-card text-primary border-theme';
     }
   };
 
@@ -530,13 +530,13 @@ const CvsaInspection: React.FC = () => {
       driverLicenseNumber: '',
       carrierUSDOTNumber: '',
       carrierMotorCarrierNumber: '',
-    timeOfInspection: '',
-    documentLink: '',
-    documents: [] as File[],
-    outOfServiceIssued: false,
-    outOfServiceReleaseDate: '',
-    defectRepairNeeded: false
-  });
+      timeOfInspection: '',
+      documentLink: '',
+      documents: [] as File[],
+      outOfServiceIssued: false,
+      outOfServiceReleaseDate: '',
+      defectRepairNeeded: false
+    });
   };
 
   const handleAddInspection = () => {
@@ -643,7 +643,7 @@ const CvsaInspection: React.FC = () => {
     try {
       // Create FormData for file uploads
       const formData = new FormData();
-      
+
       // Add text fields
       formData.append('country', inspectionForm.country || '');
       if (inspectionForm.date) formData.append('date', inspectionForm.date);
@@ -671,7 +671,7 @@ const CvsaInspection: React.FC = () => {
       formData.append('outOfServiceIssued', String(inspectionForm.outOfServiceIssued || false));
       if (inspectionForm.outOfServiceReleaseDate) formData.append('outOfServiceReleaseDate', inspectionForm.outOfServiceReleaseDate);
       formData.append('defectRepairNeeded', String(inspectionForm.defectRepairNeeded || false));
-      
+
       // Add multiple files
       if (inspectionForm.documents && Array.isArray(inspectionForm.documents) && inspectionForm.documents.length > 0) {
         inspectionForm.documents.forEach((file) => {
@@ -714,7 +714,7 @@ const CvsaInspection: React.FC = () => {
     try {
       // Create FormData for file uploads
       const formData = new FormData();
-      
+
       // Add text fields
       formData.append('country', inspectionForm.country || '');
       if (inspectionForm.date) formData.append('date', inspectionForm.date);
@@ -742,7 +742,7 @@ const CvsaInspection: React.FC = () => {
       formData.append('outOfServiceIssued', String(inspectionForm.outOfServiceIssued || false));
       if (inspectionForm.outOfServiceReleaseDate) formData.append('outOfServiceReleaseDate', inspectionForm.outOfServiceReleaseDate);
       formData.append('defectRepairNeeded', String(inspectionForm.defectRepairNeeded || false));
-      
+
       // Add multiple files
       if (inspectionForm.documents && Array.isArray(inspectionForm.documents) && inspectionForm.documents.length > 0) {
         inspectionForm.documents.forEach((file) => {
@@ -1085,10 +1085,10 @@ const CvsaInspection: React.FC = () => {
               `}</style>
               <div className="relative">
                 {/* Top Scrollbar - Only visible horizontal scrollbar */}
-                <div 
+                <div
                   ref={topScrollRef}
                   className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-                  style={{ 
+                  style={{
                     maxHeight: '20px',
                     marginBottom: '2px',
                     scrollbarWidth: 'thin',
@@ -1098,226 +1098,226 @@ const CvsaInspection: React.FC = () => {
                   <div className="top-scroll-content" style={{ height: '1px' }}></div>
                 </div>
                 {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-                <div 
+                <div
                   ref={bottomScrollRef}
                   className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
                 >
                   <table className="w-full min-w-[1200px]">
-                  <thead className="bg-card">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky left-0 bg-card z-10">
-                        Inspection ID
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Date
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Location
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Country
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Vehicle
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Driver
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Inspector
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Report #
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Level
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Jurisdiction
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        USDOT #
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        OOS Issued
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Violations
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky right-0 bg-card z-10">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-card divide-y divide-theme">
-                    {filteredInspections.map((inspection) => (
-                      <tr 
-                        key={inspection._id} 
-                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
-                        onClick={() => handleViewInspection(inspection)}
-                      >
-                        <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-card z-10">
-                          <div className="text-sm font-medium text-primary">
-                            {inspection.inspectionId || 'N/A'}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">
-                            <div className="flex items-center gap-1">
-                              <FaCalendarAlt className="text-secondary" size={12} />
-                              {inspection.date ? formatDate(inspection.date) : 'N/A'}
-                            </div>
-                            {inspection.timeOfInspection && (
-                              <div className="text-xs text-secondary mt-1">
-                                {inspection.timeOfInspection}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-primary max-w-[200px] truncate" title={inspection.location || 'N/A'}>
-                            <div className="flex items-center gap-1">
-                              <FaMapMarkerAlt className="text-secondary flex-shrink-0" size={12} />
-                              {inspection.location || 'N/A'}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary uppercase">
-                            {inspection.country === 'canada' ? (
-                              <span className="flex items-center gap-1">
-                                <FaFlag className="text-[#A855F7]" size={14} />
-                                CA
-                              </span>
-                            ) : (
-                              <span className="flex items-center gap-1">
-                                <FaFlagUsa className="text-[#00D1FF]" size={14} />
-                                USA
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-primary max-w-[180px]">
-                            <div className="font-medium truncate" title={getVehicleInfo(inspection.vehicle)}>
-                              {getVehicleInfo(inspection.vehicle) || 'N/A'}
-                            </div>
-                            {typeof inspection.vehicle === 'object' && inspection.vehicle?.internalId && (
-                              <div className="text-xs text-secondary">
-                                ID: {inspection.vehicle.internalId}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-primary max-w-[150px]">
-                            <div className="truncate" title={getDriverName(inspection.driver)}>
-                              {getDriverName(inspection.driver) || 'N/A'}
-                            </div>
-                            {inspection.driverLicenseNumber && (
-                              <div className="text-xs text-secondary">
-                                DL: {inspection.driverLicenseNumber}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            {getStatusIcon(inspection.status)}
-                            <span className={`text-xs px-2 py-1 rounded-full font-medium border ${getStatusBadgeColor(inspection.status)}`}>
-                              {inspection.status.replace('-', ' ').toUpperCase()}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-primary max-w-[150px] truncate" title={inspection.inspectorName || 'N/A'}>
-                            {inspection.inspectorName || 'N/A'}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">
-                            {inspection.reportNumber || 'N/A'}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-primary">
-                            {inspection.inspectionLevel ? `Level ${inspection.inspectionLevel}` : 'N/A'}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">
-                            {inspection.jurisdiction || 'N/A'}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">
-                            {inspection.carrierUSDOTNumber || 'N/A'}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm">
-                            {inspection.outOfServiceIssued ? (
-                              <span className="text-[#A855F7] font-medium">Yes</span>
-                            ) : (
-                              <span className="text-secondary">No</span>
-                            )}
-                            {inspection.outOfServiceReleaseDate && (
-                              <div className="text-xs text-secondary mt-1">
-                                Released: {formatDate(inspection.outOfServiceReleaseDate)}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-primary">
-                            {inspection.violations && inspection.violations.length > 0 ? (
-                              <div className="flex flex-col gap-1">
-                                <span className="text-[#A855F7] font-medium">{inspection.violations.length} violation(s)</span>
-                                {inspection.violations.slice(0, 2).map((v, idx) => (
-                                  <span key={idx} className="text-xs text-secondary truncate max-w-[150px]" title={v.description}>
-                                    {v.code}: {v.description}
-                                  </span>
-                                ))}
-                                {inspection.violations.length > 2 && (
-                                  <span className="text-xs text-secondary">+{inspection.violations.length - 2} more</span>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-secondary">None</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-card z-10" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleViewInspection(inspection)}
-                              className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
-                              title="View Details"
-                            >
-                              <FaEye size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleEditInspection(inspection)}
-                              className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
-                              title="Edit Inspection"
-                            >
-                              <FaEdit size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteInspection(inspection)}
-                              className="text-[#A855F7] hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete Inspection"
-                            >
-                              <FaTrash size={16} />
-                            </button>
-                          </div>
-                        </td>
+                    <thead className="bg-card">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky left-0 bg-card z-10">
+                          Inspection ID
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Location
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Country
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Vehicle
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Driver
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Inspector
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Report #
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Level
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Jurisdiction
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          USDOT #
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          OOS Issued
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                          Violations
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky right-0 bg-card z-10">
+                          Actions
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
+                    </thead>
+                    <tbody className="bg-card divide-y divide-theme">
+                      {filteredInspections.map((inspection) => (
+                        <tr
+                          key={inspection._id}
+                          className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
+                          onClick={() => handleViewInspection(inspection)}
+                        >
+                          <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-card z-10">
+                            <div className="text-sm font-medium text-primary">
+                              {inspection.inspectionId || 'N/A'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">
+                              <div className="flex items-center gap-1">
+                                <FaCalendarAlt className="text-secondary" size={12} />
+                                {inspection.date ? formatDate(inspection.date) : 'N/A'}
+                              </div>
+                              {inspection.timeOfInspection && (
+                                <div className="text-xs text-secondary mt-1">
+                                  {inspection.timeOfInspection}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm text-primary max-w-[200px] truncate" title={inspection.location || 'N/A'}>
+                              <div className="flex items-center gap-1">
+                                <FaMapMarkerAlt className="text-secondary flex-shrink-0" size={12} />
+                                {inspection.location || 'N/A'}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary uppercase">
+                              {inspection.country === 'canada' ? (
+                                <span className="flex items-center gap-1">
+                                  <FaFlag className="text-[#A855F7]" size={14} />
+                                  CA
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1">
+                                  <FaFlagUsa className="text-[#00D1FF]" size={14} />
+                                  USA
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm text-primary max-w-[180px]">
+                              <div className="font-medium truncate" title={getVehicleInfo(inspection.vehicle)}>
+                                {getVehicleInfo(inspection.vehicle) || 'N/A'}
+                              </div>
+                              {typeof inspection.vehicle === 'object' && inspection.vehicle?.internalId && (
+                                <div className="text-xs text-secondary">
+                                  ID: {inspection.vehicle.internalId}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm text-primary max-w-[150px]">
+                              <div className="truncate" title={getDriverName(inspection.driver)}>
+                                {getDriverName(inspection.driver) || 'N/A'}
+                              </div>
+                              {inspection.driverLicenseNumber && (
+                                <div className="text-xs text-secondary">
+                                  DL: {inspection.driverLicenseNumber}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              {getStatusIcon(inspection.status)}
+                              <span className={`text-xs px-2 py-1 rounded-full font-medium border ${getStatusBadgeColor(inspection.status)}`}>
+                                {inspection.status.replace('-', ' ').toUpperCase()}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm text-primary max-w-[150px] truncate" title={inspection.inspectorName || 'N/A'}>
+                              {inspection.inspectorName || 'N/A'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">
+                              {inspection.reportNumber || 'N/A'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm font-medium text-primary">
+                              {inspection.inspectionLevel ? `Level ${inspection.inspectionLevel}` : 'N/A'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">
+                              {inspection.jurisdiction || 'N/A'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">
+                              {inspection.carrierUSDOTNumber || 'N/A'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm">
+                              {inspection.outOfServiceIssued ? (
+                                <span className="text-[#A855F7] font-medium">Yes</span>
+                              ) : (
+                                <span className="text-secondary">No</span>
+                              )}
+                              {inspection.outOfServiceReleaseDate && (
+                                <div className="text-xs text-secondary mt-1">
+                                  Released: {formatDate(inspection.outOfServiceReleaseDate)}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm text-primary">
+                              {inspection.violations && inspection.violations.length > 0 ? (
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[#A855F7] font-medium">{inspection.violations.length} violation(s)</span>
+                                  {inspection.violations.slice(0, 2).map((v, idx) => (
+                                    <span key={idx} className="text-xs text-secondary truncate max-w-[150px]" title={v.description}>
+                                      {v.code}: {v.description}
+                                    </span>
+                                  ))}
+                                  {inspection.violations.length > 2 && (
+                                    <span className="text-xs text-secondary">+{inspection.violations.length - 2} more</span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-secondary">None</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium sticky right-0 bg-card z-10" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleViewInspection(inspection)}
+                                className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
+                                title="View Details"
+                              >
+                                <FaEye size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleEditInspection(inspection)}
+                                className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
+                                title="Edit Inspection"
+                              >
+                                <FaEdit size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteInspection(inspection)}
+                                className="text-[#A855F7] hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Delete Inspection"
+                              >
+                                <FaTrash size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
                   </table>
                 </div>
               </div>
@@ -1335,7 +1335,7 @@ const CvsaInspection: React.FC = () => {
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
                       className={`px-3 py-2 rounded-lg border ${currentPage === 1
-                        ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
+                        ? 'bg-card text-secondary cursor-not-allowed border-theme'
                         : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                         }`}
                     >
@@ -1374,7 +1374,7 @@ const CvsaInspection: React.FC = () => {
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
                       className={`px-3 py-2 rounded-lg border ${currentPage === totalPages
-                        ? 'bg-gray-100 text-secondary cursor-not-allowed border-theme'
+                        ? 'bg-card text-secondary cursor-not-allowed border-theme'
                         : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border-theme'
                         }`}
                     >
@@ -1625,7 +1625,7 @@ const CvsaInspection: React.FC = () => {
                       {selectedInspection.violations.map((violation) => (
                         <div key={violation._id} className="bg-card rounded p-2 border border-red-200">
                           <div className="flex items-start gap-2">
-                            <span className="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                            <span className="font-mono text-xs bg-card px-1.5 py-0.5 rounded">
                               {violation.code}
                             </span>
                             <span className={`text-xs font-semibold ${getSeverityColor(violation.severity)}`}>
@@ -1704,15 +1704,15 @@ const CvsaInspection: React.FC = () => {
                           placeholder="Enter inspection location"
                           value={inspectionForm.location}
                           onAddressSelect={(address) => {
-                            setInspectionForm(prev => ({ 
-                              ...prev, 
-                              location: address.fullAddress 
+                            setInspectionForm(prev => ({
+                              ...prev,
+                              location: address.fullAddress
                             }));
                           }}
                           onChange={(value) => {
-                            setInspectionForm(prev => ({ 
-                              ...prev, 
-                              location: value 
+                            setInspectionForm(prev => ({
+                              ...prev,
+                              location: value
                             }));
                           }}
                           className="w-full"
@@ -1924,8 +1924,8 @@ const CvsaInspection: React.FC = () => {
                           onChange={(e) => {
                             const files = Array.from(e.target.files || []);
                             if (files.length > 0) {
-                              setInspectionForm(prev => ({ 
-                                ...prev, 
+                              setInspectionForm(prev => ({
+                                ...prev,
                                 documents: [...(prev.documents || []), ...files] as File[]
                               }));
                             }
@@ -2203,8 +2203,8 @@ const CvsaInspection: React.FC = () => {
                           onChange={(e) => {
                             const files = Array.from(e.target.files || []);
                             if (files.length > 0) {
-                              setInspectionForm(prev => ({ 
-                                ...prev, 
+                              setInspectionForm(prev => ({
+                                ...prev,
                                 documents: [...(prev.documents || []), ...files] as File[]
                               }));
                             }
@@ -2268,7 +2268,7 @@ const CvsaInspection: React.FC = () => {
                 </div>
                 <p className="text-secondary mb-6">Are you sure you want to delete inspection <span className="font-semibold">{inspectionToDelete.inspectionId}</span>? This action cannot be undone.</p>
                 <div className="flex justify-end gap-3">
-                  <button onClick={() => { setShowDeleteModal(false); setInspectionToDelete(null); }} className="px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 font-medium transition-colors" disabled={loading}>Cancel</button>
+                  <button onClick={() => { setShowDeleteModal(false); setInspectionToDelete(null); }} className="px-4 py-2 bg-card text-primary rounded-lg hover:bg-gray-200 font-medium transition-colors" disabled={loading}>Cancel</button>
                   <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-60" disabled={loading}>
                     {loading ? 'Deleting...' : 'Delete'}
                   </button>

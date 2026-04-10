@@ -94,7 +94,7 @@ const Toast: React.FC<{ notification: NotificationState; onClose: () => void }> 
 
 const getExpiryStatus = (expiry?: string) => {
   if (!expiry) {
-    return { status: 'unknown', color: 'bg-gray-100 text-secondary', text: 'Not Set' };
+    return { status: 'unknown', color: 'bg-card text-secondary', text: 'Not Set' };
   }
   const today = new Date();
   const expiryDate = new Date(expiry);
@@ -135,7 +135,7 @@ const RegulatorySafety: React.FC = () => {
   const [notification, setNotification] = useState<NotificationState | null>(null);
   const [requiresCompanySetup, setRequiresCompanySetup] = useState(false);
   const [exporting, setExporting] = useState(false);
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -156,14 +156,14 @@ const RegulatorySafety: React.FC = () => {
       // Fetch vehicles (trucks)
       const vehiclesResponse = await getAllVehicles(1, 1000);
       const vehicles = vehiclesResponse?.success && vehiclesResponse?.data ? vehiclesResponse.data : [];
-      
+
       // Fetch trailers
       const trailersResponse = await getAllTrailers(1, 1000);
       const trailers = trailersResponse?.success && trailersResponse?.data ? trailersResponse.data : [];
-      
+
       // Combine vehicles and trailers
       const allUnits: UnitOption[] = [];
-      
+
       // Map vehicles
       vehicles.forEach((vehicle: any) => {
         allUnits.push({
@@ -176,7 +176,7 @@ const RegulatorySafety: React.FC = () => {
           referenceId: vehicle._id
         });
       });
-      
+
       // Map trailers
       trailers.forEach((trailer: any) => {
         allUnits.push({
@@ -189,7 +189,7 @@ const RegulatorySafety: React.FC = () => {
           referenceId: trailer._id
         });
       });
-      
+
       setUnits(allUnits);
     } catch (err) {
       console.error('Failed to load units', err);
@@ -274,8 +274,8 @@ const RegulatorySafety: React.FC = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -295,7 +295,7 @@ const RegulatorySafety: React.FC = () => {
       bottomScroll.removeEventListener('scroll', handleBottomScroll);
       window.removeEventListener('resize', syncScrollWidths);
     };
-    }, [records, searchTerm]);
+  }, [records, searchTerm]);
 
 
   const filteredRecords = useMemo(() => {
@@ -595,10 +595,10 @@ const RegulatorySafety: React.FC = () => {
                 display: none; /* Chrome, Safari, Opera */
               }
             `}</style>
-            <div 
+            <div
               ref={topScrollRef}
               className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-              style={{ 
+              style={{
                 maxHeight: '20px',
                 marginBottom: '2px',
                 scrollbarWidth: 'thin',
@@ -608,7 +608,7 @@ const RegulatorySafety: React.FC = () => {
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
             </div>
             {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-            <div 
+            <div
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >

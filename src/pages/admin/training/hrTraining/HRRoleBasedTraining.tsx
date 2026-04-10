@@ -70,7 +70,7 @@ const HRRoleBasedTraining: React.FC = () => {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   // Q&A Modal states
   const [qaTitle, setQATitle] = useState('');
   const [qaDescription, setQADescription] = useState('');
@@ -97,7 +97,7 @@ const HRRoleBasedTraining: React.FC = () => {
       if (contentResponse?.success && Array.isArray(contentResponse.data)) {
         setTrainingContent((prev) => ({
           ...prev,
-          [role]: contentResponse.data.filter((item: TrainingContent) => 
+          [role]: contentResponse.data.filter((item: TrainingContent) =>
             !item.assignedRoles || item.assignedRoles.length === 0 || item.assignedRoles.includes(role)
           )
         }));
@@ -108,7 +108,7 @@ const HRRoleBasedTraining: React.FC = () => {
       if (qaResponse?.success && Array.isArray(qaResponse.data)) {
         setQAContent((prev) => ({
           ...prev,
-          [role]: qaResponse.data.filter((item: QAItem) => 
+          [role]: qaResponse.data.filter((item: QAItem) =>
             !item.assignedRoles || item.assignedRoles.length === 0 || item.assignedRoles.includes(role)
           )
         }));
@@ -189,7 +189,7 @@ const HRRoleBasedTraining: React.FC = () => {
       alert('Please fill in the question and all options');
       return;
     }
-    
+
     setQAQuestions((prev) => [
       ...prev,
       {
@@ -198,7 +198,7 @@ const HRRoleBasedTraining: React.FC = () => {
         correctAnswer: currentQCorrectAnswer,
       }
     ]);
-    
+
     setCurrentQQuestion('');
     setCurrentQOptions(['', '', '', '']);
     setCurrentQCorrectAnswer(0);
@@ -308,11 +308,10 @@ const HRRoleBasedTraining: React.FC = () => {
                   <button
                     key={role.value}
                     onClick={() => setActiveRole(role.value)}
-                    className={`w-full text-left px-4 py-3 rounded-lg mb-1 transition-colors ${
-                      activeRole === role.value
+                    className={`w-full text-left px-4 py-3 rounded-lg mb-1 transition-colors ${activeRole === role.value
                         ? "bg-[rgba(0,209,255,0.15)] !text-white"
                         : "text-primary hover:bg-[rgba(255,255,255,0.03)]"
-                    }`}
+                      }`}
                   >
                     {role.label}
                   </button>
@@ -323,179 +322,179 @@ const HRRoleBasedTraining: React.FC = () => {
 
           {/* Tab Content */}
           <div className="flex-1 space-y-6">
-          {roles.map((role) => (
-            <div
-              key={role.value}
-              className={activeRole === role.value ? 'block' : 'hidden'}
-            >
-              {loading ? (
-                <div className="text-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-[rgba(0,209,255,0.15)] mx-auto mb-4" />
-                  <p className="text-secondary">Loading...</p>
-                </div>
-              ) : (
-                <>
-              {/* Training Materials Section */}
-              <div className="bg-card rounded-lg shadow-sm mb-6">
-                <div className="p-6 border-b border-theme">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-semibold text-primary">Training Materials</h2>
-                      <p className="text-sm text-secondary mt-1">
-                        Upload videos, PDFs, and images for {role.label} training
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setShowUploadModal(true);
-                        setUploadType('VIDEO');
-                        setUploadTitle('');
-                        setUploadDescription('');
-                        setUploadFile(null);
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Upload Content
-                    </button>
+            {roles.map((role) => (
+              <div
+                key={role.value}
+                className={activeRole === role.value ? 'block' : 'hidden'}
+              >
+                {loading ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-[rgba(0,209,255,0.15)] mx-auto mb-4" />
+                    <p className="text-secondary">Loading...</p>
                   </div>
-                </div>
-                <div className="p-6">
-                  {trainingContent[role.value]?.length === 0 ? (
-                    <div className="text-center py-12 text-secondary">
-                      <Upload className="w-12 h-12 mx-auto mb-4 text-secondary" />
-                      <p>No training materials uploaded yet</p>
-                      <p className="text-sm">Click "Upload Content" to add materials</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {trainingContent[role.value].map((item) => (
-                        <div key={item._id} className="bg-card rounded-lg p-4 border border-theme relative">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2 flex-1">
-                              <div className="text-[rgba(0,209,255,0.15)]">{getIcon(item.type)}</div>
-                              <h3 className="font-semibold text-primary">{item.name}</h3>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={() => handleViewContent(item)}
-                                className="text-[#00D1FF] hover:text-blue-700 p-1"
-                                title="View"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteContent(item._id)}
-                                className="text-[#A855F7] hover:text-red-700 p-1"
-                                title="Delete"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
+                ) : (
+                  <>
+                    {/* Training Materials Section */}
+                    <div className="bg-card rounded-lg shadow-sm mb-6">
+                      <div className="p-6 border-b border-theme">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h2 className="text-xl font-semibold text-primary">Training Materials</h2>
+                            <p className="text-sm text-secondary mt-1">
+                              Upload videos, PDFs, and images for {role.label} training
+                            </p>
                           </div>
-                          {item.description && (
-                            <p className="text-sm text-secondary mt-2 mb-3">{item.description}</p>
-                          )}
-                          <div className="flex items-center justify-between text-sm text-secondary mt-3">
-                            <span className="capitalize bg-gray-200 px-2 py-1 rounded">{getTypeLabel(item.type)}</span>
-                            <span>
-                              {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
-                            </span>
-                          </div>
+                          <button
+                            onClick={() => {
+                              setShowUploadModal(true);
+                              setUploadType('VIDEO');
+                              setUploadTitle('');
+                              setUploadDescription('');
+                              setUploadFile(null);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Upload Content
+                          </button>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Q&A Section */}
-              <div className="bg-card rounded-lg shadow-sm mt-6">
-                <div className="p-6 border-b border-theme">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-semibold text-primary">Q&A Content</h2>
-                      <p className="text-sm text-secondary mt-1">
-                        Manage questions and answers for {role.label} training
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setShowQAModal(true);
-                        setQATitle('');
-                        setQADescription('');
-                        setQAQuestions([]);
-                        setCurrentQQuestion('');
-                        setCurrentQOptions(['', '', '', '']);
-                        setCurrentQCorrectAnswer(0);
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Q&A
-                    </button>
-                  </div>
-                </div>
-                <div className="p-6">
-                  {qaContent[role.value]?.length === 0 ? (
-                    <div className="text-center py-12 text-secondary">
-                      <MessageSquare className="w-12 h-12 mx-auto mb-4 text-secondary" />
-                      <p>No Q&A content added yet</p>
-                      <p className="text-sm">Click "Add Q&A" to create questions and answers</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {qaContent[role.value].map((item) => (
-                        <div key={item._id} className="bg-card rounded-lg p-4 border border-theme relative">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-primary mb-1">{item.testName}</h3>
-                              <div className="flex items-center gap-4 text-sm text-secondary mb-3">
-                                <span>Passing: {item.passingPercentage}%</span>
-                                <span>Questions: {item.questions.length}</span>
-                                {item.mandatory && <span className="text-[#A855F7]">Mandatory</span>}
+                      </div>
+                      <div className="p-6">
+                        {trainingContent[role.value]?.length === 0 ? (
+                          <div className="text-center py-12 text-secondary">
+                            <Upload className="w-12 h-12 mx-auto mb-4 text-secondary" />
+                            <p>No training materials uploaded yet</p>
+                            <p className="text-sm">Click "Upload Content" to add materials</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {trainingContent[role.value].map((item) => (
+                              <div key={item._id} className="bg-card rounded-lg p-4 border border-theme relative">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <div className="text-[rgba(0,209,255,0.15)]">{getIcon(item.type)}</div>
+                                    <h3 className="font-semibold text-primary">{item.name}</h3>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      onClick={() => handleViewContent(item)}
+                                      className="text-[#00D1FF] hover:text-blue-700 p-1"
+                                      title="View"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteContent(item._id)}
+                                      className="text-[#A855F7] hover:text-red-700 p-1"
+                                      title="Delete"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                                {item.description && (
+                                  <p className="text-sm text-secondary mt-2 mb-3">{item.description}</p>
+                                )}
+                                <div className="flex items-center justify-between text-sm text-secondary mt-3">
+                                  <span className="capitalize bg-gray-200 px-2 py-1 rounded">{getTypeLabel(item.type)}</span>
+                                  <span>
+                                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
+                                  </span>
+                                </div>
                               </div>
-                              <div className="space-y-3 mt-3">
-                                {item.questions.map((q, idx) => (
-                                  <div key={idx} className="bg-card rounded p-3 border border-theme">
-                                    <p className="font-medium text-primary mb-2">Q{idx + 1}: {q.question}</p>
-                                    <div className="space-y-1">
-                                      {q.options.map((option, optIdx) => (
-                                        <div key={optIdx} className="flex items-center gap-2">
-                                          <input
-                                            type="radio"
-                                            checked={q.correctAnswer === optIdx}
-                                            readOnly
-                                            className="w-4 h-4"
-                                          />
-                                          <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-green-600 font-medium' : 'text-secondary'}`}>
-                                            {String.fromCharCode(65 + optIdx)}. {option}
-                                            {q.correctAnswer === optIdx && ' ✓'}
-                                          </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Q&A Section */}
+                    <div className="bg-card rounded-lg shadow-sm mt-6">
+                      <div className="p-6 border-b border-theme">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h2 className="text-xl font-semibold text-primary">Q&A Content</h2>
+                            <p className="text-sm text-secondary mt-1">
+                              Manage questions and answers for {role.label} training
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setShowQAModal(true);
+                              setQATitle('');
+                              setQADescription('');
+                              setQAQuestions([]);
+                              setCurrentQQuestion('');
+                              setCurrentQOptions(['', '', '', '']);
+                              setCurrentQCorrectAnswer(0);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Add Q&A
+                          </button>
+                        </div>
+                      </div>
+                      <div className="p-6">
+                        {qaContent[role.value]?.length === 0 ? (
+                          <div className="text-center py-12 text-secondary">
+                            <MessageSquare className="w-12 h-12 mx-auto mb-4 text-secondary" />
+                            <p>No Q&A content added yet</p>
+                            <p className="text-sm">Click "Add Q&A" to create questions and answers</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {qaContent[role.value].map((item) => (
+                              <div key={item._id} className="bg-card rounded-lg p-4 border border-theme relative">
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex-1">
+                                    <h3 className="font-semibold text-primary mb-1">{item.testName}</h3>
+                                    <div className="flex items-center gap-4 text-sm text-secondary mb-3">
+                                      <span>Passing: {item.passingPercentage}%</span>
+                                      <span>Questions: {item.questions.length}</span>
+                                      {item.mandatory && <span className="text-[#A855F7]">Mandatory</span>}
+                                    </div>
+                                    <div className="space-y-3 mt-3">
+                                      {item.questions.map((q, idx) => (
+                                        <div key={idx} className="bg-card rounded p-3 border border-theme">
+                                          <p className="font-medium text-primary mb-2">Q{idx + 1}: {q.question}</p>
+                                          <div className="space-y-1">
+                                            {q.options.map((option, optIdx) => (
+                                              <div key={optIdx} className="flex items-center gap-2">
+                                                <input
+                                                  type="radio"
+                                                  checked={q.correctAnswer === optIdx}
+                                                  readOnly
+                                                  className="w-4 h-4"
+                                                />
+                                                <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-green-600 font-medium' : 'text-secondary'}`}>
+                                                  {String.fromCharCode(65 + optIdx)}. {option}
+                                                  {q.correctAnswer === optIdx && ' ✓'}
+                                                </span>
+                                              </div>
+                                            ))}
+                                          </div>
                                         </div>
                                       ))}
                                     </div>
                                   </div>
-                                ))}
+                                  <button
+                                    onClick={() => handleDeleteQA(item._id)}
+                                    className="text-[#A855F7] hover:text-red-700 p-1 ml-4"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                            <button
-                              onClick={() => handleDeleteQA(item._id)}
-                              className="text-[#A855F7] hover:text-red-700 p-1 ml-4"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            ))}
                           </div>
-                        </div>
-                      ))}
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
+                  </>
+                )}
               </div>
-                </>
-              )}
-            </div>
-          ))}
+            ))}
           </div>
         </div>
       </div>
@@ -525,11 +524,10 @@ const HRRoleBasedTraining: React.FC = () => {
                     type="button"
                     onClick={() => setUploadType('VIDEO')}
                     disabled={uploading}
-                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'VIDEO'
+                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${uploadType === 'VIDEO'
                         ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
                         : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
-                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Video className="w-4 h-4 inline mr-2" />
                     Video
@@ -538,11 +536,10 @@ const HRRoleBasedTraining: React.FC = () => {
                     type="button"
                     onClick={() => setUploadType('PDF')}
                     disabled={uploading}
-                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'PDF'
+                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${uploadType === 'PDF'
                         ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
                         : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
-                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <FileText className="w-4 h-4 inline mr-2" />
                     PDF
@@ -551,11 +548,10 @@ const HRRoleBasedTraining: React.FC = () => {
                     type="button"
                     onClick={() => setUploadType('IMAGE')}
                     disabled={uploading}
-                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'IMAGE'
+                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${uploadType === 'IMAGE'
                         ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
                         : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
-                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Image className="w-4 h-4 inline mr-2" />
                     Image
@@ -790,7 +786,7 @@ const HRRoleBasedTraining: React.FC = () => {
                     type="button"
                     onClick={handleAddQuestionToQA}
                     disabled={creatingQA || !currentQQuestion.trim() || currentQOptions.filter(opt => opt.trim()).length < 2}
-                    className="w-full px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full px-4 py-2 bg-card text-primary rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add Question

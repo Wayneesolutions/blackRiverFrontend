@@ -593,7 +593,7 @@ const FleetMaintenanceCustomers = () => {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-100 text-secondary uppercase text-xs font-semibold">
+              <thead className="bg-card text-secondary uppercase text-xs font-semibold">
                 <tr>
                   <th className="px-6 py-4">Name</th>
                   <th className="px-6 py-4">Email</th>

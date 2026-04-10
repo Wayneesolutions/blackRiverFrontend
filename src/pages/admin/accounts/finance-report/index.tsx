@@ -1,4 +1,4 @@
-import { useState, useEffect,useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   DollarSign,
   TrendingUp,
@@ -145,7 +145,7 @@ const FinanceReport = () => {
 
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
-  
+
   // Synchronize scrollbars for trip-wise table
   useEffect(() => {
     const topScroll = topScrollRef.current;
@@ -178,7 +178,7 @@ const FinanceReport = () => {
     };
 
     updateScrollWidth();
-    
+
     // Update scroll width when window resizes or data changes
     const resizeObserver = new ResizeObserver(updateScrollWidth);
     if (bottomScroll) resizeObserver.observe(bottomScroll);
@@ -189,7 +189,7 @@ const FinanceReport = () => {
       resizeObserver.disconnect();
     };
   }, [activeView, tripFinancialData]);
-  
+
   // Fetch finance report data on initial mount
   useEffect(() => {
     console.log('📊 [useEffect] Initial mount - fetching finance report data');
@@ -672,7 +672,7 @@ const FinanceReport = () => {
       'in-progress': 'bg-blue-100 text-blue-800 border-blue-200',
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-200'
     };
-    return styles[status as keyof typeof styles] || 'bg-gray-100 text-primary border-theme';
+    return styles[status as keyof typeof styles] || 'bg-card text-primary border-theme';
   };
 
   // Calculate totals from actual data
@@ -820,8 +820,8 @@ const FinanceReport = () => {
                     key={tab.id}
                     onClick={() => setActiveView(tab.id as ViewType)}
                     className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 ${activeView === tab.id
-                        ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
-                        : 'text-primary hover:bg-[rgba(255,255,255,0.03)]'
+                      ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
+                      : 'text-primary hover:bg-[rgba(255,255,255,0.03)]'
                       }`}
                   >
                     <Icon size={16} />
@@ -1033,12 +1033,12 @@ const FinanceReport = () => {
                           <div className="text-center p-2 bg-card rounded-lg border border-theme shadow-sm">
                             <div className="text-xs text-secondary mb-0.5">Expenses</div>
                             <div className="text-sm font-bold text-[#A855F7]">{formatCurrency(totalExpenses)}</div>
-                            <div className="text-xs text-secondary">{totalRevenue > 0 ? ((totalExpenses/totalRevenue)*100).toFixed(1) : '0'}%</div>
+                            <div className="text-xs text-secondary">{totalRevenue > 0 ? ((totalExpenses / totalRevenue) * 100).toFixed(1) : '0'}%</div>
                           </div>
                           <div className="text-center p-2 bg-card rounded-lg border border-theme shadow-sm">
                             <div className="text-xs text-secondary mb-0.5">Payroll</div>
                             <div className="text-sm font-bold text-[#00D1FF]">{formatCurrency(totalPayroll)}</div>
-                            <div className="text-xs text-secondary">{totalRevenue > 0 ? ((totalPayroll/totalRevenue)*100).toFixed(1) : '0'}%</div>
+                            <div className="text-xs text-secondary">{totalRevenue > 0 ? ((totalPayroll / totalRevenue) * 100).toFixed(1) : '0'}%</div>
                           </div>
                           <div className="text-center p-2 bg-card rounded-lg border border-theme shadow-sm">
                             <div className="text-xs text-secondary mb-0.5">Profit Margin</div>
@@ -1133,8 +1133,8 @@ const FinanceReport = () => {
                           onClick={() => setTimePeriod(period)}
                           disabled={loading}
                           className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${timePeriod === period
-                              ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
-                              : 'bg-gray-100 text-primary hover:bg-gray-200'
+                            ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
+                            : 'bg-card text-primary hover:bg-gray-200'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
@@ -1298,7 +1298,7 @@ const FinanceReport = () => {
                     <Truck size={18} className="text-[var(--accent-blue)]" />
                     Truck-wise Financial Performance
                   </h2>
-                  <button className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-primary rounded-lg text-xs font-medium transition-all flex items-center gap-2">
+                  <button className="px-3 py-1.5 bg-card hover:bg-gray-200 text-primary rounded-lg text-xs font-medium transition-all flex items-center gap-2">
                     <Filter size={13} />
                     Filter
                   </button>
@@ -1359,7 +1359,7 @@ const FinanceReport = () => {
                               </div>
                             </td>
                             <td className="px-4 py-3 text-sm text-center whitespace-nowrap">
-                              <span className={`inline-flex items-center justify-center min-w-[28px] h-6 px-2 rounded-full text-xs font-semibold ${truck.trips > 0 ? 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]' : 'bg-gray-100 text-secondary'}`}>
+                              <span className={`inline-flex items-center justify-center min-w-[28px] h-6 px-2 rounded-full text-xs font-semibold ${truck.trips > 0 ? 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]' : 'bg-card text-secondary'}`}>
                                 {truck.trips}
                               </span>
                             </td>
@@ -1399,11 +1399,11 @@ const FinanceReport = () => {
                             <td className="px-4 py-3 text-sm text-center font-bold text-primary whitespace-nowrap">{totMargin.toFixed(1)}%</td>
                             <td className="px-4 py-3 text-sm text-center font-bold text-primary whitespace-nowrap">{totTrips}</td>
                             <td className="px-4 py-3 text-sm text-right text-primary font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : <span className="text-gray-300 font-light">—</span>}</td>
-                            <td className="px-4 py-3 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totRev/totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
-                            <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totCost/totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
-                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>{hasTotMiles ? `$${(totProfit/totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
-                            <td className="px-4 py-3 text-sm text-right text-orange-500 font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s,t)=>s+t.fuelCost,0))}</td>
-                            <td className="px-4 py-3 text-sm text-right text-purple-500 font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s,t)=>s+t.fleetInvoiceCost,0))}</td>
+                            <td className="px-4 py-3 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totRev / totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
+                            <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totCost / totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
+                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>{hasTotMiles ? `$${(totProfit / totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
+                            <td className="px-4 py-3 text-sm text-right text-orange-500 font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s, t) => s + t.fuelCost, 0))}</td>
+                            <td className="px-4 py-3 text-sm text-right text-purple-500 font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s, t) => s + t.fleetInvoiceCost, 0))}</td>
                           </tr>
                         );
                       })()}
@@ -1440,8 +1440,8 @@ const FinanceReport = () => {
                           onClick={() => setTimePeriod(period)}
                           disabled={loading}
                           className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${timePeriod === period
-                              ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
-                              : 'bg-gray-100 text-primary hover:bg-gray-200'
+                            ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
+                            : 'bg-card text-primary hover:bg-gray-200'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
@@ -1590,7 +1590,7 @@ const FinanceReport = () => {
                     <MapPin size={18} className="text-[var(--accent-blue)]" />
                     Trip-wise Financial Details
                   </h2>
-                  <button className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-primary rounded-lg text-xs font-medium transition-all flex items-center gap-2">
+                  <button className="px-3 py-1.5 bg-card hover:bg-gray-200 text-primary rounded-lg text-xs font-medium transition-all flex items-center gap-2">
                     <Filter size={13} />
                     Filter
                   </button>
@@ -1694,8 +1694,8 @@ const FinanceReport = () => {
                           const dash = <span className="text-gray-300 font-light">—</span>;
                           let formattedStartDate = '—';
                           let formattedEndDate = '—';
-                          try { if (trip.startDate) formattedStartDate = new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }); } catch {}
-                          try { if (trip.endDate) formattedEndDate = new Date(trip.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }); } catch {}
+                          try { if (trip.startDate) formattedStartDate = new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }); } catch { }
+                          try { if (trip.endDate) formattedEndDate = new Date(trip.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }); } catch { }
                           const routeText = trip.origin && trip.destination && trip.origin !== 'N/A' && trip.destination !== 'N/A'
                             ? `${trip.origin} → ${trip.destination}`
                             : trip.origin !== 'N/A' ? trip.origin : trip.destination !== 'N/A' ? trip.destination : '—';
@@ -1761,12 +1761,12 @@ const FinanceReport = () => {
                           <tr><td colSpan={18} className="px-4 py-10 text-center text-secondary text-sm">No trip data available for this period</td></tr>
                         )}
                         {tripFinancialData.length > 0 && (() => {
-                          const totMiles = tripFinancialData.reduce((s,t) => s + (Number(t.totalMiles)||0), 0);
-                          const totRev = tripFinancialData.reduce((s,t) => s + (Number(t.revenue)||0), 0);
-                          const totFuelCost = tripFinancialData.reduce((s,t) => s + (Number(t.fuelCost)||0), 0);
-                          const totOtherExp = tripFinancialData.reduce((s,t) => s + Math.max(0, (Number(t.expenses)||0) - (Number(t.fuelCost)||0)), 0);
-                          const totPay = tripFinancialData.reduce((s,t) => s + (Number(t.driverPay)||0), 0);
-                          const totProfit = tripFinancialData.reduce((s,t) => s + (Number(t.netProfit)||0), 0);
+                          const totMiles = tripFinancialData.reduce((s, t) => s + (Number(t.totalMiles) || 0), 0);
+                          const totRev = tripFinancialData.reduce((s, t) => s + (Number(t.revenue) || 0), 0);
+                          const totFuelCost = tripFinancialData.reduce((s, t) => s + (Number(t.fuelCost) || 0), 0);
+                          const totOtherExp = tripFinancialData.reduce((s, t) => s + Math.max(0, (Number(t.expenses) || 0) - (Number(t.fuelCost) || 0)), 0);
+                          const totPay = tripFinancialData.reduce((s, t) => s + (Number(t.driverPay) || 0), 0);
+                          const totProfit = tripFinancialData.reduce((s, t) => s + (Number(t.netProfit) || 0), 0);
                           const totCost = totFuelCost + totOtherExp + totPay;
                           const hasTotMiles = totMiles > 0;
                           const totMargin = totRev > 0 ? (totProfit / totRev) * 100 : 0;
@@ -1782,9 +1782,9 @@ const FinanceReport = () => {
                               <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{totOtherExp > 0 ? formatCurrency(totOtherExp) : dash}</td>
                               <td className="px-4 py-3 text-sm text-right text-blue-500 font-bold whitespace-nowrap">{totPay > 0 ? formatCurrency(totPay) : dash}</td>
                               <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-700' : 'text-[#A855F7]'}`}>{formatCurrency(totProfit)}</td>
-                              <td className="px-4 py-3 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totRev/totMiles).toFixed(2)}` : dash}</td>
-                              <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totCost/totMiles).toFixed(2)}` : dash}</td>
-                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>{hasTotMiles ? `$${(totProfit/totMiles).toFixed(2)}` : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totRev / totMiles).toFixed(2)}` : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totCost / totMiles).toFixed(2)}` : dash}</td>
+                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>{hasTotMiles ? `$${(totProfit / totMiles).toFixed(2)}` : dash}</td>
                               <td className="px-4 py-3 text-sm text-center font-bold text-primary whitespace-nowrap">{totMargin.toFixed(1)}%</td>
                               <td className="px-4 py-3 whitespace-nowrap"></td>
                             </tr>
@@ -1824,8 +1824,8 @@ const FinanceReport = () => {
                           }}
                           disabled={loading}
                           className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${timePeriod === period
-                              ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
-                              : 'bg-gray-100 text-primary hover:bg-gray-200'
+                            ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
+                            : 'bg-card text-primary hover:bg-gray-200'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
@@ -2066,21 +2066,21 @@ const FinanceReport = () => {
           {/* ── Payables Tab ── */}
           {activeView === 'payable' && (() => {
             const PAYABLE_META: Record<Exclude<PayableSubCategory, 'all'>, { label: string; color: string; bg: string; textColor: string; icon: React.ReactNode }> = {
-              expense:           { label: 'Expense',          color: '#ef4444', bg: 'bg-card',     textColor: 'text-red-700',     icon: <Receipt size={13} /> },
-              'employee-payroll':{ label: 'Employee Payroll', color: '#3b82f6', bg: 'bg-card',    textColor: 'text-blue-700',    icon: <Users size={13} /> },
-              'driver-payroll':  { label: 'Driver Payroll',   color: '#10b981', bg: 'bg-emerald-50', textColor: 'text-emerald-700', icon: <IdCard size={13} /> },
-              fuel:              { label: 'Fuel Cost',        color: '#f59e0b', bg: 'bg-amber-50',   textColor: 'text-amber-700',   icon: <Fuel size={13} /> },
-              'fleet-invoice':   { label: 'Fleet Invoice',    color: '#8b5cf6', bg: 'bg-violet-50',  textColor: 'text-violet-700',  icon: <DollarSign size={13} /> },
+              expense: { label: 'Expense', color: '#ef4444', bg: 'bg-card', textColor: 'text-red-700', icon: <Receipt size={13} /> },
+              'employee-payroll': { label: 'Employee Payroll', color: '#3b82f6', bg: 'bg-card', textColor: 'text-blue-700', icon: <Users size={13} /> },
+              'driver-payroll': { label: 'Driver Payroll', color: '#10b981', bg: 'bg-emerald-50', textColor: 'text-emerald-700', icon: <IdCard size={13} /> },
+              fuel: { label: 'Fuel Cost', color: '#f59e0b', bg: 'bg-amber-50', textColor: 'text-amber-700', icon: <Fuel size={13} /> },
+              'fleet-invoice': { label: 'Fleet Invoice', color: '#8b5cf6', bg: 'bg-violet-50', textColor: 'text-violet-700', icon: <DollarSign size={13} /> },
             };
 
             const STATUS_META: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
-              paid:      { bg: 'bg-green-100',  text: 'text-green-700',  icon: <CheckCircle2 size={11} /> },
-              unpaid:    { bg: 'bg-red-100',    text: 'text-red-700',    icon: <XCircle size={11} /> },
-              pending:   { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: <Clock size={11} /> },
-              overdue:   { bg: 'bg-orange-100', text: 'text-orange-700', icon: <AlertCircle size={11} /> },
-              completed: { bg: 'bg-green-100',  text: 'text-green-700',  icon: <CheckCircle2 size={11} /> },
-              approved:  { bg: 'bg-green-100',  text: 'text-green-700',  icon: <CheckCircle2 size={11} /> },
-              active:    { bg: 'bg-blue-100',   text: 'text-blue-700',   icon: <Clock size={11} /> },
+              paid: { bg: 'bg-green-100', text: 'text-green-700', icon: <CheckCircle2 size={11} /> },
+              unpaid: { bg: 'bg-red-100', text: 'text-red-700', icon: <XCircle size={11} /> },
+              pending: { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: <Clock size={11} /> },
+              overdue: { bg: 'bg-orange-100', text: 'text-orange-700', icon: <AlertCircle size={11} /> },
+              completed: { bg: 'bg-green-100', text: 'text-green-700', icon: <CheckCircle2 size={11} /> },
+              approved: { bg: 'bg-green-100', text: 'text-green-700', icon: <CheckCircle2 size={11} /> },
+              active: { bg: 'bg-blue-100', text: 'text-blue-700', icon: <Clock size={11} /> },
             };
 
             const fmtCur = (n: number) =>
@@ -2099,7 +2099,7 @@ const FinanceReport = () => {
 
             // Summary totals
             const totalPayable = filtered.reduce((s, i) => s + i.amount, 0);
-            const totalPaid    = filtered.filter(i => i.status === 'paid' || i.status === 'completed' || i.status === 'approved').reduce((s, i) => s + i.amount, 0);
+            const totalPaid = filtered.filter(i => i.status === 'paid' || i.status === 'completed' || i.status === 'approved').reduce((s, i) => s + i.amount, 0);
             const totalOutstanding = totalPayable - totalPaid;
             const overdueCount = filtered.filter(i => i.status === 'overdue').length;
 
@@ -2113,7 +2113,7 @@ const FinanceReport = () => {
             // Sort
             const sorted = [...filtered].sort((a, b) => {
               let cmp = 0;
-              if (payableSortKey === 'date')        cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
+              if (payableSortKey === 'date') cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
               else if (payableSortKey === 'amount') cmp = a.amount - b.amount;
               else if (payableSortKey === 'subCategory') cmp = a.subCategory.localeCompare(b.subCategory);
               else if (payableSortKey === 'status') cmp = a.status.localeCompare(b.status);
@@ -2236,7 +2236,7 @@ const FinanceReport = () => {
                       className="text-sm border border-theme rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-[var(--accent-blue)] bg-card"
                     >
                       <option value="all">All Categories</option>
-                      {(Object.keys(PAYABLE_META) as Exclude<PayableSubCategory,'all'>[]).map(k => (
+                      {(Object.keys(PAYABLE_META) as Exclude<PayableSubCategory, 'all'>[]).map(k => (
                         <option key={k} value={k}>{PAYABLE_META[k].label}</option>
                       ))}
                     </select>
@@ -2318,7 +2318,7 @@ const FinanceReport = () => {
                             </tr>
                           ) : pageRows.map(row => {
                             const catMeta = PAYABLE_META[row.subCategory];
-                            const stMeta  = STATUS_META[row.status] ?? { bg: 'bg-gray-100', text: 'text-secondary', icon: null };
+                            const stMeta = STATUS_META[row.status] ?? { bg: 'bg-card', text: 'text-secondary', icon: null };
                             return (
                               <tr key={`${row.subCategory}-${row.id}`} className="hover:bg-[rgba(255,255,255,0.03)] transition">
                                 <td className="px-4 py-2.5">

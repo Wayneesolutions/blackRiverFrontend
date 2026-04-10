@@ -524,7 +524,7 @@ const FirstAidLogsPage: React.FC = () => {
                             <div className="flex gap-4">
                                 <button
                                     onClick={() => setShowDeleteModal(false)}
-                                    className="flex-1 px-4 py-3 bg-gray-100 text-primary rounded-xl font-semibold hover:bg-gray-200 transition"
+                                    className="flex-1 px-4 py-3 bg-card text-primary rounded-xl font-semibold hover:bg-gray-200 transition"
                                 >
                                     Cancel
                                 </button>

@@ -27,7 +27,7 @@ const Dashboard: React.FC = () => {
 
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
-  const [selectedYear, ] = useState(now.getFullYear());
+  const [selectedYear,] = useState(now.getFullYear());
   const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,11 +80,11 @@ const Dashboard: React.FC = () => {
       completed: "bg-green-100 text-green-800",
       "in-progress": "bg-blue-100 text-blue-800",
       pending: "bg-amber-100 text-amber-800",
-      created: "bg-gray-100 text-primary",
+      created: "bg-card text-primary",
       assigned: "bg-amber-100 text-amber-800",
       shared: "bg-amber-100 text-amber-800",
     };
-    const style = styles[s] || "bg-gray-100 text-primary";
+    const style = styles[s] || "bg-card text-primary";
     return (
       <span className={`px-2 py-0.5 rounded text-xs font-medium ${style}`}>
         {status}
@@ -140,9 +140,8 @@ const Dashboard: React.FC = () => {
                       setSelectedMonth(i);
                       setMonthDropdownOpen(false);
                     }}
-                    className={`w-full px-4 py-2 text-left text-sm hover:bg-[rgba(255,255,255,0.03)] ${
-                      selectedMonth === i ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] font-medium" : "text-primary"
-                    }`}
+                    className={`w-full px-4 py-2 text-left text-sm hover:bg-[rgba(255,255,255,0.03)] ${selectedMonth === i ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] font-medium" : "text-primary"
+                      }`}
                   >
                     {MONTHS[i]} {selectedYear}
                   </button>
@@ -270,37 +269,37 @@ const Dashboard: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-              recentOrders.map((order) => (
-                <tr
-                  key={order.id}
-                  className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition"
-                  onClick={() => navigate(`${basePath}/orders`)}
-                >
-                  <td className="px-4 py-3 text-sm font-medium text-primary">{order.unit}</td>
-                  <td className="px-4 py-3 text-sm text-secondary">{order.description}</td>
-                  <td className="px-4 py-3">{statusBadge(order.status ?? '')}</td>
-                  <td className="px-4 py-3 text-sm text-secondary">
-                    {order.date
-                      ? new Date(order.date).toLocaleDateString("en-US", {
+                recentOrders.map((order) => (
+                  <tr
+                    key={order.id}
+                    className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition"
+                    onClick={() => navigate(`${basePath}/orders`)}
+                  >
+                    <td className="px-4 py-3 text-sm font-medium text-primary">{order.unit}</td>
+                    <td className="px-4 py-3 text-sm text-secondary">{order.description}</td>
+                    <td className="px-4 py-3">{statusBadge(order.status ?? '')}</td>
+                    <td className="px-4 py-3 text-sm text-secondary">
+                      {order.date
+                        ? new Date(order.date).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
                           year: "numeric",
                         })
-                      : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`${basePath}/orders`);
-                      }}
-                      className="text-sm font-medium text-[var(--accent-blue)] hover:text-[#3598c4]"
-                    >
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`${basePath}/orders`);
+                        }}
+                        className="text-sm font-medium text-[var(--accent-blue)] hover:text-[#3598c4]"
+                      >
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

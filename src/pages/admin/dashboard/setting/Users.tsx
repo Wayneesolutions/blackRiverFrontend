@@ -215,7 +215,7 @@ const EmployeesPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
- 
+
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showPassword, setShowPassword] = useState(false);
@@ -223,19 +223,19 @@ const EmployeesPage = () => {
     show: false,
     employeeId: null
   });
-  
+
   // Tab state - Employees, Contacts, Customers
   const [activeTab, setActiveTab] = useState<'employees' | 'contacts' | 'customers'>('employees');
   const [contacts, setContacts] = useState<Employee[]>([]);
   const [customers, setCustomers] = useState<Employee[]>([]);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [totalContacts, setTotalContacts] = useState(0);
   const [totalCustomers, setTotalCustomers] = useState(0);
-  const [itemsPerPage, ] = useState(10); // Show 10 users per page
+  const [itemsPerPage,] = useState(10); // Show 10 users per page
 
   // Two-step flow state
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
@@ -434,7 +434,7 @@ const EmployeesPage = () => {
       if (response.success) {
         // Backend already filters out admin, superadmin, driver, contact, and customer
         const employeeData = response.data || [];
-        
+
         // Update pagination state using backend's pagination data
         if (response.pagination) {
           setTotalPages(response.pagination.totalPages || 1);
@@ -444,14 +444,14 @@ const EmployeesPage = () => {
           setTotalPages(Math.ceil(employeeData.length / itemsPerPage) || 1);
           setTotalEmployees(employeeData.length);
         }
-        
+
         console.log('📊 Pagination:', {
           currentPage,
           totalPages: response.pagination?.totalPages,
           totalEmployees: response.pagination?.totalEmployees,
           employeesOnPage: employeeData.length
         });
-        
+
         // Fetch documents for each employee
         const employeesWithDocs = await Promise.all(
           employeeData.map(async (employee: Employee) => {
@@ -466,7 +466,7 @@ const EmployeesPage = () => {
             return { ...employee, documents: [] };
           })
         );
-        
+
         setEmployees(employeesWithDocs);
       } else {
         addNotification('error', response?.message || 'Failed to fetch employees');
@@ -489,7 +489,7 @@ const EmployeesPage = () => {
           setTotalPages(response.pagination.totalPages || 1);
           setTotalContacts(response.pagination.totalEmployees || 0);
         }
-        
+
         // Fetch documents for each contact
         const contactsWithDocs = await Promise.all(
           (response.data || []).map(async (contact: Employee) => {
@@ -504,7 +504,7 @@ const EmployeesPage = () => {
             return { ...contact, documents: [] };
           })
         );
-        
+
         setContacts(contactsWithDocs);
       } else {
         addNotification('error', response?.message || 'Failed to fetch contacts');
@@ -527,7 +527,7 @@ const EmployeesPage = () => {
           setTotalPages(response.pagination.totalPages || 1);
           setTotalCustomers(response.pagination.totalEmployees || 0);
         }
-        
+
         // Fetch documents for each customer
         const customersWithDocs = await Promise.all(
           (response.data || []).map(async (customer: Employee) => {
@@ -542,7 +542,7 @@ const EmployeesPage = () => {
             return { ...customer, documents: [] };
           })
         );
-        
+
         setCustomers(customersWithDocs);
       } else {
         addNotification('error', response?.message || 'Failed to fetch customers');
@@ -604,7 +604,7 @@ const EmployeesPage = () => {
     } else if (activeTab === 'customers') {
       defaultRole = 'customer';
     }
-    
+
     setFormData({
       name: '',
       email: '',
@@ -653,7 +653,7 @@ const EmployeesPage = () => {
       updateDocument(index, 'file', null);
       return;
     }
-    
+
     // Support multiple files - if multiple files selected, create multiple document entries
     if (files.length > 1) {
       const newDocs: EmployeeDocumentForm[] = [];
@@ -756,7 +756,7 @@ const EmployeesPage = () => {
         // Determine the type based on role
         const entityType = formData.role === 'contact' ? 'Contact' : formData.role === 'customer' ? 'Customer' : 'Employee';
         addNotification('success', response.message || `${entityType} created successfully`);
-        
+
         // Refresh the appropriate tab based on role
         if (formData.role === 'contact') {
           await fetchContacts();
@@ -899,7 +899,7 @@ const EmployeesPage = () => {
         }
 
         addNotification('success', response.message || `${activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'} updated successfully`);
-        
+
         // Refetch the employee list to get updated data
         if (activeTab === 'employees') {
           await fetchEmployees();
@@ -908,7 +908,7 @@ const EmployeesPage = () => {
         } else if (activeTab === 'customers') {
           await fetchCustomers();
         }
-        
+
         // Refetch documents for the edited employee to show updated documents
         // Add a small delay to ensure database has saved the documents
         if (editingEmployee?._id) {
@@ -940,7 +940,7 @@ const EmployeesPage = () => {
             setEmployeeDocuments([]);
           }
         }
-        
+
         setShowAddModal(false);
         resetForm();
       } else {
@@ -1016,7 +1016,7 @@ const EmployeesPage = () => {
       } else {
         response = await deleteEmployee(deleteConfirm.employeeId);
       }
-      
+
       if (response.success) {
         addNotification('success', response.message || `${activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'} deleted successfully`);
         if (activeTab === 'employees') {
@@ -1088,7 +1088,7 @@ const EmployeesPage = () => {
       case 'rejected':
         return 'bg-red-100 text-red-700';
       default:
-        return 'bg-gray-100 text-primary';
+        return 'bg-card text-primary';
     }
   };
 
@@ -1135,15 +1135,15 @@ const EmployeesPage = () => {
                 <h2 className="text-2xl font-bold text-primary mb-1">Employee Management</h2>
                 <div className="flex items-center gap-3">
                   <p className="text-sm text-secondary">
-                    {activeTab === 'employees' && (totalEmployees > 0 
+                    {activeTab === 'employees' && (totalEmployees > 0
                       ? `Showing ${employees.length} of ${totalEmployees} employees`
                       : 'No employees found')
                     }
-                    {activeTab === 'contacts' && (totalContacts > 0 
+                    {activeTab === 'contacts' && (totalContacts > 0
                       ? `Showing ${contacts.length} of ${totalContacts} contacts`
                       : 'No contacts found')
                     }
-                    {activeTab === 'customers' && (totalCustomers > 0 
+                    {activeTab === 'customers' && (totalCustomers > 0
                       ? `Showing ${customers.length} of ${totalCustomers} customers`
                       : 'No customers found')
                     }
@@ -1171,11 +1171,10 @@ const EmployeesPage = () => {
             <div className="flex space-x-1 mb-4 border-b border-theme flex-shrink-0">
               <button
                 onClick={() => setActiveTab('employees')}
-                className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
-                  activeTab === 'employees'
+                className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${activeTab === 'employees'
                     ? 'border-blue-600 text-[#00D1FF]'
                     : 'border-transparent text-secondary hover:text-primary'
-                }`}
+                  }`}
                 style={
                   activeTab === 'employees'
                     ? { borderColor: ACCENT_PRIMARY, color: ACCENT_PRIMARY }
@@ -1184,18 +1183,17 @@ const EmployeesPage = () => {
               >
                 Employees
                 {totalEmployees > 0 && (
-                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-secondary">
+                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-card text-secondary">
                     {totalEmployees}
                   </span>
                 )}
               </button>
               <button
                 onClick={() => setActiveTab('contacts')}
-                className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
-                  activeTab === 'contacts'
+                className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${activeTab === 'contacts'
                     ? 'border-blue-600 text-[#00D1FF]'
                     : 'border-transparent text-secondary hover:text-primary'
-                }`}
+                  }`}
                 style={
                   activeTab === 'contacts'
                     ? { borderColor: ACCENT_PRIMARY, color: ACCENT_PRIMARY }
@@ -1204,18 +1202,17 @@ const EmployeesPage = () => {
               >
                 Contacts
                 {totalContacts > 0 && (
-                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-secondary">
+                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-card text-secondary">
                     {totalContacts}
                   </span>
                 )}
               </button>
               <button
                 onClick={() => setActiveTab('customers')}
-                className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
-                  activeTab === 'customers'
+                className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${activeTab === 'customers'
                     ? 'border-blue-600 text-[#00D1FF]'
                     : 'border-transparent text-secondary hover:text-primary'
-                }`}
+                  }`}
                 style={
                   activeTab === 'customers'
                     ? { borderColor: ACCENT_PRIMARY, color: ACCENT_PRIMARY }
@@ -1224,7 +1221,7 @@ const EmployeesPage = () => {
               >
                 Customers
                 {totalCustomers > 0 && (
-                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-secondary">
+                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-card text-secondary">
                     {totalCustomers}
                   </span>
                 )}
@@ -1421,7 +1418,7 @@ const EmployeesPage = () => {
                   ) : (() => {
                     // Backend already sends paginated data (10 items per page)
                     const currentData = activeTab === 'employees' ? employees : activeTab === 'contacts' ? contacts : customers;
-                    
+
                     if (currentData.length === 0) {
                       return (
                         <tr key="no-data">
@@ -1439,196 +1436,195 @@ const EmployeesPage = () => {
                         </tr>
                       );
                     }
-                    
+
                     // Display all data from current page (backend handles pagination)
                     return currentData.map((employee, index) => {
                       // Use a unique key combining _id and index to prevent React key conflicts
                       const uniqueKey = `${employee._id}-${index}-${employee.role}`;
                       return (
-                      <tr
-                        key={uniqueKey}
-                        className="hover:bg-blue-50/50 transition-all cursor-pointer border-b border-theme"
-                        onClick={() => handleRowClick(employee)}
-                        data-employee-role={employee.role}
-                        data-employee-name={employee.name}
-                      >
-                        {/* User */}
-                        <td className="px-4 py-2.5">
-                          <div className="flex items-center">
-                            <div
-                              className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-md"
-                              style={{ background: ACCENT_GRADIENT }}
-                            >
-                              {employee.name?.charAt(0) || '?'}
-                            </div>
-                            <div className="ml-3">
-                              <div className="text-sm font-semibold text-primary" title={employee.name}>
-                                {employee.name || 'N/A'}
+                        <tr
+                          key={uniqueKey}
+                          className="hover:bg-blue-50/50 transition-all cursor-pointer border-b border-theme"
+                          onClick={() => handleRowClick(employee)}
+                          data-employee-role={employee.role}
+                          data-employee-name={employee.name}
+                        >
+                          {/* User */}
+                          <td className="px-4 py-2.5">
+                            <div className="flex items-center">
+                              <div
+                                className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-md"
+                                style={{ background: ACCENT_GRADIENT }}
+                              >
+                                {employee.name?.charAt(0) || '?'}
                               </div>
-                              <div className="text-xs text-secondary font-mono">
-                                {employee.internalId || 'N/A'}
+                              <div className="ml-3">
+                                <div className="text-sm font-semibold text-primary" title={employee.name}>
+                                  {employee.name || 'N/A'}
+                                </div>
+                                <div className="text-xs text-secondary font-mono">
+                                  {employee.internalId || 'N/A'}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
-                        {/* Role */}
-                        <td className="px-4 py-2.5 whitespace-nowrap">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-purple-100 text-purple-700">
-                            {getRoleDisplayName(employee.role || 'N/A')}
-                          </span>
-                        </td>
-                        {/* Contact */}
-                        <td className="px-4 py-2.5">
-                          <div className="space-y-1">
-                            <div className="flex items-center text-sm text-primary">
-                              <Mail className="w-3.5 h-3.5 mr-1.5 text-secondary flex-shrink-0" />
-                              <span className="truncate text-xs" title={employee.email}>{employee.email || 'N/A'}</span>
+                          </td>
+                          {/* Role */}
+                          <td className="px-4 py-2.5 whitespace-nowrap">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-purple-100 text-purple-700">
+                              {getRoleDisplayName(employee.role || 'N/A')}
+                            </span>
+                          </td>
+                          {/* Contact */}
+                          <td className="px-4 py-2.5">
+                            <div className="space-y-1">
+                              <div className="flex items-center text-sm text-primary">
+                                <Mail className="w-3.5 h-3.5 mr-1.5 text-secondary flex-shrink-0" />
+                                <span className="truncate text-xs" title={employee.email}>{employee.email || 'N/A'}</span>
+                              </div>
+                              <div className="text-xs text-secondary pl-5">
+                                {employee.phone || 'N/A'}
+                              </div>
                             </div>
-                            <div className="text-xs text-secondary pl-5">
-                              {employee.phone || 'N/A'}
+                          </td>
+                          {/* Location */}
+                          <td className="px-4 py-2.5 text-sm text-secondary">
+                            <div>
+                              <div className="font-medium text-primary">
+                                {employee.country || 'N/A'}
+                              </div>
+                              <div className="text-xs text-secondary truncate" title={employee.city && employee.state ? `${employee.city}, ${employee.state}` : employee.location?.address || '-'}>
+                                {employee.city && employee.state ? `${employee.city}, ${employee.state}` : employee.location?.address || '-'}
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        {/* Location */}
-                        <td className="px-4 py-2.5 text-sm text-secondary">
-                          <div>
-                            <div className="font-medium text-primary">
-                              {employee.country || 'N/A'}
-                            </div>
-                            <div className="text-xs text-secondary truncate" title={employee.city && employee.state ? `${employee.city}, ${employee.state}` : employee.location?.address || '-'}>
-                              {employee.city && employee.state ? `${employee.city}, ${employee.state}` : employee.location?.address || '-'}
-                            </div>
-                          </div>
-                        </td>
-                        {/* Status */}
-                        <td className="px-4 py-2.5 whitespace-nowrap">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStatusToggle(employee);
-                            }}
-                            className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md transition-all shadow-sm hover:shadow-md ${(employee.status || 'active') === 'active'
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
-                              : 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-300'
-                              }`}
-                          >
-                            <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${(employee.status || 'active') === 'active' ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                            {(employee.status || 'active').charAt(0).toUpperCase() + (employee.status || 'active').slice(1)}
-                          </button>
-                        </td>
-                        {/* Created */}
-                        <td className="px-4 py-2.5 whitespace-nowrap text-sm text-secondary font-medium">
-                          {employee.joinDate ? new Date(employee.joinDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) : 'N/A'}
-                        </td>
-                        {/* Actions */}
-                        <td className="px-4 py-2.5 whitespace-nowrap">
-                          <div className="flex items-center gap-1">
+                          </td>
+                          {/* Status */}
+                          <td className="px-4 py-2.5 whitespace-nowrap">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleEdit(employee);
+                                handleStatusToggle(employee);
                               }}
-                              className="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
-                              style={{ color: ACCENT_PRIMARY }}
-                              title={`Edit ${activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'}`}
+                              className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md transition-all shadow-sm hover:shadow-md ${(employee.status || 'active') === 'active'
+                                ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
+                                : 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-300'
+                                }`}
                             >
-                              <Edit size={16} />
+                              <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${(employee.status || 'active') === 'active' ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                              {(employee.status || 'active').charAt(0).toUpperCase() + (employee.status || 'active').slice(1)}
                             </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(employee._id);
-                              }}
-                              className="p-1.5 rounded-lg hover:bg-red-50 text-[#A855F7] hover:text-red-700 transition-colors"
-                              title={`Delete ${activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'}`}
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
+                          </td>
+                          {/* Created */}
+                          <td className="px-4 py-2.5 whitespace-nowrap text-sm text-secondary font-medium">
+                            {employee.joinDate ? new Date(employee.joinDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) : 'N/A'}
+                          </td>
+                          {/* Actions */}
+                          <td className="px-4 py-2.5 whitespace-nowrap">
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEdit(employee);
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                                style={{ color: ACCENT_PRIMARY }}
+                                title={`Edit ${activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'}`}
+                              >
+                                <Edit size={16} />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(employee._id);
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-red-50 text-[#A855F7] hover:text-red-700 transition-colors"
+                                title={`Delete ${activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'}`}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
                       );
                     });
                   })()}
                 </tbody>
               </table>
             </div>
-            
+
             {/* Pagination - Always show if there's data */}
             {(() => {
               const currentData = activeTab === 'employees' ? employees : activeTab === 'contacts' ? contacts : customers;
               const totalCount = currentData.length;
-              
+
               if (totalCount === 0) return null;
-              
+
               const startItem = (currentPage - 1) * itemsPerPage + 1;
               const endItem = Math.min(currentPage * itemsPerPage, totalCount);
-              
+
               return (
-              <div className="px-4 py-3 border-t border-theme bg-card flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-primary">
-                    Showing <span className="font-semibold">{startItem}</span> to{' '}
-                    <span className="font-semibold">{endItem}</span> of{' '}
-                    <span className="font-semibold">{totalCount}</span>{' '}
-                    {activeTab === 'employees' && 'employees'}
-                    {activeTab === 'contacts' && 'contacts'}
-                    {activeTab === 'customers' && 'customers'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1 || loading}
-                    className="px-4 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    Previous
-                  </button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      let pageNum;
-                      if (totalPages <= 5) {
-                        pageNum = i + 1;
-                      } else if (currentPage <= 3) {
-                        pageNum = i + 1;
-                      } else if (currentPage >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i;
-                      } else {
-                        pageNum = currentPage - 2 + i;
-                      }
-                      
-                      return (
-                        <button
-                          key={pageNum}
-                          onClick={() => setCurrentPage(pageNum)}
-                          disabled={loading}
-                          className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                            currentPage === pageNum
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]'
-                          } disabled:opacity-50 disabled:cursor-not-allowed`}
-                          style={
-                            currentPage === pageNum
-                              ? { backgroundImage: ACCENT_GRADIENT }
-                              : undefined
-                          }
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
+                <div className="px-4 py-3 border-t border-theme bg-card flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-primary">
+                      Showing <span className="font-semibold">{startItem}</span> to{' '}
+                      <span className="font-semibold">{endItem}</span> of{' '}
+                      <span className="font-semibold">{totalCount}</span>{' '}
+                      {activeTab === 'employees' && 'employees'}
+                      {activeTab === 'contacts' && 'contacts'}
+                      {activeTab === 'customers' && 'customers'}
+                    </span>
                   </div>
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages || loading}
-                    className="px-4 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
-                  >
-                    Next
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1 || loading}
+                      className="px-4 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Previous
+                    </button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setCurrentPage(pageNum)}
+                            disabled={loading}
+                            className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${currentPage === pageNum
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-card text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)]'
+                              } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            style={
+                              currentPage === pageNum
+                                ? { backgroundImage: ACCENT_GRADIENT }
+                                : undefined
+                            }
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages || loading}
+                      className="px-4 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
               );
             })()}
           </div>
@@ -1650,7 +1646,7 @@ const EmployeesPage = () => {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">
-                    {editingEmployee 
+                    {editingEmployee
                       ? `Edit ${formData.role === 'contact' ? 'Contact' : formData.role === 'customer' ? 'Customer' : activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'}`
                       : `Add New ${formData.role === 'contact' ? 'Contact' : formData.role === 'customer' ? 'Customer' : activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'}`
                     }
@@ -2465,7 +2461,7 @@ const EmployeesPage = () => {
               <div className="flex justify-end space-x-4">
                 <button
                   onClick={() => setDeleteConfirm({ show: false, employeeId: null })}
-                  className="px-6 py-3 !mr-3 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                  className="px-6 py-3 !mr-3 text-primary bg-card hover:bg-gray-200 rounded-lg transition-colors font-medium"
                 >
                   Cancel
                 </button>

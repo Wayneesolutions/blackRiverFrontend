@@ -106,7 +106,9 @@ const DrugTestUploadModal: React.FC<{
                             value={testDate}
                             onChange={(e) => setTestDate(e.target.value)}
                             required
-                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-purple)]/30
+focus:border-[var(--accent-purple)]"
                         />
                     </div>
                     <div>
@@ -117,7 +119,9 @@ const DrugTestUploadModal: React.FC<{
                             type="date"
                             value={expiryDate}
                             onChange={(e) => setExpiryDate(e.target.value)}
-                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-purple)]/30
+focus:border-[var(--accent-purple)]"
                         />
                     </div>
                     <div>
@@ -128,7 +132,9 @@ const DrugTestUploadModal: React.FC<{
                             type="file"
                             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                             onChange={(e) => setConsentFormFile(e.target.files?.[0] || null)}
-                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-purple)]/30
+focus:border-[var(--accent-purple)]"
                         />
                     </div>
                     <div>
@@ -139,11 +145,13 @@ const DrugTestUploadModal: React.FC<{
                             type="file"
                             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                             onChange={(e) => setResultDocumentFile(e.target.files?.[0] || null)}
-                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 bg-card text-primary
+focus:ring-[var(--accent-purple)]/30
+focus:border-[var(--accent-purple)]"
                         />
                     </div>
                     {error && (
-                        <div className="bg-card border border-red-200 rounded-lg p-4">
+                        <div className="bg-card border bg-[var(--accent-red)]/10 border-[var(--accent-red)]/30 text-[var(--accent-red)] rounded-lg p-4">
                             <p className="text-sm text-[#A855F7]">{error}</p>
                         </div>
                     )}
@@ -151,14 +159,18 @@ const DrugTestUploadModal: React.FC<{
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-primary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                            className="px-4 py-2 text-primary bg-card rounded-lg hover:hover:bg-[rgba(255,255,255,0.05)] transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            style={{
+                                background: "linear-gradient(90deg, var(--accent-purple), var(--accent-indigo))",
+                                boxShadow: "0 8px 20px var(--border-glow)"
+                            }}
                         >
                             {loading ? (
                                 <>
@@ -182,7 +194,7 @@ const DrugTestUploadModal: React.FC<{
 const DriverPortfolio: React.FC = () => {
     const ACCENT_PRIMARY = FLEET_COLORS.primary;
     const ACCENT_DARK = FLEET_COLORS.dark;
-    const ACCENT_GRADIENT = FLEET_COLORS.gradient;
+    const ACCENT_GRADIENT = 'var(--accent-navyblue)';
     const ACCENT_VARS = {
         '--accent-color': ACCENT_PRIMARY,
         '--accent-dark': ACCENT_DARK
@@ -675,7 +687,7 @@ const DriverPortfolio: React.FC = () => {
             className="min-h-screen p-6"
             style={{
                 ...ACCENT_VARS,
-                background: 'linear-gradient(135deg, #f8fafc 0%, rgba(1, 106, 178, 0.08) 45%, rgba(6, 63, 111, 0.12) 100%)',
+                background: 'var(--bg-main)',
             }}
         >
             <div className="w-full mx-auto p-2">
@@ -707,7 +719,7 @@ const DriverPortfolio: React.FC = () => {
                         <button
                             onClick={handleExportToExcel}
                             className="flex items-center gap-2 px-6 py-3 !text-white rounded-lg shadow-lg transition-all duration-200 font-medium"
-                            style={{ background: ACCENT_GRADIENT }}
+                            style={{ background: "var(--accent-navyblue)" }}
                         >
                             <Download className="w-5 h-5" />
                             Export to Excel
@@ -722,102 +734,104 @@ const DriverPortfolio: React.FC = () => {
                 )}
 
                 {error && (
-                    <div className="mb-6 rounded-lg border border-red-200 bg-card p-4 text-red-700">
+                    <div className="mb-6 rounded-lg border bg-[var(--accent-red)]/10 border-[var(--accent-red)]/30 text-[var(--accent-red)] text-[var(--accent-red)] p-4 text-[var(--accent-red)]">
                         {error}
                     </div>
                 )}
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+
                     {/* Total Drivers */}
-                    <div className="rounded-lg p-4 bg-card border border-purple-200">
+                    <div className="rounded-lg p-4 bg-card border border-theme">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs text-purple-600 mb-0.5">
+                                <p className="text-xs text-[var(--accent-purple)] mb-0.5">
                                     Total Drivers
                                 </p>
-                                <p className="text-2xl font-semibold text-purple-700">
+                                <p className="text-2xl font-semibold text-[var(--accent-purple)]">
                                     {summaryStats.totalDrivers}
                                 </p>
                             </div>
-                            <Users className="text-purple-600" size={20} />
+                            <Users className="text-[var(--accent-purple)]" size={20} />
                         </div>
                     </div>
 
                     {/* Total Earnings */}
-                    <div className="rounded-lg p-4 bg-green-50 border border-green-200">
+                    <div className="rounded-lg p-4 bg-[var(--accent-green)]/10 border border-theme">
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                                <p className="text-xs text-green-600 mb-0.5">
+                                <p className="text-xs text-[var(--accent-green)] mb-0.5">
                                     Total Earnings
                                 </p>
-                                <p className="text-xl font-semibold text-green-700 break-words">
+                                <p className="text-xl font-semibold text-[var(--accent-green)] break-words">
                                     {formatCurrency(summaryStats.totalEarnings)}
                                 </p>
                             </div>
-                            <DollarSign className="text-green-600 flex-shrink-0" size={20} />
+                            <DollarSign className="text-[var(--accent-green)] flex-shrink-0" size={20} />
                         </div>
                     </div>
 
                     {/* Total Hours */}
-                    <div className="rounded-lg p-4 bg-amber-50 border border-amber-200">
+                    <div className="rounded-lg p-4 bg-[var(--accent-amber)]/10 border border-theme">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs text-amber-600 mb-0.5">
+                                <p className="text-xs text-[var(--accent-amber)] mb-0.5">
                                     Total Hours
                                 </p>
-                                <p className="text-2xl font-semibold text-amber-700">
+                                <p className="text-2xl font-semibold text-[var(--accent-amber)]">
                                     {formatNumber(summaryStats.totalHours)}
                                 </p>
                             </div>
-                            <Clock className="text-amber-600" size={20} />
+                            <Clock className="text-[var(--accent-amber)]" size={20} />
                         </div>
                     </div>
 
                     {/* Total Miles */}
-                    <div className="rounded-lg p-4 bg-card border border-orange-200">
+                    <div className="rounded-lg p-4 bg-[var(--accent-orange)]/10 border border-theme">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs text-[#F59E0B] mb-0.5">
+                                <p className="text-xs text-[var(--accent-orange)] mb-0.5">
                                     Total Miles
                                 </p>
-                                <p className="text-2xl font-semibold text-orange-700">
+                                <p className="text-2xl font-semibold text-[var(--accent-orange)]">
                                     {formatNumber(summaryStats.totalMiles)}
                                 </p>
                             </div>
-                            <MapPin className="text-[#F59E0B]" size={20} />
+                            <MapPin className="text-[var(--accent-orange)]" size={20} />
                         </div>
                     </div>
 
                     {/* Total Trips */}
-                    <div className="rounded-lg p-4 bg-sky-50 border border-sky-200">
+                    <div className="rounded-lg p-4 bg-[var(--accent-cyan)]/10 border border-theme">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs text-sky-600 mb-0.5">
+                                <p className="text-xs text-[var(--accent-cyan)] mb-0.5">
                                     Total Trips
                                 </p>
-                                <p className="text-2xl font-semibold text-sky-700">
+                                <p className="text-2xl font-semibold text-[var(--accent-cyan)]">
                                     {formatNumber(summaryStats.totalTrips)}
                                 </p>
                             </div>
-                            <TrendingUp className="text-sky-600" size={20} />
+                            <TrendingUp className="text-[var(--accent-cyan)]" size={20} />
                         </div>
                     </div>
 
                     {/* Total Invoices */}
-                    <div className="rounded-lg p-4 bg-indigo-50 border border-indigo-200">
+                    <div className="rounded-lg p-4 bg-[var(--accent-indigo)]/10 border border-theme">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs text-indigo-600 mb-0.5">
+                                <p className="text-xs text-[var(--accent-indigo)] mb-0.5">
                                     Total Invoices
                                 </p>
-                                <p className="text-2xl font-semibold text-indigo-700">
+                                <p className="text-2xl font-semibold text-[var(--accent-indigo)]">
                                     {summaryStats.totalInvoices}
                                 </p>
                             </div>
-                            <FileText className="text-indigo-600" size={20} />
+                            <FileText className="text-[var(--accent-indigo)]" size={20} />
                         </div>
                     </div>
+
                 </div>
 
 
@@ -846,9 +860,9 @@ const DriverPortfolio: React.FC = () => {
                                     <button
                                         key={period}
                                         onClick={() => setTimePeriod(period)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timePeriod === period ? '!text-white shadow-md' : 'bg-gray-100 text-primary hover:bg-gray-200'
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timePeriod === period ? '!text-white shadow-md' : 'bg-card text-primary hover:hover:bg-[rgba(255,255,255,0.05)]'
                                             }`}
-                                        style={timePeriod === period ? { background: ACCENT_GRADIENT } : undefined}
+                                        style={timePeriod === period ? { background: "var(--accent-navyblue)" } : undefined}
                                     >
                                         {period === '1week' ? '1 Week' : period === '2weeks' ? '2 Weeks' : '1 Month'}
                                     </button>
@@ -867,36 +881,15 @@ const DriverPortfolio: React.FC = () => {
                 {/* Driver Profiles Table */}
                 <div className="bg-card rounded-xl shadow-lg border border-theme overflow-hidden">
                     {/* Top Scrollbar - Only visible horizontal scrollbar */}
-                    <style>{`
-                        .top-scrollbar-container::-webkit-scrollbar {
-                            height: 8px;
-                        }
-                        .top-scrollbar-container::-webkit-scrollbar-track {
-                            background: #f7fafc;
-                        }
-                        .top-scrollbar-container::-webkit-scrollbar-thumb {
-                            background: #cbd5e0;
-                            border-radius: 4px;
-                        }
-                        .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                            background: #a0aec0;
-                        }
-                        .table-container-hidden-scrollbar {
-                            scrollbar-width: none; /* Firefox */
-                            -ms-overflow-style: none; /* IE and Edge */
-                        }
-                        .table-container-hidden-scrollbar::-webkit-scrollbar {
-                            display: none; /* Chrome, Safari, Opera */
-                        }
-                    `}</style>
+
                     <div
                         ref={topScrollRef}
-                        className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
+                        className=" overflow-y-hidden top-scrollbar-container "
                         style={{
                             maxHeight: '20px',
-                            marginBottom: '2px',
+                            marginBottom: '0px',
                             scrollbarWidth: 'thin',
-                            scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                            scrollbarColor: 'var(--accent-navyblue) var(--bg-main)'
                         }}
                     >
                         <div className="top-scroll-content" style={{ height: '1px' }}></div>
@@ -904,10 +897,10 @@ const DriverPortfolio: React.FC = () => {
                     {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
                     <div
                         ref={bottomScrollRef}
-                        className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+                        className="overflow-x-auto overflow-y-visible   "
                     >
                         <table className="w-full" style={{ minWidth: '1200px' }}>
-                            <thead className="text-white" style={{ background: ACCENT_GRADIENT }}>
+                            <thead className="text-[var(--accent-navyblue)]" >
                                 <tr>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Driver</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Current Order</th>
@@ -922,7 +915,7 @@ const DriverPortfolio: React.FC = () => {
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-theme">
+                            <tbody className="divide-y divide-theme divide-white/5">
                                 {loading ? (
                                     <tr>
                                         <td colSpan={11} className="px-6 py-12 text-center text-secondary">
@@ -986,7 +979,7 @@ const DriverPortfolio: React.FC = () => {
                                                         'pending_review': { bg: 'bg-amber-100', text: 'text-amber-800', icon: AlertCircleIcon, label: 'Pending Review' },
                                                         'canceled': { bg: 'bg-red-100', text: 'text-red-800', icon: X, label: 'Canceled' }
                                                     };
-                                                    const config = statusConfig[status] || { bg: 'bg-gray-100', text: 'text-primary', icon: Package, label: status.replace(/_/g, ' ').replace(/-/g, ' ') };
+                                                    const config = statusConfig[status] || { bg: 'bg-card', text: 'text-primary', icon: Package, label: status.replace(/_/g, ' ').replace(/-/g, ' ') };
                                                     const StatusIcon = config.icon;
                                                     return (
                                                         <div className="flex flex-col gap-1.5">
@@ -1087,7 +1080,7 @@ const DriverPortfolio: React.FC = () => {
                                                     return (
                                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${crossBorderEligible
                                                             ? 'bg-green-100 text-green-800 border border-green-200'
-                                                            : 'bg-gray-100 text-secondary border border-theme'
+                                                            : 'bg-card text-secondary border border-theme'
                                                             }`}>
                                                             {crossBorderEligible ? (
                                                                 <>
@@ -1161,125 +1154,129 @@ const DriverPortfolio: React.FC = () => {
                                                     <span className="text-sm font-medium">Loading order status...</span>
                                                 </div>
                                             </div>
-                                        ) : currentOrder ? (
-                                            (() => {
-                                                const status = (currentOrder.status || '').toLowerCase();
-                                                const statusConfig: Record<string, { bg: string; border: string; text: string; badge: string; icon: any; label: string }> = {
-                                                    'planned': {
-                                                        bg: 'bg-blue-500/20',
-                                                        border: 'border-blue-400/30',
-                                                        text: 'text-blue-100',
-                                                        badge: 'bg-blue-500/30 text-blue-100 border-blue-400/50',
-                                                        icon: Circle,
-                                                        label: 'Planned'
-                                                    },
-                                                    'quoted': {
-                                                        bg: 'bg-purple-500/20',
-                                                        border: 'border-purple-400/30',
-                                                        text: 'text-purple-100',
-                                                        badge: 'bg-purple-500/30 text-purple-100 border-purple-400/50',
-                                                        icon: FileText,
-                                                        label: 'Quoted'
-                                                    },
-                                                    'in-delivery': {
-                                                        bg: 'bg-yellow-500/20',
-                                                        border: 'border-yellow-400/30',
-                                                        text: 'text-yellow-100',
-                                                        badge: 'bg-yellow-500/30 text-yellow-100 border-yellow-400/50',
-                                                        icon: Truck,
-                                                        label: 'In Delivery'
-                                                    },
-                                                    'delivered': {
-                                                        bg: 'bg-indigo-500/20',
-                                                        border: 'border-indigo-400/30',
-                                                        text: 'text-indigo-100',
-                                                        badge: 'bg-indigo-500/30 text-indigo-100 border-indigo-400/50',
-                                                        icon: CheckCircle2,
-                                                        label: 'Delivered'
-                                                    },
-                                                    'completed': {
-                                                        bg: 'bg-green-500/20',
-                                                        border: 'border-green-400/30',
-                                                        text: 'text-green-100',
-                                                        badge: 'bg-green-500/30 text-green-100 border-green-400/50',
-                                                        icon: CheckCircle2,
-                                                        label: 'Completed'
-                                                    },
-                                                    'verification_pending': {
-                                                        bg: 'bg-amber-500/20',
-                                                        border: 'border-amber-400/30',
-                                                        text: 'text-amber-100',
-                                                        badge: 'bg-amber-500/30 text-amber-100 border-amber-400/50',
-                                                        icon: AlertCircleIcon,
-                                                        label: 'Verification Pending'
-                                                    },
-                                                    'pending_review': {
-                                                        bg: 'bg-amber-500/20',
-                                                        border: 'border-amber-400/30',
-                                                        text: 'text-amber-100',
-                                                        badge: 'bg-amber-500/30 text-amber-100 border-amber-400/50',
-                                                        icon: AlertCircleIcon,
-                                                        label: 'Pending Review'
-                                                    },
-                                                    'canceled': {
-                                                        bg: 'bg-red-500/20',
-                                                        border: 'border-red-400/30',
-                                                        text: 'text-red-100',
-                                                        badge: 'bg-red-500/30 text-red-100 border-red-400/50',
-                                                        icon: X,
-                                                        label: 'Canceled'
-                                                    }
-                                                };
-                                                const config = statusConfig[status] || {
-                                                    bg: 'bg-gray-500/20',
-                                                    border: 'border-gray-400/30',
-                                                    text: 'text-gray-100',
-                                                    badge: 'bg-gray-500/30 text-gray-100 border-gray-400/50',
-                                                    icon: Package,
-                                                    label: status.replace(/_/g, ' ').replace(/-/g, ' ')
-                                                };
-                                                const StatusIcon = config.icon;
-                                                return (
-                                                    <div className={`mt-3 ${config.bg} rounded-xl p-4 backdrop-blur-sm border ${config.border} shadow-lg`}>
-                                                        <div className="flex items-start justify-between gap-3">
-                                                            <div className="flex-1">
-                                                                <div className="flex items-center gap-2 mb-2">
-                                                                    <StatusIcon className={`w-5 h-5 ${config.text}`} />
-                                                                    <span className={`text-xs font-semibold uppercase tracking-wider ${config.text}`}>
-                                                                        Current Order
-                                                                    </span>
-                                                                </div>
-                                                                <div className="flex items-center gap-2 mb-3">
-                                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold border ${config.badge} backdrop-blur-sm`}>
-                                                                        {config.label}
-                                                                    </span>
-                                                                </div>
-                                                                {currentOrder.orderNumber && (
-                                                                    <div className="flex items-center gap-2">
-                                                                        <Package className="w-4 h-4 text-white/70" />
-                                                                        <span className="text-white/90 text-sm font-mono font-semibold">
-                                                                            {currentOrder.orderNumber}
+                                        ) :
+                                            currentOrder ? (
+                                                (() => {
+
+
+                                                    const statusConfig: Record<string, { bg: string; border: string; text: string; badge: string; icon: any; label: string }> = {
+                                                        'planned': {
+                                                            bg: 'bg-[var(--accent-blue)]/10',
+                                                            border: 'border-[var(--accent-blue)]/30',
+                                                            text: 'text-[var(--accent-blue)]',
+                                                            badge: 'bg-[var(--accent-blue)]/20 text-[var(--accent-blue)] border-[var(--accent-blue)]/40',
+                                                            icon: Circle,
+                                                            label: 'Planned'
+                                                        },
+                                                        'quoted': {
+                                                            bg: 'bg-[var(--accent-purple)]/10',
+                                                            border: 'border-[var(--accent-purple)]/30',
+                                                            text: 'text-[var(--accent-purple)]',
+                                                            badge: 'bg-[var(--accent-purple)]/20 text-[var(--accent-purple)] border-[var(--accent-purple)]/40',
+                                                            icon: FileText,
+                                                            label: 'Quoted'
+                                                        },
+                                                        'in-delivery': {
+                                                            bg: 'bg-[var(--accent-amber)]/10',
+                                                            border: 'border-[var(--accent-amber)]/30',
+                                                            text: 'text-[var(--accent-amber)]',
+                                                            badge: 'bg-[var(--accent-amber)]/20 text-[var(--accent-amber)] border-[var(--accent-amber)]/40',
+                                                            icon: Truck,
+                                                            label: 'In Delivery'
+                                                        },
+                                                        'delivered': {
+                                                            bg: 'bg-[var(--accent-indigo)]/10',
+                                                            border: 'border-[var(--accent-indigo)]/30',
+                                                            text: 'text-[var(--accent-indigo)]',
+                                                            badge: 'bg-[var(--accent-indigo)]/20 text-[var(--accent-indigo)] border-[var(--accent-indigo)]/40',
+                                                            icon: CheckCircle2,
+                                                            label: 'Delivered'
+                                                        },
+                                                        'completed': {
+                                                            bg: 'bg-[var(--accent-green)]/10',
+                                                            border: 'border-[var(--accent-green)]/30',
+                                                            text: 'text-[var(--accent-green)]',
+                                                            badge: 'bg-[var(--accent-green)]/20 text-[var(--accent-green)] border-[var(--accent-green)]/40',
+                                                            icon: CheckCircle2,
+                                                            label: 'Completed'
+                                                        },
+                                                        'verification_pending': {
+                                                            bg: 'bg-[var(--accent-amber)]/10',
+                                                            border: 'border-[var(--accent-amber)]/30',
+                                                            text: 'text-[var(--accent-amber)]',
+                                                            badge: 'bg-[var(--accent-amber)]/20 text-[var(--accent-amber)] border-[var(--accent-amber)]/40',
+                                                            icon: AlertCircleIcon,
+                                                            label: 'Verification Pending'
+                                                        },
+                                                        'pending_review': {
+                                                            bg: 'bg-[var(--accent-amber)]/10',
+                                                            border: 'border-[var(--accent-amber)]/30',
+                                                            text: 'text-[var(--accent-amber)]',
+                                                            badge: 'bg-[var(--accent-amber)]/20 text-[var(--accent-amber)] border-[var(--accent-amber)]/40',
+                                                            icon: AlertCircleIcon,
+                                                            label: 'Pending Review'
+                                                        },
+                                                        'canceled': {
+                                                            bg: 'bg-[var(--accent-red)]/10',
+                                                            border: 'border-[var(--accent-red)]/30',
+                                                            text: 'text-[var(--accent-red)]',
+                                                            badge: 'bg-[var(--accent-red)]/20 text-[var(--accent-red)] border-[var(--accent-red)]/40',
+                                                            icon: X,
+                                                            label: 'Canceled'
+                                                        }
+                                                    };
+
+                                                    const config = statusConfig[status] || {
+                                                        bg: 'bg-card',
+                                                        border: 'border-theme',
+                                                        text: 'text-secondary',
+                                                        badge: 'bg-card text-secondary border border-theme',
+                                                        icon: Package,
+                                                        label: status.replace(/_/g, ' ').replace(/-/g, ' ')
+                                                    };
+                                                    const StatusIcon = config.icon;
+                                                    return (
+                                                        <div className={`mt-3 ${config.bg} rounded-xl p-4 backdrop-blur-sm border ${config.border} shadow-lg`}>
+                                                            <div className="flex items-start justify-between gap-3">
+                                                                <div className="flex-1">
+                                                                    <div className="flex items-center gap-2 mb-2">
+                                                                        <StatusIcon className={`w-5 h-5 ${config.text}`} />
+                                                                        <span className={`text-xs font-semibold uppercase tracking-wider ${config.text}`}>
+                                                                            Current Order
                                                                         </span>
                                                                     </div>
-                                                                )}
-                                                            </div>
-                                                            <div className="flex-shrink-0">
-                                                                <div className={`w-12 h-12 rounded-full ${config.bg} border-2 ${config.border} flex items-center justify-center backdrop-blur-sm`}>
-                                                                    <StatusIcon className={`w-6 h-6 ${config.text}`} />
+                                                                    <div className="flex items-center gap-2 mb-3">
+                                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold border ${config.badge} backdrop-blur-sm`}>
+                                                                            {config.label}
+                                                                        </span>
+                                                                    </div>
+                                                                    {currentOrder.orderNumber && (
+                                                                        <div className="flex items-center gap-2">
+                                                                            <Package className="w-4 h-4 text-white/70" />
+                                                                            <span className="text-white/90 text-sm font-mono font-semibold">
+                                                                                {currentOrder.orderNumber}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex-shrink-0">
+                                                                    <div className={`w-12 h-12 rounded-full ${config.bg} border-2 ${config.border} flex items-center justify-center backdrop-blur-sm`}>
+                                                                        <StatusIcon className={`w-6 h-6 ${config.text}`} />
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                    );
+                                                })()
+                                            )
+                                                : (
+                                                    <div className="mt-3 bg-card/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
+                                                        <div className="flex items-center gap-2 text-white/80">
+                                                            <Package className="w-4 h-4" />
+                                                            <span className="text-sm font-medium">No active order</span>
+                                                        </div>
                                                     </div>
-                                                );
-                                            })()
-                                        ) : (
-                                            <div className="mt-3 bg-card/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
-                                                <div className="flex items-center gap-2 text-white/80">
-                                                    <Package className="w-4 h-4" />
-                                                    <span className="text-sm font-medium">No active order</span>
-                                                </div>
-                                            </div>
-                                        )}
+                                                )}
                                     </div>
                                 </div>
                                 <button
@@ -1443,9 +1440,9 @@ const DriverPortfolio: React.FC = () => {
                                                 <p className="text-sm font-medium text-purple-600 mb-2">Bonus</p>
                                                 <p className="text-2xl font-bold text-purple-700 mb-2">{formatCurrency(periodBonus)}</p>
                                             </div>
-                                            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
+                                            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border bg-[var(--accent-red)]/10 border-[var(--accent-red)]/30 text-[var(--accent-red)]">
                                                 <p className="text-sm font-medium text-[#A855F7] mb-2">Deductions</p>
-                                                <p className="text-2xl font-bold text-red-700 mb-2">{formatCurrency(periodDeductions)}</p>
+                                                <p className="text-2xl font-bold text-[var(--accent-red)] mb-2">{formatCurrency(periodDeductions)}</p>
                                             </div>
                                         </div>
                                     );
@@ -1525,9 +1522,9 @@ const DriverPortfolio: React.FC = () => {
                                                     <p className="text-sm text-green-600 mb-1">Present Days</p>
                                                     <p className="text-2xl font-bold text-green-700">{periodPresentDays}</p>
                                                 </div>
-                                                <div className="bg-card rounded-lg p-4 border border-red-200">
+                                                <div className="bg-card rounded-lg p-4 border bg-[var(--accent-red)]/10 border-[var(--accent-red)]/30 text-[var(--accent-red)]">
                                                     <p className="text-sm text-[#A855F7] mb-1">Absent Days</p>
-                                                    <p className="text-2xl font-bold text-red-700">{periodAbsentDays}</p>
+                                                    <p className="text-2xl font-bold text-[var(--accent-red)]">{periodAbsentDays}</p>
                                                 </div>
                                                 <div className="bg-card rounded-lg p-4 border border-yellow-200">
                                                     <p className="text-sm text-[#00FFA3] mb-1">Late Days</p>

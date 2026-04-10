@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaUser, FaTruck, FaTrailer, FaCalendarAlt, FaTimes, FaCheck} from 'react-icons/fa';
+import { FaUser, FaTruck, FaTrailer, FaCalendarAlt, FaTimes, FaCheck } from 'react-icons/fa';
 import StepTracker from './StepTracker';
 import { listDriver, listVehicle, listTrailers } from '../../axios/api/distapcher';
 
@@ -57,11 +57,11 @@ interface AssignDriverTruckModalProps {
   onAssign: (loadId: string, driver: string, truck: string, trailer?: string, planDate?: string) => void;
 }
 
-const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({ 
-  load, 
-  isReadOnly = false, 
-  onClose, 
-  onAssign 
+const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
+  load,
+  isReadOnly = false,
+  onClose,
+  onAssign
 }) => {
   const [selectedDriver, setSelectedDriver] = useState("");
   const [selectedTruck, setSelectedTruck] = useState("");
@@ -93,9 +93,9 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
       if (driversRes) {
         const driverData = driversRes.data || (driversRes.success ? driversRes.data : driversRes) || [];
         if (Array.isArray(driverData)) {
-          setDrivers(driverData.map((d: any) => ({ 
-            id: d._id, 
-            name: d.name || `${d.firstName || ''} ${d.lastName || ''}`.trim() || d._id 
+          setDrivers(driverData.map((d: any) => ({
+            id: d._id,
+            name: d.name || `${d.firstName || ''} ${d.lastName || ''}`.trim() || d._id
           })));
         }
       }
@@ -103,11 +103,11 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
       // Handle vehicles - check for both response structures
       if (vehiclesRes) {
         let vehicleData: any[] = [];
-        
+
         // Check if vehicles are nested in data.vehicles (like the API response shows)
         if (vehiclesRes.data?.vehicles && Array.isArray(vehiclesRes.data.vehicles)) {
           vehicleData = vehiclesRes.data.vehicles;
-        } 
+        }
         // Check if data is directly an array
         else if (Array.isArray(vehiclesRes.data)) {
           vehicleData = vehiclesRes.data;
@@ -124,12 +124,12 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
             vehicleData = vehiclesRes.data;
           }
         }
-        
+
         console.log('🔍 Vehicle data extracted:', vehicleData);
-        
+
         if (Array.isArray(vehicleData) && vehicleData.length > 0) {
-          setTrucks(vehicleData.map((v: any) => ({ 
-            id: v._id, 
+          setTrucks(vehicleData.map((v: any) => ({
+            id: v._id,
             name: v.plateNumber || v.internalId || `${v.make || ''} ${v.model || ''}`.trim() || v._id,
             type: v.type || v.vehicleType || 'Truck',
             displayName: `${v.plateNumber || v.internalId || 'Unknown'} - ${v.make || ''} ${v.model || ''}`.trim() || v._id
@@ -143,7 +143,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
       // Handle trailers - check for both response structures
       if (trailersRes) {
         let trailerData: any[] = [];
-        
+
         // Check if trailers are directly in data (paginated response)
         if (trailersRes.data && Array.isArray(trailersRes.data)) {
           trailerData = trailersRes.data;
@@ -158,13 +158,13 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
         else if (Array.isArray(trailersRes)) {
           trailerData = trailersRes;
         }
-        
+
         console.log('🔍 Trailer data extracted:', trailerData);
-        
+
         if (Array.isArray(trailerData) && trailerData.length > 0) {
-          setTrailers(trailerData.map((t: any) => ({ 
-            id: t._id, 
-            name: t.plateNumber || t.trailerNumber || t.trailer || t._id 
+          setTrailers(trailerData.map((t: any) => ({
+            id: t._id,
+            name: t.plateNumber || t.trailerNumber || t.trailer || t._id
           })));
         } else {
           console.warn('⚠️ No trailers found in response:', trailersRes);
@@ -234,7 +234,7 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
         </div>
 
         <div className="p-6 space-y-6">
-         
+
           {/* Step Tracker */}
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
             <label className="block text-sm font-semibold text-primary mb-3">
@@ -279,13 +279,13 @@ const AssignDriverTruckModal: React.FC<AssignDriverTruckModalProps> = ({
                     <div className="space-y-2">
                       {load.route.wayPoints && load.route.wayPoints.length > 0 ? (
                         load.route.wayPoints.map((waypoint: any, index: number) => (
-                          <div key={index} className="text-xs bg-gray-100 p-2 rounded">
+                          <div key={index} className="text-xs bg-card p-2 rounded">
                             <span className="font-medium">
                               {waypoint.pickup ? '📦 Pickup' : waypoint.dropOff ? '📬 Dropoff' : '📍 Waypoint'} {index + 1}:
                             </span>
                             <span className="ml-2">
-                              {typeof waypoint.address === 'string' 
-                                ? waypoint.address 
+                              {typeof waypoint.address === 'string'
+                                ? waypoint.address
                                 : waypoint.address?.place || 'N/A'}
                             </span>
                           </div>

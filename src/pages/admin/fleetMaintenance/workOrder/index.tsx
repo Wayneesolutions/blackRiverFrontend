@@ -304,7 +304,7 @@ function WorkOrdersPage() {
 
         fetchAllWorkOrders();
         fetchMechanics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfoReady, userInfo]);
 
     const getStatusColor = (status: string): string => {
@@ -316,7 +316,7 @@ function WorkOrdersPage() {
             case 'completed':
                 return 'bg-green-100 text-green-700 border border-green-200';
             default:
-                return 'bg-gray-100 text-primary border border-theme';
+                return 'bg-card text-primary border border-theme';
         }
     };
 
@@ -424,7 +424,7 @@ function WorkOrdersPage() {
         }
         if (formData.estimatedTime !== undefined) data.estimatedTime = formData.estimatedTime;
         if (formData.repairUpdate) data.repairUpdate = formData.repairUpdate;
-        
+
         // Add Excel Maintenance Log fields
         if (formData.unitNumber !== undefined) data.unitNumber = formData.unitNumber;
         if (formData.completionDate !== undefined && formData.completionDate !== '') {
@@ -435,7 +435,7 @@ function WorkOrdersPage() {
         }
         if (formData.partsUsed !== undefined) {
             // Convert comma-separated string to array if needed
-            data.partsUsed = typeof formData.partsUsed === 'string' 
+            data.partsUsed = typeof formData.partsUsed === 'string'
                 ? formData.partsUsed.split(',').map(p => p.trim()).filter(Boolean)
                 : formData.partsUsed;
         }
@@ -601,9 +601,9 @@ function WorkOrdersPage() {
                     <p className="text-secondary mt-1">Manage vehicle maintenance and repair work orders</p>
                 </div>
                 <button
-                   onClick={() => setShowCreateModal(true)}
+                    onClick={() => setShowCreateModal(true)}
                     className="flex items-center gap-2 px-5 py-3 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] shadow-lg hover:shadow-xl transition-all font-medium"
-                   
+
                 >
                     <FaPlus /> Create Work Order
                 </button>
@@ -725,17 +725,17 @@ function WorkOrdersPage() {
                                             {order.completionDate ? formatDate(order.completionDate) : order.createdAt ? formatDate(order.createdAt) : 'N/A'}
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
-                                            {order.odometerReading 
-                                                ? order.odometerReading.toLocaleString() 
+                                            {order.odometerReading
+                                                ? order.odometerReading.toLocaleString()
                                                 : 'N/A'}
                                         </td>
                                         <td className="px-4 py-4 text-sm text-secondary max-w-xs">
                                             <div className="truncate" title={
-                                                order.partsUsed 
+                                                order.partsUsed
                                                     ? (Array.isArray(order.partsUsed) ? order.partsUsed.join(', ') : order.partsUsed)
                                                     : 'N/A'
                                             }>
-                                                {order.partsUsed 
+                                                {order.partsUsed
                                                     ? (Array.isArray(order.partsUsed) ? order.partsUsed.join(', ') : order.partsUsed)
                                                     : 'N/A'}
                                             </div>
@@ -1465,8 +1465,8 @@ function WorkOrdersPage() {
                                         <div className="col-span-2">
                                             <span className="text-secondary font-medium">Parts Used:</span>
                                             <p className="font-semibold text-primary">
-                                                {selectedWorkOrder.partsUsed && Array.isArray(selectedWorkOrder.partsUsed) 
-                                                    ? selectedWorkOrder.partsUsed.join(', ') 
+                                                {selectedWorkOrder.partsUsed && Array.isArray(selectedWorkOrder.partsUsed)
+                                                    ? selectedWorkOrder.partsUsed.join(', ')
                                                     : (selectedWorkOrder.partsUsed || 'N/A')}
                                             </p>
                                         </div>

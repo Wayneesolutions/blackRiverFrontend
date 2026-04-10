@@ -20,7 +20,7 @@ const DriversTable: React.FC = () => {
   const [assignedCount, setAssignedCount] = useState<number | null>(null);
   const [unassignedCount, setUnassignedCount] = useState<number | null>(null);
   const [totalCount, setTotalCount] = useState<number | null>(null);
-  const [assignmentFilter, setAssignmentFilter] = useState<'assigned'|'unassigned'|'all'>('all');
+  const [assignmentFilter, setAssignmentFilter] = useState<'assigned' | 'unassigned' | 'all'>('all');
 
   useEffect(() => {
     const fetchDrivers = async () => {
@@ -45,17 +45,17 @@ const DriversTable: React.FC = () => {
       <div className="p-4 flex items-center gap-3">
         <button
           onClick={() => setAssignmentFilter('assigned')}
-          className={`px-3 py-2 rounded ${assignmentFilter === 'assigned' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>
+          className={`px-3 py-2 rounded ${assignmentFilter === 'assigned' ? 'bg-blue-600 text-white' : 'bg-card'}`}>
           Assigned ({assignedCount ?? '-'})
         </button>
         <button
           onClick={() => setAssignmentFilter('unassigned')}
-          className={`px-3 py-2 rounded ${assignmentFilter === 'unassigned' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>
+          className={`px-3 py-2 rounded ${assignmentFilter === 'unassigned' ? 'bg-blue-600 text-white' : 'bg-card'}`}>
           Unassigned ({unassignedCount ?? '-'})
         </button>
         <button
           onClick={() => setAssignmentFilter('all')}
-          className={`px-3 py-2 rounded ${assignmentFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>
+          className={`px-3 py-2 rounded ${assignmentFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-card'}`}>
           Total ({totalCount ?? '-'})
         </button>
       </div>
@@ -99,11 +99,10 @@ const DriversTable: React.FC = () => {
                 {/* Status */}
                 <td className="px-6 py-4">
                   <span
-                    className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                      driver.status === "active"
+                    className={`px-3 py-1 text-xs font-semibold rounded-full ${driver.status === "active"
                         ? "bg-green-100 text-green-700"
                         : "bg-red-100 text-red-700"
-                    }`}
+                      }`}
                   >
                     {driver.status}
                   </span>

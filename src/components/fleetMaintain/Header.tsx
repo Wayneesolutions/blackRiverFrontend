@@ -219,7 +219,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                                         <button key={action.id} onClick={() => handleActionSelect(action)}
                                             className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${index === selectedIndex ? 'bg-card border-blue-500' : 'border-transparent hover:border-blue-300'}`}>
                                             <div className={`flex-shrink-0 ${index === selectedIndex ? 'scale-110' : ''} transition-transform`}>
-                                                <div className={`p-2 rounded-lg ${action.type === 'create' ? 'bg-green-100 text-green-700' : action.type === 'navigation' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-primary'}`}>
+                                                <div className={`p-2 rounded-lg ${action.type === 'create' ? 'bg-green-100 text-green-700' : action.type === 'navigation' ? 'bg-blue-100 text-blue-700' : 'bg-card text-primary'}`}>
                                                     {action.icon}
                                                 </div>
                                             </div>
@@ -272,7 +272,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                             </div>
                         </div>
                         <div className="p-6 border-t border-theme flex justify-end gap-3">
-                            <button onClick={cancelLogout} className="px-6 py-2.5 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium">Cancel</button>
+                            <button onClick={cancelLogout} className="px-6 py-2.5 text-primary bg-card hover:bg-gray-200 rounded-lg transition-colors font-medium">Cancel</button>
                             <button onClick={confirmLogout} className="px-6 py-2.5 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-medium flex items-center gap-2 shadow-lg shadow-red-500/30">
                                 <LogOut size={18} /> Logout
                             </button>

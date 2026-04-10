@@ -232,7 +232,7 @@ function DriverDocument() {
     data.append("documentNumber", formData.documentNumber);
     data.append("expiryDate", formData.expiryDate);
     data.append("issuedAt", formData.issuedAt);
-    
+
     // Add employee/driver ID to FormData (required by backend)
     data.append("employee", selectedDriver._id);
 
@@ -271,7 +271,7 @@ function DriverDocument() {
       case "expiring-soon":
         return "bg-yellow-100 text-yellow-700 border border-yellow-200";
       default:
-        return "bg-gray-100 text-primary border border-theme";
+        return "bg-card text-primary border border-theme";
     }
   };
 
@@ -598,7 +598,7 @@ function DriverDocument() {
                             <span className="font-semibold text-primary capitalize">{doc.documentType}</span>
                           </td>
                           <td className="p-4">
-                            <span className="font-mono bg-gray-100 px-2 py-1 rounded text-sm">{doc.documentNumber}</span>
+                            <span className="font-mono bg-card px-2 py-1 rounded text-sm">{doc.documentNumber}</span>
                           </td>
                           <td className="p-4 text-sm text-secondary">{formatDate(doc.issuedAt)}</td>
                           <td className="p-4 text-sm text-secondary">{formatDate(doc.expiryDate)}</td>

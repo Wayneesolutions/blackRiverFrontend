@@ -35,7 +35,7 @@ const statusBadge = (status: string) => {
     "in-progress": "bg-blue-100 text-blue-800",
     pending: "bg-amber-100 text-amber-800",
   };
-  const style = styles[s] || "bg-gray-100 text-primary";
+  const style = styles[s] || "bg-card text-primary";
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${style}`}>
       {status || "—"}
@@ -49,9 +49,9 @@ const priorityBadge = (priority: string) => {
     urgent: "bg-red-100 text-red-800",
     high: "bg-orange-100 text-orange-800",
     medium: "bg-yellow-100 text-yellow-800",
-    low: "bg-gray-100 text-primary",
+    low: "bg-card text-primary",
   };
-  const style = styles[p] || "bg-gray-100 text-primary";
+  const style = styles[p] || "bg-card text-primary";
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${style}`}>
       {priority || "—"}
@@ -126,7 +126,7 @@ const Services: React.FC = () => {
     setError(null);
     try {
       console.log("🔍 Loading services for mechanic:", currentUserId);
-      
+
       const filters: ServiceFilters = {
         // Note: Backend automatically filters by mechanic ID for 'Maintenance Crew (Mechanics)' role
       };
@@ -150,12 +150,12 @@ const Services: React.FC = () => {
       console.log("📤 API Filters:", filters);
       const response = await listVehicleServices(filters);
       console.log("📥 API Response:", response);
-      
+
       if (response?.success && response?.data) {
         let filteredServices = Array.isArray(response.data) ? response.data : [];
-        
+
         console.log(`✅ Received ${filteredServices.length} services from API`);
-        
+
         // Client-side filtering for search
         if (search.trim()) {
           const searchLower = search.toLowerCase();
@@ -375,11 +375,10 @@ const Services: React.FC = () => {
 
       {notification && (
         <div
-          className={`mb-4 rounded-lg border px-4 py-3 ${
-            notification.type === "success"
+          className={`mb-4 rounded-lg border px-4 py-3 ${notification.type === "success"
               ? "border-green-200 bg-green-50 text-green-800"
               : "border-red-200 bg-card text-red-800"
-          }`}
+            }`}
         >
           {notification.message}
         </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Plus,  Trash2, Search, Pencil } from 'lucide-react';
+import { Plus, Trash2, Search, Pencil } from 'lucide-react';
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes, } from 'react-icons/fa';
 import NewVehicleSidebar from './NewVehicleSidebar';
@@ -115,7 +115,7 @@ const VehiclesTable = () => {
             : [];
 
         setVehicles(data);
-        
+
         // Update pagination info
         if (res?.pagination) {
           setTotal(res.pagination.total || 0);
@@ -172,191 +172,190 @@ const VehiclesTable = () => {
   }, [searchQuery]);
 
   const getStatusColor = (status: string) => {
-  if (!status) {
-    return 'bg-gray-100 text-primary';
-  }
+    if (!status) {
+      return 'bg-card text-primary';
+    }
 
-  switch (status.toLowerCase()) {
+    switch (status.toLowerCase()) {
       case 'active':
         return 'bg-green-100 text-green-800';
       case 'inactive':
         return 'bg-red-100 text-red-800';
       case 'stopped':
-        return 'bg-gray-100 text-primary';
+        return 'bg-card text-primary';
       case 'maintenance':
         return 'bg-yellow-100 text-yellow-800';
       case 'moving':
         return 'bg-blue-100 text-blue-800';
       default:
-        return 'bg-gray-100 text-primary';
+        return 'bg-card text-primary';
     }
   };
 
-// Server-side search is now handled, so we just use vehicles directly
-const displayedVehicles = vehicles;
+  // Server-side search is now handled, so we just use vehicles directly
+  const displayedVehicles = vehicles;
 
-// Handle different userInfo structures (userData.company or direct company)
-const userRole = userInfo?.role || userInfo?.userData?.role;
-const userCompany = userInfo?.company || userInfo?.userData?.company;
-const isSuperadmin = userRole === 'superadmin';
-const isDispatcher = userRole === 'dispatcher';
-const hasCompany = Boolean(userCompany);
-// Allow dispatchers to create vehicles - backend will use their company from database
-const canCreateVehicle = isSuperadmin || hasCompany || isDispatcher;
+  // Handle different userInfo structures (userData.company or direct company)
+  const userRole = userInfo?.role || userInfo?.userData?.role;
+  const userCompany = userInfo?.company || userInfo?.userData?.company;
+  const isSuperadmin = userRole === 'superadmin';
+  const isDispatcher = userRole === 'dispatcher';
+  const hasCompany = Boolean(userCompany);
+  // Allow dispatchers to create vehicles - backend will use their company from database
+  const canCreateVehicle = isSuperadmin || hasCompany || isDispatcher;
 
-const handleOpenCreateSidebar = useCallback(() => {
-  if (!canCreateVehicle) {
-    addNotification('warning', 'Assign a company to this account or use a superadmin role to create vehicles.');
-    return;
-  }
-  setSidebarMode('create');
-  setEditingVehicle(null);
-  setIsSidebarOpen(true);
-}, [canCreateVehicle, addNotification]);
+  const handleOpenCreateSidebar = useCallback(() => {
+    if (!canCreateVehicle) {
+      addNotification('warning', 'Assign a company to this account or use a superadmin role to create vehicles.');
+      return;
+    }
+    setSidebarMode('create');
+    setEditingVehicle(null);
+    setIsSidebarOpen(true);
+  }, [canCreateVehicle, addNotification]);
 
-const handleEditVehicle = useCallback((vehicle: Vehicle) => {
-  setSidebarMode('edit');
-  setEditingVehicle(vehicle);
-  setIsSidebarOpen(true);
-}, []);
+  const handleEditVehicle = useCallback((vehicle: Vehicle) => {
+    setSidebarMode('edit');
+    setEditingVehicle(vehicle);
+    setIsSidebarOpen(true);
+  }, []);
 
-const handleSidebarSubmit = useCallback(
-  async (vehiclePayload: FormData, vehicleId?: string) => {
-    try {
-      const response =
-        sidebarMode === 'edit' && vehicleId
-          ? await updateVehicle(vehicleId, vehiclePayload)
-          : await createVehicle(vehiclePayload);
+  const handleSidebarSubmit = useCallback(
+    async (vehiclePayload: FormData, vehicleId?: string) => {
+      try {
+        const response =
+          sidebarMode === 'edit' && vehicleId
+            ? await updateVehicle(vehicleId, vehiclePayload)
+            : await createVehicle(vehiclePayload);
 
-      if (response?.success) {
-        addNotification('success',
-          response?.message ||
+        if (response?.success) {
+          addNotification('success',
+            response?.message ||
             (sidebarMode === 'edit'
               ? 'Vehicle updated successfully'
               : 'Vehicle created successfully')
-        );
-        setIsSidebarOpen(false);
-        setEditingVehicle(null);
-        setSidebarMode('create');
-        fetchVehicles(currentPage, pageSize, searchQuery);
+          );
+          setIsSidebarOpen(false);
+          setEditingVehicle(null);
+          setSidebarMode('create');
+          fetchVehicles(currentPage, pageSize, searchQuery);
+        } else {
+          addNotification('error', response?.message || 'Failed to save vehicle');
+        }
+      } catch (error: any) {
+        const rawMessage = error?.response?.data?.message || error?.message;
+        if (rawMessage?.toLowerCase()?.includes('permission')) {
+          addNotification('error', 'You do not have permission to update this vehicle. Please contact an administrator.');
+        } else {
+          addNotification('error', rawMessage || 'Failed to save vehicle');
+        }
+      }
+    },
+    [fetchVehicles, sidebarMode, addNotification]
+  );
+
+  const openDeleteModal = useCallback((vehicle: Vehicle) => {
+    setDeleteTarget(vehicle);
+    setDeleteModalOpen(true);
+  }, []);
+
+  const closeDeleteModal = useCallback(() => {
+    setDeleteModalOpen(false);
+    setDeleteTarget(null);
+    setDeleteLoading(false);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    try {
+      const res = await deleteVehicle(deleteTarget._id);
+      if (res?.success) {
+        addNotification('success', res?.message || 'Vehicle deleted successfully');
+        setVehicles(prev => prev.filter(vehicle => vehicle._id !== deleteTarget._id));
+        closeDeleteModal();
       } else {
-        addNotification('error', response?.message || 'Failed to save vehicle');
+        addNotification('error', res?.message || 'Failed to delete vehicle');
       }
     } catch (error: any) {
-      const rawMessage = error?.response?.data?.message || error?.message;
-      if (rawMessage?.toLowerCase()?.includes('permission')) {
-        addNotification('error', 'You do not have permission to update this vehicle. Please contact an administrator.');
-      } else {
-        addNotification('error', rawMessage || 'Failed to save vehicle');
-      }
+      addNotification('error', error?.message || 'Failed to delete vehicle');
+    } finally {
+      setDeleteLoading(false);
     }
-  },
-  [fetchVehicles, sidebarMode, addNotification]
-);
+  }, [deleteTarget, closeDeleteModal, addNotification]);
 
-const openDeleteModal = useCallback((vehicle: Vehicle) => {
-  setDeleteTarget(vehicle);
-  setDeleteModalOpen(true);
-}, []);
+  const handleSidebarClose = useCallback(() => {
+    setIsSidebarOpen(false);
+    setEditingVehicle(null);
+    setSidebarMode('create');
+  }, []);
 
-const closeDeleteModal = useCallback(() => {
-  setDeleteModalOpen(false);
-  setDeleteTarget(null);
-  setDeleteLoading(false);
-}, []);
+  const sidebarInitialData = useMemo(() => {
+    if (!editingVehicle) return undefined;
+    return {
+      _id: editingVehicle._id,
+      internalId: editingVehicle.internalId || '',
+      plateNumber: editingVehicle.plateNumber || '',
+      vinNumber: editingVehicle.vinNumber || '',
+      make: editingVehicle.make || '',
+      model: editingVehicle.model || '',
+      year: editingVehicle.year || '',
+      status: editingVehicle.status || 'stopped',
+      address: (editingVehicle as any)?.address || editingVehicle.currentLocation?.address || '',
+    };
+  }, [editingVehicle]);
 
-const handleConfirmDelete = useCallback(async () => {
-  if (!deleteTarget) return;
-  setDeleteLoading(true);
-  try {
-    const res = await deleteVehicle(deleteTarget._id);
-    if (res?.success) {
-      addNotification('success', res?.message || 'Vehicle deleted successfully');
-      setVehicles(prev => prev.filter(vehicle => vehicle._id !== deleteTarget._id));
-      closeDeleteModal();
-    } else {
-      addNotification('error', res?.message || 'Failed to delete vehicle');
-    }
-  } catch (error: any) {
-    addNotification('error', error?.message || 'Failed to delete vehicle');
-  } finally {
-    setDeleteLoading(false);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
+      </div>
+    );
   }
-}, [deleteTarget, closeDeleteModal, addNotification]);
 
-const handleSidebarClose = useCallback(() => {
-  setIsSidebarOpen(false);
-  setEditingVehicle(null);
-  setSidebarMode('create');
-}, []);
-
-const sidebarInitialData = useMemo(() => {
-  if (!editingVehicle) return undefined;
-  return {
-    _id: editingVehicle._id,
-    internalId: editingVehicle.internalId || '',
-    plateNumber: editingVehicle.plateNumber || '',
-    vinNumber: editingVehicle.vinNumber || '',
-    make: editingVehicle.make || '',
-    model: editingVehicle.model || '',
-    year: editingVehicle.year || '',
-    status: editingVehicle.status || 'stopped',
-    address: (editingVehicle as any)?.address || editingVehicle.currentLocation?.address || '',
-  };
-}, [editingVehicle]);
-
-if (loading) {
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
-    </div>
-  );
-}
-
-return (
-  <div className="min-h-screen bg-card">
-    {/* Toast Notifications Container - High z-index */}
-    <div className="fixed top-4 right-4 z-[10000] flex flex-col gap-3 max-w-md">
-      {notifications.map(notification => (
-        <ToastNotification
-          key={notification.id}
-          notification={notification}
-          onClose={removeNotification}
-        />
-      ))}
-    </div>
-
-    <div className="bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
-      <div className="flex items-center space-x-4">
-        <h1 className="text-2xl font-semibold text-primary">Vehicles</h1>
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Search vehicles..."
-            className="pl-10 pr-4 py-2 border border-theme rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    <div className="min-h-screen bg-card">
+      {/* Toast Notifications Container - High z-index */}
+      <div className="fixed top-4 right-4 z-[10000] flex flex-col gap-3 max-w-md">
+        {notifications.map(notification => (
+          <ToastNotification
+            key={notification.id}
+            notification={notification}
+            onClose={removeNotification}
           />
+        ))}
+      </div>
+
+      <div className="bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <h1 className="text-2xl font-semibold text-primary">Vehicles</h1>
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search vehicles..."
+              className="pl-10 pr-4 py-2 border border-theme rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+        <div className="flex items-center space-x-3">
+
+          <button
+            onClick={handleOpenCreateSidebar}
+            className={`px-4 py-2 rounded-md flex items-center space-x-2 transition-colors ${canCreateVehicle ? 'bg-blue-600 !text-white hover:bg-blue-700' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+              }`}
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Vehicle</span>
+          </button>
         </div>
       </div>
-      <div className="flex items-center space-x-3">
-        
-        <button
-          onClick={handleOpenCreateSidebar}
-          className={`px-4 py-2 rounded-md flex items-center space-x-2 transition-colors ${
-            canCreateVehicle ? 'bg-blue-600 !text-white hover:bg-blue-700' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-          }`}
-        >
-          <Plus className="w-4 h-4" />
-          <span>Create Vehicle</span>
-        </button>
-      </div>
-    </div>
 
-    <div className="p-6">
-      <div className="bg-card rounded-lg shadow-sm border border-theme overflow-auto">
-        <table className="w-full min-w-[1200px]">
+      <div className="p-6">
+        <div className="bg-card rounded-lg shadow-sm border border-theme overflow-auto">
+          <table className="w-full min-w-[1200px]">
             <thead className="bg-card border-b border-theme">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Internal ID</th>
@@ -423,7 +422,7 @@ return (
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination */}
         {totalPages > 0 && (
           <div className="mt-6 flex items-center justify-between px-6 py-4 bg-card border-t border-theme">
@@ -440,7 +439,7 @@ return (
               <span className="font-medium">{total}</span>
               <span>vehicles</span>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <button
                 onClick={() => {
@@ -454,7 +453,7 @@ return (
                 <ChevronLeft className="w-4 h-4" />
                 Previous
               </button>
-              
+
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
                   let pageNum;
@@ -467,24 +466,23 @@ return (
                   } else {
                     pageNum = currentPage - 3 + i;
                   }
-                  
+
                   return (
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
                       disabled={loading}
-                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                        currentPage === pageNum
+                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${currentPage === pageNum
                           ? 'bg-blue-600 text-white'
                           : 'text-primary bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)]'
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       {pageNum}
                     </button>
                   );
                 })}
               </div>
-              
+
               <button
                 onClick={() => {
                   if (currentPage < totalPages) {
@@ -497,7 +495,7 @@ return (
                 Next
                 <ChevronRight className="w-4 h-4" />
               </button>
-              
+
               <select
                 value={pageSize}
                 onChange={(e) => {

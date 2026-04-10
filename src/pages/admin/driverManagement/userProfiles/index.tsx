@@ -365,7 +365,7 @@ const UserProfilesPortfolio: React.FC = () => {
 
     return (
         <div
-            className="min-h-screen p-6 "
+            className="min-h-screen p-6 border-2 border-red-700 "
             style={{
                 ...ACCENT_VARS,
                 background: "var(--bg-main)"
@@ -572,44 +572,22 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                 {/* User Profiles Table */}
                 <div className="bg-card rounded-xl shadow-lg border border-theme overflow-hidden">
                     {/* Top Scrollbar - Only visible horizontal scrollbar */}
-                    <style>{`
-                        .top-scrollbar-container::-webkit-scrollbar {
-                            height: 8px;
-                        }
-                        .top-scrollbar-container::-webkit-scrollbar-track {
-                            background: #f7fafc;
-                        }
-                        .top-scrollbar-container::-webkit-scrollbar-thumb {
-                            background: #cbd5e0;
-                            border-radius: 4px;
-                        }
-                        .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                            background: #a0aec0;
-                        }
-                        .table-container-hidden-scrollbar {
-                            scrollbar-width: none; /* Firefox */
-                            -ms-overflow-style: none; /* IE and Edge */
-                        }
-                        .table-container-hidden-scrollbar::-webkit-scrollbar {
-                            display: none; /* Chrome, Safari, Opera */
-                        }
-                    `}</style>
+
                     <div
                         ref={topScrollRef}
-                        className="overflow-x-auto overflow-y-hidden top-scrollbar-container scrollbar-theme"
+                        className="overflow-x-scroll overflow-y-hidden scrollbar-theme"
                         style={{
                             maxHeight: '20px',
                             marginBottom: '2px',
-                            scrollbarWidth: 'thin',
-                            scrollbarColor: 'rgba(168,85,247,0.6) var(--bg-main)' /* purple */
+
                         }}
                     >
-                        <div className="top-scroll-content" style={{ height: '1px' }}></div>
+                        <div className="top-scroll-content" style={{ height: '1px', width: "1200px" }}></div>
                     </div>
                     {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
                     <div
                         ref={bottomScrollRef}
-                        className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
+                        className="overflow-x-scroll overflow-y-visible table-container-hidden-scrollbar"
                     >
                         <table className="w-full" style={{ minWidth: '1200px' }}>
                             <thead className="text-white " style={{ background: 'var(--accent-navyblue)' }}>
@@ -630,160 +608,160 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-theme">
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan={showDriverColumns ? 10 : 7} className="px-6 py-12 text-center text-secondary">
-                                            Loading employee profiles...
-                                        </td>
-                                    </tr>
-                                ) : filteredProfiles.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={showDriverColumns ? 10 : 7} className="px-6 py-12 text-center text-secondary">
-                                            {emptyStateMessage}
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredProfiles.map((profile) => (
-                                        <tr
-                                            key={profile._id}
-                                            className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
-                                            onClick={() => {
-                                                setSelectedProfile(profile);
-                                                setShowProfileSidebar(true);
-                                            }}
-                                        >
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div
-                                                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold"
-                                                        style={{ background: ACCENT_GRADIENT }}
-                                                    >
-                                                        {profile.name.charAt(0)}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-medium text-primary">{profile.name}</p>
-                                                        <p className="text-sm text-secondary">{profile.email}</p>
-                                                    </div>
-                                                </div>
-                                                {!showDriverColumns && profile.role === 'driver' && (
-                                                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-secondary">
-                                                        {profile.milesDriven != null && (
-                                                            <span className="inline-flex items-center gap-1">
-                                                                <MapPin className="w-3 h-3 text-[var(--accent-purple)]" />
-                                                                {formatNumber(profile.milesDriven)} mi
-                                                            </span>
-                                                        )}
-                                                        {profile.tripsCompleted != null && (
-                                                            <span className="inline-flex items-center gap-1 text-[var(--accent-color)]">
-                                                                <TrendingUp className="w-3 h-3" />
-                                                                {formatNumber(profile.tripsCompleted)} trips
-                                                            </span>
-                                                        )}
-                                                        {profile.invoices != null && (
-                                                            <span className="inline-flex items-center gap-1">
-                                                                <FileText className="w-3 h-3 text-[var(--accent-indigo)]" />
-                                                                {profile.invoices} invoices
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(profile.role)}`}>
-                                                    {profile.role}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div>
-                                                    <p className="font-semibold text-primary">{formatCurrency(profile.totalEarnings)}</p>
-                                                    <div className="text-xs text-secondary mt-1">
-                                                        <span>Base: {formatCurrency(profile.baseSalary)}</span>
-                                                        {profile.bonus > 0 && <span className="ml-2 text-[var(--accent-green)]">+{formatCurrency(profile.bonus)}</span>}
-                                                        {profile.deductions > 0 && <span className="ml-2 text-[#A855F7]">-{formatCurrency(profile.deductions)}</span>}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            {showDriverColumns && (
-                                                <>
-                                                    <td className="px-6 py-4">
-                                                        {profile.milesDriven != null ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <MapPin className="w-4 h-4 text-[var(--accent-purple)]" />
-                                                                <span className="font-medium text-primary">{formatNumber(profile.milesDriven)}</span>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-secondary">—</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {profile.tripsCompleted != null ? (
-                                                            <span className="font-medium text-primary">{formatNumber(profile.tripsCompleted)}</span>
-                                                        ) : (
-                                                            <span className="text-secondary">—</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {profile.invoices != null ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <FileText className="w-4 h-4 text-[var(--accent-indigo)]" />
-                                                                <span className="font-medium text-primary">{profile.invoices}</span>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-secondary">—</span>
-                                                        )}
-                                                    </td>
-                                                </>
-                                            )}
-                                            <td className="px-6 py-4">
-                                                <div>
-                                                    <p className="font-medium text-primary">{profile.daysWorked} days</p>
-                                                    <div className="text-xs text-secondary mt-1 flex gap-2">
-                                                        <span className="text-[var(--accent-green)]">✓ {profile.presentDays}</span>
-                                                        {profile.absentDays > 0 && <span className="text-[#A855F7]">✗ {profile.absentDays}</span>}
-                                                        {profile.leaveDays > 0 && <span className="text-[#00D1FF]">L {profile.leaveDays}</span>}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <Clock className="w-4 h-4 text-[var(--accent-blue)]" />
-                                                    <span className="font-medium text-primary">{formatNumber(profile.totalHours)} hrs</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-1">
-                                                    {profile.presentDays > 0 && (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--accent-green)]/10 text-[var(--accent-green)] text-xs font-medium rounded">
-                                                            <FaCheckCircle size={12} />
-                                                            {profile.presentDays}
-                                                        </span>
-                                                    )}
-                                                    {profile.absentDays > 0 && (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--accent-red)]/10 text-[var(--accent-red)] text-xs font-medium rounded">
-                                                            <FaTimes size={12} />
-                                                            {profile.absentDays}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedProfile(profile);
-                                                        setShowProfileSidebar(true);
-                                                    }}
-                                                    className="p-2 rounded-lg transition-colors text-[var(--accent-color)] hover:text-[var(--accent-dark)]"
-                                                    style={{ backgroundColor: 'rgba(1, 106, 178, 0.08)' }}
-                                                    title="View Profile"
+
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={showDriverColumns ? 10 : 7} className="px-6 py-12 text-center text-secondary">
+                                        Loading employee profiles...
+                                    </td>
+                                </tr>
+                            ) : filteredProfiles.length === 0 ? (
+                                <tr>
+                                    <td colSpan={showDriverColumns ? 10 : 7} className="px-6 py-12 text-center text-secondary">
+                                        {emptyStateMessage}
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredProfiles.map((profile) => (
+                                    <tr
+                                        key={profile._id}
+                                        className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
+                                        onClick={() => {
+                                            setSelectedProfile(profile);
+                                            setShowProfileSidebar(true);
+                                        }}
+                                    >
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div
+                                                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold"
+                                                    style={{ background: ACCENT_GRADIENT }}
                                                 >
-                                                    <Eye className="w-5 h-5" />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
+                                                    {profile.name.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-primary">{profile.name}</p>
+                                                    <p className="text-sm text-secondary">{profile.email}</p>
+                                                </div>
+                                            </div>
+                                            {!showDriverColumns && profile.role === 'driver' && (
+                                                <div className="mt-2 flex flex-wrap gap-3 text-xs text-secondary">
+                                                    {profile.milesDriven != null && (
+                                                        <span className="inline-flex items-center gap-1">
+                                                            <MapPin className="w-3 h-3 text-[var(--accent-purple)]" />
+                                                            {formatNumber(profile.milesDriven)} mi
+                                                        </span>
+                                                    )}
+                                                    {profile.tripsCompleted != null && (
+                                                        <span className="inline-flex items-center gap-1 text-[var(--accent-color)]">
+                                                            <TrendingUp className="w-3 h-3" />
+                                                            {formatNumber(profile.tripsCompleted)} trips
+                                                        </span>
+                                                    )}
+                                                    {profile.invoices != null && (
+                                                        <span className="inline-flex items-center gap-1">
+                                                            <FileText className="w-3 h-3 text-[var(--accent-indigo)]" />
+                                                            {profile.invoices} invoices
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(profile.role)}`}>
+                                                {profile.role}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div>
+                                                <p className="font-semibold text-primary">{formatCurrency(profile.totalEarnings)}</p>
+                                                <div className="text-xs text-secondary mt-1">
+                                                    <span>Base: {formatCurrency(profile.baseSalary)}</span>
+                                                    {profile.bonus > 0 && <span className="ml-2 text-[var(--accent-green)]">+{formatCurrency(profile.bonus)}</span>}
+                                                    {profile.deductions > 0 && <span className="ml-2 text-[#A855F7]">-{formatCurrency(profile.deductions)}</span>}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        {showDriverColumns && (
+                                            <>
+                                                <td className="px-6 py-4">
+                                                    {profile.milesDriven != null ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <MapPin className="w-4 h-4 text-[var(--accent-purple)]" />
+                                                            <span className="font-medium text-primary">{formatNumber(profile.milesDriven)}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-secondary">—</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    {profile.tripsCompleted != null ? (
+                                                        <span className="font-medium text-primary">{formatNumber(profile.tripsCompleted)}</span>
+                                                    ) : (
+                                                        <span className="text-secondary">—</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    {profile.invoices != null ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <FileText className="w-4 h-4 text-[var(--accent-indigo)]" />
+                                                            <span className="font-medium text-primary">{profile.invoices}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-secondary">—</span>
+                                                    )}
+                                                </td>
+                                            </>
+                                        )}
+                                        <td className="px-6 py-4">
+                                            <div>
+                                                <p className="font-medium text-primary">{profile.daysWorked} days</p>
+                                                <div className="text-xs text-secondary mt-1 flex gap-2">
+                                                    <span className="text-[var(--accent-green)]">✓ {profile.presentDays}</span>
+                                                    {profile.absentDays > 0 && <span className="text-[#A855F7]">✗ {profile.absentDays}</span>}
+                                                    {profile.leaveDays > 0 && <span className="text-[#00D1FF]">L {profile.leaveDays}</span>}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <Clock className="w-4 h-4 text-[var(--accent-blue)]" />
+                                                <span className="font-medium text-primary">{formatNumber(profile.totalHours)} hrs</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-1">
+                                                {profile.presentDays > 0 && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--accent-green)]/10 text-[var(--accent-green)] text-xs font-medium rounded">
+                                                        <FaCheckCircle size={12} />
+                                                        {profile.presentDays}
+                                                    </span>
+                                                )}
+                                                {profile.absentDays > 0 && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--accent-red)]/10 text-[var(--accent-red)] text-xs font-medium rounded">
+                                                        <FaTimes size={12} />
+                                                        {profile.absentDays}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedProfile(profile);
+                                                    setShowProfileSidebar(true);
+                                                }}
+                                                className="p-2 rounded-lg transition-colors text-[var(--accent-color)] hover:text-[var(--accent-dark)]"
+                                                style={{ backgroundColor: 'rgba(1, 106, 178, 0.08)' }}
+                                                title="View Profile"
+                                            >
+                                                <Eye className="w-5 h-5" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+
                         </table>
                     </div>
                 </div>
