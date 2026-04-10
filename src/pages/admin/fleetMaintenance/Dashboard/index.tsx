@@ -469,9 +469,8 @@ const ComplianceDashboard: React.FC = () => {
       value: fleetOperational.activeTrucks,
       subtitle: 'In service',
       icon: Activity,
-      bgColor: 'bg-blue-100',
-      iconColor: 'text-blue-700',
-      cardBg: 'bg-gradient-to-br from-blue-50 to-blue-100',
+      bgColor: 'bg-[var(--accent-blue)]/10',
+      iconColor: 'text-[var(--accent-blue)]',
       onClick: () => navigate(`${getBasePath()}/fleet-units`)
     },
     {
@@ -480,9 +479,8 @@ const ComplianceDashboard: React.FC = () => {
       value: fleetOperational.outOfServiceTrucks,
       subtitle: 'Requires attention',
       icon: XCircle,
-      bgColor: 'bg-red-100',
-      iconColor: 'text-red-700',
-      cardBg: 'bg-gradient-to-br from-red-50 to-red-100',
+      bgColor: 'bg-[var(--accent-red)]/10',
+      iconColor: 'text-[var(--accent-red)]',
       onClick: () => navigate(`${getBasePath()}/fleet-units`)
     },
     {
@@ -491,21 +489,19 @@ const ComplianceDashboard: React.FC = () => {
       value: fleetOperational.vehiclesUnderRepair,
       subtitle: 'In maintenance',
       icon: Wrench,
-      bgColor: 'bg-orange-100',
-      iconColor: 'text-orange-700',
-      cardBg: 'bg-gradient-to-br from-orange-50 to-orange-100',
+      bgColor: 'bg-[var(--accent-amber)]/10',
+      iconColor: 'text-[var(--accent-amber)]',
       onClick: () => navigate(`${getBasePath()}/maintenance-orders-log`)
     },
-    // Note: pendingServiceCards are rendered separately, not added to features array
+
     {
       id: 'safety',
       title: 'Safety Alerts',
       value: safetyAlerts.length,
       subtitle: 'Expiring/Expired',
       icon: AlertTriangle,
-      bgColor: 'bg-red-100',
-      iconColor: 'text-red-700',
-      cardBg: 'bg-gradient-to-br from-red-50 to-red-100',
+      bgColor: 'bg-[var(--accent-red)]/10',
+      iconColor: 'text-[var(--accent-red)]',
       onClick: () => navigate(`${getBasePath()}/regulatory-safety`)
     },
     {
@@ -514,9 +510,8 @@ const ComplianceDashboard: React.FC = () => {
       value: data?.overdueServicesCount || 0,
       subtitle: 'Requires attention',
       icon: Clock,
-      bgColor: 'bg-orange-100',
-      iconColor: 'text-orange-700',
-      cardBg: 'bg-gradient-to-br from-orange-50 to-orange-100',
+      bgColor: 'bg-[var(--accent-amber)]/10',
+      iconColor: 'text-[var(--accent-amber)]',
       onClick: () => navigate(`${getBasePath()}/scheduled-services-log`)
     },
     {
@@ -525,9 +520,8 @@ const ComplianceDashboard: React.FC = () => {
       value: currentInvoices ? formatCurrency(currentInvoices.total) : 'CA$0.00',
       subtitle: selectedPeriod === 'month' ? 'This Month' : 'Year to Date',
       icon: DollarSign,
-      bgColor: 'bg-green-100',
-      iconColor: 'text-green-700',
-      cardBg: 'bg-gradient-to-br from-green-50 to-green-100',
+      bgColor: 'bg-[var(--accent-green)]/10',
+      iconColor: 'text-[var(--accent-green)]',
       onClick: () => navigate(`${getBasePath()}/invoices`)
     },
     {
@@ -536,9 +530,8 @@ const ComplianceDashboard: React.FC = () => {
       value: inactiveUnits,
       subtitle: 'Retired / Maintenance',
       icon: Truck,
-      bgColor: 'bg-card',
-      iconColor: 'text-primary',
-      cardBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
+      bgColor: 'bg-[var(--accent-indigo)]/10',
+      iconColor: 'text-[var(--accent-indigo)]',
       onClick: () => navigate(`${getBasePath()}/fleet-units`)
     }
   ];
@@ -575,7 +568,7 @@ const ComplianceDashboard: React.FC = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-main " >
+      <div className="min-h-screen bg-main border-2 border-red-700" >
         <div className="w-full mx-auto p-2 relative">
           {/* Gradient band */}
           <div
@@ -652,15 +645,15 @@ const ComplianceDashboard: React.FC = () => {
                   <div
                     key={feature.id}
                     onClick={feature.onClick}
-                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                    className="card-premium cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <h3 className="text-sm font-bold text-primary mb-1">
+                        <h3 className="text-sm font-bold text-headings mb-1">
                           {feature.title}
                         </h3>
                         <div className="flex items-baseline gap-2 mb-0.5">
-                          <span className="text-xl font-bold text-primary">{feature.value}</span>
+                          <span className="text-xl font-bold text-headings">{feature.value}</span>
                         </div>
                         <p className="text-xs text-secondary">{feature.subtitle}</p>
                       </div>
@@ -680,11 +673,11 @@ const ComplianceDashboard: React.FC = () => {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
-                      <h3 className="text-sm font-bold text-primary mb-1">
+                      <h3 className="text-sm font-bold text-headings mb-1">
                         {serviceCard.title}
                       </h3>
                       <div className="flex items-baseline gap-2 mb-0.5">
-                        <span className="text-xl font-bold text-primary">{serviceCard.value}</span>
+                        <span className="text-xl font-bold text-headings">{serviceCard.value}</span>
                       </div>
                       <p className="text-xs text-secondary">{serviceCard.subtitle}</p>
                     </div>
@@ -705,15 +698,15 @@ const ComplianceDashboard: React.FC = () => {
                   <div
                     key={feature.id}
                     onClick={feature.onClick}
-                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                    className="card-premium cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <h3 className="text-sm font-bold text-primary mb-1">
+                        <h3 className="text-sm font-bold text-headings mb-1">
                           {feature.title}
                         </h3>
                         <div className="flex items-baseline gap-2 mb-0.5">
-                          <span className="text-xl font-bold text-primary">{feature.value}</span>
+                          <span className="text-xl font-bold text-headings">{feature.value}</span>
                         </div>
                         <p className="text-xs text-secondary">{feature.subtitle}</p>
                       </div>
@@ -734,11 +727,11 @@ const ComplianceDashboard: React.FC = () => {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <h3 className="text-sm font-bold text-primary mb-1">
+                        <h3 className="text-sm font-bold text-headings mb-1">
                           {serviceCard.title}
                         </h3>
                         <div className="flex items-baseline gap-2 mb-0.5">
-                          <span className="text-xl font-bold text-primary">{serviceCard.value}</span>
+                          <span className="text-xl font-bold text-headings">{serviceCard.value}</span>
                         </div>
                         <p className="text-xs text-secondary">{serviceCard.subtitle}</p>
                       </div>
@@ -768,11 +761,11 @@ const ComplianceDashboard: React.FC = () => {
                         <div className={`${item.bgColor} group-hover:bg-card p-2 rounded-lg transition-colors`}>
                           <Icon className={`h-5 w-5 ${item.iconColor}`} />
                         </div>
-                        <span className="text-lg font-bold text-primary group-hover:text-blue-700">
+                        <span className="text-lg font-bold text-headings group-hover:text-blue-700">
                           {item.value}
                         </span>
                       </div>
-                      <p className="text-sm font-medium text-primary group-hover:text-blue-800">{item.title}</p>
+                      <p className="text-sm font-medium text-headings group-hover:text-blue-800">{item.title}</p>
                       <p className="text-xs text-secondary mt-1 group-hover:text-[#00D1FF]">{item.subtitle}</p>
                     </div>
                   );
@@ -787,7 +780,7 @@ const ComplianceDashboard: React.FC = () => {
                 className="px-6 py-4 border-b border-theme bg-card cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-primary flex items-center">
+                  <h3 className="text-lg font-bold text-headings flex items-center">
                     <AlertTriangle className="h-5 w-5 mr-2 text-[#A855F7]" />
                     Regulatory & Safety
                   </h3>
@@ -799,14 +792,14 @@ const ComplianceDashboard: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-card">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Unit No.</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Make/Model</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Safety Expiry</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Days Until Expiry</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Unit No.</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Make/Model</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Safety Expiry</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Days Until Expiry</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-theme">
+                  <tbody className="divide-y divide-theme border-2 border-red-700 ">
                     {safetyAlerts.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="px-6 py-12 text-center text-secondary">
@@ -823,9 +816,9 @@ const ComplianceDashboard: React.FC = () => {
                           className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${alert.status === 'expired' ? 'bg-card' : 'bg-card'
                             }`}
                         >
-                          <td className="px-6 py-4 font-medium text-primary">{alert.unitNo}</td>
-                          <td className="px-6 py-4 text-primary">{alert.makeModel || '—'}</td>
-                          <td className="px-6 py-4 text-primary">{formatDate(alert.safetyExpiry)}</td>
+                          <td className="px-6 py-4 font-medium text-headings">{alert.unitNo}</td>
+                          <td className="px-6 py-4 text-headings">{alert.makeModel || '—'}</td>
+                          <td className="px-6 py-4 text-headings">{formatDate(alert.safetyExpiry)}</td>
                           <td className="px-6 py-4">
                             <span className={`font-semibold ${alert.daysUntilExpiry < 0 ? 'text-[#A855F7]' : 'text-[#00FFA3]'}`}>
                               {alert.daysUntilExpiry < 0
@@ -866,7 +859,7 @@ const ComplianceDashboard: React.FC = () => {
                 className="px-6 py-4 border-b border-theme bg-card cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-primary flex items-center">
+                  <h3 className="text-lg font-bold text-headings flex items-center">
                     <FileText className="h-5 w-5 mr-2 text-purple-600" />
                     Compliance Documents (7 Mandatory Regulatory Requirements)
                   </h3>
@@ -878,16 +871,16 @@ const ComplianceDashboard: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-card">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Unit No.</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Document Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Document Number</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Expiry Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Days Until Expiry</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Unit No.</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Document Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Document Number</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Expiry Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Days Until Expiry</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-theme">
+                  <tbody className="divide-y divide-theme border-2 border-red-700">
                     {complianceDocuments.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="px-6 py-12 text-center text-secondary">
@@ -940,17 +933,17 @@ const ComplianceDashboard: React.FC = () => {
                             key={doc._id}
                             className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${rowBgColor}`}
                           >
-                            <td className="px-6 py-4 font-medium text-primary">{doc.unitNo}</td>
-                            <td className="px-6 py-4 text-primary">
+                            <td className="px-6 py-4 font-medium text-headings">{doc.unitNo}</td>
+                            <td className="px-6 py-4 text-headings">
                               <span className="inline-flex px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800">
                                 {doc.unitType}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-primary">
+                            <td className="px-6 py-4 text-headings">
                               <span className="capitalize">{doc.documentType.replace(/_/g, ' ')}</span>
                             </td>
-                            <td className="px-6 py-4 text-primary">{doc.documentNumber}</td>
-                            <td className="px-6 py-4 text-primary">{formatDate(doc.expiryDate)}</td>
+                            <td className="px-6 py-4 text-headings">{doc.documentNumber}</td>
+                            <td className="px-6 py-4 text-headings">{formatDate(doc.expiryDate)}</td>
                             <td className="px-6 py-4">
                               <span className={`font-semibold ${daysTextColor}`}>
                                 {doc.daysUntilExpiry === null
@@ -982,7 +975,7 @@ const ComplianceDashboard: React.FC = () => {
                 className="px-6 py-4 border-b border-theme bg-card cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-primary flex items-center">
+                  <h3 className="text-lg font-bold text-headings flex items-center">
                     <Calendar className="h-5 w-5 mr-2 text-[#00D1FF]" />
                     Scheduled Service Status
                   </h3>
@@ -994,15 +987,15 @@ const ComplianceDashboard: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-card">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Unit No.</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Make/Model</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Current Odometer</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Next Service Due</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Unit No.</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Make/Model</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Current Odometer</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Next Service Due</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-theme">
+                  <tbody className="divide-y divide-theme divide-white/5 border-2">
                     {pmStatus.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="px-6 py-12 text-center text-secondary">
@@ -1029,7 +1022,7 @@ const ComplianceDashboard: React.FC = () => {
                             className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${unit.overdueCount > 0 ? 'bg-card' : unit.dueCount > 0 ? 'bg-card' : ''
                               }`}
                           >
-                            <td className="px-6 py-4 font-medium text-primary">{unit.unitNo}</td>
+                            <td className="px-6 py-4 font-medium text-secondary">{unit.unitNo}</td>
                             <td className="px-6 py-4">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${unit.unitType === 'Truck'
                                 ? 'bg-blue-100 text-blue-800'
@@ -1038,12 +1031,12 @@ const ComplianceDashboard: React.FC = () => {
                                 {unit.unitType || 'N/A'}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-primary">{unit.makeModel || '—'}</td>
-                            <td className="px-6 py-4 text-primary">{unit.currentOdometer.toLocaleString()} km</td>
+                            <td className="px-6 py-4 text-secondary">{unit.makeModel || '—'}</td>
+                            <td className="px-6 py-4 text-secondary">{unit.currentOdometer.toLocaleString()} km</td>
                             <td className="px-6 py-4">
                               {nextService ? (
                                 <div>
-                                  <p className="font-medium text-primary">{nextService.type}</p>
+                                  <p className="font-medium text-secondary">{nextService.type}</p>
                                   <p className="text-sm text-secondary">
                                     {nextService.dueDate ? (
                                       // Days-based service
