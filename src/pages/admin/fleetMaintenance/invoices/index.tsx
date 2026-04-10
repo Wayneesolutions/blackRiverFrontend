@@ -1510,7 +1510,7 @@ const FleetInvoicesPage = () => {
   };
 
   return (
-    <div className="p-6 min-h-screen" >
+    <div className="p-6 min-h-screen bg-main" >
 
       {/* Professional Email Sent Toast */}
       {emailToast && (
@@ -1529,7 +1529,7 @@ const FleetInvoicesPage = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-primary">Email Sent Successfully</p>
+                  <p className="text-sm font-semibold text-headings">Email Sent Successfully</p>
                   <button
                     onClick={() => setEmailToast(null)}
                     className="flex-shrink-0 p-1 rounded-full hover:bg-[rgba(255,255,255,0.03)] text-secondary transition-colors"
@@ -1541,11 +1541,11 @@ const FleetInvoicesPage = () => {
                 <div className="mt-2.5 space-y-1.5 bg-card rounded-lg p-2.5">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider w-20 flex-shrink-0">Invoice</span>
-                    <span className="text-xs font-semibold text-primary truncate">{emailToast.invoiceNumber}</span>
+                    <span className="text-xs font-semibold text-headings truncate">{emailToast.invoiceNumber}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider w-20 flex-shrink-0">Client</span>
-                    <span className="text-xs text-primary truncate">{emailToast.customerName}</span>
+                    <span className="text-xs text-headings truncate">{emailToast.customerName}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider w-20 flex-shrink-0">Sent To</span>
@@ -1568,7 +1568,7 @@ const FleetInvoicesPage = () => {
       <div className="mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-headings flex items-center gap-2">
               <FaFileInvoice className="text-[#00D1FF]" size={28} />
               Fleet Invoices
             </h1>
@@ -1578,7 +1578,7 @@ const FleetInvoicesPage = () => {
             <button
               type="button"
               onClick={() => { setUploadFile(null); setUploadError(null); setUploadModalOpen(true); }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-card border border-theme text-primary rounded-lg hover:border-blue-400 hover:text-[#00D1FF] font-medium shadow-sm transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-card border border-theme text-headings rounded-lg hover:border-blue-400 hover:text-[#00D1FF] font-medium shadow-sm transition-colors"
             >
               <FaUpload size={13} /> Upload Invoice
             </button>
@@ -1588,7 +1588,7 @@ const FleetInvoicesPage = () => {
                 resetForm();
                 setSidebarOpen(true);
               }}
-              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent-navyblue)] !text-headings rounded-lg hover:bg-blue-700 font-medium shadow-sm transition-colors"
             >
               <FaPlus size={14} /> New Invoice
             </button>
@@ -1600,11 +1600,11 @@ const FleetInvoicesPage = () => {
           <div className="bg-card rounded-xl shadow-sm border border-theme p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-secondary uppercase tracking-wide">Paid</p>
+                <p className="text-sm font-medium  uppercase tracking-wide text-[var(--accent-green)]">Paid</p>
                 {summaryLoading ? (
                   <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
-                  <p className="mt-1 text-2xl font-bold text-green-600">
+                  <p className="mt-1 text-2xl font-bold text-[var(--accent-green)]">
                     ${(summary?.paidAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 )}
@@ -1621,11 +1621,11 @@ const FleetInvoicesPage = () => {
           <div className="bg-card rounded-xl shadow-sm border border-theme p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-secondary uppercase tracking-wide">Unpaid</p>
+                <p className="text-sm font-medium text-[var(--accent-orange)] uppercase tracking-wide">Unpaid</p>
                 {summaryLoading ? (
                   <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
-                  <p className="mt-1 text-2xl font-bold text-amber-600">
+                  <p className="mt-1 text-2xl font-bold text-[var(--accent-orange)]">
                     ${(summary?.unpaidAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 )}
@@ -1642,11 +1642,11 @@ const FleetInvoicesPage = () => {
           <div className="bg-card rounded-xl shadow-sm border border-theme p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-secondary uppercase tracking-wide">Overdue</p>
+                <p className="text-sm font-medium text-[var(--accent-orange)] uppercase tracking-wide">Overdue</p>
                 {summaryLoading ? (
                   <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
-                  <p className="mt-1 text-2xl font-bold text-[#F59E0B]">
+                  <p className="mt-1 text-2xl font-bold text-[var(--accent-orange)]">
                     ${(summary?.overdueAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 )}
@@ -1663,11 +1663,11 @@ const FleetInvoicesPage = () => {
           <div className="bg-card rounded-xl shadow-sm border border-theme p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-secondary uppercase tracking-wide">Total</p>
+                <p className="text-sm font-medium text-[var(--accent-blue)] uppercase tracking-wide">Total</p>
                 {summaryLoading ? (
                   <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
-                  <p className="mt-1 text-2xl font-bold text-[#00D1FF]">
+                  <p className="mt-1 text-2xl font-bold text-[var(--accent-blue)]">
                     ${(summary?.totalAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 )}
@@ -1685,7 +1685,7 @@ const FleetInvoicesPage = () => {
         <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-card text-secondary uppercase text-xs font-semibold tracking-wide">
+              <thead className=" text-headings uppercase text-xs font-semibold tracking-wide">
                 <tr>
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">No.</th>
@@ -1696,7 +1696,7 @@ const FleetInvoicesPage = () => {
                   <th className="px-6 py-4">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-theme divide-white/5 ">
                 {invoicesLoading ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center text-secondary">
@@ -1705,7 +1705,7 @@ const FleetInvoicesPage = () => {
                   </tr>
                 ) : invoicesError ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-[#A855F7]">
+                    <td colSpan={7} className="px-6 py-12 text-center text-secondary">
                       {invoicesError}
                     </td>
                   </tr>
@@ -1724,21 +1724,21 @@ const FleetInvoicesPage = () => {
                     return (
                       <tr
                         key={row._id}
-                        className={`hover:bg-blue-50/30 ${displayStatus === 'overdue' ? 'border-t-4 border-t-orange-500 bg-orange-50/20' : ''}`}
+                        className={`  ${displayStatus === 'overdue' ? 'border border-theme ' : ''}`}
                       >
-                        <td className="px-6 py-4 text-primary">
+                        <td className="px-6 py-4 text-secondary">
                           {row.invoiceDate
                             ? formatDisplayDate(typeof row.invoiceDate === 'string' ? row.invoiceDate.split('T')[0] : new Date(row.invoiceDate).toISOString().split('T')[0])
                             : '—'}
                         </td>
-                        <td className="px-6 py-4 font-medium text-primary">{row.invoiceNumber || '—'}</td>
-                        <td className="px-6 py-4 text-primary">{row.customerName || '—'}</td>
-                        <td className="px-6 py-4 text-primary">
+                        <td className="px-6 py-4 font-medium text-secondary">{row.invoiceNumber || '—'}</td>
+                        <td className="px-6 py-4 text-secondary">{row.customerName || '—'}</td>
+                        <td className="px-6 py-4 text-secondary">
                           {row.vehicleInfo && row.vehicleInfo.length > 0 ? (
                             <div className="space-y-1">
                               {row.vehicleInfo.map((vehicle, idx) => (
                                 <div key={idx} className="text-xs">
-                                  <div className="font-semibold text-primary">
+                                  <div className="font-semibold text-secondary">
                                     {vehicle.unitNumber || '—'}
                                     {vehicle.unitType && <span className="text-secondary ml-1">({vehicle.unitType})</span>}
                                   </div>
@@ -1759,21 +1759,21 @@ const FleetInvoicesPage = () => {
                             <span className="text-secondary">—</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-primary font-medium">${(row.total || 0).toFixed(2)}</td>
+                        <td className="px-6 py-4 text-secondary font-medium">${(row.total || 0).toFixed(2)}</td>
                         <td className="px-6 py-4">
                           <select
                             value={INVOICE_STATUS_OPTIONS.some((o) => o.value === row.status) ? row.status : 'draft'}
                             onChange={(e) => handleStatusChange(row._id, e.target.value)}
                             disabled={updatingStatusId === row._id}
                             className={`min-w-[100px] px-2.5 py-1.5 text-sm font-medium rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed ${row.status === 'paid'
-                                ? 'border-green-200 bg-green-50 text-green-700'
-                                : row.status === 'sent'
-                                  ? 'border-blue-200 bg-card text-blue-700'
-                                  : row.status === 'cancelled'
-                                    ? 'border-theme bg-card text-secondary'
-                                    : displayStatus === 'overdue'
-                                      ? 'border-orange-200 bg-card text-[#F59E0B]'
-                                      : 'border-theme bg-card text-secondary'
+                              ? 'border-green-200 bg-[var(--accent-teal)] text-[var(--accent-teal)]'
+                              : row.status === 'sent'
+                                ? 'border-blue-200 bg-[var(--accent-blue)] text-[var(--accent-blue)]'
+                                : row.status === 'cancelled'
+                                  ? 'border-theme bg-card text-secondary'
+                                  : displayStatus === 'overdue'
+                                    ? 'border-orange-200 bg-[var(--accent-orange)] text-[var(--accent-orange)]'
+                                    : 'border-theme bg-card text-secondary'
                               }`}
                           >
                             {INVOICE_STATUS_OPTIONS.map((opt) => (
@@ -1843,7 +1843,7 @@ const FleetInvoicesPage = () => {
           <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
           <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-card shadow-xl z-50 flex flex-col">
             <div className="flex-shrink-0 px-8 py-5 border-b border-theme flex items-center justify-between bg-card">
-              <h2 className="text-xl font-semibold text-primary">{editingInvoiceId ? 'Edit Invoice' : 'New Invoice'}</h2>
+              <h2 className="text-xl font-semibold text-headings">{editingInvoiceId ? 'Edit Invoice' : 'New Invoice'}</h2>
               <button type="button" onClick={() => setSidebarOpen(false)} className="p-2 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors" aria-label="Close">
                 <FaTimes size={20} />
               </button>
@@ -1851,8 +1851,8 @@ const FleetInvoicesPage = () => {
             <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8">
               {notification && (
                 <div className={`rounded-lg border px-4 py-3 ${notification.type === 'success'
-                    ? 'border-green-200 bg-green-50 text-green-800'
-                    : 'border-red-200 bg-card text-red-800'
+                  ? 'border-green-200 bg-green-50 text-green-800'
+                  : 'border-red-200 bg-card text-red-800'
                   }`}>
                   {notification.message}
                 </div>
@@ -1867,24 +1867,24 @@ const FleetInvoicesPage = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                           <div>
                             <p className="text-xs text-secondary mb-1">Unit Number</p>
-                            <p className="text-sm font-semibold text-primary">{vehicle.unitNumber || '—'}</p>
+                            <p className="text-sm font-semibold text-headings">{vehicle.unitNumber || '—'}</p>
                           </div>
                           <div>
                             <p className="text-xs text-secondary mb-1">Unit Type</p>
-                            <p className="text-sm font-semibold text-primary">{vehicle.unitType || '—'}</p>
+                            <p className="text-sm font-semibold text-headings">{vehicle.unitType || '—'}</p>
                           </div>
                           <div>
                             <p className="text-xs text-secondary mb-1">Make / Model</p>
-                            <p className="text-sm font-semibold text-primary">{vehicle.makeModel || '—'}</p>
+                            <p className="text-sm font-semibold text-headings">{vehicle.makeModel || '—'}</p>
                           </div>
                           <div>
                             <p className="text-xs text-secondary mb-1">Plate Number</p>
-                            <p className="text-sm font-semibold text-primary">{vehicle.plateNumber || '—'}</p>
+                            <p className="text-sm font-semibold text-headings">{vehicle.plateNumber || '—'}</p>
                           </div>
                           {vehicle.vinNumber && (
                             <div>
                               <p className="text-xs text-secondary mb-1">VIN Number</p>
-                              <p className="text-sm font-semibold text-primary">{vehicle.vinNumber}</p>
+                              <p className="text-sm font-semibold text-headings">{vehicle.vinNumber}</p>
                             </div>
                           )}
                         </div>
@@ -1900,11 +1900,11 @@ const FleetInvoicesPage = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-1">Customer</label>
+                      <label className="block text-sm font-medium text-headings mb-1">Customer</label>
                       <select
                         value={customerId}
                         onChange={(e) => handleCustomerChange(e.target.value)}
-                        className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-primary ${extractedVendorName && !customerId ? 'border-amber-400 bg-amber-50' : 'border-theme'}`}
+                        className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-headings ${extractedVendorName && !customerId ? 'border-amber-400 bg-amber-50' : 'border-theme'}`}
                       >
                         <option value="">{extractedVendorName ? `— Using: ${extractedVendorName} —` : 'Select client...'}</option>
                         {customers.map((c) => (
@@ -1935,7 +1935,7 @@ const FleetInvoicesPage = () => {
                       ) : (
                         <div className="mt-2 rounded-xl border border-theme bg-card shadow-sm overflow-hidden">
                           <div className="flex items-center justify-between px-4 py-2.5 bg-card border-b border-theme">
-                            <span className="text-xs font-semibold text-primary tracking-wide uppercase">New Customer</span>
+                            <span className="text-xs font-semibold text-headings tracking-wide uppercase">New Customer</span>
                             <button
                               type="button"
                               onClick={() => { setShowAddCustomer(false); setAddCustomerError(null); setNewCustomerName(''); setNewCustomerEmail(''); setNewCustomerPhone(''); }}
@@ -1997,7 +1997,7 @@ const FleetInvoicesPage = () => {
                               type="button"
                               onClick={handleAddNewCustomer}
                               disabled={addingCustomer}
-                              className="px-4 py-1.5 text-xs font-semibold bg-blue-600 !text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors flex items-center gap-1.5"
+                              className="px-4 py-1.5 text-xs font-semibold bg-blue-600 !text-headings rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors flex items-center gap-1.5"
                             >
                               {addingCustomer ? (
                                 <>
@@ -2011,7 +2011,7 @@ const FleetInvoicesPage = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-1">Customer Email</label>
+                      <label className="block text-sm font-medium text-headings mb-1">Customer Email</label>
                       <input
                         type="email"
                         value={customerEmail}
@@ -2022,7 +2022,7 @@ const FleetInvoicesPage = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Billing Address</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Billing Address</label>
                     <textarea
                       value={billingAddress}
                       onChange={(e) => setBillingAddress(e.target.value)}
@@ -2033,7 +2033,7 @@ const FleetInvoicesPage = () => {
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-1">Terms</label>
+                      <label className="block text-sm font-medium text-headings mb-1">Terms</label>
                       <select
                         value={terms}
                         onChange={(e) => handleTermsChange(e.target.value)}
@@ -2046,7 +2046,7 @@ const FleetInvoicesPage = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-1">Invoice Date</label>
+                      <label className="block text-sm font-medium text-headings mb-1">Invoice Date</label>
                       <input
                         type="date"
                         value={invoiceDate}
@@ -2055,17 +2055,17 @@ const FleetInvoicesPage = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-1">Due Date</label>
+                      <label className="block text-sm font-medium text-headings mb-1">Due Date</label>
                       <input
                         type="text"
                         readOnly
                         value={dueDate ? formatDisplayDate(dueDate) : '—'}
-                        className="w-full px-3 py-2.5 border border-theme rounded-lg bg-card text-primary"
+                        className="w-full px-3 py-2.5 border border-theme rounded-lg bg-card text-headings"
                       />
                       <p className="text-xs text-secondary mt-0.5">Calculated from Terms</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-1">Invoice No.</label>
+                      <label className="block text-sm font-medium text-headings mb-1">Invoice No.</label>
                       <input
                         type="text"
                         value={invoiceNo}
@@ -2086,7 +2086,7 @@ const FleetInvoicesPage = () => {
                     <div key={item.id} className="rounded-lg border border-theme bg-card p-4 space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-1">Service Date</label>
+                          <label className="block text-sm font-medium text-headings mb-1">Service Date</label>
                           <input
                             type="date"
                             value={item.serviceDate}
@@ -2095,7 +2095,7 @@ const FleetInvoicesPage = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-1">Product / Service</label>
+                          <label className="block text-sm font-medium text-headings mb-1">Product / Service</label>
                           <select
                             value={item.productService}
                             onChange={async (e) => {
@@ -2171,7 +2171,7 @@ const FleetInvoicesPage = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                        <label className="block text-sm font-medium text-headings mb-1">Description</label>
                         <textarea
                           value={item.description}
                           onChange={(e) => updateLineItem(item.id, { description: e.target.value })}
@@ -2182,7 +2182,7 @@ const FleetInvoicesPage = () => {
                       </div>
                       <div className="grid grid-cols-4 gap-4 items-end">
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-1">QTY</label>
+                          <label className="block text-sm font-medium text-headings mb-1">QTY</label>
                           <input
                             type="number"
                             min={1}
@@ -2192,7 +2192,7 @@ const FleetInvoicesPage = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-1">Rate</label>
+                          <label className="block text-sm font-medium text-headings mb-1">Rate</label>
                           <input
                             type="number"
                             min={0}
@@ -2204,11 +2204,11 @@ const FleetInvoicesPage = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-1">Amount</label>
-                          <div className="px-3 py-2 bg-card border border-theme rounded-lg text-sm font-medium text-primary">${item.amount.toFixed(2)}</div>
+                          <label className="block text-sm font-medium text-headings mb-1">Amount</label>
+                          <div className="px-3 py-2 bg-card border border-theme rounded-lg text-sm font-medium text-headings">${item.amount.toFixed(2)}</div>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-1">Tax</label>
+                          <label className="block text-sm font-medium text-headings mb-1">Tax</label>
                           <select
                             value={item.salesTax}
                             onChange={(e) => {
@@ -2243,7 +2243,7 @@ const FleetInvoicesPage = () => {
                 <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-3">Custom taxes</h3>
                 {addingTaxForLineId && (
                   <div className="mb-4 p-4 rounded-lg border border-blue-200 bg-blue-50/50">
-                    <p className="text-xs font-medium text-primary mb-3">Add custom tax (percentage) — will apply to current line</p>
+                    <p className="text-xs font-medium text-headings mb-3">Add custom tax (percentage) — will apply to current line</p>
                     <div className="flex flex-wrap gap-3 items-end">
                       <div className="w-40">
                         <label className="block text-xs text-secondary mb-1">Tax name</label>
@@ -2270,7 +2270,7 @@ const FleetInvoicesPage = () => {
                       <button
                         type="button"
                         onClick={() => addCustomTax(addingTaxForLineId)}
-                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
+                        className="px-4 py-2 bg-blue-600 text-headings text-sm font-medium rounded-lg hover:bg-blue-700"
                       >
                         Add
                       </button>
@@ -2288,7 +2288,7 @@ const FleetInvoicesPage = () => {
                   <ul className="space-y-2">
                     {customTaxes.map((t) => (
                       <li key={t.id} className="flex items-center justify-between py-2 px-3 rounded-lg border border-theme bg-card">
-                        <span className="text-sm font-medium text-primary">{t.name} ({t.percent}%)</span>
+                        <span className="text-sm font-medium text-headings">{t.name} ({t.percent}%)</span>
                         <button
                           type="button"
                           onClick={() => removeCustomTax(t.id)}
@@ -2311,7 +2311,7 @@ const FleetInvoicesPage = () => {
                 <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Labour Charges</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">
+                    <label className="block text-sm font-medium text-headings mb-1">
                       Hours <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -2325,7 +2325,7 @@ const FleetInvoicesPage = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">
+                    <label className="block text-sm font-medium text-headings mb-1">
                       Hourly Rate ($) <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -2339,7 +2339,7 @@ const FleetInvoicesPage = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Tax</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Tax</label>
                     <select
                       value={labourTax}
                       onChange={(e) => setLabourTax(e.target.value)}
@@ -2356,7 +2356,7 @@ const FleetInvoicesPage = () => {
                 {labourAmount > 0 && (
                   <div className="mt-3 p-3 bg-card rounded-lg border border-blue-200">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-primary">Labour Amount:</span>
+                      <span className="text-sm font-medium text-headings">Labour Amount:</span>
                       <span className="text-lg font-semibold text-[#00D1FF]">
                         ${labourAmount.toFixed(2)}
                       </span>
@@ -2364,7 +2364,7 @@ const FleetInvoicesPage = () => {
                     {labourTaxAmount > 0 && (
                       <div className="flex justify-between items-center mt-1">
                         <span className="text-sm text-secondary">Labour Tax:</span>
-                        <span className="text-sm font-medium text-primary">
+                        <span className="text-sm font-medium text-headings">
                           ${labourTaxAmount.toFixed(2)}
                         </span>
                       </div>
@@ -2378,7 +2378,7 @@ const FleetInvoicesPage = () => {
                 <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Message &amp; Totals</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Message on Invoice</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Message on Invoice</label>
                     <textarea
                       value={messageOnInvoice}
                       onChange={(e) => setMessageOnInvoice(e.target.value)}
@@ -2391,18 +2391,18 @@ const FleetInvoicesPage = () => {
                     {itemsSubtotal > 0 && (
                       <div className="flex justify-between text-sm text-secondary">
                         <span>Items Subtotal</span>
-                        <span className="font-medium text-primary">${itemsSubtotal.toFixed(2)}</span>
+                        <span className="font-medium text-headings">${itemsSubtotal.toFixed(2)}</span>
                       </div>
                     )}
                     {labourAmount > 0 && (
                       <div className="flex justify-between text-sm text-secondary">
                         <span>Labour Charges</span>
-                        <span className="font-medium text-primary">${labourAmount.toFixed(2)}</span>
+                        <span className="font-medium text-headings">${labourAmount.toFixed(2)}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-sm text-secondary">
                       <span>Subtotal</span>
-                      <span className="font-medium text-primary">${subtotal.toFixed(2)}</span>
+                      <span className="font-medium text-headings">${subtotal.toFixed(2)}</span>
                     </div>
                     {itemsTax > 0 && labourTaxAmount > 0 && (
                       <>
@@ -2418,9 +2418,9 @@ const FleetInvoicesPage = () => {
                     )}
                     <div className="flex justify-between text-sm text-secondary">
                       <span>Tax</span>
-                      <span className="font-medium text-primary">${totalTax.toFixed(2)}</span>
+                      <span className="font-medium text-headings">${totalTax.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-base font-semibold text-primary border-t border-theme pt-2 mt-2">
+                    <div className="flex justify-between text-base font-semibold text-headings border-t border-theme pt-2 mt-2">
                       <span>Total Balance Due</span>
                       <span>${totalBalance.toFixed(2)}</span>
                     </div>
@@ -2443,7 +2443,7 @@ const FleetInvoicesPage = () => {
                 type="button"
                 onClick={handleSaveAndClose}
                 disabled={saving}
-                className={`px-5 py-2.5 text-sm font-medium !text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : ''}`}
+                className={`px-5 py-2.5 text-sm font-medium !text-headings bg-[var(--accent-navyblue)] rounded-lg hover:bg-blue-700 transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
                 {saving ? 'Saving...' : editingInvoiceId ? 'Update Invoice' : 'Save and close'}
               </button>
@@ -2460,7 +2460,7 @@ const FleetInvoicesPage = () => {
             <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
               <div className="flex items-center gap-2">
                 <FaUpload className="text-[#00D1FF]" size={18} />
-                <h3 className="text-base font-semibold text-primary">Upload Invoice</h3>
+                <h3 className="text-base font-semibold text-headings">Upload Invoice</h3>
               </div>
               <button
                 onClick={() => { setUploadModalOpen(false); setUploadFile(null); setUploadError(null); }}
@@ -2503,7 +2503,7 @@ const FleetInvoicesPage = () => {
                 {uploadFile ? (
                   <div className="flex flex-col items-center gap-2">
                     <FaFilePdf className="text-red-500" size={32} />
-                    <p className="text-sm font-medium text-primary">{uploadFile.name}</p>
+                    <p className="text-sm font-medium text-headings">{uploadFile.name}</p>
                     <p className="text-xs text-secondary">{(uploadFile.size / 1024).toFixed(1)} KB</p>
                     <button
                       type="button"
@@ -2541,7 +2541,7 @@ const FleetInvoicesPage = () => {
                 type="button"
                 onClick={handleUploadExtract}
                 disabled={!uploadFile || uploading}
-                className="flex items-center gap-2 px-5 py-2 text-sm font-medium !text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-2 px-5 py-2 text-sm font-medium !text-headings bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {uploading ? (
                   <><FaSpinner className="animate-spin" size={13} /> Extracting...</>
