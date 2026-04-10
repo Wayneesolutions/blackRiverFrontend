@@ -72,14 +72,14 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
         // Fetch vehicles (trucks)
         const vehiclesResponse = await getAllVehicles(1, 1000);
         const vehicles = vehiclesResponse?.success && vehiclesResponse?.data ? vehiclesResponse.data : [];
-        
+
         // Fetch trailers
         const trailersResponse = await getAllTrailers(1, 1000);
         const trailers = trailersResponse?.success && trailersResponse?.data ? trailersResponse.data : [];
-        
+
         // Combine vehicles and trailers
         const allUnits: UnitOption[] = [];
-        
+
         // Map vehicles
         vehicles.forEach((vehicle: any) => {
           allUnits.push({
@@ -93,7 +93,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
             vinNumber: vehicle.vinNumber
           });
         });
-        
+
         // Map trailers
         trailers.forEach((trailer: any) => {
           allUnits.push({
@@ -107,7 +107,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
             vinNumber: trailer.vinNumber
           });
         });
-        
+
         setUnits(allUnits);
         console.log('Fetched units for issues:', allUnits.length);
       } catch (error) {
@@ -196,11 +196,11 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-end">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-end ">
       <div className="bg-card w-full max-w-2xl h-full overflow-y-auto">
         <div className="p-6 border-b border-theme">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-primary">
+            <h2 className="text-xl font-semibold text-headings">
               {issue ? 'Edit Issue' : 'Create New Issue'}
             </h2>
             <button
@@ -216,7 +216,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-primary mb-2">
+              <label className="block text-sm font-medium text-headings mb-2">
                 Reported By *
               </label>
               <input
@@ -231,7 +231,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-primary mb-2">
+              <label className="block text-sm font-medium text-headings mb-2">
                 Assigned To
               </label>
               <input
@@ -247,7 +247,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
 
           {/* Vehicle */}
           <div>
-            <label className="block text-sm font-medium text-primary mb-2">
+            <label className="block text-sm font-medium text-headings mb-2">
               Vehicle
             </label>
             <select
@@ -287,7 +287,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
           {/* Issue Type and Category */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-primary mb-2">
+              <label className="block text-sm font-medium text-headings mb-2">
                 Issue Type *
               </label>
               <select
@@ -305,7 +305,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-primary mb-2">
+              <label className="block text-sm font-medium text-headings mb-2">
                 Issue Category *
               </label>
               <select
@@ -326,7 +326,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
           {/* Priority and Status */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-primary mb-2">
+              <label className="block text-sm font-medium text-headings mb-2">
                 Priority *
               </label>
               <select
@@ -343,7 +343,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-primary mb-2">
+              <label className="block text-sm font-medium text-headings mb-2">
                 Status *
               </label>
               <select
@@ -362,7 +362,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
 
           {/* Issue Report */}
           <div>
-            <label className="block text-sm font-medium text-primary mb-2">
+            <label className="block text-sm font-medium text-headings mb-2">
               Issue Report *
             </label>
             <textarea
@@ -378,7 +378,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
 
           {/* Issue Tags */}
           <div>
-            <label className="block text-sm font-medium text-primary mb-2">
+            <label className="block text-sm font-medium text-headings mb-2">
               Issue Tags
             </label>
             <div className="flex gap-2 mb-2">
@@ -394,7 +394,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 type="button"
                 onClick={handleAddTag}
                 style={{
-                  background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)"
+                  background: "var(--accent-navyblue)"
                 }}
                 className="px-4 py-2 !text-white rounded-lg hover:bg-blue-700"
               >
@@ -422,7 +422,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
 
           {/* Address */}
           <div>
-            <label className="block text-sm font-medium text-primary mb-2">
+            <label className="block text-sm font-medium text-headings mb-2">
               Location Address (Optional)
             </label>
             <input
@@ -443,7 +443,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-primary bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+              className="px-4 py-2 text-primary bg-gray-700 rounded-lg  hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
@@ -451,9 +451,9 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
               type="submit"
               disabled={loading}
               style={{
-                background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)"
+                background: "var(--accent-navyblue)"
               }}
-              className="flex items-center gap-2 px-4 py-2  !text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2  !text-white rounded-lg hover:bg-[var(--accent-blue)] disabled:opacity-50 transition-colors"
             >
               <MdSave />
               {loading ? 'Saving...' : (issue ? 'Update Issue' : 'Create Issue')}

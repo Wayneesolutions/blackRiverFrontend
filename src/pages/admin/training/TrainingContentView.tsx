@@ -129,11 +129,11 @@ const TrainingContentView: React.FC = () => {
       console.log('User role:', userRole);
       console.log('Target role:', targetRole);
       console.log('User ID:', userId);
-      
+
       // Fetch training content assigned to the target role
       const contentResponse = await getTrainingContent({ role: targetRole });
       console.log(`Training content response for ${targetRole}:`, contentResponse);
-      
+
       if (contentResponse?.success && Array.isArray(contentResponse.data)) {
         // Filter content assigned to the target role
         const roleContent = contentResponse.data.filter((item: TrainingContent) => {
@@ -151,7 +151,7 @@ const TrainingContentView: React.FC = () => {
       // Fetch question banks assigned to the target role
       const qaResponse = await getQuestionBanks({ role: targetRole });
       console.log(`Question banks response for ${targetRole}:`, qaResponse);
-      
+
       if (qaResponse?.success && Array.isArray(qaResponse.data)) {
         // Filter Q&A assigned to the target role
         const roleQA = qaResponse.data.filter((item: QAItem) => {
@@ -165,7 +165,7 @@ const TrainingContentView: React.FC = () => {
         console.warn('Question banks response not successful or not array:', qaResponse);
         setQAContent([]);
       }
-      
+
       console.log('=== Fetch Complete ===');
 
       // Fetch test types
@@ -219,9 +219,9 @@ const TrainingContentView: React.FC = () => {
     try {
       const response = await getTrainingContentSignedUrl(contentId, 'inline');
       console.log('Signed URL response:', response);
-      
+
       const signedUrl = response?.url || response?.data?.url;
-      
+
       if (response?.success && signedUrl) {
         window.open(signedUrl, '_blank');
       } else {
@@ -237,7 +237,7 @@ const TrainingContentView: React.FC = () => {
 
   const handleAnswerSelect = (qaId: string, questionIndex: number, answerIndex: number) => {
     if (submittedQA[qaId]) return;
-    
+
     setUserAnswers((prev) => ({
       ...prev,
       [qaId]: {
@@ -288,15 +288,15 @@ const TrainingContentView: React.FC = () => {
         const totalQuestions = qaItem.questions.length;
         const correctAnswers = Math.round((score / 100) * totalQuestions);
 
-    setScores((prev) => ({
-      ...prev,
+        setScores((prev) => ({
+          ...prev,
           [qaId]: { correct: correctAnswers, total: totalQuestions, passed }
-    }));
+        }));
 
-    setSubmittedQA((prev) => ({
-      ...prev,
-      [qaId]: true,
-    }));
+        setSubmittedQA((prev) => ({
+          ...prev,
+          [qaId]: true,
+        }));
 
         setTestResults((prev) => ({
           ...prev,
@@ -358,7 +358,7 @@ const TrainingContentView: React.FC = () => {
     <div className="p-6 bg-main min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-primary mb-2">Training Content</h1>
+          <h1 className="text-3xl font-bold text-headings mb-2">Training Content</h1>
           <p className="text-secondary">
             Training materials and Q&A for {roleLabel}
           </p>
@@ -367,7 +367,7 @@ const TrainingContentView: React.FC = () => {
         {/* Training Materials Section */}
         <div className="bg-card rounded-lg shadow-sm mb-6">
           <div className="p-6 border-b border-theme">
-            <h2 className="text-xl font-semibold text-primary">Training Materials</h2>
+            <h2 className="text-xl font-semibold text-headings">Training Materials</h2>
             <p className="text-sm text-secondary mt-1">
               Videos, PDFs, and images for your role
             </p>
@@ -386,7 +386,7 @@ const TrainingContentView: React.FC = () => {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2 flex-1">
                         <div className="text-[var(--accent-blue)]">{getIcon(item.type)}</div>
-                        <h3 className="font-semibold text-primary">{item.name}</h3>
+                        <h3 className="font-semibold text-headings">{item.name}</h3>
                       </div>
                       <button
                         onClick={() => handleViewContent(item._id, item.type)}
@@ -418,7 +418,7 @@ const TrainingContentView: React.FC = () => {
         {/* Q&A Section */}
         <div className="bg-card rounded-lg shadow-sm">
           <div className="p-6 border-b border-theme">
-            <h2 className="text-xl font-semibold text-primary">Q&A Content</h2>
+            <h2 className="text-xl font-semibold text-headings">Q&A Content</h2>
             <p className="text-sm text-secondary mt-1">
               Questions and answers for your role
             </p>
@@ -445,17 +445,17 @@ const TrainingContentView: React.FC = () => {
                         <div className="flex items-center justify-between mb-3">
                           <div>
                             <div className="flex items-center gap-3 mb-2">
-                              <h3 className="font-semibold text-primary">{item.testName}</h3>
+                              <h3 className="font-semibold text-headings">{item.testName}</h3>
                               <span className="bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
                               <span className="text-sm text-secondary">Passing: {item.passingPercentage}%</span>
                               <span className="text-sm text-secondary">Questions: {item.questions.length}</span>
                               {item.mandatory && <span className="text-xs text-[var(--accent-purple)] font-medium">Mandatory</span>}
                             </div>
-                         
+
                           </div>
                           {isSubmitted && score && (
                             <div className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg border border-theme">
-                              <span className="text-sm font-medium text-primary">Score:</span>
+                              <span className="text-sm font-medium text-headings">Score:</span>
                               <span className={`text-lg font-bold ${score.passed ? 'text-[var(--accent-green)]' : score.correct / score.total >= 0.7 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-purple)]'}`}>
                                 {score.correct}/{score.total}
                               </span>
@@ -476,13 +476,13 @@ const TrainingContentView: React.FC = () => {
 
                             return (
                               <div key={idx} className="bg-card rounded p-3 border border-theme">
-                                <p className="font-medium text-primary mb-2">Q{idx + 1}: {q.question}</p>
+                                <p className="font-medium text-headings mb-2">Q{idx + 1}: {q.question}</p>
                                 <div className="space-y-1">
                                   {q.options.map((option, optIdx) => {
                                     const isSelected = userAnswer === optIdx;
                                     const isCorrectOption = q.correctAnswer === optIdx;
                                     let optionClass = 'text-secondary';
-                                    
+
                                     if (showResults) {
                                       if (isCorrectOption) {
                                         optionClass = 'text-[var(--accent-green)] font-medium';
