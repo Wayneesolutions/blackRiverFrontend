@@ -112,11 +112,11 @@ const getServiceTypeLabel = (value: string, customServices?: Array<{ name: strin
     const customMatch = customServices.find(service => nameToServiceType(service.name) === value);
     if (customMatch) return customMatch.name;
   }
-  
+
   // Then check default options
   const match = DEFAULT_SERVICE_TYPE_OPTIONS.find(option => option.value === value);
   if (match) return match.label;
-  
+
   // Fallback: format the value
   return value.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 };
@@ -167,7 +167,7 @@ const ScheduledServicesLog: React.FC = () => {
   const [customServices, setCustomServices] = useState<Array<{ name: string }>>([]);
   const [serviceTypeOptions, setServiceTypeOptions] = useState<Array<{ label: string; value: string }>>([]);
   const [mechanics, setMechanics] = useState<Array<{ _id: string; name: string }>>([]);
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -203,16 +203,16 @@ const ScheduledServicesLog: React.FC = () => {
         if (response?.success && response?.data?.maintenancePolicies?.customServices) {
           const services = response.data.maintenancePolicies.customServices;
           setCustomServices(services);
-          
+
           // Create service type options ONLY from custom services (no hardcoded defaults)
           const customOptions = services.map((service: { name: string }) => ({
             label: service.name,
             value: nameToServiceType(service.name)
           }));
-          
+
           // Set only custom services (no hardcoded defaults)
           setServiceTypeOptions(customOptions);
-          
+
           // Update form default to first custom service if available
           if (customOptions.length > 0) {
             setFormData(prev => ({
@@ -230,7 +230,7 @@ const ScheduledServicesLog: React.FC = () => {
         setServiceTypeOptions([]);
       }
     };
-    
+
     fetchCustomServices();
   }, []);
 
@@ -251,7 +251,7 @@ const ScheduledServicesLog: React.FC = () => {
         setMechanics([]);
       }
     };
-    
+
     fetchMechanics();
   }, []);
 
@@ -259,10 +259,10 @@ const ScheduledServicesLog: React.FC = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const shouldFilter = searchParams.get('filter') === 'incoming';
-    console.log('🔍 [ScheduledServicesLog] URL filter check:', { 
-      search: location.search, 
+    console.log('🔍 [ScheduledServicesLog] URL filter check:', {
+      search: location.search,
       filterParam: searchParams.get('filter'),
-      shouldFilter 
+      shouldFilter
     });
     setFilterIncoming(shouldFilter);
   }, [location.search]);
@@ -291,9 +291,9 @@ const ScheduledServicesLog: React.FC = () => {
       amount: service.amount ?? undefined,
       notes: service.notes || undefined,
       description: service.description || undefined,
-      assignedMechanic: service.assignedMechanic 
-        ? (typeof service.assignedMechanic === 'string' 
-          ? service.assignedMechanic 
+      assignedMechanic: service.assignedMechanic
+        ? (typeof service.assignedMechanic === 'string'
+          ? service.assignedMechanic
           : { _id: service.assignedMechanic._id, name: `${service.assignedMechanic.first_name} ${service.assignedMechanic.last_name}`.trim() })
         : undefined,
       status: service.status,
@@ -359,7 +359,7 @@ const ScheduledServicesLog: React.FC = () => {
 
       // Sort by unit number for better UX
       unitOptions.sort((a, b) => a.unitNo.localeCompare(b.unitNo));
-      
+
       setUnits(unitOptions);
     } catch (err) {
       console.error('Failed to load units (trucks and trailers)', err);
@@ -468,8 +468,8 @@ const ScheduledServicesLog: React.FC = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -518,7 +518,7 @@ const ScheduledServicesLog: React.FC = () => {
     // Use service odometer, or try to get from vehicle
     const vehicle = service.unitNo ? vehiclesMap.get(service.unitNo) : null;
     const serviceOdometer = service.odometer ?? (vehicle?.currentOdometer ?? null);
-    
+
     if (service.dueMileage && serviceOdometer !== null && serviceOdometer !== undefined) {
       const remainingKm = service.dueMileage - serviceOdometer;
       if (remainingKm >= 0 && remainingKm <= 7500) {
@@ -535,12 +535,12 @@ const ScheduledServicesLog: React.FC = () => {
       // Check mileage interval from vehicle (if available in future)
       if (vehicle.serviceIntervalMileage && vehicle.currentOdometer !== undefined && vehicle.currentOdometer !== null) {
         // Calculate next service mileage based on interval
-        const lastServiceMileage = service.dueMileage 
-          ? service.dueMileage - vehicle.serviceIntervalMileage 
+        const lastServiceMileage = service.dueMileage
+          ? service.dueMileage - vehicle.serviceIntervalMileage
           : vehicle.currentOdometer;
         const nextServiceMileage = lastServiceMileage + vehicle.serviceIntervalMileage;
         const remainingKm = nextServiceMileage - vehicle.currentOdometer;
-        
+
         if (remainingKm >= 0 && remainingKm <= 7500) {
           isIncoming = true;
         }
@@ -555,7 +555,7 @@ const ScheduledServicesLog: React.FC = () => {
         const nextServiceDate = new Date(lastServiceDate);
         nextServiceDate.setDate(nextServiceDate.getDate() + vehicle.serviceIntervalDays);
         const daysUntilDue = Math.ceil((nextServiceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        
+
         if (daysUntilDue >= 0 && daysUntilDue <= 30) {
           isIncoming = true;
         }
@@ -630,7 +630,7 @@ const ScheduledServicesLog: React.FC = () => {
 
     // Combine regular services and Samsara services for stats
     const allServicesForStats = [...services, ...samsaraServices];
-    
+
     // Calculate incoming maintenance (services due within next 7,500 km or 30 days)
     // Also considers vehicle service intervals (days and mileage)
     const incomingServices = allServicesForStats.filter((service) => {
@@ -656,7 +656,7 @@ const ScheduledServicesLog: React.FC = () => {
       // Use service odometer, or try to get from vehicle
       const vehicle = service.unitNo ? vehiclesMap.get(service.unitNo) : null;
       const serviceOdometer = service.odometer ?? (vehicle?.currentOdometer ?? null);
-      
+
       if (service.dueMileage && serviceOdometer !== null && serviceOdometer !== undefined) {
         const remainingKm = service.dueMileage - serviceOdometer;
         if (remainingKm >= 0 && remainingKm <= 7500) {
@@ -673,12 +673,12 @@ const ScheduledServicesLog: React.FC = () => {
         // Check mileage interval from vehicle (if available)
         if (vehicle.serviceIntervalMileage && vehicle.currentOdometer !== undefined && vehicle.currentOdometer !== null) {
           // Calculate next service mileage based on interval
-          const lastServiceMileage = service.dueMileage 
-            ? service.dueMileage - vehicle.serviceIntervalMileage 
+          const lastServiceMileage = service.dueMileage
+            ? service.dueMileage - vehicle.serviceIntervalMileage
             : vehicle.currentOdometer;
           const nextServiceMileage = lastServiceMileage + vehicle.serviceIntervalMileage;
           const remainingKm = nextServiceMileage - vehicle.currentOdometer;
-          
+
           if (remainingKm >= 0 && remainingKm <= 7500) {
             isIncoming = true;
           }
@@ -693,7 +693,7 @@ const ScheduledServicesLog: React.FC = () => {
           const nextServiceDate = new Date(lastServiceDate);
           nextServiceDate.setDate(nextServiceDate.getDate() + vehicle.serviceIntervalDays);
           const daysUntilDue = Math.ceil((nextServiceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-          
+
           if (daysUntilDue >= 0 && daysUntilDue <= 30) {
             isIncoming = true;
           }
@@ -884,7 +884,7 @@ const ScheduledServicesLog: React.FC = () => {
     setError(null);
     setFormError(null);
     setSelectedService(service);
-    
+
     // Get mechanic ID from assignedMechanic or serviceProvider
     let mechanicId = '';
     if (service.assignedMechanic) {
@@ -900,7 +900,7 @@ const ScheduledServicesLog: React.FC = () => {
         mechanicId = mechanic._id;
       }
     }
-    
+
     setFormData({
       serviceDate: service.serviceDate ? service.serviceDate.split('T')[0] : new Date().toISOString().split('T')[0],
       unitNo: service.unitNo,
@@ -1019,7 +1019,7 @@ const ScheduledServicesLog: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
+    <div className="min-h-screen pb-10 bg-main" >
       <div className="relative w-full mx-auto p-2">
 
 
@@ -1028,8 +1028,8 @@ const ScheduledServicesLog: React.FC = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-black">Scheduled Services Log</h1>
-                <div className="flex items-center gap-2 text-black/90">
+                <h1 className="text-2xl font-bold text-headings">Scheduled Services Log</h1>
+                <div className="flex items-center gap-2 text-secondary">
                   <span className="text-xs">Log repetitive maintenance (Oil Change, DPF, etc.)</span>
                 </div>
               </div>
@@ -1090,11 +1090,11 @@ const ScheduledServicesLog: React.FC = () => {
               <div className="border-t border-theme pt-3 space-y-1.5">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-secondary">Pending</span>
-                  <span className="font-semibold text-primary">{summaryStats.incomingByStatus.pending}</span>
+                  <span className="font-semibold text-headings">{summaryStats.incomingByStatus.pending}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-secondary">In Progress</span>
-                  <span className="font-semibold text-primary">{summaryStats.incomingByStatus.inProgress}</span>
+                  <span className="font-semibold text-headings">{summaryStats.incomingByStatus.inProgress}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-secondary">Due in 7 days</span>
@@ -1102,7 +1102,7 @@ const ScheduledServicesLog: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between text-sm pt-1.5 border-t border-theme">
                   <span className="text-secondary">Units Affected</span>
-                  <span className="font-semibold text-primary">{summaryStats.unitsNeedingMaintenance}</span>
+                  <span className="font-semibold text-headings">{summaryStats.unitsNeedingMaintenance}</span>
                 </div>
               </div>
             </div>
@@ -1123,7 +1123,7 @@ const ScheduledServicesLog: React.FC = () => {
                 {summaryStats.mostRecentDate && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-secondary">Most Recent</span>
-                    <span className="font-semibold text-primary">
+                    <span className="font-semibold text-headings">
                       {formatDate(summaryStats.mostRecentDate.toISOString())}
                     </span>
                   </div>
@@ -1138,7 +1138,7 @@ const ScheduledServicesLog: React.FC = () => {
                 )}
                 <div className="flex items-center justify-between text-sm pt-1.5 border-t border-theme">
                   <span className="text-secondary">Total Completed</span>
-                  <span className="font-semibold text-primary">{summaryStats.recentActivity}</span>
+                  <span className="font-semibold text-headings">{summaryStats.recentActivity}</span>
                 </div>
               </div>
             </div>
@@ -1178,7 +1178,7 @@ const ScheduledServicesLog: React.FC = () => {
                     </button>
                   </div>
                 )}
-                <label className="text-sm font-medium text-primary">Service Type:</label>
+                <label className="text-sm font-medium text-headings">Service Type:</label>
                 <select
                   value={filterServiceType}
                   onChange={(e) => setFilterServiceType(e.target.value as ServiceTypeFilter)}
@@ -1204,11 +1204,10 @@ const ScheduledServicesLog: React.FC = () => {
                       key={type}
                       type="button"
                       onClick={() => setFilterMechanicType(type)}
-                      className={`px-3 py-2 text-sm font-medium transition-colors border-r border-theme last:border-r-0 ${
-                        filterMechanicType === type
-                          ? 'bg-[#016ab2] !text-white'
-                          : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'
-                      }`}
+                      className={`px-3 py-2 text-sm font-medium transition-colors border-r border-theme last:border-r-0 ${filterMechanicType === type
+                        ? 'bg-[#016ab2] !text-white'
+                        : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'
+                        }`}
                     >
                       {type === 'all' ? 'All Mechanics' : type === 'internal' ? 'Internal' : (
                         <span className="flex items-center gap-1">
@@ -1226,47 +1225,26 @@ const ScheduledServicesLog: React.FC = () => {
           {/* Table */}
           <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
-            <style>{`
-              .top-scrollbar-container::-webkit-scrollbar {
-                height: 8px;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-track {
-                background: #f7fafc;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-thumb {
-                background: #cbd5e0;
-                border-radius: 4px;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                background: #a0aec0;
-              }
-              .table-container-hidden-scrollbar {
-                scrollbar-width: none; /* Firefox */
-                -ms-overflow-style: none; /* IE and Edge */
-              }
-              .table-container-hidden-scrollbar::-webkit-scrollbar {
-                display: none; /* Chrome, Safari, Opera */
-              }
-            `}</style>
-            <div 
+
+            <div
               ref={topScrollRef}
-              className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-              style={{ 
+              className="overflow-x-auto overflow-y-hidden top-scrollbar-container "
+              style={{
                 maxHeight: '20px',
                 marginBottom: '2px',
                 scrollbarWidth: 'thin',
-                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+                /* Firefox */
               }}
             >
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
             </div>
             {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-            <div 
+            <div
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
               <table className="w-full" style={{ minWidth: '1500px' }}>
-                <thead className="text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
+                <thead className="text-headings" >
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Service Date</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Unit No.</th>
@@ -1284,7 +1262,7 @@ const ScheduledServicesLog: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-theme">
+                <tbody className="divide-y divide-theme divide-white/5">
                   {loading ? (
                     <tr>
                       <td colSpan={14} className="px-6 py-12 text-center text-secondary">
@@ -1298,9 +1276,9 @@ const ScheduledServicesLog: React.FC = () => {
                           <div className="flex flex-col items-center gap-3">
                             <AlertCircle className="w-10 h-10 text-orange-500" />
                             <div>
-                              <p className="text-lg font-semibold text-primary mb-1">No incoming maintenance services found</p>
+                              <p className="text-lg font-semibold text-headings mb-1">No incoming maintenance services found</p>
                               <p className="text-sm text-secondary">
-                                {services.length > 0 
+                                {services.length > 0
                                   ? `There are ${services.length} total service${services.length !== 1 ? 's' : ''}, but none match the incoming maintenance criteria (due within 30 days or 7,500 km).`
                                   : 'No services have been created yet.'
                                 }
@@ -1323,18 +1301,18 @@ const ScheduledServicesLog: React.FC = () => {
                     </tr>
                   ) : (
                     filteredServices.map((service) => (
-                      <tr 
-                        key={service._id} 
+                      <tr
+                        key={service._id}
                         className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                         onClick={() => {
                           setSelectedService(service);
                           setShowServiceDetails(true);
                         }}
                       >
-                        <td className="px-6 py-4 text-primary">
+                        <td className="px-6 py-4 text-secondary">
                           {formatDate(service.serviceDate || service.dueDate)}
                         </td>
-                        <td className="px-6 py-4 font-medium text-primary">
+                        <td className="px-6 py-4 font-medium text-secondary">
                           <div className="flex items-center gap-2">
                             {service.unitNo}
                             {service._id?.startsWith('samsara-') && (
@@ -1349,17 +1327,17 @@ const ScheduledServicesLog: React.FC = () => {
                             {service.unitType || 'Unit'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-primary">{service.makeModel || '—'}</td>
+                        <td className="px-6 py-4 text-secondary">{service.makeModel || '—'}</td>
                         <td className="px-6 py-4">
                           <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full" style={{ backgroundColor: '#398bc3', color: '#063f6f' }}>
                             {getServiceTypeLabel(service.serviceType, customServices)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-primary">
+                        <td className="px-6 py-4 text-secondary">
                           {service.odometer !== undefined ? `${service.odometer.toLocaleString()} km` : '—'}
                         </td>
                         <td className="px-6 py-4 text-secondary font-mono text-sm">{service.invoiceNo || '—'}</td>
-                        <td className="px-6 py-4 text-primary">
+                        <td className="px-6 py-4 text-secondary">
                           {service.amount !== undefined && service.amount !== null ? new Intl.NumberFormat('en-CA', {
                             style: 'currency',
                             currency: 'CAD',
@@ -1385,36 +1363,36 @@ const ScheduledServicesLog: React.FC = () => {
                             if (!service.parts || service.parts === null || service.parts === '') {
                               return <span className="text-secondary">—</span>;
                             }
-                            
+
                             // Handle array of parts
                             if (Array.isArray(service.parts)) {
                               if (service.parts.length === 0) {
                                 return <span className="text-secondary">—</span>;
                               }
-                              
+
                               // Format parts display
                               const partsList = service.parts.map((part: any) => {
                                 const partName = part.partName || part.partNumber || 'Part';
                                 const qty = part.quantity || 1;
                                 return `${partName}${qty > 1 ? ` (${qty})` : ''}`;
                               }).join(', ');
-                              
+
                               return (
-                                <div className="truncate text-primary" title={partsList}>
+                                <div className="truncate text-headings" title={partsList}>
                                   {partsList}
                                 </div>
                               );
                             }
-                            
+
                             // Handle string format (legacy)
                             if (typeof service.parts === 'string' && service.parts.trim() !== '') {
                               return (
-                                <div className="truncate text-primary" title={service.parts}>
+                                <div className="truncate text-headings" title={service.parts}>
                                   {service.parts}
                                 </div>
                               );
                             }
-                            
+
                             // Default empty state
                             return <span className="text-secondary">—</span>;
                           })()}
@@ -1429,7 +1407,7 @@ const ScheduledServicesLog: React.FC = () => {
                                 <span className="w-1.5 h-1.5 rounded-full bg-orange-400 inline-block" />
                                 External
                               </span>
-                              <p className="text-sm font-medium text-primary">{(service as any).externalMechanicName || '—'}</p>
+                              <p className="text-sm font-medium text-headings">{(service as any).externalMechanicName || '—'}</p>
                               {(service as any).externalMechanicCompany && (
                                 <p className="text-xs text-secondary">{(service as any).externalMechanicCompany}</p>
                               )}
@@ -1440,7 +1418,7 @@ const ScheduledServicesLog: React.FC = () => {
                                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
                                 Internal
                               </span>
-                              <p className="text-sm font-medium text-primary">
+                              <p className="text-sm font-medium text-headings">
                                 {(() => {
                                   if (service.assignedMechanic) {
                                     if (typeof service.assignedMechanic === 'object') return service.assignedMechanic.name || '—';
@@ -1505,7 +1483,7 @@ const ScheduledServicesLog: React.FC = () => {
                 <div className="p-6">
                   {/* Header */}
                   <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
-                    <h2 className="text-2xl font-bold text-primary">Service Details</h2>
+                    <h2 className="text-2xl font-bold text-headings">Service Details</h2>
                     <button
                       onClick={() => {
                         setShowServiceDetails(false);
@@ -1517,9 +1495,9 @@ const ScheduledServicesLog: React.FC = () => {
                     </button>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-6 ">
                     {/* Service Header */}
-                    <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                    <div className=" text-white p-6 rounded-lg border-4 border-theme">
                       <div className="flex items-center gap-4">
                         <div className="flex-1">
                           <h3 className="text-2xl font-bold mb-1">{selectedService.unitNo || 'N/A'}</h3>
@@ -1542,45 +1520,45 @@ const ScheduledServicesLog: React.FC = () => {
 
                     {/* Service Information */}
                     <div className="bg-card p-6 rounded-lg border border-theme">
-                      <h4 className="font-semibold text-primary mb-4 text-lg">Service Information</h4>
+                      <h4 className="font-semibold text-headings mb-4 text-lg">Service Information</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm text-secondary mb-1">Unit Number</p>
-                          <p className="font-medium text-primary">{selectedService.unitNo || "—"}</p>
+                          <p className="font-medium text-headings">{selectedService.unitNo || "—"}</p>
                         </div>
                         <div>
                           <p className="text-sm text-secondary mb-1">Unit Type</p>
-                          <p className="font-medium text-primary">{selectedService.unitType || "—"}</p>
+                          <p className="font-medium text-headings">{selectedService.unitType || "—"}</p>
                         </div>
                         <div>
                           <p className="text-sm text-secondary mb-1">Make / Model</p>
-                          <p className="font-medium text-primary">{selectedService.makeModel || "—"}</p>
+                          <p className="font-medium text-headings">{selectedService.makeModel || "—"}</p>
                         </div>
                         <div>
                           <p className="text-sm text-secondary mb-1">Service Type</p>
-                          <p className="font-medium text-primary">{getServiceTypeLabel(selectedService.serviceType, customServices)}</p>
+                          <p className="font-medium text-headings">{getServiceTypeLabel(selectedService.serviceType, customServices)}</p>
                         </div>
                         <div>
                           <p className="text-sm text-secondary mb-1">Service Date</p>
-                          <p className="font-medium text-primary">{formatDate(selectedService.serviceDate || selectedService.dueDate)}</p>
+                          <p className="font-medium text-headings">{formatDate(selectedService.serviceDate || selectedService.dueDate)}</p>
                         </div>
                         <div>
                           <p className="text-sm text-secondary mb-1">Due Date</p>
-                          <p className="font-medium text-primary">{formatDate(selectedService.dueDate)}</p>
+                          <p className="font-medium text-headings">{formatDate(selectedService.dueDate)}</p>
                         </div>
                         <div>
                           <p className="text-sm text-secondary mb-1">Odometer</p>
-                          <p className="font-medium text-primary">
+                          <p className="font-medium text-headings">
                             {selectedService.odometer !== undefined ? `${selectedService.odometer.toLocaleString()} km` : '—'}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-secondary mb-1">Invoice Number</p>
-                          <p className="font-medium text-primary">{selectedService.invoiceNo || "—"}</p>
+                          <p className="font-medium text-headings">{selectedService.invoiceNo || "—"}</p>
                         </div>
                         <div>
                           <p className="text-sm text-secondary mb-1">Amount</p>
-                          <p className="font-medium text-primary">
+                          <p className="font-medium text-headings">
                             {selectedService.amount !== undefined && selectedService.amount !== null ? new Intl.NumberFormat('en-CA', {
                               style: 'currency',
                               currency: 'CAD',
@@ -1605,13 +1583,13 @@ const ScheduledServicesLog: React.FC = () => {
                         {selectedService.priority && (
                           <div>
                             <p className="text-sm text-secondary mb-1">Priority</p>
-                            <p className="font-medium text-primary">{selectedService.priority}</p>
+                            <p className="font-medium text-headings">{selectedService.priority}</p>
                           </div>
                         )}
                         {selectedService.description && (
                           <div>
                             <p className="text-sm text-secondary mb-1">Description</p>
-                            <p className="font-medium text-primary">{selectedService.description}</p>
+                            <p className="font-medium text-headings">{selectedService.description}</p>
                           </div>
                         )}
                         <div className="col-span-2">
@@ -1624,7 +1602,7 @@ const ScheduledServicesLog: React.FC = () => {
                                   External Mechanic
                                 </span>
                               </div>
-                              <p className="font-semibold text-primary text-base">{selectedService.externalMechanicName || '—'}</p>
+                              <p className="font-semibold text-headings text-base">{selectedService.externalMechanicName || '—'}</p>
                               {selectedService.externalMechanicCompany && (
                                 <p className="text-sm text-secondary flex items-center gap-1.5">
                                   <span className="text-secondary">Company:</span>
@@ -1652,11 +1630,11 @@ const ScheduledServicesLog: React.FC = () => {
                                   Internal Mechanic
                                 </span>
                               </div>
-                              <p className="font-semibold text-primary text-base">
+                              <p className="font-semibold text-headings text-base">
                                 {selectedService.assignedMechanic
                                   ? (typeof selectedService.assignedMechanic === 'object'
-                                      ? selectedService.assignedMechanic.name
-                                      : mechanics.find(m => m._id === selectedService.assignedMechanic)?.name || selectedService.assignedMechanic)
+                                    ? selectedService.assignedMechanic.name
+                                    : mechanics.find(m => m._id === selectedService.assignedMechanic)?.name || selectedService.assignedMechanic)
                                   : selectedService.serviceProvider || '—'}
                               </p>
                             </div>
@@ -1666,7 +1644,7 @@ const ScheduledServicesLog: React.FC = () => {
                       {selectedService.notes && (
                         <div className="mt-4">
                           <p className="text-sm text-secondary mb-1">Notes</p>
-                          <p className="font-medium text-primary">{selectedService.notes}</p>
+                          <p className="font-medium text-headings">{selectedService.notes}</p>
                         </div>
                       )}
                     </div>
@@ -1678,7 +1656,7 @@ const ScheduledServicesLog: React.FC = () => {
                           setShowServiceDetails(false);
                           setTimeout(() => setSelectedService(null), 300);
                         }}
-                        className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
+                        className="px-6 py-2.5 bg-gray-700 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
                       >
                         Close
                       </button>
@@ -1687,7 +1665,7 @@ const ScheduledServicesLog: React.FC = () => {
                           setShowServiceDetails(false);
                           handleEditService(selectedService);
                         }}
-                        className="px-6 py-2.5 bg-blue-600 !text-white font-medium rounded-lg hover:bg-blue-700 transition-all"
+                        className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white font-medium rounded-lg hover:bg-blue-700 transition-all"
                       >
                         Edit Service
                       </button>
@@ -1731,7 +1709,7 @@ const ScheduledServicesLog: React.FC = () => {
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Service Date *</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Service Date *</label>
                         <input
                           type="date"
                           value={formData.serviceDate}
@@ -1743,7 +1721,7 @@ const ScheduledServicesLog: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Unit No. *</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Unit No. *</label>
                         <select
                           value={formData.unitNo}
                           onChange={(e) => setFormData({ ...formData, unitNo: e.target.value })}
@@ -1761,14 +1739,14 @@ const ScheduledServicesLog: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Service Type *</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Service Type *</label>
                         {serviceTypeOptions.length === 0 ? (
                           <div className="w-full px-4 py-2 border border-yellow-300 bg-card rounded-lg">
                             <p className="text-sm text-yellow-800">
                               No services configured. Please add services in{' '}
-                              <a 
-                                href="/admin/company" 
-                                target="_blank" 
+                              <a
+                                href="/admin/company"
+                                target="_blank"
                                 className="underline font-semibold hover:text-yellow-900"
                               >
                                 Company Settings
@@ -1794,7 +1772,7 @@ const ScheduledServicesLog: React.FC = () => {
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Odometer/Hour</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Odometer/Hour</label>
                         <input
                           type="number"
                           value={formData.odometer}
@@ -1807,7 +1785,7 @@ const ScheduledServicesLog: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Invoice No.</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Invoice No.</label>
                         <input
                           type="text"
                           value={formData.invoiceNo}
@@ -1820,7 +1798,7 @@ const ScheduledServicesLog: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Amount</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Amount</label>
                         <input
                           type="number"
                           step="0.01"
@@ -1835,7 +1813,7 @@ const ScheduledServicesLog: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Status *</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Status *</label>
                         <select
                           value={formData.status}
                           onChange={(e) => setFormData({ ...formData, status: e.target.value })}
@@ -1850,7 +1828,7 @@ const ScheduledServicesLog: React.FC = () => {
                         </select>
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-primary mb-2">Service Provider *</label>
+                        <label className="block text-sm font-medium text-headings mb-2">Service Provider *</label>
                         {/* Toggle */}
                         <div className="flex rounded-lg border border-theme overflow-hidden mb-3 w-fit">
                           <button
@@ -1940,7 +1918,7 @@ const ScheduledServicesLog: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-2">Description</label>
+                      <label className="block text-sm font-medium text-headings mb-2">Description</label>
                       <textarea
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -1953,7 +1931,7 @@ const ScheduledServicesLog: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-2">Notes</label>
+                      <label className="block text-sm font-medium text-headings mb-2">Notes</label>
                       <textarea
                         value={formData.notes}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -1976,7 +1954,7 @@ const ScheduledServicesLog: React.FC = () => {
                         setSelectedService(null);
                         setFormError(null);
                       }}
-                      className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                      className="px-6 py-2 border border-theme rounded-lg text-headings hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     >
                       Cancel
                     </button>
@@ -2011,11 +1989,11 @@ const ScheduledServicesLog: React.FC = () => {
                       <FaExclamationCircle className="text-[#A855F7]" size={24} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-primary">Delete Service</h3>
+                      <h3 className="text-lg font-bold text-headings">Delete Service</h3>
                       <p className="text-sm text-secondary">This action cannot be undone</p>
                     </div>
                   </div>
-                  <p className="text-primary mb-6">
+                  <p className="text-headings mb-6">
                     Are you sure you want to delete this service record for unit <strong>{selectedService.unitNo}</strong>?
                   </p>
                   <div className="flex justify-end gap-3">
@@ -2024,7 +2002,7 @@ const ScheduledServicesLog: React.FC = () => {
                         setShowDeleteModal(false);
                         setSelectedService(null);
                       }}
-                      className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                      className="px-6 py-2 border border-theme rounded-lg text-headings hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     >
                       Cancel
                     </button>
