@@ -1834,7 +1834,7 @@ const TrailersPage: React.FC = () => {
                             <select
                                 value={complianceStatus}
                                 onChange={(e) => setComplianceStatus(e.target.value)}
-                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent  border-2 border-red-700"
+                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent "
                             >
                                 <option value="All">All</option>
                                 <option value="Compliant">Compliant</option>
@@ -2118,14 +2118,14 @@ const TrailersPage: React.FC = () => {
                                                 <div className="flex items-center gap-2">
                                                     <button
                                                         onClick={() => handleEditTrailer(trailer._id || trailer.id || '')}
-                                                        className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                                                        className="p-1.5 text-[#00D1FF] hover:bg-[var(--accent-navyblue)] rounded transition-colors"
                                                         title="Edit"
                                                     >
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteClick(trailer._id || trailer.id || '')}
-                                                        className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                                                        className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)] rounded transition-colors"
                                                         title="Delete"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -2195,7 +2195,7 @@ const TrailersPage: React.FC = () => {
                                             key={step}
                                             onClick={() => setActiveStep(step)}
                                             className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
-                                                ? 'bg-[var(--accent-blue)] !text-white shadow-sm'
+                                                ? 'bg-[var(--accent-navyblue)] !text-white shadow-sm'
                                                 : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                 }`}
                                         >
@@ -2211,7 +2211,7 @@ const TrailersPage: React.FC = () => {
                         <div className="flex-1 flex flex-col overflow-hidden">
                             {/* Header */}
                             <div className="flex items-center justify-between p-4 border-b border-theme bg-card">
-                                <h2 className="text-xl font-bold text-primary">New Trailer</h2>
+                                <h2 className="text-xl font-bold text-[var(--accent-navyblue)]">New Trailer</h2>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={handleSaveTrailer}
@@ -2234,10 +2234,10 @@ const TrailersPage: React.FC = () => {
                                 {/* Details Step */}
                                 {activeStep === 'Details' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-primary">Basic Information</h3>
+                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Basic Information</h3>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Unit #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2249,7 +2249,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     VIN #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2261,7 +2261,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Plate #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2273,7 +2273,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Registration Country<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2290,7 +2290,7 @@ const TrailersPage: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">Registration Province/State</label>
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Registration Province/State</label>
                                                 <input
                                                     type="text"
                                                     value={formData.registrationProvince}
@@ -2301,7 +2301,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Make<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2313,7 +2313,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">Model<span className="text-red-500">*</span></label>
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Model<span className="text-red-500">*</span></label>
                                                 <input
                                                     type="text"
                                                     placeholder="Model"
@@ -2323,7 +2323,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Year<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2335,7 +2335,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Type<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2350,7 +2350,7 @@ const TrailersPage: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Weight<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2362,7 +2362,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     UoM<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2375,7 +2375,7 @@ const TrailersPage: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Status<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2391,24 +2391,31 @@ const TrailersPage: React.FC = () => {
                                         </div>
 
                                         <div className="mt-4">
-                                            <h3 className="text-base font-semibold text-primary mb-2">Ownership Information</h3>
+                                            <h3 className="text-base font-semibold text-[var(--accent-navyblue)] mb-2">Ownership Information</h3>
                                             <div className="flex gap-2">
                                                 <button
                                                     type="button"
-                                                    onClick={() => setFormData({ ...formData, ownership: 'COMPANY ASSET', subType: '' })}
-                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'COMPANY ASSET'
-                                                        ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                    onClick={() =>
+                                                        setFormData({ ...formData, ownership: "COMPANY ASSET", subType: "" })
+                                                    }
+                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors 
+    ${formData.ownership === "COMPANY ASSET"
+                                                            ? "bg-[var(--accent-navyblue)] text-white"
+                                                            : "bg-gray-700 text-white hover:bg-[var(--accent-navyblue)]"
                                                         }`}
                                                 >
                                                     COMPANY ASSET
                                                 </button>
+
                                                 <button
                                                     type="button"
-                                                    onClick={() => setFormData({ ...formData, ownership: 'THIRD PARTY ASSET', subType: '' })}
-                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'THIRD PARTY ASSET'
-                                                        ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                    onClick={() =>
+                                                        setFormData({ ...formData, ownership: "THIRD PARTY ASSET", subType: "" })
+                                                    }
+                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors 
+    ${formData.ownership === "THIRD PARTY ASSET"
+                                                            ? "bg-[var(--accent-navyblue)] text-white"
+                                                            : "bg-gray-700 text-white hover:bg-[var(--accent-navyblue)]"
                                                         }`}
                                                 >
                                                     THIRD PARTY ASSET
@@ -2502,7 +2509,7 @@ const TrailersPage: React.FC = () => {
                                 {/* Inspections Step */}
                                 {activeStep === 'Inspections' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-primary">Trailer Inspections</h3>
+                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Trailer Inspections</h3>
 
                                         {/* Inspection Type Tabs */}
                                         <div className="flex gap-2">
@@ -2533,7 +2540,7 @@ const TrailersPage: React.FC = () => {
                                             <div className="space-y-4">
                                                 <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
+                                                        <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Expiry Date</label>
                                                         <div className="relative">
                                                             <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
@@ -2545,7 +2552,7 @@ const TrailersPage: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
@@ -2555,7 +2562,7 @@ const TrailersPage: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">File</label>
+                                                        <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">File</label>
                                                         {inspectionForm.file ? (
                                                             <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
                                                                 <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
@@ -2653,9 +2660,9 @@ const TrailersPage: React.FC = () => {
                                                     <table className="w-full">
                                                         <thead className="bg-card">
                                                             <tr>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Expiry Date</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium ">Expiry Date</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium ">Description</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium ">File</th>
                                                                 <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
                                                                 <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
                                                             </tr>
@@ -2956,7 +2963,7 @@ const TrailersPage: React.FC = () => {
                                 {/* Documents Step */}
                                 {activeStep === 'Documents' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-primary">Documents</h3>
+                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Documents</h3>
 
                                         {/* Document Type Tabs */}
                                         <div className="flex gap-2 border-b border-theme">
@@ -2978,7 +2985,7 @@ const TrailersPage: React.FC = () => {
                                         {/* Document Form */}
                                         <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                             <div className="flex-1">
-                                                <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Expiry Date</label>
                                                 <div className="relative">
                                                     <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                     <input
@@ -2990,7 +2997,7 @@ const TrailersPage: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div className="flex-1">
-                                                <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Description</label>
                                                 <input
                                                     type="text"
                                                     placeholder="Description"
@@ -3000,7 +3007,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">File</label>
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">File</label>
                                                 {documentForm.file ? (
                                                     <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
                                                         <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
@@ -3158,12 +3165,12 @@ const TrailersPage: React.FC = () => {
                                 {/* Notes Step */}
                                 {activeStep === 'Notes' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-primary">Notes</h3>
+                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Notes</h3>
 
                                         {/* Note Form */}
                                         <div className="flex gap-4 items-end bg-card p-4 rounded-lg">
                                             <div className="flex-1">
-                                                <label className="block text-sm font-medium text-primary mb-1">Note</label>
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Note</label>
                                                 <input
                                                     type="text"
                                                     placeholder="Note"
@@ -3173,7 +3180,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">Category</label>
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Category</label>
                                                 <div className="relative">
                                                     <select
                                                         value={noteForm.category}
@@ -3212,8 +3219,8 @@ const TrailersPage: React.FC = () => {
                                             <table className="w-full">
                                                 <thead className="bg-card border-b border-theme">
                                                     <tr>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Note</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Category</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Note</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Category</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-theme">
@@ -3253,8 +3260,8 @@ const TrailersPage: React.FC = () => {
                                             onClick={handleNext}
                                             disabled={!getNextStep()}
                                             className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${getNextStep()
-                                                ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                : 'bg-gray-200 text-secondary cursor-not-allowed'
+                                                ? 'bg-[var(--accent-navyblue)] !text-white hover:bg-gray-800'
+                                                : 'bg-[var(--accent-navyblue)] text-secondary cursor-not-allowed'
                                                 }`}
                                         >
                                             Next
