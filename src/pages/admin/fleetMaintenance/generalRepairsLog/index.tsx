@@ -705,8 +705,8 @@ const GeneralRepairsLog: React.FC = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-black">Maintenance Orders Log</h1>
-                <div className="flex items-center gap-2 text-black/90">
+                <h1 className="text-2xl font-bold text-headings">Maintenance Orders Log</h1>
+                <div className="flex items-center gap-2 text-secondary">
                   <span className="text-xs">Log non-routine maintenance orders (Tires, Brakes, Accident Repairs)</span>
                 </div>
               </div>
@@ -714,7 +714,7 @@ const GeneralRepairsLog: React.FC = () => {
                 <button
                   onClick={handleExportRepairs}
                   disabled={exporting}
-                  className="inline-flex items-center gap-2 rounded-lg bg-card text-green-600 px-4 py-2 font-bold text-sm shadow-sm hover:bg-card/90 transition disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent-navyblue)] text-green-600 px-4 py-2 font-bold text-sm shadow-sm hover:bg-card/90 transition disabled:opacity-60"
                 >
                   <Download className="w-4 h-4" />
                   {exporting ? 'Exporting...' : 'Export'}

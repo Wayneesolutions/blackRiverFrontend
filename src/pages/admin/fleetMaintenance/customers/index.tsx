@@ -578,7 +578,7 @@ const FleetMaintenanceCustomers = () => {
                 type="button"
                 onClick={handleExportCustomers}
                 title="Export to Excel"
-                className="w-9 h-9 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+                className="w-9 h-9 bg-[var(--accent-navyblue)] !text-white rounded-lg flex items-center justify-center transition-colors shadow-md"
               >
                 <FileDown className="w-4 h-4" />
               </button>

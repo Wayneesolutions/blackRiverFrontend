@@ -1569,7 +1569,7 @@ const FleetInvoicesPage = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-headings flex items-center gap-2">
-              <FaFileInvoice className="text-[#00D1FF]" size={28} />
+              <FaFileInvoice className="text-[var(--accent-navyblue)]" size={28} />
               Fleet Invoices
             </h1>
             <p className="text-secondary mt-1">Create and manage fleet invoices</p>

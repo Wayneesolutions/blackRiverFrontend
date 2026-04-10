@@ -1037,14 +1037,14 @@ const ScheduledServicesLog: React.FC = () => {
                 <button
                   onClick={handleExportServices}
                   disabled={exporting}
-                  className="inline-flex items-center gap-2 rounded-lg bg-card text-green-600 px-4 py-2 font-bold text-sm shadow-sm hover:bg-card/90 transition disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent-navyblue)] text-green-600 px-4 py-2 font-bold text-sm shadow-sm hover:bg-card/90 transition disabled:opacity-60"
                 >
                   <Download className="w-4 h-4" />
                   {exporting ? 'Exporting...' : 'Export'}
                 </button>
                 <button
                   onClick={handleAddService}
-                  className="flex items-center gap-2 px-4 py-2 bg-card text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
+                  className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
                 >
                   <Plus className="w-5 h-5" />
                   Add Service

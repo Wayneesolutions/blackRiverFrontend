@@ -212,7 +212,7 @@ const YardManagement = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-headings flex items-center gap-3">
-                <FaWarehouse className="text-[var(--accent-blue)]" />
+                <FaWarehouse className="text-[var(--accent-navyblue)]" />
                 Yard Management
               </h1>
               <p className="text-secondary mt-2">Manage fleet yards and locations</p>
