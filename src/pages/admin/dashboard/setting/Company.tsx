@@ -554,10 +554,8 @@ const Company = () => {
                 ) : (
                   <button
                     onClick={() => setIsEditing(true)}
-                    style={{
-                      background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)",
-                    }}
-                    className="px-4 py-2   !text-white rounded-lg transition-all font-medium flex items-center gap-2"
+                   
+                    className="px-4 py-2 bg-[var(--accent-navyblue)]   !text-white rounded-lg transition-all font-medium flex items-center gap-2"
                   >
                     <Edit size={16} />
                     Edit Settings

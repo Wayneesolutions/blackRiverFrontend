@@ -376,12 +376,12 @@ const UserProfilesPortfolio: React.FC = () => {
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-2xl shadow-lg" style={{ background: ACCENT_GRADIENT }}>
-                                <Users className="w-8 h-8 text-white" />
+                            <div className="p-3 rounded-2xl shadow-lg bg-[var(--accent-navyblue)]/20">
+                                <Users className="w-8 h-8 text-[var(--accent-navyblue)]" />
                             </div>
                             <div>
                                 <h1
-                                    className="text-4xl font-bold bg-clip-text text-transparent"
+                                    className="text-4xl font-bold bg-clip-text text-[var(--accent-navyblue)]"
                                     style={{ backgroundImage: ACCENT_GRADIENT }}
                                 >
                                     Employee Portfolio
@@ -399,8 +399,8 @@ const UserProfilesPortfolio: React.FC = () => {
                         </div>
                         <button
                             onClick={handleExportToExcel}
-                            className="flex items-center gap-2 px-6 py-3 !text-white rounded-lg shadow-lg transition-all duration-200 font-medium"
-                            style={{ background: ACCENT_GRADIENT }}
+                            className="flex items-center gap-2 px-6 py-3 !text-white bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/80 rounded-lg shadow-lg transition-all duration-200 font-medium"
+
                         >
                             <Download className="w-5 h-5" />
                             Export to Excel
@@ -525,18 +525,31 @@ focus:border-[var(--accent-blue)] focus:border-transparent"
                         <div className="flex items-center gap-2">
                             <Calendar className="w-5 h-5 text-secondary" />
                             <span className="text-sm font-medium text-primary">Period:</span>
-                            <div className="flex gap-2">
-                                {(['1week', '2weeks', '1month'] as TimePeriod[]).map((period) => (
-                                    <button
-                                        key={period}
-                                        onClick={() => setTimePeriod(period)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timePeriod === period ? '!text-white shadow-md' : 'text-[var(--accent-orange)]text-primary bg-[var(--accent-navyblue)] border border-theme hover:bg-[rgba(255,255,255,0.05)]'
-                                            }`}
-                                        style={timePeriod === period ? { background: ACCENT_GRADIENT } : undefined}
-                                    >
-                                        {period === '1week' ? '1 Week' : period === '2weeks' ? '2 Weeks' : '1 Month'}
-                                    </button>
-                                ))}
+
+                            <div className="flex gap-3">
+                                {(['1week', '2weeks', '1month'] as TimePeriod[]).map((period) => {
+                                    const isActive = timePeriod === period;
+
+                                    return (
+                                        <button
+                                            key={period}
+                                            onClick={() => setTimePeriod(period)}
+                                            className={`
+          px-5 py-2 rounded-l text-sm font-medium transition-all duration-200
+          ${isActive
+                                                    ? 'bg-[var(--accent-navyblue)] text-white shadow-lg'
+                                                    : 'bg-[#0f2a3a] text-white/70 border border-white/10 hover:bg-[#14394d]'
+                                                }
+        `}
+                                        >
+                                            {period === '1week'
+                                                ? '1 Week'
+                                                : period === '2weeks'
+                                                    ? '2 Weeks'
+                                                    : '1 Month'}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -590,7 +603,7 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         className="overflow-x-scroll overflow-y-visible table-container-hidden-scrollbar"
                     >
                         <table className="w-full" style={{ minWidth: '1200px' }}>
-                            <thead className="text-white " style={{ background: 'var(--accent-navyblue)' }}>
+                            <thead className="text-[var(--accent-navyblue)]">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Employee</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Role</th>
@@ -634,8 +647,7 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div
-                                                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold"
-                                                    style={{ background: ACCENT_GRADIENT }}
+                                                    className="w-10 h-10 bg-[var(--accent-navyblue)]  rounded-full flex items-center justify-center text-white font-semibold"
                                                 >
                                                     {profile.name.charAt(0)}
                                                 </div>
@@ -779,10 +791,8 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                     {/* Sidebar */}
                     <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-card shadow-2xl z-[9999] transform transition-transform duration-300 ease-out overflow-y-auto">
                         {/* Header */}
-                        <div className="sticky top-0  text-white p-6 z-10"
-                            style={{
-                                background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
-                            }}>
+                        <div className="sticky top-0  text-white bg-[var(--accent-navyblue)] p-6 z-10"
+                        >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className="w-16 h-16 rounded-full bg-card/20 flex items-center justify-center text-white text-2xl font-bold">
@@ -981,15 +991,15 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                                 <p className="text-sm font-medium text-[var(--accent-green)] mb-2">Total Earnings</p>
                                                 <p className="text-2xl font-bold text-[var(--accent-green)] mb-2">{formatCurrency(periodEarnings)}</p>
                                             </div>
-                                            <div className="bg-gradient-to-br bg-[var(--accent-blue)]/10 border border-theme to-blue-100 rounded-lg p-4 border border-blue-200">
+                                            <div className="bg-[var(--accent-blue)]/10 border border-theme to-blue-100 rounded-lg p-4 border border-blue-200">
                                                 <p className="text-sm font-medium text-[#00D1FF] mb-2">Base Salary</p>
                                                 <p className="text-2xl font-bold text-[var(--accent-blue)] mb-2">{formatCurrency(periodBase)}</p>
                                             </div>
-                                            <div className="bg-gradient-to-br bg-[var(--accent-purple)]/10 border border-theme to-purple-100 rounded-lg p-4 border border-theme">
+                                            <div className=" bg-[var(--accent-purple)]/10 border border-theme to-purple-100 rounded-lg p-4 border border-theme">
                                                 <p className="text-sm font-medium text-[var(--accent-purple)] mb-2">Bonus</p>
                                                 <p className="text-2xl font-bold text-[var(--accent-purple)] mb-2">{formatCurrency(periodBonus)}</p>
                                             </div>
-                                            <div className="bg-gradient-to-br bg-[var(--accent-red)]/10 border border-theme to-red-100 rounded-lg p-4 border border-red-200">
+                                            <div className=" bg-[var(--accent-red)]/10 border border-theme to-red-100 rounded-lg p-4 border border-red-200">
                                                 <p className="text-sm font-medium text-[var(--accent-red)] mb-2">Deductions</p>
                                                 <p className="text-2xl font-bold text-red-700 mb-2">{formatCurrency(periodDeductions)}</p>
                                             </div>
@@ -1023,7 +1033,7 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                     return (
                                         <>
                                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                                <div className="bg-card rounded-lg p-4 border border-blue-200">
+                                                <div className="bg-[var(--accent-blue)]/10 rounded-lg p-4  border-blue-200">
                                                     <p className="text-sm text-[#00D1FF] mb-1">Working Days</p>
                                                     <p className="text-2xl font-bold text-[var(--accent-blue)]">{periodDaysWorked}</p>
                                                 </div>
@@ -1031,17 +1041,17 @@ focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                                     <p className="text-sm text-[var(--accent-green)] mb-1">Present Days</p>
                                                     <p className="text-2xl font-bold text-[var(--accent-green)]">{periodPresentDays}</p>
                                                 </div>
-                                                <div className="bg-card rounded-lg p-4 border border-red-200">
+                                                <div className="bg-[var(--accent-red)]/10 rounded-lg p-4 border-red-200">
                                                     <p className="text-sm text-[#A855F7] mb-1">Absent Days</p>
                                                     <p className="text-2xl font-bold text-red-700">{periodAbsentDays}</p>
                                                 </div>
                                             </div>
                                             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="bg-card rounded-lg p-4 border border-theme">
+                                                <div className="bg-[var(--accent-purple)]/10 rounded-lg p-4 border-theme">
                                                     <p className="text-sm text-[var(--accent-purple)] mb-1">Total Hours</p>
                                                     <p className="text-2xl font-bold text-[var(--accent-purple)]">{formatNumber(periodTotalHours)} hrs</p>
                                                 </div>
-                                                <div className="bg-[var(--accent-blue)]/10rounded-lg p-4 border border-indigo-200">
+                                                <div className="bg-[var(--accent-indigo)]/10 rounded-lg p-4 border-indigo-200">
                                                     <p className="text-sm text-indigo-600 mb-1">Leave Days</p>
                                                     <p className="text-2xl font-bold text-[var(--accent-indigo)]">{periodLeaveDays}</p>
                                                 </div>

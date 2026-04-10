@@ -578,7 +578,7 @@ const DocumentManagement: React.FC = () => {
                 placeholder="e.g. Insurance, Maintenance, Training"
                 className="w-full px-4 py-2 bg-[#0B1220] border border-[rgba(17,131,224,0.2)] text-[#E6EDF3] placeholder-[#8B9BB4] rounded-lg focus:outline-none focus:border-[#1183e0] focus:ring-1 focus:ring-[rgba(17,131,224,0.3)] transition-colors"
               />
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-3 !pt-6">
                 <button
                   type="button"
                   onClick={() => {
@@ -593,8 +593,8 @@ const DocumentManagement: React.FC = () => {
                   type="button"
                   onClick={handleCreateCategory}
                   disabled={creatingCategory}
-                  className="flex-1 px-4 py-2 rounded-lg transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50"
-                  style={primaryButtonStyle}
+                  className="flex-1 px-4 py-2 rounded-lg bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/80 transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                  
                 >
                   {creatingCategory ? 'Creating...' : 'Create'}
                 </button>
@@ -628,7 +628,7 @@ const DocumentManagement: React.FC = () => {
                 onChange={(e) => setEditCategoryName(e.target.value)}
                 className="w-full px-4 py-2 bg-[#0B1220] border border-[rgba(17,131,224,0.2)] text-[#E6EDF3] rounded-lg focus:outline-none focus:border-[#1183e0] focus:ring-1 focus:ring-[rgba(17,131,224,0.3)] transition-colors"
               />
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-3 !pt-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -643,8 +643,8 @@ const DocumentManagement: React.FC = () => {
                   type="button"
                   onClick={handleSaveCategory}
                   disabled={savingCategory}
-                  className="flex-1 px-4 py-2 rounded-lg transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50"
-                  style={primaryButtonStyle}
+                  className="flex-1 px-4 py-2 bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/80 rounded-lg transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                 
                 >
                   {savingCategory ? 'Saving...' : 'Save'}
                 </button>
@@ -717,8 +717,8 @@ const DocumentManagement: React.FC = () => {
                 setUploadModalError(null); // Clear modal error when opening
                 setUploadDialog(true);
               }}
-              className="px-4 py-2 rounded-lg transition-all duration-200 font-medium flex items-center gap-2 hover:shadow-md hover:scale-105"
-              style={primaryButtonStyle}
+              className="px-4 py-2 rounded-lg bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/80 transition-all duration-200 font-medium flex items-center gap-2 hover:shadow-md hover:scale-105"
+              
             >
               <Plus size={17} />
               Upload Document
@@ -918,12 +918,8 @@ const DocumentManagement: React.FC = () => {
                           handleView(doc);
                         }}
                         className="px-6 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 
-               transition-all duration-200 hover:shadow-md"
-                        style={{
-                          background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)",
-                          color: "#fff",
-                          boxShadow: `0 4px 12px rgba(17, 131, 224, 0.25)`,
-                        }}
+               transition-all duration-200 hover:shadow-md bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/80"
+                      
                       >
                         <Eye size={15} />
                         Open
@@ -1132,8 +1128,8 @@ const DocumentManagement: React.FC = () => {
                 <button
                   onClick={handleFileUpload}
                   disabled={uploading || !selectedFile}
-                  className="flex-1 px-4 py-2 rounded-lg transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50"
-                  style={primaryButtonStyle}
+                  className="flex-1 px-4 py-2 rounded-lg transition-all bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/80 font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                 
                 >
                   {uploading ? (
                     <>

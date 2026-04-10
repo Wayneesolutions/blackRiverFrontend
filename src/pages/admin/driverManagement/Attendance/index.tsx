@@ -531,11 +531,7 @@ const AttendanceTracking = () => {
             </div>
             <button
               onClick={() => setShowAddModal(true)}
-              style={{
-                background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)",
-                boxShadow: "0 8px 20px var(--border-glow)"
-              }}
-              className="px-4 py-2 !text-white rounded-lg transition-all font-medium flex items-center gap-2 shadow-sm hover:shadow-md"
+              className="px-4 py-2 !text-white bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/80 rounded-lg transition-all font-medium flex items-center gap-2 shadow-sm hover:shadow-md"
             >
               <Plus size={20} />
               Add Attendance
@@ -765,17 +761,17 @@ focus:ring-[var(--accent-blue)]/30"
             <table className="w-full" style={{ minWidth: '1000px' }}>
               <thead className="bg-card border-b border-theme">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Employee</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Check In</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Check Out</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Hours</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Notes</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Employee</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Check In</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Check Out</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Hours</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Notes</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-theme">
+              <tbody className="divide-theme">
                 {filteredRecords.length > 0 ? (
                   filteredRecords.map((record, idx) => (
                     <tr
@@ -1045,7 +1041,7 @@ focus:ring-[var(--accent-blue)]/30 resize-none"
                 </button>
                 <button
                   onClick={handleAddAttendance}
-                  className="flex-1 px-4 py-2 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] !text-white rounded-lg transition-colors font-medium"
+                  className="flex-1 px-4 py-2 bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/80 !text-white rounded-lg transition-colors font-medium"
                 >
                   {editingRecord ? 'Update Record' : 'Add Record'}
                 </button>

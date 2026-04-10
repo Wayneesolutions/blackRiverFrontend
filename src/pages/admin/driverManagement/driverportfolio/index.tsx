@@ -1131,13 +1131,10 @@ const DriverPortfolio: React.FC = () => {
                     {/* Sidebar */}
                     <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-card shadow-2xl z-[9999] transform transition-transform duration-300 ease-out overflow-y-auto">
                         {/* Header */}
-                        <div className="sticky top-0  text-white p-6 z-10"
-                            style={{
-                                background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)"
-                            }}>
+                       <div className="sticky top-0 p-6 z-20 bg-card border-b border-white/10 backdrop-blur-md">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 rounded-full bg-card/20 flex items-center justify-center text-white text-2xl font-bold">
+                                    <div className="w-16 h-16 rounded-full bg-[var(--accent-navyblue)] flex items-center justify-center text-white text-2xl font-bold">
                                         {selectedProfile.name.charAt(0)}
                                     </div>
                                     <div>
@@ -1428,20 +1425,20 @@ const DriverPortfolio: React.FC = () => {
 
                                     return (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                                            <div className="bg-[var(--accent-green)]/10 rounded-lg p-4  border-green-200">
                                                 <p className="text-sm font-medium text-green-600 mb-2">Total Earnings</p>
                                                 <p className="text-2xl font-bold text-green-700 mb-2">{formatCurrency(periodEarnings)}</p>
                                             </div>
-                                            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                                            <div className="bg-[var(--accent-blue)]/10 rounded-lg p-4  border-blue-200">
                                                 <p className="text-sm font-medium text-[#00D1FF] mb-2">Base Salary</p>
                                                 <p className="text-2xl font-bold text-blue-700 mb-2">{formatCurrency(periodBase)}</p>
                                             </div>
-                                            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                                            <div className="bg-[var(--accent-purple)]/10 rounded-lg p-4  border-purple-200">
                                                 <p className="text-sm font-medium text-purple-600 mb-2">Bonus</p>
                                                 <p className="text-2xl font-bold text-purple-700 mb-2">{formatCurrency(periodBonus)}</p>
                                             </div>
-                                            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border bg-[var(--accent-red)]/10 border-[var(--accent-red)]/30 text-[var(--accent-red)]">
-                                                <p className="text-sm font-medium text-[#A855F7] mb-2">Deductions</p>
+                                            <div className="bg-[var(--accent-red)]/10 rounded-lg p-4 text-[var(--accent-red)]">
+                                                <p className="text-sm font-medium text-white mb-2">Deductions</p>
                                                 <p className="text-2xl font-bold text-[var(--accent-red)] mb-2">{formatCurrency(periodDeductions)}</p>
                                             </div>
                                         </div>

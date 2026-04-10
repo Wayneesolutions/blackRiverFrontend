@@ -1169,7 +1169,7 @@ const EmployeesPage = () => {
               <button
                 onClick={handleExportEmployees}
                 title="Export to Excel"
-                className="w-10 h-10  !text-white rounded-lg flex items-center justify-center bg-[var(--accent-green)] hover:bg-[var(--accent-green)] transition-colors shadow-md"
+                className="w-10 h-10  !text-white rounded-lg flex items-center justify-center bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)] transition-colors shadow-md"
               >
                 <FileDown className="w-5 h-5" />
               </button>
@@ -1226,7 +1226,7 @@ const EmployeesPage = () => {
               {roleBadges.map((role, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1 bg-[var(--accent-green)]/10 text-[var(--accent-green)] text-sm font-medium rounded-full"
+                  className="px-3 py-1 bg-[var(--accent-green)]/10 text-[var(--accent-blue)] text-sm font-medium rounded-full"
                 >
                   {role}
                 </span>
@@ -1409,7 +1409,7 @@ const EmployeesPage = () => {
                       <td className="px-4 py-3 text-sm text-primary">{getRoleDisplayName(employee.role)}</td>
                       <td className="px-4 py-3">
                         <span className={`px-3 py-1 rounded text-xs font-medium ${(employee.status === 'ACTIVE' || employee.status === 'active')
-                          ? 'bg-[var(--accent-green)]/10 text-[var(--accent-green)]'
+                          ? 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]'
                           : 'bg-[var(--accent-red)]/10 text-[var(--accent-red)]'
                           }`}>
                           {employee.status}
