@@ -2252,7 +2252,7 @@ const Trucks: React.FC = () => {
                                             key={step}
                                             onClick={() => setActiveStep(step)}
                                             className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
-                                                ? 'bg-[var(--accent-blue)] !text-white shadow-sm'
+                                                ? 'bg-[var(--accent-navyblue)] !text-white shadow-sm'
                                                 : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                 }`}
                                         >
@@ -2612,7 +2612,7 @@ const Trucks: React.FC = () => {
                                 {/* Inspections Step */}
                                 {activeStep === 'Inspections' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-primary">Truck Inspections</h3>
+                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Truck Inspections</h3>
 
                                         {/* Inspection Type Tabs */}
                                         <div className="flex gap-2">
@@ -2643,7 +2643,7 @@ const Trucks: React.FC = () => {
                                             <div className="space-y-4">
                                                 <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
+                                                        <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Expiry Date</label>
                                                         <div className="relative">
                                                             <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
@@ -2655,7 +2655,7 @@ const Trucks: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
@@ -2665,7 +2665,7 @@ const Trucks: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-primary mb-1">File</label>
+                                                        <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">File</label>
                                                         <button
                                                             type="button"
                                                             onClick={() => {
@@ -3004,10 +3004,10 @@ const Trucks: React.FC = () => {
                                 {/* Documents Step */}
                                 {activeStep === 'Documents' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-primary">Documents</h3>
+                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Documents</h3>
 
                                         {/* Document Type Tabs */}
-                                        <div className="flex gap-2 border-b border-theme">
+                                        <div className="flex gap-2 border-b border-theme text-[var(--accent-navyblue)]">
                                             {(['General', 'Ownership', 'Cab Card', 'Plate', 'Safety', 'Insurance'] as const).map((type) => (
                                                 <button
                                                     key={type}
@@ -3018,8 +3018,8 @@ const Trucks: React.FC = () => {
                                                         setDocumentType(type);
                                                     }}
                                                     className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${documentType === type
-                                                        ? 'border-gray-700 text-primary'
-                                                        : 'border-transparent text-secondary hover:text-primary'
+                                                        ? 'border-[var(--accent-navyblue)] text-[var(--accent-navyblue)]'
+                                                        : 'border-transparent text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]'
                                                         }`}
                                                 >
                                                     {type}
@@ -3037,7 +3037,7 @@ const Trucks: React.FC = () => {
                                             {/* Row 1: Expiry Date and Description */}
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
+                                                    <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Expiry Date</label>
                                                     <div className="relative">
                                                         <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                         <input
@@ -3049,7 +3049,7 @@ const Trucks: React.FC = () => {
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                                                    <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Description</label>
                                                     <input
                                                         type="text"
                                                         placeholder="Description"
@@ -3062,7 +3062,7 @@ const Trucks: React.FC = () => {
 
                                             {/* Row 2: File Upload */}
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">File</label>
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">File</label>
                                                 {documentForm.file ? (
                                                     <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
                                                         <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
@@ -3216,12 +3216,12 @@ const Trucks: React.FC = () => {
                                 {/* Notes Step */}
                                 {activeStep === 'Notes' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-primary">Notes</h3>
+                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Notes</h3>
 
                                         {/* Note Form */}
                                         <div className="flex gap-4 items-end bg-card p-4 rounded-lg">
                                             <div className="flex-1">
-                                                <label className="block text-sm font-medium text-primary mb-1">Note</label>
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Note</label>
                                                 <input
                                                     type="text"
                                                     placeholder="Note"
@@ -3231,7 +3231,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">Category</label>
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Category</label>
                                                 <div className="relative">
                                                     <select
                                                         value={noteForm.category}
@@ -3765,9 +3765,9 @@ const Trucks: React.FC = () => {
                                         <button
                                             onClick={handleNext}
                                             disabled={!getNextStep()}
-                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${getNextStep()
-                                                ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                : 'bg-gray-200 text-secondary cursor-not-allowed'
+                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors text-white ${getNextStep()
+                                                ? 'bg-[var(--accent-navyblue)] hover:bg-[var(--accent-blue)]'
+                                                : 'bg-[var(--accent-navyblue)] cursor-not-allowed'
                                                 }`}
                                         >
                                             Next
