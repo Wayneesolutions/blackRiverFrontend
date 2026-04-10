@@ -1131,7 +1131,7 @@ const DriverPortfolio: React.FC = () => {
                     {/* Sidebar */}
                     <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-card shadow-2xl z-[9999] transform transition-transform duration-300 ease-out overflow-y-auto">
                         {/* Header */}
-                       <div className="sticky top-0 p-6 z-20 bg-card border-b border-white/10 backdrop-blur-md">
+                        <div className="sticky top-0 p-6 z-20 bg-card border-b border-white/10 backdrop-blur-md">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className="w-16 h-16 rounded-full bg-[var(--accent-navyblue)] flex items-center justify-center text-white text-2xl font-bold">
@@ -1430,7 +1430,7 @@ const DriverPortfolio: React.FC = () => {
                                                 <p className="text-2xl font-bold text-green-700 mb-2">{formatCurrency(periodEarnings)}</p>
                                             </div>
                                             <div className="bg-[var(--accent-blue)]/10 rounded-lg p-4  border-blue-200">
-                                                <p className="text-sm font-medium text-[#00D1FF] mb-2">Base Salary</p>
+                                                <p className="text-sm font-medium text-blue-700 mb-2">Base Salary</p>
                                                 <p className="text-2xl font-bold text-blue-700 mb-2">{formatCurrency(periodBase)}</p>
                                             </div>
                                             <div className="bg-[var(--accent-purple)]/10 rounded-lg p-4  border-purple-200">
@@ -1468,17 +1468,17 @@ const DriverPortfolio: React.FC = () => {
 
                                     return (
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <div className="bg-card rounded-lg p-4 border border-orange-200">
-                                                <p className="text-sm text-[#F59E0B] mb-1">Miles Driven</p>
+                                            <div className="bg-[var(--accent-orange)]/10 rounded-lg p-4 border-orange-200">
+                                                <p className="text-sm text-orange-700 mb-1">Miles Driven</p>
                                                 <p className="text-2xl font-bold text-orange-700">{formatNumber(periodMiles)}</p>
                                             </div>
-                                            <div className="bg-card rounded-lg p-4 border border-blue-200">
-                                                <p className="text-sm text-[#00D1FF] mb-1">Trips Completed</p>
+                                            <div className="bg-[var(--accent-blue)]/10 rounded-lg p-4 border-blue-200">
+                                                <p className="text-sm text-blue-700 mb-1">Trips Completed</p>
                                                 <p className="text-2xl font-bold text-blue-700">{periodTrips}</p>
                                             </div>
-                                            <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-                                                <p className="text-sm text-indigo-600 mb-1">Invoices</p>
-                                                <p className="text-2xl font-bold text-indigo-700">{periodInvoices}</p>
+                                            <div className="bg-[var(--accent-amber)]/10 rounded-lg p-4 border-amber-200">
+                                                <p className="text-sm text-amber-600 mb-1">Invoices</p>
+                                                <p className="text-2xl font-bold text-amber-700">{periodInvoices}</p>
                                             </div>
                                         </div>
                                     );
@@ -1511,32 +1511,49 @@ const DriverPortfolio: React.FC = () => {
                                     return (
                                         <>
                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                <div className="bg-card rounded-lg p-4 border border-blue-200">
+
+                                                {/* Working Days */}
+                                                <div className="bg-[var(--accent-blue)]/10 rounded-lg p-4 border border-[var(--accent-blue)]/30">
                                                     <p className="text-sm text-[#00D1FF] mb-1">Working Days</p>
-                                                    <p className="text-2xl font-bold text-blue-700">{periodDaysWorked}</p>
+                                                    <p className="text-2xl font-bold text-[#00D1FF]">{periodDaysWorked}</p>
                                                 </div>
-                                                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                                                    <p className="text-sm text-green-600 mb-1">Present Days</p>
-                                                    <p className="text-2xl font-bold text-green-700">{periodPresentDays}</p>
+
+                                                {/* Present Days */}
+                                                <div className="bg-[var(--accent-green)]/10 rounded-lg p-4 border border-[var(--accent-green)]/30">
+                                                    <p className="text-sm text-[var(--accent-green)] mb-1">Present Days</p>
+                                                    <p className="text-2xl font-bold text-[var(--accent-green)]">{periodPresentDays}</p>
                                                 </div>
-                                                <div className="bg-card rounded-lg p-4 border bg-[var(--accent-red)]/10 border-[var(--accent-red)]/30 text-[var(--accent-red)]">
-                                                    <p className="text-sm text-[#A855F7] mb-1">Absent Days</p>
+
+                                                {/* Absent Days */}
+                                                <div className="bg-[var(--accent-red)]/10 rounded-lg p-4 border border-[var(--accent-red)]/30">
+                                                    <p className="text-sm text-[var(--accent-red)] mb-1">Absent Days</p>
                                                     <p className="text-2xl font-bold text-[var(--accent-red)]">{periodAbsentDays}</p>
                                                 </div>
-                                                <div className="bg-card rounded-lg p-4 border border-yellow-200">
-                                                    <p className="text-sm text-[#00FFA3] mb-1">Late Days</p>
-                                                    <p className="text-2xl font-bold text-yellow-700">{periodLateDays}</p>
+
+                                                {/* Late Days */}
+                                                <div className="bg-[var(--accent-teal)]/10 rounded-lg p-4 border border-[var(--accent-teal)]/30">
+                                                    <p className="text-sm text-[var(--accent-teal)] mb-1">Late Days</p>
+                                                    <p className="text-2xl font-bold text-[var(--accent-teal)]">{periodLateDays}</p>
                                                 </div>
+
                                             </div>
+
                                             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="bg-card rounded-lg p-4 border border-purple-200">
-                                                    <p className="text-sm text-purple-600 mb-1">Total Hours</p>
-                                                    <p className="text-2xl font-bold text-purple-700">{formatNumber(periodTotalHours)} hrs</p>
+
+                                                {/* Total Hours */}
+                                                <div className="bg-[var(--accent-purple)]/10 rounded-lg p-4 border border-[var(--accent-purple)]/30">
+                                                    <p className="text-sm text-[var(--accent-purple)] mb-1">Total Hours</p>
+                                                    <p className="text-2xl font-bold text-[var(--accent-purple)]">
+                                                        {formatNumber(periodTotalHours)} hrs
+                                                    </p>
                                                 </div>
-                                                <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-                                                    <p className="text-sm text-indigo-600 mb-1">Leave Days</p>
-                                                    <p className="text-2xl font-bold text-indigo-700">{periodLeaveDays}</p>
+
+                                                {/* Leave Days */}
+                                                <div className="bg-[var(--accent-amber)]/10 rounded-lg p-4 border border-[var(--accent-amber)]/30">
+                                                    <p className="text-sm text-[var(--accent-amber)] mb-1">Leave Days</p>
+                                                    <p className="text-2xl font-bold text-[var(--accent-amber)]">{periodLeaveDays}</p>
                                                 </div>
+
                                             </div>
                                         </>
                                     );
@@ -1545,13 +1562,16 @@ const DriverPortfolio: React.FC = () => {
 
                             {/* Notes */}
                             {selectedProfile.notes && (
-                                <div className="bg-card border border-theme rounded-xl p-6">
+                                <div className="rounded-xl p-6">
                                     <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                                        <AlertCircle className="w-5 h-5 text-amber-600" />
+                                        <AlertCircle className="w-5 h-5 text-[var(--accent-orange)]" />
                                         Notes
                                     </h3>
-                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                                        <p className="text-primary leading-relaxed">{selectedProfile.notes}</p>
+
+                                    <div className="bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)]/30 rounded-lg p-4">
+                                        <p className="text-primary leading-relaxed">
+                                            {selectedProfile.notes}
+                                        </p>
                                     </div>
                                 </div>
                             )}
