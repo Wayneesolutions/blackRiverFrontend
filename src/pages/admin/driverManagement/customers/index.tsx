@@ -694,7 +694,7 @@ const CustomersPage = () => {
               <button
                 onClick={handleExportCustomers}
                 title="Export to Excel"
-                className="w-10 h-10 !text-white rounded-lg flex items-center justify-center bg-[var(--accent-green)] hover:bg-[var(--accent-green)]/80 transition-colors shadow-md"
+                className="w-10 h-10 !text-white rounded-lg flex items-center justify-center bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/80 transition-colors shadow-md"
               >
                 <FileDown className="w-5 h-5" />
               </button>
