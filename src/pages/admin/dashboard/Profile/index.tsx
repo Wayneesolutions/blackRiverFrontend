@@ -16,7 +16,7 @@ import {
   updateCurrentUserProfile,
   changePassword
 } from '../../../../axios/api/auth';
-import { FLEET_COLORS, getFocusStyles } from '../../fleetMaintenance/colorUtils';
+import { getFocusStyles } from '../../fleetMaintenance/colorUtils';
 interface UserProfile {
   _id?: string;
   name?: string;

@@ -24,7 +24,7 @@ import {
   X
 } from 'lucide-react';
 import { FaTimes, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
-import { FLEET_COLORS, getFocusStyles } from '../../fleetMaintenance/colorUtils';
+import {  getFocusStyles } from '../../fleetMaintenance/colorUtils';
 
 interface Document {
   _id: string;

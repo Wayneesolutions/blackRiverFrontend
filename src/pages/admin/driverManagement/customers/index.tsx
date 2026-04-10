@@ -49,7 +49,7 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
   }, [notification.id, onClose]);
 
   return (
-    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg ' '  shadow-lg z-[10003] ${bgColors[notification.type]} min-w-[320px] max-w-[520px] animate-slide-in `}>
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg shadow-lg z-[10003] ${bgColors[notification.type]} min-w-[320px] max-w-[520px] animate-slide-in`}>
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
@@ -624,7 +624,21 @@ const CustomersPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-main p-6 ">
+    <div className="min-h-screen bg-main p-6">
+      <style>{`
+        @media print {
+          body { background: #ffffff !important; }
+          .print-hide { display: none !important; }
+          table { border-collapse: collapse !important; width: 100% !important; font-size: 11px !important; }
+          thead tr { background: #1183e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          thead th { color: #ffffff !important; padding: 8px 12px !important; border: 1px solid #0d6bc7 !important; font-weight: 600 !important; text-transform: uppercase !important; font-size: 10px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          tbody tr:nth-child(even) { background: #f0f6ff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          tbody td { padding: 7px 12px !important; border: 1px solid #dde6f0 !important; color: #1a1a2e !important; }
+          .bg-main, .bg-card { background: #ffffff !important; }
+          .border-theme { border-color: #dde6f0 !important; }
+          h1 { color: #1183e0 !important; font-size: 20px !important; }
+        }
+      `}</style>
       {/* Toast Notifications */}
       {notifications.map(notification => (
         <ToastNotificationComponent
@@ -675,12 +689,12 @@ const CustomersPage = () => {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-primary">Customers</h1>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 print-hide">
               <span className="text-2xl font-bold text-primary">({filteredCustomers.length})</span>
               <button
                 onClick={handleExportCustomers}
                 title="Export to Excel"
-                className="w-10 h-10 !text-white rounded-lg flex items-center justify-center bg-[var(--accent-teal)] hover:bg-[var(--accent-green)] transition-colors shadow-md"
+                className="w-10 h-10 !text-white rounded-lg flex items-center justify-center bg-[var(--accent-green)] hover:bg-[var(--accent-green)]/80 transition-colors shadow-md"
               >
                 <FileDown className="w-5 h-5" />
               </button>
@@ -689,7 +703,7 @@ const CustomersPage = () => {
                   resetForm();
                   setShowNewCustomerModal(true);
                 }}
-                className="w-10 h-10 bg-[var(--accent-green)]/10] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-blue)] transition-colors shadow-md"
+                className="w-10 h-10 bg-[var(--accent-navyblue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-navyblue)]/80 transition-colors shadow-md"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -698,7 +712,7 @@ const CustomersPage = () => {
         </div>
 
         {/* Search and Filter Section */}
-        <div className="mb-6 space-y-4">
+        <div className="mb-6 space-y-4 print-hide">
           {/* First Row - General Search and Customer ID Search */}
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2 flex-1 min-w-[300px]">
@@ -720,7 +734,7 @@ const CustomersPage = () => {
                 placeholder="Customer ID"
                 value={customerIdSearch}
                 onChange={(e) => setCustomerIdSearch(e.target.value)}
-                className="flex-1 px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                className="flex-1 px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
               />
 
             </div>
@@ -787,7 +801,7 @@ const CustomersPage = () => {
               <thead className="bg-card border-b border-theme">
                 <tr>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-card"
+                    className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase cursor-pointer hover:bg-[rgba(255,255,255,0.03)]"
                     onClick={() => handleSort('name')}
                   >
                     <div className="flex items-center gap-2">
@@ -796,7 +810,7 @@ const CustomersPage = () => {
                     </div>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-card"
+                    className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase cursor-pointer hover:bg-[rgba(255,255,255,0.03)]"
                     onClick={() => handleSort('type')}
                   >
                     <div className="flex items-center gap-2">
@@ -805,7 +819,7 @@ const CustomersPage = () => {
                     </div>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-card"
+                    className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase cursor-pointer hover:bg-[rgba(255,255,255,0.03)]"
                     onClick={() => handleSort('address')}
                   >
                     <div className="flex items-center gap-2">
@@ -814,7 +828,7 @@ const CustomersPage = () => {
                     </div>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-card"
+                    className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase cursor-pointer hover:bg-[rgba(255,255,255,0.03)]"
                     onClick={() => handleSort('city')}
                   >
                     <div className="flex items-center gap-2">
@@ -823,7 +837,7 @@ const CustomersPage = () => {
                     </div>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-card"
+                    className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase cursor-pointer hover:bg-[rgba(255,255,255,0.03)]"
                     onClick={() => handleSort('lastLoadDate')}
                   >
                     <div className="flex items-center gap-2">
@@ -831,10 +845,10 @@ const CustomersPage = () => {
                       {getSortIcon('lastLoadDate')}
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Action</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase print-hide">Action</th>
                 </tr>
               </thead>
-              <tbody className="bg-card divide-y divide-theme">
+              <tbody className="bg-card  divide-theme">
                 {loading ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-secondary">
@@ -863,7 +877,7 @@ const CustomersPage = () => {
                       <td className="px-4 py-3 text-sm text-primary">{customer.address}</td>
                       <td className="px-4 py-3 text-sm text-primary">{customer.city}</td>
                       <td className="px-4 py-3 text-sm text-primary">{customer.lastLoadDate || '-'}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 print-hide">
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => {
@@ -871,7 +885,7 @@ const CustomersPage = () => {
                                 loadCustomerForEdit(customer._id);
                               }
                             }}
-                            className="p-2 text-accent hover:bg-[rgba(0,209,255,0.1)] rounded-lg transition-colors border ' '"
+                            className="p-2 !text-[var(--accent-navyblue)] hover:bg-[rgba(0,209,255,0.1)] rounded-lg transition-colors border border-theme"
                             title="Edit Customer"
                           >
                             <Edit className="w-4 h-4" />
@@ -886,7 +900,7 @@ const CustomersPage = () => {
                                 });
                               }
                             }}
-                            className="p-2 text-[var(--accent-purple)] hover:bg-[rgba(255,77,77,0.1)] rounded-lg transition-colors"
+                            className="p-2 text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 rounded-lg transition-colors"
                             title="Delete Customer"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -905,7 +919,7 @@ const CustomersPage = () => {
       {/* New Customer Modal */}
       {showNewCustomerModal && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 ' '  ' '"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowNewCustomerModal(false);
@@ -938,8 +952,8 @@ const CustomersPage = () => {
               </div>
 
               {/* Basic Tab Bar */}
-              <div className=" --accent-navyblue: #1183e0; px-6 py-3 border-b border-[var(--accent-navyblue)]/20 ">
-                <span className="text-white font-medium text-sm">Basic</span>
+              <div className="px-6 py-3 border-b border-theme bg-[rgba(17,131,224,0.08)]">
+                <span className="text-[var(--accent-navyblue)] font-medium text-sm">Basic</span>
               </div>
 
               {/* Form Content */}
@@ -992,7 +1006,7 @@ const CustomersPage = () => {
                               type="button"
                               onClick={() => setBillingType('DEFAULT / LOAD')}
                               className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${billingType === 'DEFAULT / LOAD'
-                                ? 'text-[var(--accent-green)]/10 !text-white shadow-sm'
+                                ? 'bg-[var(--accent-navyblue)] !text-white shadow-sm'
                                 : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.05)]'
                                 }`}
                             >
@@ -1002,7 +1016,7 @@ const CustomersPage = () => {
                               type="button"
                               onClick={() => setBillingType('BATCH WEEKLY')}
                               className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${billingType === 'BATCH WEEKLY'
-                                ? 'text-[var(--accent-green)]/10 !text-white shadow-sm'
+                                ? 'bg-[var(--accent-navyblue)] !text-white shadow-sm'
                                 : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.05)]'
                                 }`}
                             >
@@ -1012,7 +1026,7 @@ const CustomersPage = () => {
                               type="button"
                               onClick={() => setBillingType('BATCH MONTHLY')}
                               className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${billingType === 'BATCH MONTHLY'
-                                ? 'text-[var(--accent-green)]/10 !text-white shadow-sm'
+                                ? 'bg-[var(--accent-navyblue)] !text-white shadow-sm'
                                 : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.05)]'
                                 }`}
                             >
@@ -1032,7 +1046,7 @@ const CustomersPage = () => {
                           placeholder="Customer"
                           value={formData.customer}
                           onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         />
                       </div>
 
@@ -1046,7 +1060,7 @@ const CustomersPage = () => {
                           placeholder="E.G., CUST001, ABC123"
                           value={formData.customerId}
                           onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         />
                       </div>
 
@@ -1060,7 +1074,7 @@ const CustomersPage = () => {
                           placeholder="Email Address"
                           value={formData.emailAddress}
                           onChange={(e) => setFormData({ ...formData, emailAddress: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         />
                       </div>
 
@@ -1072,7 +1086,7 @@ const CustomersPage = () => {
                           placeholder="Secondary Email"
                           value={formData.secondaryEmail}
                           onChange={(e) => setFormData({ ...formData, secondaryEmail: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         />
                       </div>
 
@@ -1084,7 +1098,7 @@ const CustomersPage = () => {
                           placeholder="Email For Tracking Up"
                           value={formData.trackingEmail}
                           onChange={(e) => setFormData({ ...formData, trackingEmail: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         />
                       </div>
 
@@ -1096,7 +1110,7 @@ const CustomersPage = () => {
                           placeholder="Tax ID Or Business Nu"
                           value={formData.taxId}
                           onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         />
                       </div>
 
@@ -1106,7 +1120,7 @@ const CustomersPage = () => {
                         <select
                           value={formData.assignedSalesperson}
                           onChange={(e) => setFormData({ ...formData, assignedSalesperson: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         >
                           <option value="">Select Salesperson</option>
                           <option value="salesperson1">Salesperson 1</option>
@@ -1119,7 +1133,7 @@ const CustomersPage = () => {
                         <label className="block text-sm font-medium text-primary mb-1">
                           Primary Phone #<span className="text-[var(--accent-red)]">*</span>
                         </label>
-                        <div className="flex items-center border border-theme rounded-lg focus-within:ring-2 focus-within:ring-[bg-[var(--accent-green)]/10] focus-within:border-transparent">
+                        <div className="flex items-center border border-theme rounded-lg focus-within:ring-2 focus-within:ring-[var(--accent-blue)]/30 focus-within:border-transparent">
                           <div className="relative" ref={primaryCountryDropdownRef}>
                             <button
                               type="button"
@@ -1150,7 +1164,7 @@ const CustomersPage = () => {
                                     value={primaryCountrySearch}
                                     onChange={(e) => setPrimaryCountrySearch(e.target.value)}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="w-full px-3 py-1.5 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                                    className="w-full px-3 py-1.5 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                   />
                                 </div>
                                 {/* Countries List */}
@@ -1199,7 +1213,7 @@ const CustomersPage = () => {
                               </div>
                             )}
                           </div>
-                          <div className="h-6 w-px bg-border"></div>
+                          <div className="h-6 w-px bg-[rgba(255,255,255,0.15)]"></div>
                           <input
                             type="tel"
                             placeholder=""
@@ -1216,7 +1230,7 @@ const CustomersPage = () => {
                       {/* Secondary Phone # */}
                       <div className="mb-4">
                         <label className="block text-sm font-medium text-primary mb-1">Secondary Phone #</label>
-                        <div className="flex items-center border border-theme rounded-lg focus-within:ring-2 focus-within:ring-[bg-[var(--accent-green)]/10] focus-within:border-transparent">
+                        <div className="flex items-center border border-theme rounded-lg focus-within:ring-2 focus-within:ring-[var(--accent-blue)]/30 focus-within:border-transparent">
                           <div className="relative" ref={secondaryCountryDropdownRef}>
                             <button
                               type="button"
@@ -1247,7 +1261,7 @@ const CustomersPage = () => {
                                     value={secondaryCountrySearch}
                                     onChange={(e) => setSecondaryCountrySearch(e.target.value)}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="w-full px-3 py-1.5 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                                    className="w-full px-3 py-1.5 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                                   />
                                 </div>
                                 {/* Countries List */}
@@ -1296,7 +1310,7 @@ const CustomersPage = () => {
                               </div>
                             )}
                           </div>
-                          <div className="h-6 w-px bg-border"></div>
+                          <div className="h-6 w-px bg-[rgba(255,255,255,0.15)]"></div>
                           <input
                             type="tel"
                             placeholder=""
@@ -1318,7 +1332,7 @@ const CustomersPage = () => {
                           placeholder="Contact"
                           value={formData.contact}
                           onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -1369,7 +1383,7 @@ const CustomersPage = () => {
                           placeholder="Address"
                           value={formData.address}
                           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         />
                       </div>
 
@@ -1382,7 +1396,7 @@ const CustomersPage = () => {
                           placeholder="City"
                           value={formData.city}
                           onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         />
                       </div>
 
@@ -1393,7 +1407,7 @@ const CustomersPage = () => {
                           placeholder="Unit"
                           value={formData.unit}
                           onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         />
                       </div>
 
@@ -1415,7 +1429,7 @@ const CustomersPage = () => {
                               stateProvince: ''
                             });
                           }}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         >
                           <option value="">Select Country</option>
                           {countries.map((country) => (
@@ -1436,7 +1450,7 @@ const CustomersPage = () => {
                           onChange={(e) => setFormData({ ...formData, stateProvince: e.target.value })}
                           disabled={!formData.country}
                           placeholder={formData.country ? "Enter Province/State" : "Select country first"}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent disabled:bg-card disabled:cursor-not-allowed"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent disabled:bg-card disabled:cursor-not-allowed"
                         />
                       </div>
 
@@ -1447,7 +1461,7 @@ const CustomersPage = () => {
                           placeholder="ZIP Code"
                           value={formData.zipCode}
                           onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -1464,7 +1478,7 @@ const CustomersPage = () => {
                             placeholder="Credit Limit"
                             value={formData.creditLimit}
                             onChange={(e) => setFormData({ ...formData, creditLimit: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                           />
                         </div>
 
@@ -1474,7 +1488,7 @@ const CustomersPage = () => {
                             type="text"
                             value={formData.invoiceNet}
                             onChange={(e) => setFormData({ ...formData, invoiceNet: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                           />
                         </div>
 
@@ -1485,7 +1499,7 @@ const CustomersPage = () => {
                             placeholder="Default Quick Pay Discount (%)"
                             value={formData.defaultQuickPayDiscount}
                             onChange={(e) => setFormData({ ...formData, defaultQuickPayDiscount: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -1504,7 +1518,7 @@ const CustomersPage = () => {
                               type="checkbox"
                               checked={formData.useFactoringCompany}
                               onChange={(e) => setFormData({ ...formData, useFactoringCompany: e.target.checked })}
-                              className="w-4 h-4 text-[var(--accent-green)] border-theme rounded focus:ring-[bg-[var(--accent-green)]/30]"
+                              className="w-4 h-4 text-[var(--accent-green)] border-theme rounded focus:ring-[var(--accent-blue)]/30"
                             />
                             <span className="text-sm text-primary">Use Factoring Company</span>
                           </label>
@@ -1517,7 +1531,7 @@ const CustomersPage = () => {
                             type="checkbox"
                             checked={formData.csaFastApproved}
                             onChange={(e) => setFormData({ ...formData, csaFastApproved: e.target.checked })}
-                            className="w-4 h-4 text-[var(--accent-green)] border-theme rounded focus:ring-[bg-[var(--accent-green)]/30]"
+                            className="w-4 h-4 text-[var(--accent-green)] border-theme rounded focus:ring-[var(--accent-blue)]/30"
                           />
                           <span className="text-sm text-primary">CSA/FAST Approved</span>
                         </label>
@@ -1535,7 +1549,7 @@ const CustomersPage = () => {
                               onChange={(e) => setFormData({ ...formData, presetNotes: e.target.value })}
                               placeholder="Enter preset notes..."
                               rows={4}
-                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent resize-none"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent resize-none"
                             />
                           </div>
 
@@ -1547,7 +1561,7 @@ const CustomersPage = () => {
                             <select
                               value={formData.defaultDropType}
                               onChange={(e) => setFormData({ ...formData, defaultDropType: e.target.value })}
-                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[bg-[var(--accent-green)]/30] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                             >
                               <option value="">Select</option>
                               <option value="live">Live</option>
@@ -1564,7 +1578,7 @@ const CustomersPage = () => {
                             type="checkbox"
                             checked={formData.softBlock}
                             onChange={(e) => setFormData({ ...formData, softBlock: e.target.checked })}
-                            className="w-4 h-4 text-[var(--accent-green)] border-theme rounded focus:ring-[bg-[var(--accent-green)]/30]"
+                            className="w-4 h-4 text-[var(--accent-green)] border-theme rounded focus:ring-[var(--accent-blue)]/30"
                           />
                           <span className="text-sm text-primary">
                             Soft Block
@@ -1579,7 +1593,7 @@ const CustomersPage = () => {
                             type="checkbox"
                             checked={formData.hardBlock}
                             onChange={(e) => setFormData({ ...formData, hardBlock: e.target.checked })}
-                            className="w-4 h-4 text-[var(--accent-green)] border-theme rounded focus:ring-[bg-[var(--accent-green)]/30]"
+                            className="w-4 h-4 text-[var(--accent-green)] border-theme rounded focus:ring-[var(--accent-blue)]/30"
                           />
                           <span className="text-sm text-primary">
                             Hard Block
@@ -1594,7 +1608,7 @@ const CustomersPage = () => {
             </div>
 
             {/* Footer with Save Button */}
-            <div className="bg-[var(--accent-blue)]/10 px-6 py-4 flex justify-center">
+            <div className="bg-[var(--accent-navyblue)]/10 px-6 py-4 flex justify-center">
               <button
                 onClick={handleSaveCustomer}
                 disabled={
@@ -1603,7 +1617,7 @@ const CustomersPage = () => {
                   !formData.emailAddress || !formData.emailAddress.trim() ||
                   !formData.primaryPhone || !formData.primaryPhone.trim()
                 }
-                className="px-8 py-2 text-[var(--accent-green)]/10 !text-white rounded-lg hover:bg-[var(--accent-navyblue)] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-[var(--accent-green)]/10"
+                className="px-8 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {editingId ? 'Update' : 'Save'}
               </button>

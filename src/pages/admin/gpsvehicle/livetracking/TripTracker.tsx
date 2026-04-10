@@ -713,8 +713,8 @@ const ProfessionalTripTracker: React.FC = () => {
         <div className="bg-gradient-to-r from-[rgba(0,209,255,0.2)] via-[rgba(0,209,255,0.15)] to-[rgba(168,85,247,0.2)] p-4 border border-theme rounded-lg">
 
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
-              <Route className="w-5 h-5 text-accent" />
+            <h2 className="text-xl font-bold flex items-center gap-2 text-[var(--accent-navyblue)]">
+              <Route className="w-5 h-5 text-[var(--accent-navyblue)]" />
               Order Tracker
             </h2>
 
@@ -748,12 +748,12 @@ const ProfessionalTripTracker: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-3 bg-main">
           {loading ? (
             <div className="text-center py-8">
-              <RefreshCw className="w-6 h-6 text-[#00D1FF] animate-spin mx-auto mb-2" />
+              <RefreshCw className="w-6 h-6 text-[var(--accent-navyblue)] animate-spin mx-auto mb-2" />
               <p className="text-secondary">Loading active orders...</p>
             </div>
           ) : filteredOrderGroups.length === 0 ? (
             <div className="text-center py-8">
-              <Route className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+              <Route className="w-12 h-12 text-secondary mx-auto mb-2" />
               <p className="text-secondary">No active orders found</p>
             </div>
           ) : (
@@ -763,7 +763,7 @@ const ProfessionalTripTracker: React.FC = () => {
                   key={group.driverId}
                   className={`p-3 rounded-xl cursor-pointer transition-all duration-200 border-2 ${selectedOrderGroup?.driverId === group.driverId
                     ? "bg-main border-[var(--accent-blue)] shadow-md"
-                    : "bg-card border-theme hover:border-blue-300 hover:shadow-sm"
+                    : "bg-card border-theme hover:border-[var(--accent-navyblue)] hover:shadow-sm"
                     }`}
                   onClick={(e) => {
                     e.preventDefault();
@@ -776,7 +776,7 @@ const ProfessionalTripTracker: React.FC = () => {
                     <h3 className="font-bold text-base text-primary">
                       {group.driver.name}
                     </h3>
-                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-[var(--accent-navyblue)]">
                       {group.orderCount} {group.orderCount === 1 ? 'Order' : 'Orders'}
                     </span>
                   </div>
@@ -1008,7 +1008,7 @@ const ProfessionalTripTracker: React.FC = () => {
               {/* Metrics */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="p-2 bg-main rounded-lg">
-                  <div className="flex items-center gap-1 text-[#00D1FF] mb-0.5">
+                  <div className="flex items-center gap-1 text-[var(--accent-navyblue)] mb-0.5">
                     <Route className="w-3 h-3" />
                     <span className="text-xs font-medium">Stops</span>
                   </div>

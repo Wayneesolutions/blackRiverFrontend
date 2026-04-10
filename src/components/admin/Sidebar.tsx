@@ -1,13 +1,12 @@
 import React, { useState, useCallback, memo } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AdminSidebarLinks } from "../../utils/AdminSidebarLinks";
-import { FaChevronDown, FaChevronRight, FaSignOutAlt, FaUser } from "react-icons/fa";
+import { FaChevronDown, FaChevronRight, FaUser } from "react-icons/fa";
 import NewLoad from "../../pages/admin/dispatch/NewLoad";
 import Logo from "../../assets/images/LI.png";
 import FullLogo from "../../assets/FleetGo.png";
 import { getDashboardRoute } from "../../utils/auth";
 import { useSelector, shallowEqual } from "react-redux";
-import { useLogout } from "../../hooks/useLogout";
 import type { RootState } from "../../redux/store";
 
 interface SidebarProps {
@@ -19,7 +18,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { userInfo } = useSelector((state: RootState) => state.userAuth, shallowEqual);
-  const { logout } = useLogout();
+  
 
   // Toggle expand/collapse for parent menus
   const toggleMenu = useCallback((key: string) => {

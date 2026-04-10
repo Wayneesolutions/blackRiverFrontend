@@ -723,12 +723,6 @@ const Index = () => {
       order.trailerNo?.toLowerCase().includes(search)
     );
   });
-  const hoverColorMap: Record<string, { bg: string; border: string }> = {
-    "bg-blue-600": { bg: "hover:bg-blue-500/[0.08]", border: "hover:border-blue-500/40" },
-    "bg-green-600": { bg: "hover:bg-green-500/[0.08]", border: "hover:border-green-500/40" },
-    "bg-purple-600": { bg: "hover:bg-purple-500/[0.08]", border: "hover:border-purple-500/40" },
-    "bg-orange-600": { bg: "hover:bg-orange-500/[0.08]", border: "hover:border-orange-500/40" },
-  };
   // Build feature cards
   const features: FeatureCard[] = [
     {

@@ -281,8 +281,8 @@ const DriverList = () => {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'active': return 'text-[var(--accent-green)] bg-[var(--accent-green)]/10 border-theme';
-            case 'inactive': return 'text-primary text-accent divide-theme';
-            default: return 'text-primary text-accent divide-theme';
+            case 'inactive': return 'text-secondary bg-[rgba(255,255,255,0.05)] border-theme';
+            default: return 'text-secondary bg-[rgba(255,255,255,0.05)] border-theme';
         }
     };
 
@@ -394,13 +394,13 @@ const DriverList = () => {
         className = "",
     }) => (
         <th
-            className={`px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:text-accent transition-colors duration-150 ${className}`}
+            className={`px-4 py-3 text-left text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider cursor-pointer hover:text-primary transition-colors ${className}`}
             onClick={() => handleSort(field)}
         >
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center gap-1">
                 <span>{children}</span>
                 {sortBy === field && (
-                    <span className="text-accent text-sm font-bold">
+                    <span className="text-[var(--accent-blue)] font-bold">
                         {sortOrder === "asc" ? "↑" : "↓"}
                     </span>
                 )}
@@ -491,8 +491,11 @@ const DriverList = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen p-4 text-accent px-6 flex items-center justify-center">
-                <div className="text-secondary">Loading drivers...</div>
+            <div className="min-h-screen flex items-center justify-center bg-main">
+                <div className="text-center">
+                    <Activity className="w-10 h-10 animate-spin text-[var(--accent-blue)] mx-auto mb-3" />
+                    <p className="text-sm text-secondary">Loading drivers...</p>
+                </div>
             </div>
         );
     }
@@ -504,7 +507,7 @@ const DriverList = () => {
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-primary mb-2">Driver Fleet</h1>
+                            <h1 className="text-3xl font-bold text-primary mb-2">Driver</h1>
                             <p className="text-secondary">Manage and monitor your driver fleet</p>
                         </div>
                     </div>
@@ -599,120 +602,84 @@ const DriverList = () => {
 
 
                 {/* Filters and Search */}
-                <div className="text-accent rounded-xl shadow-sm border divide-theme mb-6 overflow-hidden">
-                    <div className="p-6 border-b divide-theme">
-                        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                            <div className="flex-1">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search by name, email, phone, ID, or location..."
-                                        className="w-full pl-10 pr-4 py-3 border divide-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] transition-colors duration-150"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3">
-                                <div className="relative">
-                                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-4 h-4" />
-                                    <select
-                                        className="pl-10 pr-8 py-3 border divide-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] appearance-none text-accent min-w-40 transition-colors duration-150"
-                                        value={filterStatus}
-                                        onChange={(e) => setFilterStatus(e.target.value)}
-                                    >
-                                        <option value="all">All Status</option>
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                    </select>
-                                </div>
-                            </div>
+                <div className="bg-card rounded-lg shadow-sm border border-theme mb-6 overflow-hidden">
+                    {/* Search & Filter bar */}
+                    <div className="px-4 py-3 border-b border-theme flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                        <div className="flex-1 relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary w-4 h-4" />
+                            <input
+                                type="text"
+                                placeholder="Search by name, email, phone or ID..."
+                                className="w-full pl-9 pr-4 py-2 text-sm bg-card text-primary placeholder:text-secondary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)]"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
                         </div>
-
-                        <div className="mt-4 flex justify-between items-center text-sm text-secondary">
-                            <span>Showing {indexOfFirstDriver + 1}-{Math.min(indexOfLastDriver, sortedDrivers.length)} of {sortedDrivers.length} drivers</span>
-                            <div className="flex items-center space-x-2">
-                                <span>Show:</span>
-                                <select className="border divide-theme rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)]">
-                                    <option value="10">10</option>
-                                    <option value="25">25</option>
-                                    <option value="50">50</option>
-                                </select>
-                                <span>per page</span>
-                            </div>
+                        <div className="relative">
+                            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary w-3.5 h-3.5" />
+                            <select
+                                className="pl-9 pr-8 py-2 text-sm bg-card text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] appearance-none min-w-36"
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                            >
+                                <option value="all">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
                         </div>
+                        <p className="text-xs text-secondary whitespace-nowrap">
+                            {sortedDrivers.length} driver{sortedDrivers.length !== 1 ? 's' : ''}
+                        </p>
                     </div>
 
                     {/* Table */}
-                    {/* Top Scrollbar - Only visible horizontal scrollbar */}
                     <style>{`
-                        .top-scrollbar-container::-webkit-scrollbar {
-                            height: 8px;
-                        }
-                        .top-scrollbar-container::-webkit-scrollbar-track {
-                            background: rgba(255,255,255,0.05);
-                        }
-                        .top-scrollbar-container::-webkit-scrollbar-thumb {
-                            background: rgba(255,255,255,0.2);
-                            border-radius: 4px;
-                        }
-                        .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                            background: rgba(255,255,255,0.3);
-                        }
-                        .table-container-hidden-scrollbar {
-                            scrollbar-width: none; /* Firefox */
-                            -ms-overflow-style: none; /* IE and Edge */
-                        }
-                        .table-container-hidden-scrollbar::-webkit-scrollbar {
-                            display: none; /* Chrome, Safari, Opera */
-                        }
+                        .gps-top-scroll::-webkit-scrollbar { height: 6px; }
+                        .gps-top-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
+                        .gps-top-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+                        .gps-top-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+                        .gps-table-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+                        .gps-table-scroll::-webkit-scrollbar { display: none; }
                     `}</style>
+
+                    {/* Top phantom scrollbar */}
                     <div
                         ref={topScrollRef}
-                        className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-                        style={{
-                            maxHeight: '20px',
-                            marginBottom: '2px',
-                            scrollbarWidth: 'thin',
-                            scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
-                        }}
+                        className="overflow-x-auto overflow-y-hidden gps-top-scroll"
+                        style={{ maxHeight: '16px', marginBottom: '1px', scrollbarWidth: 'thin', scrollbarColor: '#224c75 #111c24' }}
                     >
-                        <div className="top-scroll-content" style={{ height: '1px' }}></div>
+                        <div className="top-scroll-content" style={{ height: '1px' }} />
                     </div>
-                    {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-                    <div
-                        ref={bottomScrollRef}
-                        className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
-                    >
-                        <table className="min-w-full divide-y divide-slate-200" style={{ minWidth: '1200px' }}>
-                            <thead className="text-accent">
+
+                    {/* Main table */}
+                    <div ref={bottomScrollRef} className="overflow-x-auto gps-table-scroll">
+                        <table className="w-full" style={{ minWidth: '1100px' }}>
+                            <thead className="bg-card  border-theme">
                                 <tr>
                                     <SortHeader field="internalId">Driver ID</SortHeader>
                                     <SortHeader field="name">Name</SortHeader>
                                     <SortHeader field="email">Contact</SortHeader>
-                                    <SortHeader field="location">Location</SortHeader>
+                                    <SortHeader field="location">Location / Truck</SortHeader>
                                     <SortHeader field="milesToday">Miles Today</SortHeader>
                                     <SortHeader field="avgSpeed">Avg Speed</SortHeader>
                                     <SortHeader field="status">Status</SortHeader>
                                     <SortHeader field="joinDate">Join Date</SortHeader>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="text-accent divide-y divide-slate-100">
+                            <tbody className="bg-card  divide-theme">
                                 {currentDrivers.length === 0 ? (
                                     <tr>
                                         <td colSpan={9} className="px-6 py-12 text-center">
                                             <div className="flex flex-col items-center justify-center">
-                                                <User className="w-12 h-12 text-secondary mb-4" />
-                                                <p className="text-secondary font-medium">No drivers found</p>
-                                                <p className="text-secondary text-sm mt-1">
+                                                <User className="w-10 h-10 text-secondary mb-3" />
+                                                <p className="text-sm font-medium text-secondary">No drivers found</p>
+                                                <p className="text-xs text-secondary mt-1">
                                                     {searchTerm || filterStatus !== 'all'
-                                                        ? 'Try adjusting your search or filter criteria'
-                                                        : 'No drivers are available for your company'}
+                                                        ? 'Try adjusting your search or filter'
+                                                        : 'No drivers available for your company'}
                                                 </p>
                                             </div>
                                         </td>
@@ -721,123 +688,119 @@ const DriverList = () => {
                                     currentDrivers.map((driver) => (
                                         <tr
                                             key={driver._id}
-                                            className="hover:text-accent transition-colors duration-150 cursor-pointer"
+                                            className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                                             onClick={() => {
                                                 setSelectedDriver(driver);
                                                 setShowDetailsSidebar(true);
                                             }}
                                         >
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <div className="p-2 text-accent rounded-lg mr-3 border border-blue-100">
-                                                        <User className="w-5 h-5 text-accent" />
+                                            {/* Driver ID */}
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="p-1.5 bg-[var(--accent-blue)]/10 rounded-md">
+                                                        <User className="w-3.5 h-3.5 text-[var(--accent-blue)]" />
                                                     </div>
-                                                    <div className="text-sm font-semibold text-primary">
-                                                        {driver.internalId}
-                                                    </div>
+                                                    <span className="text-sm font-medium text-primary">{driver.internalId}</span>
                                                 </div>
                                             </td>
 
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
+                                            {/* Name */}
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <div className="flex items-center gap-2.5">
                                                     {driver.avatar || driver.profileImageUrl ? (
                                                         <img
                                                             src={driver.avatar || driver.profileImageUrl}
                                                             alt={driver.name}
-                                                            className="w-10 h-10 rounded-full mr-3 object-cover border divide-theme"
+                                                            className="w-8 h-8 rounded-full object-cover border border-theme flex-shrink-0"
                                                             onError={(e) => {
-                                                                // Handle broken image URLs
                                                                 e.currentTarget.style.display = 'none';
                                                                 const fallback = e.currentTarget.nextElementSibling as HTMLElement;
                                                                 if (fallback) fallback.style.display = 'flex';
                                                             }}
                                                         />
                                                     ) : null}
-                                                    <div
-                                                        className={`w-10 h-10 rounded-full mr-3 bg-[var(--accent-blue)]/10 flex items-center justify-center border border-theme ${driver.avatar || driver.profileImageUrl ? 'hidden' : ''}`}
-                                                    >
-                                                        <User className="w-5 h-5 text-accent" />
+                                                    <div className={`w-8 h-8 rounded-full bg-[var(--accent-blue)]/10 flex items-center justify-center border border-theme flex-shrink-0 ${driver.avatar || driver.profileImageUrl ? 'hidden' : ''}`}>
+                                                        <User className="w-4 h-4 text-[var(--accent-blue)]" />
                                                     </div>
                                                     <div>
-                                                        <div className="text-sm font-medium text-primary">
-                                                            {driver.name}
-                                                        </div>
+                                                        <div className="text-sm font-medium text-primary">{driver.name}</div>
                                                         {driver.details?.employeeCode && (
-                                                            <div className="text-xs text-secondary">
-                                                                Code: {driver.details.employeeCode}
-                                                            </div>
+                                                            <div className="text-xs text-secondary">#{driver.details.employeeCode}</div>
                                                         )}
                                                     </div>
                                                 </div>
                                             </td>
 
-                                            <td className="px-6 py-4">
-                                                <div className="text-sm text-primary">
-                                                    <div className="flex items-center space-x-2 mb-1">
-                                                        <Mail className="w-4 h-4 text-secondary" />
-                                                        <span>{driver.email}</span>
+                                            {/* Contact */}
+                                            <td className="px-4 py-3">
+                                                <div className="space-y-0.5">
+                                                    <div className="flex items-center gap-1.5 text-xs text-primary">
+                                                        <Mail className="w-3 h-3 text-secondary flex-shrink-0" />
+                                                        <span className="truncate max-w-[160px]">{driver.email}</span>
                                                     </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        <Phone className="w-4 h-4 text-secondary" />
+                                                    <div className="flex items-center gap-1.5 text-xs text-secondary">
+                                                        <Phone className="w-3 h-3 flex-shrink-0" />
                                                         <span>{driver.phone}</span>
                                                     </div>
                                                 </div>
                                             </td>
 
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-start space-x-2">
-                                                    <MapPin className="w-4 h-4 text-secondary mt-0.5 flex-shrink-0" />
-                                                    <div className="text-sm text-primary max-w-xs">
-                                                        {driver.location?.address || 'Location not available'}
-                                                    </div>
+                                            {/* Location / Truck */}
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-start gap-1.5">
+                                                    <MapPin className="w-3 h-3 text-secondary mt-0.5 flex-shrink-0" />
+                                                    <span className="text-xs text-primary max-w-[160px] truncate">
+                                                        {driver.location?.address || '—'}
+                                                    </span>
                                                 </div>
-                                                {(driver.details?.vehicle || driver.vehicle) && (
-                                                    <div className="flex items-center space-x-1 mt-2 ml-6">
-                                                        <Truck className="w-3 h-3 text-accent" />
-                                                        <span className="text-xs text-accent font-medium">
+                                                {(driver.vehicle || driver.details?.vehicle) && (
+                                                    <div className="flex items-center gap-1 mt-1 ml-4">
+                                                        <Truck className="w-3 h-3 text-[var(--accent-blue)]" />
+                                                        <span className="text-xs text-[var(--accent-blue)] font-medium">
                                                             {(driver.vehicle || driver.details?.vehicle)?.plateNumber || 'N/A'}
                                                         </span>
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <p className="text-sm font-semibold text-primary">
-                                                    {driver.milesToday !== undefined
-                                                        ? `${driver.milesToday.toLocaleString()} mi`
-                                                        : '—'}
-                                                </p>
-                                                <p className="text-xs text-secondary">Today</p>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <p className="text-sm font-semibold text-primary">
-                                                    {driver.avgSpeed !== undefined ? `${driver.avgSpeed} mph` : '—'}
-                                                </p>
-                                                <p className="text-xs text-secondary">Avg speed</p>
+
+                                            {/* Miles Today */}
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <span className="text-sm font-medium text-primary">
+                                                    {driver.milesToday ? `${driver.milesToday.toLocaleString()} mi` : '—'}
+                                                </span>
                                             </td>
 
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${getStatusColor(driver.status)}`}>
+                                            {/* Avg Speed */}
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <span className="text-sm font-medium text-primary">
+                                                    {driver.avgSpeed ? `${driver.avgSpeed} mph` : '—'}
+                                                </span>
+                                            </td>
+
+                                            {/* Status */}
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(driver.status)}`}>
                                                     {getStatusIcon(driver.status)}
                                                     <span className="capitalize">{driver.status}</span>
                                                 </span>
                                             </td>
 
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center space-x-2">
-                                                    <Calendar className="w-4 h-4 text-secondary" />
-                                                    <span className="text-sm text-primary">
-                                                        {new Date(driver.joinDate).toLocaleDateString()}
-                                                    </span>
+                                            {/* Join Date */}
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <div className="flex items-center gap-1.5 text-xs text-primary">
+                                                    <Calendar className="w-3 h-3 text-secondary" />
+                                                    {new Date(driver.joinDate).toLocaleDateString()}
                                                 </div>
                                             </td>
 
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
+                                            {/* Actions */}
+                                            <td className="px-4 py-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                                                 <button
                                                     onClick={() => handleViewDetails(driver)}
-                                                    className="inline-flex items-center space-x-1 text-accent hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-colors duration-150 text-sm font-medium"
+                                                    className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--accent-blue)] hover:text-primary px-2.5 py-1.5 rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-colors"
                                                 >
-                                                    <Eye className="w-4 h-4" />
-                                                    <span>Details</span>
+                                                    <Eye className="w-3.5 h-3.5" />
+                                                    Details
                                                 </button>
                                             </td>
                                         </tr>
@@ -849,66 +812,51 @@ const DriverList = () => {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="text-accent px-6 py-4 border-t divide-theme flex items-center justify-between">
-                            <div className="flex-1 flex justify-between sm:hidden">
+                        <div className="px-4 py-3 border-t border-theme flex items-center justify-between">
+                            <p className="text-xs text-secondary">
+                                Showing <span className="font-medium text-primary">{indexOfFirstDriver + 1}–{Math.min(indexOfLastDriver, sortedDrivers.length)}</span> of <span className="font-medium text-primary">{sortedDrivers.length}</span>
+                            </p>
+                            <div className="flex items-center gap-1">
                                 <button
                                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                     disabled={currentPage === 1}
-                                    className="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-primary text-accent hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                    className="p-1.5 rounded-md border border-theme text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.05)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    Previous
+                                    <ChevronLeft className="w-4 h-4" />
                                 </button>
+                                {[...Array(Math.min(totalPages, 7))].map((_, idx) => {
+                                    let page: number;
+                                    if (totalPages <= 7) {
+                                        page = idx + 1;
+                                    } else if (currentPage <= 4) {
+                                        page = idx < 6 ? idx + 1 : totalPages;
+                                    } else if (currentPage >= totalPages - 3) {
+                                        page = idx === 0 ? 1 : totalPages - 6 + idx;
+                                    } else {
+                                        const pages = [1, currentPage - 1, currentPage, currentPage + 1, totalPages];
+                                        page = pages[idx] ?? idx + 1;
+                                    }
+                                    return (
+                                        <button
+                                            key={idx}
+                                            onClick={() => setCurrentPage(page)}
+                                            className={`min-w-[32px] h-8 px-2 text-xs font-medium rounded-md border transition-colors ${
+                                                currentPage === page
+                                                    ? 'bg-[var(--accent-blue)] border-[var(--accent-blue)] text-white'
+                                                    : 'border-theme text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.05)]'
+                                            }`}
+                                        >
+                                            {page}
+                                        </button>
+                                    );
+                                })}
                                 <button
                                     onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                                     disabled={currentPage === totalPages}
-                                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-primary text-accent hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                    className="p-1.5 rounded-md border border-theme text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.05)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    Next
+                                    <ChevronRight className="w-4 h-4" />
                                 </button>
-                            </div>
-                            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                                <div>
-                                    <p className="text-sm text-primary font-medium">
-                                        Showing <span className="font-semibold">{indexOfFirstDriver + 1}</span> to{' '}
-                                        <span className="font-semibold">{Math.min(indexOfLastDriver, sortedDrivers.length)}</span> of{' '}
-                                        <span className="font-semibold">{sortedDrivers.length}</span> results
-                                    </p>
-                                </div>
-                                <div>
-                                    <nav className="relative z-0 inline-flex rounded-lg shadow-sm -space-x-px">
-                                        <button
-                                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                            disabled={currentPage === 1}
-                                            className="relative inline-flex items-center px-3 py-2 rounded-l-lg border border-slate-300 text-accent text-sm font-medium text-secondary hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
-                                        >
-                                            <ChevronLeft className="h-4 w-4" />
-                                        </button>
-
-                                        {[...Array(totalPages)].map((_, index) => {
-                                            const page = index + 1;
-                                            return (
-                                                <button
-                                                    key={page}
-                                                    onClick={() => setCurrentPage(page)}
-                                                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-150 ${currentPage === page
-                                                        ? 'z-10 text-accent border-blue-500 text-accent'
-                                                        : 'text-accent border-slate-300 text-secondary hover:text-accent'
-                                                        }`}
-                                                >
-                                                    {page}
-                                                </button>
-                                            );
-                                        })}
-
-                                        <button
-                                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                            disabled={currentPage === totalPages}
-                                            className="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-slate-300 text-accent text-sm font-medium text-secondary hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
-                                        >
-                                            <ChevronRight className="h-4 w-4" />
-                                        </button>
-                                    </nav>
-                                </div>
                             </div>
                         </div>
                     )}
@@ -918,17 +866,17 @@ const DriverList = () => {
                 {showDetails && selectedDriver && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] overflow-hidden">
                         <div className="absolute inset-0" onClick={() => setShowDetails(false)} />
-                        <div className="absolute inset-y-0 right-0 max-w-2xl w-full text-accent shadow-xl">
+                        <div className="absolute inset-y-0 right-0 max-w-2xl w-full bg-card text-accent shadow-xl">
                             <div className="flex h-full flex-col">
                                 {/* Header */}
-                                <div className="text-accent px-6 py-4 border-b divide-theme">
+                                <div className="bg-card px-6 py-4 border-b border-theme">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-3">
                                             {selectedDriver.avatar || selectedDriver.profileImageUrl ? (
                                                 <img
                                                     src={selectedDriver.avatar || selectedDriver.profileImageUrl}
                                                     alt={selectedDriver.name}
-                                                    className="w-12 h-12 rounded-lg object-cover border divide-theme"
+                                                    className="w-12 h-12 rounded-lg object-cover border border-theme"
                                                     onError={(e) => {
                                                         e.currentTarget.style.display = 'none';
                                                         const fallback = e.currentTarget.nextElementSibling as HTMLElement;
@@ -942,7 +890,7 @@ const DriverList = () => {
                                                 <User className="w-6 h-6 text-accent" />
                                             </div>
                                             <div>
-                                                <h2 className="text-xl font-bold text-primary">
+                                                <h2 className="text-xl font-bold text-[var(--accent-navyblue)]">
                                                     {selectedDriver.name}
                                                 </h2>
                                                 <p className="text-sm text-secondary">{selectedDriver.internalId}</p>
@@ -961,9 +909,9 @@ const DriverList = () => {
                                 <div className="flex-1 overflow-y-auto">
                                     <div className="p-6 space-y-6">
                                         {/* Basic Information */}
-                                        <div className="text-accent border divide-theme rounded-lg p-6">
-                                            <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                                                <User className="w-5 h-5 mr-2 text-accent" />
+                                        <div className="bg-main border border-theme rounded-lg p-6">
+                                            <h3 className="text-lg font-semibold text-[var(--accent-navyblue)] mb-4 flex items-center">
+                                                <User className="w-5 h-5 mr-2 text-[var(--accent-navyblue)]" />
                                                 Driver Information
                                             </h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1003,9 +951,9 @@ const DriverList = () => {
                                         </div>
 
                                         {/* Status */}
-                                        <div className="text-accent border divide-theme rounded-lg p-6">
-                                            <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                                                <Activity className="w-5 h-5 mr-2 text-purple-600" />
+                                        <div className="bg-main border border-theme rounded-lg p-6">
+                                            <h3 className="text-lg font-semibold text-[var(--accent-navyblue)] mb-4 flex items-center">
+                                                <Activity className="w-5 h-5 mr-2 text-[var(--accent-navyblue)]" />
                                                 Status
                                             </h3>
                                             <div>
@@ -1017,9 +965,9 @@ const DriverList = () => {
                                         </div>
 
                                         {/* Location Information */}
-                                        <div className="text-accent border divide-theme rounded-lg p-6">
-                                            <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                                                <MapPin className="w-5 h-5 mr-2 text-[#A855F7]" />
+                                        <div className="bg-main border border-theme rounded-lg p-6">
+                                            <h3 className="text-lg font-semibold text-[var(--accent-navyblue)] mb-4 flex items-center">
+                                                <MapPin className="w-5 h-5 mr-2 text-[var(--accent-navyblue)]" />
                                                 Current Location
                                             </h3>
                                             <div className="space-y-2">
@@ -1044,9 +992,9 @@ const DriverList = () => {
 
                                         {/* Vehicle Information */}
                                         {(selectedDriver.details?.vehicle || selectedDriver.vehicle) ? (
-                                            <div className="text-accent border divide-theme rounded-lg p-6">
-                                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                                                    <Truck className="w-5 h-5 mr-2 text-[#F59E0B]" />
+                                            <div className="bg-main border border-theme rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-[var(--accent-navyblue)] mb-4 flex items-center">
+                                                    <Truck className="w-5 h-5 mr-2 text-[var(--accent-navyblue)]" />
                                                     Assigned Vehicle
                                                 </h3>
                                                 {(() => {
@@ -1128,9 +1076,9 @@ const DriverList = () => {
                                                 })()}
                                             </div>
                                         ) : (
-                                            <div className="text-accent border divide-theme rounded-lg p-6">
-                                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                                                    <Truck className="w-5 h-5 mr-2 text-[#F59E0B]" />
+                                            <div className="bg-main border border-theme rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-[var(--accent-navyblue)] mb-4 flex items-center">
+                                                    <Truck className="w-5 h-5 mr-2 text-[var(--accent-navyblue)]" />
                                                     Assigned Vehicle
                                                 </h3>
                                                 <div className="text-sm text-secondary italic">No vehicle assigned</div>
@@ -1157,7 +1105,7 @@ const DriverList = () => {
 
                         {/* Sidebar Panel */}
                         <div
-                            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 text-accent shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+                            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card text-accent shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
                         >
                             <div className="p-6">
                                 {/* Header */}
@@ -1176,7 +1124,7 @@ const DriverList = () => {
 
                                 <div className="space-y-6">
                                     {/* Driver Header */}
-                                    <div className="bg-gradient-to-r from-[rgba(0,209,255,0.3)] to-[rgba(168,85,247,0.3)] text-white p-6 rounded-lg">
+                                    <div className="bg-gradient-to-r from-[rgba(0,209,255,0.3)] to-[rgba(168,85,247,0.3)] p-6 rounded-lg border border-theme">
                                         <div className="flex items-center gap-4">
                                             <div className="h-20 w-20 flex-shrink-0">
                                                 {selectedDriver.avatar || selectedDriver.profileImageUrl ? (
@@ -1199,7 +1147,7 @@ const DriverList = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <h3 className="text-2xl font-bold mb-1">{selectedDriver.name}</h3>
-                                                <p className="text-blue-100 text-sm flex items-center gap-2">
+                                                <p className="text-secondary text-sm flex items-center gap-2">
                                                     <User size={16} />
                                                     Driver ID: <span className="font-semibold">{selectedDriver.internalId}</span>
                                                 </p>
@@ -1279,7 +1227,7 @@ const DriverList = () => {
 
                                     {/* Location Information */}
                                     {selectedDriver.location?.address && (
-                                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-theme">
+                                        <div className="p-6 rounded-lg border border-theme">
                                             <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
                                                 <MapPin size={20} className="text-accent" />
                                                 Location
