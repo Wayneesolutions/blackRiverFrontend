@@ -291,7 +291,7 @@ body {
 }
 
 .text-primary {
-  color: #1183e0;
+  color: var(--text-primary);
 }
 
 .text-secondary {
@@ -464,4 +464,12 @@ body {
 .header-btn:hover {
   background-color: rgba(255, 255, 255, 0.06);
   color: var(--text-primary);
+}
+
+.text-headings {
+  color: var(--accent-navyblue);
+}
+
+.text-headings:hover {
+  color: var(--accent-blue);
 }

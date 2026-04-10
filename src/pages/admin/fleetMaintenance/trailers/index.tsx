@@ -1335,9 +1335,9 @@ const TrailersPage: React.FC = () => {
             );
         }
         return sortConfig.direction === 'asc' ? (
-            <ChevronUp className="w-3 h-3 text-primary" />
+            <ChevronUp className="w-3 h-3 text-headings" />
         ) : (
-            <ChevronDown className="w-3 h-3 text-primary" />
+            <ChevronDown className="w-3 h-3 text-headings" />
         );
     };
 
@@ -1394,14 +1394,14 @@ const TrailersPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-main p-6">
+        <div className="min-h-screen bg-main p-6  ">
             <div className="max-w-full mx-auto">
                 {/* Header Section */}
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h1 className="text-3xl font-bold text-primary">Trailers</h1>
+                        <h1 className="text-3xl font-bold text-headings">Trailers</h1>
                         <div className="flex items-center gap-3">
-                            <span className="text-2xl font-bold text-primary">({filteredTrailers.length})</span>
+                            <span className="text-2xl font-bold text-headings">({filteredTrailers.length})</span>
                             <button
                                 onClick={handleExportTrailers}
                                 title="Export to Excel"
@@ -1446,7 +1446,7 @@ const TrailersPage: React.FC = () => {
                                     setShowSidebar(true);
                                     setActiveStep('Details');
                                 }}
-                                className="w-10 h-10 bg-[var(--accent-blue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-blue)] transition-colors shadow-md"
+                                className="w-10 h-10 bg-[var(--accent-navyblue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-blue)] transition-colors shadow-md"
                             >
                                 <Plus className="w-5 h-5" />
                             </button>
@@ -1455,7 +1455,7 @@ const TrailersPage: React.FC = () => {
                 </div>
 
                 {/* Navigation Tabs */}
-                <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+                <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme overflow-hidden b">
                     <div className="flex border-b border-theme overflow-x-auto">
                         {/* All Tab */}
                         <button
@@ -1484,7 +1484,7 @@ const TrailersPage: React.FC = () => {
                                         fetchTabCount(yard._id!);
                                     }}
                                     className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === yard._id
-                                        ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)]'
+                                        ? 'text-headings border-b-2 border-[var(--accent-blue)]'
                                         : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                         }`}
                                 >
@@ -1538,7 +1538,7 @@ const TrailersPage: React.FC = () => {
                     <div className="flex flex-wrap items-center gap-4">
                         {/* Search Input */}
                         <div className="flex items-center gap-2 flex-1 min-w-[300px]">
-                            <label className="text-sm font-medium text-primary whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
+                            <label className="text-sm font-medium text-headings whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
                             <input
                                 type="text"
                                 placeholder="Search..."
@@ -1551,7 +1551,7 @@ const TrailersPage: React.FC = () => {
 
                         {/* Global Filters */}
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-primary">Sort By:</label>
+                            <label className="text-sm font-medium text-headings">Sort By:</label>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
@@ -1565,7 +1565,7 @@ const TrailersPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-primary">Compliance Status:</label>
+                            <label className="text-sm font-medium text-headings">Compliance Status:</label>
                             <select
                                 value={complianceStatus}
                                 onChange={(e) => setComplianceStatus(e.target.value)}
@@ -1579,7 +1579,7 @@ const TrailersPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-primary">Operating Status:</label>
+                            <label className="text-sm font-medium text-headings">Operating Status:</label>
                             <select
                                 value={operatingStatus}
                                 onChange={(e) => setOperatingStatus(e.target.value)}
@@ -1598,13 +1598,13 @@ const TrailersPage: React.FC = () => {
                 </div>
 
                 {/* Data Table */}
-                <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+                <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden border-2">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-card border-b border-theme">
                                 <tr>
                                     {/* Trailer # */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Trailer #</span>
                                             <button onClick={() => handleSort('trailerNumber')} className="flex flex-col">
@@ -1621,7 +1621,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Plate # */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Plate #</span>
                                             <button onClick={() => handleSort('plateNumber')} className="flex flex-col">
@@ -1638,7 +1638,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Type */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Type</span>
                                             <button onClick={() => handleSort('type')} className="flex flex-col">
@@ -1655,7 +1655,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Ownership */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Ownership</span>
                                             <button onClick={() => handleSort('ownership')} className="flex flex-col">
@@ -1674,7 +1674,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Last Dispatch */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Last Dispatch</span>
                                             <button onClick={() => handleSort('lastDispatch')} className="flex flex-col">
@@ -1691,7 +1691,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Last Dispatch Date */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Last Dispatch Date</span>
                                             <button onClick={() => handleSort('lastDispatchDate')} className="flex flex-col">
@@ -1708,7 +1708,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Last Drop Location */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Last Drop Location</span>
                                             <button onClick={() => handleSort('lastDropLocation')} className="flex flex-col">
@@ -1725,7 +1725,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Notes */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Notes</span>
                                         </div>
@@ -1739,7 +1739,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Operating Status */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Operating Status</span>
                                             <button onClick={() => handleSort('operatingStatus')} className="flex flex-col">
@@ -1759,7 +1759,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Loaded Status */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Loaded Status</span>
                                             <HelpCircle className="w-4 h-4 text-secondary" />
@@ -1777,7 +1777,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Compliance */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Compliance</span>
                                         </div>
@@ -1793,12 +1793,12 @@ const TrailersPage: React.FC = () => {
                                         </select>
                                     </th>
                                     {/* Actions */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <span>Actions</span>
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-theme">
+                            <tbody className="bg-card divide-y divide-theme divide-white/5 ">
                                 {filteredTrailers.length === 0 ? (
                                     <tr>
                                         <td colSpan={12} className="px-4 py-8 text-center text-secondary">
@@ -1810,14 +1810,14 @@ const TrailersPage: React.FC = () => {
                                         <tr
                                             onClick={() => handleEditTrailer(trailer._id || trailer.id || '')}
                                             key={trailer._id || trailer.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
-                                            <td className="px-4 py-3 text-sm text-primary">{trailer.trailerNumber || trailer.trailer || trailer.unitNumber}</td>
-                                            <td className="px-4 py-3 text-sm text-primary">{trailer.plateNumber}</td>
-                                            <td className="px-4 py-3 text-sm text-primary">{trailer.type}</td>
-                                            <td className="px-4 py-3 text-sm text-primary">{trailer.ownership}</td>
-                                            <td className="px-4 py-3 text-sm text-primary">{trailer.lastDispatch || ''}</td>
-                                            <td className="px-4 py-3 text-sm text-primary">{typeof trailer.lastDispatchDate === 'string' ? trailer.lastDispatchDate : (trailer.lastDispatchDate ? trailer.lastDispatchDate.toString() : '')}</td>
-                                            <td className="px-4 py-3 text-sm text-primary">{trailer.lastDropLocation || ''}</td>
-                                            <td className="px-4 py-3 text-sm text-primary">
+                                            <td className="px-4 py-3 text-sm text-secondary">{trailer.trailerNumber || trailer.trailer || trailer.unitNumber}</td>
+                                            <td className="px-4 py-3 text-sm text-secondary">{trailer.plateNumber}</td>
+                                            <td className="px-4 py-3 text-sm text-secondary">{trailer.type}</td>
+                                            <td className="px-4 py-3 text-sm text-secondary">{trailer.ownership}</td>
+                                            <td className="px-4 py-3 text-sm text-secondary">{trailer.lastDispatch || ''}</td>
+                                            <td className="px-4 py-3 text-sm text-secondary">{typeof trailer.lastDispatchDate === 'string' ? trailer.lastDispatchDate : (trailer.lastDispatchDate ? trailer.lastDispatchDate.toString() : '')}</td>
+                                            <td className="px-4 py-3 text-sm text-secondary">{trailer.lastDropLocation || ''}</td>
+                                            <td className="px-4 py-3 text-sm text-secondary">
                                                 {trailer.notes ? (
                                                     <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center">
                                                         <span className="text-xs">!</span>
@@ -1931,7 +1931,7 @@ const TrailersPage: React.FC = () => {
                                             onClick={() => setActiveStep(step)}
                                             className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
                                                 ? 'bg-[var(--accent-blue)] !text-white shadow-sm'
-                                                : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
+                                                : 'bg-card text-headings hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                 }`}
                                         >
                                             {step}
@@ -1946,7 +1946,7 @@ const TrailersPage: React.FC = () => {
                         <div className="flex-1 flex flex-col overflow-hidden">
                             {/* Header */}
                             <div className="flex items-center justify-between p-4 border-b border-theme bg-card">
-                                <h2 className="text-xl font-bold text-primary">New Trailer</h2>
+                                <h2 className="text-xl font-bold text-headings">New Trailer</h2>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={handleSaveTrailer}
@@ -1969,10 +1969,10 @@ const TrailersPage: React.FC = () => {
                                 {/* Details Step */}
                                 {activeStep === 'Details' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-primary">Basic Information</h3>
+                                        <h3 className="text-base font-semibold text-headings">Basic Information</h3>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Unit #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -1984,7 +1984,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     VIN #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -1996,7 +1996,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Plate #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2008,7 +2008,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Registration Country<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2025,7 +2025,7 @@ const TrailersPage: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">Registration Province/State</label>
+                                                <label className="block text-sm font-medium text-headings mb-1">Registration Province/State</label>
                                                 <input
                                                     type="text"
                                                     value={formData.registrationProvince}
@@ -2036,7 +2036,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Make<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2048,7 +2048,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">Model<span className="text-red-500">*</span></label>
+                                                <label className="block text-sm font-medium text-headings mb-1">Model<span className="text-red-500">*</span></label>
                                                 <input
                                                     type="text"
                                                     placeholder="Model"
@@ -2058,7 +2058,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Year<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2070,7 +2070,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Type<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2085,7 +2085,7 @@ const TrailersPage: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Weight<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2097,7 +2097,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     UoM<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2110,7 +2110,7 @@ const TrailersPage: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Status<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2126,14 +2126,14 @@ const TrailersPage: React.FC = () => {
                                         </div>
 
                                         <div className="mt-4">
-                                            <h3 className="text-base font-semibold text-primary mb-2">Ownership Information</h3>
+                                            <h3 className="text-base font-semibold text-headings mb-2">Ownership Information</h3>
                                             <div className="flex gap-2">
                                                 <button
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, ownership: 'COMPANY ASSET', subType: '' })}
                                                     className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'COMPANY ASSET'
                                                         ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                        : 'bg-gray-200 text-headings hover:bg-gray-300'
                                                         }`}
                                                 >
                                                     COMPANY ASSET
@@ -2143,7 +2143,7 @@ const TrailersPage: React.FC = () => {
                                                     onClick={() => setFormData({ ...formData, ownership: 'THIRD PARTY ASSET', subType: '' })}
                                                     className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'THIRD PARTY ASSET'
                                                         ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                        : 'bg-gray-200 text-headings hover:bg-gray-300'
                                                         }`}
                                                 >
                                                     THIRD PARTY ASSET
@@ -2152,7 +2152,7 @@ const TrailersPage: React.FC = () => {
                                         </div>
 
                                         <div className="mt-4">
-                                            <h3 className="text-base font-semibold text-primary mb-2">Yard</h3>
+                                            <h3 className="text-base font-semibold text-headings mb-2">Yard</h3>
                                             <select
                                                 value={formData.yard}
                                                 onChange={(e) => setFormData({ ...formData, yard: e.target.value })}
@@ -2169,7 +2169,7 @@ const TrailersPage: React.FC = () => {
 
                                         {(formData.ownership === 'COMPANY ASSET' || formData.ownership === 'THIRD PARTY ASSET') && (
                                             <div className="mt-4">
-                                                <h3 className="text-base font-semibold text-primary mb-2">Sub-Type</h3>
+                                                <h3 className="text-base font-semibold text-headings mb-2">Sub-Type</h3>
                                                 <div className="flex gap-2">
                                                     {formData.ownership === 'COMPANY ASSET' ? (
                                                         <>
@@ -2178,7 +2178,7 @@ const TrailersPage: React.FC = () => {
                                                                 onClick={() => setFormData({ ...formData, subType: 'HIGHWAY USE' })}
                                                                 className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.subType === 'HIGHWAY USE'
                                                                     ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                                    : 'bg-gray-200 text-headings hover:bg-gray-300'
                                                                     }`}
                                                             >
                                                                 HIGHWAY USE
@@ -2188,7 +2188,7 @@ const TrailersPage: React.FC = () => {
                                                                 onClick={() => setFormData({ ...formData, subType: 'CITY USE' })}
                                                                 className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.subType === 'CITY USE'
                                                                     ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                                    : 'bg-gray-200 text-headings hover:bg-gray-300'
                                                                     }`}
                                                             >
                                                                 CITY USE
@@ -2198,7 +2198,7 @@ const TrailersPage: React.FC = () => {
                                                                 onClick={() => setFormData({ ...formData, subType: 'STORAGE USE' })}
                                                                 className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.subType === 'STORAGE USE'
                                                                     ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                                    : 'bg-gray-200 text-headings hover:bg-gray-300'
                                                                     }`}
                                                             >
                                                                 STORAGE USE
@@ -2211,7 +2211,7 @@ const TrailersPage: React.FC = () => {
                                                                 onClick={() => setFormData({ ...formData, subType: 'RENTAL' })}
                                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors ${formData.subType === 'RENTAL'
                                                                     ? 'bg-gray-700 text-white'
-                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                                    : 'bg-gray-200 text-headings hover:bg-gray-300'
                                                                     }`}
                                                             >
                                                                 RENTAL
@@ -2221,7 +2221,7 @@ const TrailersPage: React.FC = () => {
                                                                 onClick={() => setFormData({ ...formData, subType: 'OTHER' })}
                                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors ${formData.subType === 'OTHER'
                                                                     ? 'bg-gray-700 text-white'
-                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                                    : 'bg-gray-200 text-headings hover:bg-gray-300'
                                                                     }`}
                                                             >
                                                                 OTHER
@@ -2237,7 +2237,7 @@ const TrailersPage: React.FC = () => {
                                 {/* Inspections Step */}
                                 {activeStep === 'Inspections' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-primary">Trailer Inspections</h3>
+                                        <h3 className="text-base font-semibold text-headings">Trailer Inspections</h3>
 
                                         {/* Inspection Type Tabs */}
                                         <div className="flex gap-2">
@@ -2245,8 +2245,8 @@ const TrailersPage: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setInspectionType('One Time')}
                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors border-2 ${inspectionType === 'One Time'
-                                                    ? 'bg-card border-gray-700 text-primary'
-                                                    : 'bg-card border-theme text-primary hover:border-gray-400'
+                                                    ? 'bg-card border-gray-700 text-headings'
+                                                    : 'bg-card border-theme text-headings hover:border-gray-400'
                                                     }`}
                                             >
                                                 One Time
@@ -2255,8 +2255,8 @@ const TrailersPage: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setInspectionType('Recurring')}
                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors border-2 ${inspectionType === 'Recurring'
-                                                    ? 'bg-card border-gray-700 text-primary'
-                                                    : 'bg-card border-theme text-primary hover:border-gray-400'
+                                                    ? 'bg-card border-gray-700 text-headings'
+                                                    : 'bg-card border-theme text-headings hover:border-gray-400'
                                                     }`}
                                             >
                                                 Recurring
@@ -2268,7 +2268,7 @@ const TrailersPage: React.FC = () => {
                                             <div className="space-y-4">
                                                 <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">Expiry Date</label>
                                                         <div className="relative">
                                                             <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
@@ -2280,7 +2280,7 @@ const TrailersPage: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
@@ -2290,11 +2290,11 @@ const TrailersPage: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">File</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">File</label>
                                                         {inspectionForm.file ? (
                                                             <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
                                                                 <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
-                                                                <span className="text-sm text-primary truncate flex-1">
+                                                                <span className="text-sm text-headings truncate flex-1">
                                                                     {inspectionForm.file.name}
                                                                 </span>
                                                                 <button
@@ -2326,7 +2326,7 @@ const TrailersPage: React.FC = () => {
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, ignoreExpiration: e.target.checked })}
                                                             className="w-4 h-4"
                                                         />
-                                                        <label className="text-sm text-primary">Ignore Expiration</label>
+                                                        <label className="text-sm text-headings">Ignore Expiration</label>
                                                     </div>
                                                     {editingInspectionId && editingInspectionType === 'oneTime' ? (
                                                         <>
@@ -2388,11 +2388,11 @@ const TrailersPage: React.FC = () => {
                                                     <table className="w-full">
                                                         <thead className="bg-card">
                                                             <tr>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Expiry Date</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Expiry Date</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Description</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">File</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Ignore Expiration</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -2407,8 +2407,8 @@ const TrailersPage: React.FC = () => {
                                                                         onClick={() => handleEditInspection(inspection, 'oneTime')}
                                                                         className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingInspectionId === inspection.id ? 'bg-card' : ''}`}
                                                                     >
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.expiryDate}</td>
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.description}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.expiryDate}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.description}</td>
                                                                         <td className="px-4 py-2 text-sm">
                                                                             {inspection.fileName ? (
                                                                                 inspection.fileUrl ? (
@@ -2436,7 +2436,7 @@ const TrailersPage: React.FC = () => {
                                                                                 <span className="text-secondary">No file</span>
                                                                             )}
                                                                         </td>
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                         <td className="px-4 py-2 text-sm">
                                                                             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                                                                 <button
@@ -2469,7 +2469,7 @@ const TrailersPage: React.FC = () => {
                                             <div className="space-y-4">
                                                 <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">Scheduled On</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">Scheduled On</label>
                                                         <div className="relative">
                                                             <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
@@ -2481,7 +2481,7 @@ const TrailersPage: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">After</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">After</label>
                                                         <input
                                                             type="text"
                                                             placeholder="After"
@@ -2491,7 +2491,7 @@ const TrailersPage: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">Unit</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">Unit</label>
                                                         <select
                                                             value={inspectionForm.unit}
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, unit: e.target.value })}
@@ -2504,7 +2504,7 @@ const TrailersPage: React.FC = () => {
                                                         </select>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
@@ -2514,11 +2514,11 @@ const TrailersPage: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">File</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">File</label>
                                                         {inspectionForm.file ? (
                                                             <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
                                                                 <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
-                                                                <span className="text-sm text-primary truncate flex-1">
+                                                                <span className="text-sm text-headings truncate flex-1">
                                                                     {inspectionForm.file.name}
                                                                 </span>
                                                                 <button
@@ -2550,7 +2550,7 @@ const TrailersPage: React.FC = () => {
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, ignoreExpiration: e.target.checked })}
                                                             className="w-4 h-4"
                                                         />
-                                                        <label className="text-sm text-primary">Ignore Expiration</label>
+                                                        <label className="text-sm text-headings">Ignore Expiration</label>
                                                     </div>
                                                     {editingInspectionId && editingInspectionType === 'recurring' ? (
                                                         <>
@@ -2618,13 +2618,13 @@ const TrailersPage: React.FC = () => {
                                                     <table className="w-full">
                                                         <thead className="bg-card">
                                                             <tr>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Scheduled On</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">After</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Unit</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Scheduled On</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">After</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Unit</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Description</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">File</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Ignore Expiration</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -2639,10 +2639,10 @@ const TrailersPage: React.FC = () => {
                                                                         onClick={() => handleEditInspection(inspection, 'recurring')}
                                                                         className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingInspectionId === inspection.id ? 'bg-card' : ''}`}
                                                                     >
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.scheduledOn}</td>
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.after}</td>
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.unit}</td>
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.description}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.scheduledOn}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.after}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.unit}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.description}</td>
                                                                         <td className="px-4 py-2 text-sm">
                                                                             {inspection.fileName ? (
                                                                                 inspection.fileUrl ? (
@@ -2670,7 +2670,7 @@ const TrailersPage: React.FC = () => {
                                                                                 <span className="text-secondary">No file</span>
                                                                             )}
                                                                         </td>
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                         <td className="px-4 py-2 text-sm">
                                                                             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                                                                 <button
@@ -2703,13 +2703,13 @@ const TrailersPage: React.FC = () => {
                                 {/* Documents Step (no tabs; single list with Title) */}
                                 {activeStep === 'Documents' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-primary">Documents</h3>
+                                        <h3 className="text-base font-semibold text-headings">Documents</h3>
 
                                         {/* Document Form */}
                                         <div className="bg-card p-4 rounded-lg space-y-4">
                                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-primary mb-1">Title</label>
+                                                    <label className="block text-sm font-medium text-headings mb-1">Title</label>
                                                     <input
                                                         type="text"
                                                         placeholder="Title"
@@ -2719,7 +2719,7 @@ const TrailersPage: React.FC = () => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
+                                                    <label className="block text-sm font-medium text-headings mb-1">Expiry Date</label>
                                                     <div className="relative">
                                                         <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                         <input
@@ -2731,7 +2731,7 @@ const TrailersPage: React.FC = () => {
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                                                    <label className="block text-sm font-medium text-headings mb-1">Description</label>
                                                     <input
                                                         type="text"
                                                         placeholder="Description"
@@ -2743,11 +2743,11 @@ const TrailersPage: React.FC = () => {
                                             </div>
                                             <div className="flex flex-wrap gap-4 items-end">
                                                 <div className="min-w-[200px]">
-                                                    <label className="block text-sm font-medium text-primary mb-1">File</label>
+                                                    <label className="block text-sm font-medium text-headings mb-1">File</label>
                                                     {documentForm.file ? (
                                                         <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
                                                             <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
-                                                            <span className="text-sm text-primary truncate flex-1">{documentForm.file.name}</span>
+                                                            <span className="text-sm text-headings truncate flex-1">{documentForm.file.name}</span>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
@@ -2788,7 +2788,7 @@ const TrailersPage: React.FC = () => {
                                                         onChange={(e) => setDocumentForm({ ...documentForm, ignoreExpiration: e.target.checked })}
                                                         className="w-4 h-4"
                                                     />
-                                                    <label className="text-sm text-primary">Ignore Expiration</label>
+                                                    <label className="text-sm text-headings">Ignore Expiration</label>
                                                 </div>
                                                 {editingDocumentId ? (
                                                     <>
@@ -2829,12 +2829,12 @@ const TrailersPage: React.FC = () => {
                                             <table className="w-full min-w-[800px]">
                                                 <thead className="bg-card">
                                                     <tr>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Title</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Expiry Date</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-headings">Title</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-headings">Expiry Date</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-headings">Description</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-headings">File</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-headings">Ignore Expiration</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-headings">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -2849,10 +2849,10 @@ const TrailersPage: React.FC = () => {
                                                                 onClick={() => handleEditDocument(doc)}
                                                                 className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingDocumentId === doc.id ? 'bg-card' : ''}`}
                                                             >
-                                                                <td className="px-4 py-2 text-sm text-primary">{doc.title || '-'}</td>
-                                                                <td className="px-4 py-2 text-sm text-primary">{doc.expiryDate || '-'}</td>
-                                                                <td className="px-4 py-2 text-sm text-primary">{doc.description || '-'}</td>
-                                                                <td className="px-4 py-2 text-sm text-primary">
+                                                                <td className="px-4 py-2 text-sm text-headings">{doc.title || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-headings">{doc.expiryDate || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-headings">{doc.description || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-headings">
                                                                     {doc.fileUrl ? (
                                                                         <a
                                                                             href={doc.fileUrl}
@@ -2865,7 +2865,7 @@ const TrailersPage: React.FC = () => {
                                                                             <span>{doc.fileName || 'View File'}</span>
                                                                         </a>
                                                                     ) : doc.file ? (
-                                                                        <span className="flex items-center gap-2 text-primary">
+                                                                        <span className="flex items-center gap-2 text-headings">
                                                                             <FileText className="w-4 h-4" />
                                                                             <span>{doc.file.name}</span>
                                                                         </span>
@@ -2873,7 +2873,7 @@ const TrailersPage: React.FC = () => {
                                                                         <span className="text-secondary">No file</span>
                                                                     )}
                                                                 </td>
-                                                                <td className="px-4 py-2 text-sm text-primary">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                <td className="px-4 py-2 text-sm text-headings">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                 <td className="px-4 py-2 text-sm" onClick={(e) => e.stopPropagation()}>
                                                                     <div className="flex items-center gap-2">
                                                                         <button
@@ -2904,12 +2904,12 @@ const TrailersPage: React.FC = () => {
                                 {/* Notes Step */}
                                 {activeStep === 'Notes' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-primary">Notes</h3>
+                                        <h3 className="text-base font-semibold text-headings">Notes</h3>
 
                                         {/* Note Form */}
                                         <div className="flex gap-4 items-end bg-card p-4 rounded-lg">
                                             <div className="flex-1">
-                                                <label className="block text-sm font-medium text-primary mb-1">Note</label>
+                                                <label className="block text-sm font-medium text-headings mb-1">Note</label>
                                                 <input
                                                     type="text"
                                                     placeholder="Note"
@@ -2919,7 +2919,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">Category</label>
+                                                <label className="block text-sm font-medium text-headings mb-1">Category</label>
                                                 <div className="relative">
                                                     <select
                                                         value={noteForm.category}
@@ -2980,9 +2980,9 @@ const TrailersPage: React.FC = () => {
                                             <table className="w-full">
                                                 <thead className="bg-card border-b border-theme">
                                                     <tr>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Note</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Category</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Actions</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">Note</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">Category</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-theme">
@@ -2993,9 +2993,9 @@ const TrailersPage: React.FC = () => {
                                                     ) : (
                                                         notes.map((note) => (
                                                             <tr key={note.id} className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${editingNoteId === note.id ? 'bg-card' : ''}`}>
-                                                                <td className="px-4 py-3 text-sm text-primary">{note.note}</td>
-                                                                <td className="px-4 py-3 text-sm text-primary">{note.category}</td>
-                                                                <td className="px-4 py-3 text-sm text-primary">
+                                                                <td className="px-4 py-3 text-sm text-headings">{note.note}</td>
+                                                                <td className="px-4 py-3 text-sm text-headings">{note.category}</td>
+                                                                <td className="px-4 py-3 text-sm text-headings">
                                                                     <div className="flex items-center gap-2">
                                                                         <button
                                                                             onClick={() => {
@@ -3039,8 +3039,8 @@ const TrailersPage: React.FC = () => {
                                         onClick={handlePrevious}
                                         disabled={!getPreviousStep()}
                                         className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${getPreviousStep()
-                                                ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                : 'bg-gray-200 text-secondary cursor-not-allowed'
+                                            ? 'bg-gray-700 !text-white hover:bg-gray-800'
+                                            : 'bg-gray-200 text-secondary cursor-not-allowed'
                                             }`}
                                     >
                                         <ChevronLeft className="w-3.5 h-3.5" />
@@ -3050,8 +3050,8 @@ const TrailersPage: React.FC = () => {
                                         onClick={handleNext}
                                         disabled={!getNextStep()}
                                         className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${getNextStep()
-                                                ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                : 'bg-gray-200 text-secondary cursor-not-allowed'
+                                            ? 'bg-gray-700 !text-white hover:bg-gray-800'
+                                            : 'bg-gray-200 text-secondary cursor-not-allowed'
                                             }`}
                                     >
                                         Next

@@ -420,7 +420,7 @@ const Trailers: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6 border-green-700">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -494,7 +494,7 @@ const Trailers: React.FC = () => {
                   <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-theme">
+              <tbody className="divide-y divide-theme divide-white/5">
                 {filteredTrailers.length === 0 ? (
                   <tr>
                     <td colSpan={10} className="px-6 py-12 text-center text-secondary">
@@ -506,7 +506,7 @@ const Trailers: React.FC = () => {
                     const compliance = getComplianceStatus(trailer.safetyExpiryDate);
                     return (
                       <tr key={trailer._id} className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${compliance.status === 'expired' ? 'bg-card' :
-                          compliance.status === 'expiring-soon' ? 'bg-card' : ''
+                        compliance.status === 'expiring-soon' ? 'bg-card' : ''
                         }`}>
                         <td className="px-6 py-4 font-medium text-primary">{trailer.internalId}</td>
                         <td className="px-6 py-4 text-primary">{trailer.plateNumber}</td>
@@ -526,10 +526,10 @@ const Trailers: React.FC = () => {
                                 {formatDate(trailer.safetyExpiryDate)}
                               </span>
                               <span className={`px-4 py-1.5 rounded-full text-xs font-semibold inline-block whitespace-nowrap ${compliance.status === 'expired'
-                                  ? "bg-red-100 text-red-700 border border-red-200"
-                                  : compliance.status === 'expiring-soon'
-                                    ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
-                                    : "bg-green-100 text-green-700 border border-green-200"
+                                ? "bg-red-100 text-red-700 border border-red-200"
+                                : compliance.status === 'expiring-soon'
+                                  ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
+                                  : "bg-green-100 text-green-700 border border-green-200"
                                 }`}>
                                 {compliance.text}
                               </span>
@@ -540,9 +540,9 @@ const Trailers: React.FC = () => {
                         </td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${trailer.status === 'available' ? 'bg-green-100 text-green-800' :
-                              trailer.status === 'in-use' ? 'bg-blue-100 text-blue-800' :
-                                trailer.status === 'maintenance' ? 'bg-red-100 text-red-800' :
-                                  'bg-card text-primary'
+                            trailer.status === 'in-use' ? 'bg-blue-100 text-blue-800' :
+                              trailer.status === 'maintenance' ? 'bg-red-100 text-red-800' :
+                                'bg-card text-primary'
                             }`}>
                             {trailer.status}
                           </span>
