@@ -700,7 +700,7 @@ const DriverPortfolio: React.FC = () => {
                             </div>
                             <div>
                                 <h1
-                                    className="text-4xl font-bold bg-clip-text text-transparent"
+                                    className="text-4xl font-bold bg-clip-text text-[var(--accent-navyblue)]"
                                     style={{ backgroundImage: ACCENT_GRADIENT }}
                                 >
                                     Driver Portfolio
@@ -710,7 +710,7 @@ const DriverPortfolio: React.FC = () => {
                                     Comprehensive view of driver performance, earnings, miles, and trips
                                 </p>
                                 {fetchedRangeLabel && (
-                                    <p className="text-xs text-secondary mt-1">
+                                    <p className="text-xs text-[var(--accent-purple)] mt-1">
                                         Showing data from {fetchedRangeLabel}
                                     </p>
                                 )}

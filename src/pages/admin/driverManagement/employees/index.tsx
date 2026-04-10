@@ -1135,7 +1135,7 @@ const EmployeesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-main p-6 border-2 border-red-700">
+    <div className="min-h-screen bg-main p-6 ">
       {/* Toast Notifications */}
       {notifications.map(notification => (
         <ToastNotificationComponent
@@ -1340,7 +1340,7 @@ const EmployeesPage = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-card divide-y divide-theme">
+              <tbody className="bg-card divide-y divide-theme divide-white/5">
                 {loading ? (
                   <tr>
                     <td colSpan={9} className="px-4 py-8 text-center text-secondary">
