@@ -298,7 +298,7 @@ const Issues: React.FC = () => {
               </div>
               <button
                 onClick={handleSearch}
-                className="flex items-center gap-2 bg-blue-600 !text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-2 bg-[var(--accent-navyblue)] !text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <MdSearch />
                 Search
@@ -365,36 +365,14 @@ const Issues: React.FC = () => {
           {/* Issues Table */}
           <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
-            <style>{`
-              .top-scrollbar-container::-webkit-scrollbar {
-                height: 8px;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-track {
-                background: #f7fafc;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-thumb {
-                background: #cbd5e0;
-                border-radius: 4px;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                background: #a0aec0;
-              }
-              .table-container-hidden-scrollbar {
-                scrollbar-width: none; /* Firefox */
-                -ms-overflow-style: none; /* IE and Edge */
-              }
-              .table-container-hidden-scrollbar::-webkit-scrollbar {
-                display: none; /* Chrome, Safari, Opera */
-              }
-            `}</style>
+
             <div
               ref={topScrollRef}
               className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
               style={{
                 maxHeight: '20px',
                 marginBottom: '2px',
-                scrollbarWidth: 'thin',
-                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+
               }}
             >
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
