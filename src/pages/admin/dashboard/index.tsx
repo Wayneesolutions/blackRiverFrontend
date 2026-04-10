@@ -28,14 +28,14 @@ L.Icon.Default.mergeOptions({
 
 // Status → color mapping
 const STATUS_COLORS: Record<string, { bg: string; border: string; glow: string }> = {
-    active:       { bg: '#16A34A', border: '#22C55E', glow: '#00FFA380' },
-    'in progress':{ bg: '#0891B2', border: '#22D3EE', glow: '#00D1FF80' },
-    scheduled:    { bg: '#D97706', border: '#F59E0B', glow: '#FCD34D80' },
-    idle:         { bg: '#D97706', border: '#F59E0B', glow: '#FCD34D80' },
-    pending:      { bg: '#EA580C', border: '#F97316', glow: '#FB923C80' },
-    maintenance:  { bg: '#C2410C', border: '#EA580C', glow: '#FB923C80' },
-    offline:      { bg: '#4B5563', border: '#6B7280', glow: '#9CA3AF40' },
-    completed:    { bg: '#4B5563', border: '#6B7280', glow: '#9CA3AF40' },
+    active: { bg: '#16A34A', border: '#22C55E', glow: '#00FFA380' },
+    'in progress': { bg: '#0891B2', border: '#22D3EE', glow: '#00D1FF80' },
+    scheduled: { bg: '#D97706', border: '#F59E0B', glow: '#FCD34D80' },
+    idle: { bg: '#D97706', border: '#F59E0B', glow: '#FCD34D80' },
+    pending: { bg: '#EA580C', border: '#F97316', glow: '#FB923C80' },
+    maintenance: { bg: '#C2410C', border: '#EA580C', glow: '#FB923C80' },
+    offline: { bg: '#4B5563', border: '#6B7280', glow: '#9CA3AF40' },
+    completed: { bg: '#4B5563', border: '#6B7280', glow: '#9CA3AF40' },
 };
 
 const getStatusColor = (status: string) => {
@@ -419,15 +419,15 @@ const Index = () => {
 
     // ✅ OUTSIDE JSX (top of component)
     const colorStyles = {
-        blue:    { bg: "bg-gradient-to-br from-[#0B3B5C] to-[#0F6EA8]",  text: "text-[#00D1FF]",  bar: "bg-[#00D1FF]",  glow: "shadow-[0_0_20px_rgba(0,209,255,0.25)]" },
-        emerald: { bg: "bg-gradient-to-br from-[#064E3B] to-[#059669]",  text: "text-[#34D399]",  bar: "bg-[#34D399]",  glow: "shadow-[0_0_20px_rgba(52,211,153,0.25)]" },
-        purple:  { bg: "bg-gradient-to-br from-[#2E1065] to-[#7C3AED]",  text: "text-[#A78BFA]",  bar: "bg-[#A78BFA]",  glow: "shadow-[0_0_20px_rgba(167,139,250,0.25)]" },
-        amber:   { bg: "bg-gradient-to-br from-[#451A03] to-[#D97706]",  text: "text-[#FCD34D]",  bar: "bg-[#FCD34D]",  glow: "shadow-[0_0_20px_rgba(252,211,77,0.25)]" },
-        cyan:    { bg: "bg-gradient-to-br from-[#083344] to-[#0891B2]",  text: "text-[#22D3EE]",  bar: "bg-[#22D3EE]",  glow: "shadow-[0_0_20px_rgba(34,211,238,0.25)]" },
-        green:   { bg: "bg-gradient-to-br from-[#052E16] to-[#16A34A]",  text: "text-[#4ADE80]",  bar: "bg-[#4ADE80]",  glow: "shadow-[0_0_20px_rgba(74,222,128,0.25)]" },
-        orange:  { bg: "bg-gradient-to-br from-[#431407] to-[#EA580C]",  text: "text-[#FB923C]",  bar: "bg-[#FB923C]",  glow: "shadow-[0_0_20px_rgba(251,146,60,0.25)]" },
-        rose:    { bg: "bg-gradient-to-br from-[#4C0519] to-[#E11D48]",  text: "text-[#FB7185]",  bar: "bg-[#FB7185]",  glow: "shadow-[0_0_20px_rgba(251,113,133,0.25)]" },
-        indigo:  { bg: "bg-gradient-to-br from-[#1E1B4B] to-[#4F46E5]",  text: "text-[#818CF8]",  bar: "bg-[#818CF8]",  glow: "shadow-[0_0_20px_rgba(129,140,248,0.25)]" },
+        blue: { bg: "bg-gradient-to-br from-[#0B3B5C] to-[#0F6EA8]", text: "text-[#00D1FF]", bar: "bg-[#00D1FF]", glow: "shadow-[0_0_20px_rgba(0,209,255,0.25)]" },
+        emerald: { bg: "bg-gradient-to-br from-[#064E3B] to-[#059669]", text: "text-[#34D399]", bar: "bg-[#34D399]", glow: "shadow-[0_0_20px_rgba(52,211,153,0.25)]" },
+        purple: { bg: "bg-gradient-to-br from-[#2E1065] to-[#7C3AED]", text: "text-[#A78BFA]", bar: "bg-[#A78BFA]", glow: "shadow-[0_0_20px_rgba(167,139,250,0.25)]" },
+        amber: { bg: "bg-gradient-to-br from-[#451A03] to-[#D97706]", text: "text-[#FCD34D]", bar: "bg-[#FCD34D]", glow: "shadow-[0_0_20px_rgba(252,211,77,0.25)]" },
+        cyan: { bg: "bg-gradient-to-br from-[#083344] to-[#0891B2]", text: "text-[#22D3EE]", bar: "bg-[#22D3EE]", glow: "shadow-[0_0_20px_rgba(34,211,238,0.25)]" },
+        green: { bg: "bg-gradient-to-br from-[#052E16] to-[#16A34A]", text: "text-[#4ADE80]", bar: "bg-[#4ADE80]", glow: "shadow-[0_0_20px_rgba(74,222,128,0.25)]" },
+        orange: { bg: "bg-gradient-to-br from-[#431407] to-[#EA580C]", text: "text-[#FB923C]", bar: "bg-[#FB923C]", glow: "shadow-[0_0_20px_rgba(251,146,60,0.25)]" },
+        rose: { bg: "bg-gradient-to-br from-[#4C0519] to-[#E11D48]", text: "text-[#FB7185]", bar: "bg-[#FB7185]", glow: "shadow-[0_0_20px_rgba(251,113,133,0.25)]" },
+        indigo: { bg: "bg-gradient-to-br from-[#1E1B4B] to-[#4F46E5]", text: "text-[#818CF8]", bar: "bg-[#818CF8]", glow: "shadow-[0_0_20px_rgba(129,140,248,0.25)]" },
     };
 
     return (
@@ -438,13 +438,13 @@ const Index = () => {
                     {/* Main content */}
                     <div className="relative z-10 px-4.5 pt-3.5 pb-1 ">
                         {/* Header Section */}
-                        <div className="mb-4.5 relative z-10 ">
-                            <div className="flex items-center justify-between">
-                                <h1 className="text-xl font-bold text-white" style={{ fontSize: '1.25rem' }}>Overview</h1>
-                                <div className="flex items-center gap-2 text-white/90">
-                                    <span className="text-xs" style={{ fontSize: '0.75rem' }}>Home</span>
-                                </div>
+                        {/* <div className="mb-4.5 relative z-10 "> */}
+                        <div className="flex items-center justify-between">
+                            <h1 className="text-xl font-bold text-white" style={{ fontSize: '1.25rem' }}>Overview</h1>
+                            <div className="flex items-center gap-2 text-white/90">
+                                <span className="text-xs" style={{ fontSize: '0.75rem' }}>Home</span>
                             </div>
+                            {/* </div> */}
                         </div>
 
                         {/* Features Cards — Row 1: 4 cards */}

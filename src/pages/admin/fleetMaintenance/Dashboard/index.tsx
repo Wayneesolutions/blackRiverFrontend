@@ -454,9 +454,12 @@ const ComplianceDashboard: React.FC = () => {
         value: count,
         subtitle: 'Pending',
         icon: Clock,
-        bgColor: 'bg-yellow-100',
-        iconColor: 'text-yellow-700',
-        cardBg: 'bg-gradient-to-br from-yellow-50 to-yellow-100',
+
+        // ✅ THEME COLORS
+        bgColor: 'bg-[var(--accent-amber)]/10',
+        iconColor: 'text-[var(--accent-amber)]',
+        textColor: 'text-[var(--accent-amber)]',
+
         onClick: () => navigate(`${getBasePath()}/scheduled-services-log`)
       }));
     })()
@@ -471,6 +474,7 @@ const ComplianceDashboard: React.FC = () => {
       icon: Activity,
       bgColor: 'bg-[var(--accent-blue)]/10',
       iconColor: 'text-[var(--accent-blue)]',
+      textColor: 'text-[var(--accent-blue)]',
       onClick: () => navigate(`${getBasePath()}/fleet-units`)
     },
     {
@@ -481,6 +485,7 @@ const ComplianceDashboard: React.FC = () => {
       icon: XCircle,
       bgColor: 'bg-[var(--accent-red)]/10',
       iconColor: 'text-[var(--accent-red)]',
+      textColor: 'text-[var(--accent-red)]',
       onClick: () => navigate(`${getBasePath()}/fleet-units`)
     },
     {
@@ -491,6 +496,7 @@ const ComplianceDashboard: React.FC = () => {
       icon: Wrench,
       bgColor: 'bg-[var(--accent-amber)]/10',
       iconColor: 'text-[var(--accent-amber)]',
+      textColor: 'text-[var(--accent-amber)]',
       onClick: () => navigate(`${getBasePath()}/maintenance-orders-log`)
     },
 
@@ -502,6 +508,7 @@ const ComplianceDashboard: React.FC = () => {
       icon: AlertTriangle,
       bgColor: 'bg-[var(--accent-red)]/10',
       iconColor: 'text-[var(--accent-red)]',
+      textColor: 'text-[var(--accent-red)]',
       onClick: () => navigate(`${getBasePath()}/regulatory-safety`)
     },
     {
@@ -512,6 +519,7 @@ const ComplianceDashboard: React.FC = () => {
       icon: Clock,
       bgColor: 'bg-[var(--accent-amber)]/10',
       iconColor: 'text-[var(--accent-amber)]',
+      textColor: 'text-[var(--accent-amber)]',
       onClick: () => navigate(`${getBasePath()}/scheduled-services-log`)
     },
     {
@@ -522,6 +530,7 @@ const ComplianceDashboard: React.FC = () => {
       icon: DollarSign,
       bgColor: 'bg-[var(--accent-green)]/10',
       iconColor: 'text-[var(--accent-green)]',
+      textColor: 'text-[var(--accent-green)]',
       onClick: () => navigate(`${getBasePath()}/invoices`)
     },
     {
@@ -532,6 +541,7 @@ const ComplianceDashboard: React.FC = () => {
       icon: Truck,
       bgColor: 'bg-[var(--accent-indigo)]/10',
       iconColor: 'text-[var(--accent-indigo)]',
+      textColor: 'text-[var(--accent-indigo)]',
       onClick: () => navigate(`${getBasePath()}/fleet-units`)
     }
   ];
@@ -543,8 +553,9 @@ const ComplianceDashboard: React.FC = () => {
       subtitle: `${currentInvoices?.count || 0} invoices`,
       value: currentInvoices ? formatCurrency(currentInvoices.byType.scheduled) : 'CA$0.00',
       icon: Calendar,
-      bgColor: 'bg-blue-100',
-      iconColor: 'text-blue-700'
+      bgColor: 'bg-[var(--accent-blue)]/10',
+      iconColor: 'text-[var(--accent-blue)]',
+      textColor: 'text-[var(--accent-blue)]'
     },
     {
       id: 'general',
@@ -552,8 +563,9 @@ const ComplianceDashboard: React.FC = () => {
       subtitle: `${currentInvoices?.count || 0} invoices`,
       value: currentInvoices ? formatCurrency(currentInvoices.byType.general) : 'CA$0.00',
       icon: FileText,
-      bgColor: 'bg-indigo-100',
-      iconColor: 'text-indigo-700'
+      bgColor: 'bg-[var(--accent-indigo)]/10',
+      iconColor: 'text-[var(--accent-indigo)]',
+      textColor: 'text-[var(--accent-indigo)]'
     },
     {
       id: 'safety',
@@ -561,14 +573,15 @@ const ComplianceDashboard: React.FC = () => {
       subtitle: `${currentInvoices?.count || 0} invoices`,
       value: currentInvoices ? formatCurrency(currentInvoices.byType.safety) : 'CA$0.00',
       icon: AlertTriangle,
-      bgColor: 'bg-purple-100',
-      iconColor: 'text-purple-700'
+      bgColor: 'bg-[var(--accent-purple)]/10',
+      iconColor: 'text-[var(--accent-purple)]',
+      textColor: 'text-[var(--accent-purple)]'
     }
   ];
 
   return (
     <>
-      <div className="min-h-screen bg-main border-2 border-red-700" >
+      <div className="min-h-screen bg-main " >
         <div className="w-full mx-auto p-2 relative">
           {/* Gradient band */}
           <div
@@ -637,7 +650,7 @@ const ComplianceDashboard: React.FC = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 border-2 border-red-700">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 ">
               {/* Fleet Operational Stats - First Row (Active Trucks, Out of Service, Under Repair) */}
               {features.slice(0, 3).map((feature) => {
                 const Icon = feature.icon;
@@ -649,11 +662,11 @@ const ComplianceDashboard: React.FC = () => {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <h3 className="text-sm font-bold text-headings mb-1">
+                        <h3 className={`text-sm font-bold  mb-1 ${feature.textColor}`}>
                           {feature.title}
                         </h3>
                         <div className="flex items-baseline gap-2 mb-0.5">
-                          <span className="text-xl font-bold text-headings">{feature.value}</span>
+                          <span className={`text-xl font-bold ${feature.textColor}`}>{feature.value}</span>
                         </div>
                         <p className="text-xs text-secondary">{feature.subtitle}</p>
                       </div>
@@ -669,21 +682,34 @@ const ComplianceDashboard: React.FC = () => {
                 <div
                   key={serviceCard.id}
                   onClick={serviceCard.onClick}
-                  className={`${serviceCard.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                  className="card-premium cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <div className="flex items-start justify-between mb-2">
+
                     <div className="flex-1">
-                      <h3 className="text-sm font-bold text-headings mb-1">
+                      <h3 className={`text-sm font-semibold mb-1 ${serviceCard.textColor}`}>
                         {serviceCard.title}
                       </h3>
+
                       <div className="flex items-baseline gap-2 mb-0.5">
-                        <span className="text-xl font-bold text-headings">{serviceCard.value}</span>
+                        <span className={`text-xl font-bold ${serviceCard.textColor}`}>
+                          {serviceCard.value}
+                        </span>
                       </div>
-                      <p className="text-xs text-secondary">{serviceCard.subtitle}</p>
+
+                      <p className="text-xs text-secondary">
+                        {serviceCard.subtitle}
+                      </p>
                     </div>
-                    <div className={`${serviceCard.bgColor} rounded-lg p-2 shadow-sm`}>
-                      <Clock className={serviceCard.iconColor} size={21} strokeWidth={2} />
+
+                    <div className={`${serviceCard.bgColor} rounded-lg p-2`}>
+                      <Clock
+                        className={serviceCard.iconColor}
+                        size={21}
+                        strokeWidth={2}
+                      />
                     </div>
+
                   </div>
                 </div>
               ))}
@@ -702,11 +728,11 @@ const ComplianceDashboard: React.FC = () => {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <h3 className="text-sm font-bold text-headings mb-1">
+                        <h3 className={`text-sm font-bold  mb-1 ${feature.textColor}`}>
                           {feature.title}
                         </h3>
                         <div className="flex items-baseline gap-2 mb-0.5">
-                          <span className="text-xl font-bold text-headings">{feature.value}</span>
+                          <span className={`text-xl font-bold ${feature.textColor}`}>{feature.value}</span>
                         </div>
                         <p className="text-xs text-secondary">{feature.subtitle}</p>
                       </div>
@@ -727,11 +753,11 @@ const ComplianceDashboard: React.FC = () => {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <h3 className="text-sm font-bold text-headings mb-1">
+                        <h3 className="text-sm font-bold  mb-1">
                           {serviceCard.title}
                         </h3>
                         <div className="flex items-baseline gap-2 mb-0.5">
-                          <span className="text-xl font-bold text-headings">{serviceCard.value}</span>
+                          <span className="text-xl font-bold ">{serviceCard.value}</span>
                         </div>
                         <p className="text-xs text-secondary">{serviceCard.subtitle}</p>
                       </div>
@@ -751,22 +777,33 @@ const ComplianceDashboard: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {invoiceBreakdown.map((item) => {
                   const Icon = item.icon;
+
                   return (
                     <div
                       key={item.id}
                       onClick={() => navigate(`${getBasePath()}/invoices`)}
-                      className="group p-4 rounded-xl border border-theme hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
+                      className="card-premium cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <div className={`${item.bgColor} group-hover:bg-card p-2 rounded-lg transition-colors`}>
+
+                        <div className={`${item.bgColor} p-2 rounded-lg`}>
                           <Icon className={`h-5 w-5 ${item.iconColor}`} />
                         </div>
-                        <span className="text-lg font-bold text-headings group-hover:text-blue-700">
+
+                        <span className={`text-lg font-bold ${item.textColor}`}>
                           {item.value}
                         </span>
+
                       </div>
-                      <p className="text-sm font-medium text-headings group-hover:text-blue-800">{item.title}</p>
-                      <p className="text-xs text-secondary mt-1 group-hover:text-[#00D1FF]">{item.subtitle}</p>
+
+                      <p className={`text-sm font-semibold ${item.textColor}`}>
+                        {item.title}
+                      </p>
+
+                      <p className="text-xs text-secondary mt-1">
+                        {item.subtitle}
+                      </p>
+
                     </div>
                   );
                 })}
@@ -799,7 +836,7 @@ const ComplianceDashboard: React.FC = () => {
                       <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-theme border-2 border-red-700 ">
+                  <tbody className="divide-y divide-theme  ">
                     {safetyAlerts.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="px-6 py-12 text-center text-secondary">
@@ -880,7 +917,7 @@ const ComplianceDashboard: React.FC = () => {
                       <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-theme border-2 border-red-700">
+                  <tbody className="divide-y divide-theme ">
                     {complianceDocuments.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="px-6 py-12 text-center text-secondary">
@@ -995,7 +1032,7 @@ const ComplianceDashboard: React.FC = () => {
                       <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-theme divide-white/5 border-2">
+                  <tbody className="divide-y divide-theme divide-white/5 ">
                     {pmStatus.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="px-6 py-12 text-center text-secondary">
