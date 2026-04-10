@@ -93,15 +93,15 @@ interface ToastNotification {
 
 const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
   const icons = {
-    success: <FaCheckCircle className="text-green-500" size={24} />,
-    error: <FaExclamationCircle className="text-red-500" size={24} />,
-    info: <FaCheckCircle className="text-blue-500" size={24} />
+    success: <FaCheckCircle className="text-[var(--accent-green)]" size={24} />,
+    error: <FaExclamationCircle className="text-[var(--accent-red)]" size={24} />,
+    info: <FaCheckCircle className="text-[var(--accent-navyblue)]" size={24} />
   };
 
   const bgColors = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-card border-red-200',
-    info: 'bg-card border-blue-200'
+    success: 'bg-[var(--accent-green)]/10 border-[var(--accent-green)]/30',
+    error: 'bg-[var(--accent-red)]/10 border-[var(--accent-red)]/30',
+    info: 'bg-[var(--accent-navyblue)]/10 border-[var(--accent-navyblue)]/30'
   };
 
   useEffect(() => {
@@ -1757,7 +1757,7 @@ const DriverManagement = () => {
       case 'NON-COMPLIANT':
         return 'bg-[#ef4444] text-white';
       default:
-        return 'bg-gray-500 text-white';
+        return 'bg-[rgba(255,255,255,0.1)] text-secondary';
     }
   };
 
@@ -3588,7 +3588,7 @@ const DriverManagement = () => {
     return (
       <div className="min-h-screen bg-main p-6 flex items-center justify-center">
         <div className="text-center">
-          <RefreshCw className="w-8 h-8 animate-spin text-[#00D1FF] mx-auto mb-4" />
+          <RefreshCw className="w-8 h-8 animate-spin text-[var(--accent-navyblue)] mx-auto mb-4" />
           <p className="text-secondary">Loading drivers...</p>
         </div>
       </div>
@@ -3597,18 +3597,30 @@ const DriverManagement = () => {
 
   return (
     <div className="min-h-screen bg-main p-6">
+      <style>{`
+  @media print {
+    body { background: #ffffff !important; }
+    .print-hide { display: none !important; }
+    table { border-collapse: collapse !important; width: 100% !important; font-size: 11px !important; }
+    thead tr { background: #1183e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    thead th { color: #ffffff !important; padding: 8px 12px !important; border: 1px solid #0d6bc7 !important; font-weight: 600 !important; text-transform: uppercase !important; font-size: 10px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tbody tr:nth-child(even) { background: #f0f6ff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tbody td { padding: 7px 12px !important; border: 1px solid #dde6f0 !important; color: #1a1a2e !important; }
+    .bg-main, .bg-card { background: #ffffff !important; }
+  }
+`}</style>
       <div className="max-w-full mx-auto">
         {/* Header Section */}
         <div className="mb-6">
 
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-primary">Drivers</h1>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 print-hide">
               <span className="text-2xl font-bold text-primary">({getTabCount(activeTab)})</span>
               <button
                 onClick={handleExportDrivers}
                 title="Export to Excel"
-                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+                className="w-10 h-10 bg-[var(--accent-navyblue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-navyblue)]/80 transition-colors shadow-md"
               >
                 <FileDown className="w-5 h-5" />
               </button>
@@ -3620,7 +3632,7 @@ const DriverManagement = () => {
                   resetAllFormState();
                   setShowNewDriverModal(true);
                 }}
-                className="w-10 h-10 bg-[var(--accent-blue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-blue)] transition-colors shadow-md"
+                className="w-10 h-10 bg-[var(--accent-navyblue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-navyblue)] transition-colors shadow-md"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -3629,11 +3641,11 @@ const DriverManagement = () => {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex gap-6 border-b-2 border-theme">
+          <div className="flex gap-6 border-b-2 border-theme print-hide">
             <button
               onClick={() => setActiveTab('all')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'all'
-                ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] -mb-[2px]'
+                ? 'text-[var(--accent-navyblue)] border-b-2 border-[var(--accent-navyblue)] -mb-[2px]'
                 : 'text-secondary hover:text-primary'
                 }`}
             >
@@ -3642,7 +3654,7 @@ const DriverManagement = () => {
             <button
               onClick={() => setActiveTab('external')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'external'
-                ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] -mb-[2px]'
+                ? 'text-[var(--accent-navyblue)] border-b-2 border-[var(--accent-navyblue)] -mb-[2px]'
                 : 'text-secondary hover:text-primary'
                 }`}
             >
@@ -3651,7 +3663,7 @@ const DriverManagement = () => {
             <button
               onClick={() => setActiveTab('unassigned')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'unassigned'
-                ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] -mb-[2px]'
+                ? 'text-[var(--accent-navyblue)] border-b-2 border-[var(--accent-navyblue)] -mb-[2px]'
                 : 'text-secondary hover:text-primary'
                 }`}
             >
@@ -3661,7 +3673,7 @@ const DriverManagement = () => {
         </div>
 
         {/* Search and Filter Bar */}
-        <div className="bg-card rounded-lg shadow-sm p-4 mb-4">
+        <div className="bg-card rounded-lg shadow-sm p-4 mb-4 print-hide">
           <div className="flex flex-wrap items-center gap-4">
             {/* Search Input */}
             <div className="flex-1 min-w-[250px]">
@@ -3672,7 +3684,7 @@ const DriverManagement = () => {
                   placeholder="Drivers Licence #, Passport #, Or Name"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                 />
               </div>
             </div>
@@ -3685,7 +3697,7 @@ const DriverManagement = () => {
               <select
                 value={filterBy}
                 onChange={(e) => setFilterBy(e.target.value)}
-                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
+                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent text-sm"
               >
                 <option>Active</option>
                 <option>Inactive</option>
@@ -3747,7 +3759,7 @@ const DriverManagement = () => {
           {/* Top Horizontal Scrollbar */}
           <div
             ref={topScrollRef}
-            className="overflow-x-auto overflow-y-hidden border-b border-theme"
+            className="overflow-x-auto overflow-y-hidden border-b border-theme print-hide"
             style={{
               height: '17px'
             }}
@@ -3771,12 +3783,12 @@ const DriverManagement = () => {
             }}
           >
             <table className="w-full min-w-[1200px]">
-              <thead className="bg-card border-b border-theme">
+              <thead className="bg-card  border-theme">
                 <tr>
                   {/* Photo */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-xs text-primary uppercase">Photo</span>
+                      <span className="font-medium text-xs text-[var(--accent-navyblue)] uppercase">Photo</span>
                     </div>
                   </th>
 
@@ -3785,7 +3797,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('driverId')}
-                        className="flex items-center gap-2 hover:text-primary font-medium text-xs text-primary uppercase"
+                        className="flex items-center gap-2 hover:text-primary font-medium text-xs !text-[var(--accent-navyblue)] uppercase"
                       >
                         Driver ID
                         {getSortIcon('driverId')}
@@ -3799,7 +3811,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('firstName')}
-                        className="flex items-center gap-2 hover:text-primary font-medium text-xs text-primary uppercase"
+                        className="flex items-center gap-2 hover:!text-[var(--accent-navyblue)] font-medium text-xs !text-[var(--accent-navyblue)] uppercase"
                       >
                         First Name
                         {getSortIcon('firstName')}
@@ -3813,7 +3825,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('lastName')}
-                        className="flex items-center gap-2 hover:text-primary font-medium text-xs text-primary uppercase"
+                        className="flex items-center gap-2 hover:!text-[var(--accent-navyblue)] font-medium text-xs !text-[var(--accent-navyblue)] uppercase"
                       >
                         Last Name
                         {getSortIcon('lastName')}
@@ -3827,7 +3839,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('driversLicence')}
-                        className="flex items-center gap-2 hover:text-primary font-medium text-xs text-primary uppercase"
+                        className="flex items-center gap-2 hover:!text-[var(--accent-navyblue)] font-medium text-xs !text-[var(--accent-navyblue)] uppercase"
                       >
                         Drivers Licence
                         {getSortIcon('driversLicence')}
@@ -3841,7 +3853,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('passport')}
-                        className="flex items-center gap-2 hover:text-primary font-medium text-xs text-primary uppercase"
+                        className="flex items-center gap-2 hover:!text-[var(--accent-navyblue)] font-medium text-xs !text-[var(--accent-navyblue)] uppercase"
                       >
                         Passport
                         {getSortIcon('passport')}
@@ -3855,7 +3867,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('dateOfBirth')}
-                        className="flex items-center gap-2 hover:text-primary font-medium text-xs text-primary uppercase"
+                        className="flex items-center gap-2 hover:!text-[var(--accent-navyblue)] font-medium text-xs !text-[var(--accent-navyblue)] uppercase"
                       >
                         Date Of Birth
                         {getSortIcon('dateOfBirth')}
@@ -3867,7 +3879,7 @@ const DriverManagement = () => {
                   {/* Notes */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-xs text-primary uppercase">Notes</span>
+                      <span className="font-medium text-xs !text-[var(--accent-navyblue)] uppercase">Notes</span>
                     </div>
 
                   </th>
@@ -3879,7 +3891,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleSort('status')}
-                        className="flex items-center gap-2 hover:text-primary font-medium text-xs text-primary uppercase"
+                        className="flex items-center gap-2 hover:!text-[var(--accent-navyblue)] font-medium text-xs !text-[var(--accent-navyblue)] uppercase"
                       >
                         Status
                         {getSortIcon('status')}
@@ -3891,28 +3903,37 @@ const DriverManagement = () => {
                   {/* Compliance */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-xs text-primary uppercase">Compliance</span>
+                      <span className="font-medium text-xs !text-[var(--accent-navyblue)] uppercase">
+                        Compliance
+                      </span>
                     </div>
+
                     <select
                       value={complianceStatus}
                       onChange={(e) => setComplianceStatus(e.target.value)}
-                      className="mt-2 w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-blue)]"
+                      className="
+      mt-2 w-full px-3 py-2 text-xs rounded-md
+      bg-[#0f172a] text-white
+      border border-[var(--accent-navyblue)]
+      focus:outline-none focus:ring-1 focus:ring-[var(--accent-navyblue)]
+      appearance-none cursor-pointer
+    "
                     >
-                      <option>All</option>
-                      <option>Compliant</option>
-                      <option>Expiring Soon</option>
-                      <option>Non-Compliant</option>
+                      <option className="bg-[#0f172a] text-white">All</option>
+                      <option className="bg-[#0f172a] text-green-400">Compliant</option>
+                      <option className="bg-[#0f172a] text-yellow-400">Expiring Soon</option>
+                      <option className="bg-[#0f172a] text-red-400">Non-Compliant</option>
                     </select>
                   </th>
                   {/* Actions */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-xs text-primary uppercase">Actions</span>
+                      <span className="font-medium text-xs !text-[var(--accent-navyblue)] uppercase">Actions</span>
                     </div>
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-card divide-y divide-theme">
+              <tbody className="bg-card  divide-theme">
                 {filteredDrivers.map((driver) => (
                   <tr
                     key={driver._id || driver.driverId}
@@ -3986,7 +4007,7 @@ const DriverManagement = () => {
                           />
                         ) : null}
                         <div
-                          className={`w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-theme ${driver.profileImageUrl ? 'hidden' : ''}`}
+                          className={`w-10 h-10 rounded-full bg-[rgba(255,255,255,0.08)] flex items-center justify-center border-2 border-theme ${driver.profileImageUrl ? 'hidden' : ''}`}
                         >
                           <User className="w-6 h-6 text-secondary" />
                         </div>
@@ -4071,7 +4092,7 @@ const DriverManagement = () => {
                               setShowNewDriverModal(true);
                             }
                           }}
-                          className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                          className="p-2 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                           title="Edit Driver"
                         >
                           <Edit className="w-4 h-4" />
@@ -4085,7 +4106,7 @@ const DriverManagement = () => {
                               handleDelete(driver.driverId);
                             }
                           }}
-                          className="p-2 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                          className="p-2 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                           title="Delete Driver"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -4119,7 +4140,7 @@ const DriverManagement = () => {
               {/* Image Upload Area */}
               <div className="p-3 border-b border-theme">
                 <div
-                  className="border-2 border-dashed border-theme p-4 text-center mb-2 cursor-pointer hover:border-[var(--accent-blue)] transition-colors"
+                  className="border-2 border-dashed border-theme p-4 text-center mb-2 cursor-pointer hover:border-[var(--accent-navyblue)] transition-colors"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {profileImagePreview ? (
@@ -4169,7 +4190,7 @@ const DriverManagement = () => {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full bg-black !text-white py-1.5 text-xs font-medium hover:bg-gray-800 transition-colors"
+                  className="w-full bg-[rgba(255,255,255,0.08)] !text-white py-1.5 text-xs font-medium hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                 >
                   {formData.profileImage ? 'CHANGE IMAGE' : 'UPLOAD'}
                 </button>
@@ -4206,8 +4227,8 @@ const DriverManagement = () => {
                           }
                         }}
                         className={`w-full flex items-center gap-1.5 px-2 py-1.5 transition-colors text-left ${isActive
-                          ? 'bg-[rgba(0,209,255,0.15)] !text-white shadow-md'
-                          : 'bg-gray-700 !text-white hover:bg-gray-600'
+                          ? 'bg-[var(--accent-navyblue)]/15 !text-white shadow-md'
+                          : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                           }`}
                       >
                         <Icon className="w-3.5 h-3.5" />
@@ -4229,7 +4250,7 @@ const DriverManagement = () => {
                   <button
                     onClick={editingId ? handleUpdateDriver : handleSaveDriver}
                     disabled={isSubmitting}
-                    className="px-3 py-1 text-xs bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                    className="px-3 py-1 text-xs bg-[rgba(255,255,255,0.08)] !text-white border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.12)] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
                   >
                     {isSubmitting && (
                       <RefreshCw className="w-3 h-3 animate-spin" />
@@ -4261,12 +4282,12 @@ const DriverManagement = () => {
                           placeholder="Driver ID"
                           value={formData.driverId}
                           onChange={(e) => setFormData({ ...formData, driverId: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-primary mb-0.5">
-                          First Name<span className="text-red-500">*</span>
+                          First Name<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <input
                           type="text"
@@ -4278,11 +4299,11 @@ const DriverManagement = () => {
                               setValidationErrors({ ...validationErrors, firstName: '' });
                             }
                           }}
-                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent ${validationErrors.firstName ? 'border-red-500' : 'border-theme'
+                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.firstName ? 'border-[var(--accent-red)]' : 'border-theme'
                             }`}
                         />
                         {validationErrors.firstName && (
-                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.firstName}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.firstName}</p>
                         )}
                       </div>
                       <div>
@@ -4292,12 +4313,12 @@ const DriverManagement = () => {
                           placeholder="Middle"
                           value={formData.middle}
                           onChange={(e) => setFormData({ ...formData, middle: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-primary mb-0.5">
-                          Last Name<span className="text-red-500">*</span>
+                          Last Name<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <input
                           type="text"
@@ -4309,11 +4330,11 @@ const DriverManagement = () => {
                               setValidationErrors({ ...validationErrors, lastName: '' });
                             }
                           }}
-                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent ${validationErrors.lastName ? 'border-red-500' : 'border-theme'
+                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.lastName ? 'border-[var(--accent-red)]' : 'border-theme'
                             }`}
                         />
                         {validationErrors.lastName && (
-                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.lastName}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.lastName}</p>
                         )}
                       </div>
                     </div>
@@ -4322,7 +4343,7 @@ const DriverManagement = () => {
                     <div className="grid grid-cols-4 gap-2">
                       <div>
                         <label className="block text-xs font-medium text-primary mb-0.5">
-                          Email Address<span className="text-red-500">*</span>
+                          Email Address<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <input
                           type="email"
@@ -4334,16 +4355,16 @@ const DriverManagement = () => {
                               setValidationErrors({ ...validationErrors, emailAddress: '' });
                             }
                           }}
-                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent ${validationErrors.emailAddress ? 'border-red-500' : 'border-theme'
+                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.emailAddress ? 'border-[var(--accent-red)]' : 'border-theme'
                             }`}
                         />
                         {validationErrors.emailAddress && (
-                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.emailAddress}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.emailAddress}</p>
                         )}
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-primary mb-0.5">
-                          Date Of Birth<span className="text-red-500">*</span>
+                          Date Of Birth<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <div className="relative">
                           <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-secondary pointer-events-none" />
@@ -4356,14 +4377,14 @@ const DriverManagement = () => {
                                 setValidationErrors({ ...validationErrors, dateOfBirth: '' });
                               }
                             }}
-                            className={`w-full pl-7 pr-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent ${validationErrors.dateOfBirth ? 'border-red-500' : 'border-theme'
+                            className={`w-full pl-7 pr-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.dateOfBirth ? 'border-[var(--accent-red)]' : 'border-theme'
                               }`}
                             placeholder="Select"
                             max={new Date().toISOString().split('T')[0]}
                           />
                         </div>
                         {validationErrors.dateOfBirth && (
-                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.dateOfBirth}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.dateOfBirth}</p>
                         )}
                       </div>
                       <div>
@@ -4372,7 +4393,7 @@ const DriverManagement = () => {
                           <button
                             type="button"
                             onClick={() => setFormData({ ...formData, mobileApp: !formData.mobileApp })}
-                            className={`relative w-9 h-5 rounded-full transition-colors ${formData.mobileApp ? 'bg-[var(--accent-blue)]' : 'bg-gray-300'
+                            className={`relative w-9 h-5 rounded-full transition-colors ${formData.mobileApp ? 'bg-[var(--accent-navyblue)]' : 'bg-[rgba(255,255,255,0.15)]'
                               }`}
                           >
                             <span
@@ -4394,7 +4415,7 @@ const DriverManagement = () => {
                                 setPinIsExisting(false);
                                 setFormData({ ...formData, pin: '' });
                               }}
-                              className="w-full px-2 py-1 pr-20 text-xs border border-theme rounded bg-card cursor-text focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full px-2 py-1 pr-20 text-xs border border-theme rounded bg-card cursor-text focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                             <button
                               type="button"
@@ -4402,7 +4423,7 @@ const DriverManagement = () => {
                                 setPinIsExisting(false);
                                 setFormData({ ...formData, pin: '' });
                               }}
-                              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-[var(--accent-blue)] hover:text-blue-700 font-medium whitespace-nowrap"
+                              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]/70 font-medium whitespace-nowrap"
                               tabIndex={-1}
                             >
                               Change
@@ -4415,7 +4436,7 @@ const DriverManagement = () => {
                               placeholder="Enter new PIN"
                               value={formData.pin}
                               onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
-                              className="w-full px-2 py-1 pr-7 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full px-2 py-1 pr-7 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               autoFocus
                             />
                             <button
@@ -4435,9 +4456,9 @@ const DriverManagement = () => {
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="block text-xs font-medium text-primary mb-0.5">
-                          Primary Phone #<span className="text-red-500">*</span>
+                          Primary Phone #<span className="text-[var(--accent-red)]">*</span>
                         </label>
-                        <div className={`flex items-center border rounded focus-within:ring-2 focus-within:ring-[var(--accent-blue)] focus-within:border-transparent ${validationErrors.primaryPhone ? 'border-red-500' : 'border-theme'
+                        <div className={`flex items-center border rounded focus-within:ring-2 focus-within:ring-[var(--accent-navyblue)] focus-within:border-transparent ${validationErrors.primaryPhone ? 'border-[var(--accent-red)]' : 'border-theme'
                           }`}>
                           <div className="relative" ref={primaryCountryDropdownRef}>
                             <button
@@ -4469,7 +4490,7 @@ const DriverManagement = () => {
                                     value={primaryCountrySearch}
                                     onChange={(e) => setPrimaryCountrySearch(e.target.value)}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="w-full px-3 py-1.5 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                    className="w-full px-3 py-1.5 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                                   />
                                 </div>
                                 {/* Countries List */}
@@ -4518,7 +4539,7 @@ const DriverManagement = () => {
                               </div>
                             )}
                           </div>
-                          <div className="h-5 w-px bg-gray-300"></div>
+                          <div className="h-5 w-px bg-[rgba(255,255,255,0.15)]"></div>
                           <input
                             type="tel"
                             placeholder=""
@@ -4533,7 +4554,7 @@ const DriverManagement = () => {
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-primary mb-0.5">Secondary Phone #</label>
-                        <div className="flex items-center border border-theme rounded focus-within:ring-2 focus-within:ring-[var(--accent-blue)] focus-within:border-transparent">
+                        <div className="flex items-center border border-theme rounded focus-within:ring-2 focus-within:ring-[var(--accent-navyblue)] focus-within:border-transparent">
                           <div className="relative" ref={secondaryCountryDropdownRef}>
                             <button
                               type="button"
@@ -4564,7 +4585,7 @@ const DriverManagement = () => {
                                     value={secondaryCountrySearch}
                                     onChange={(e) => setSecondaryCountrySearch(e.target.value)}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="w-full px-3 py-1.5 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                    className="w-full px-3 py-1.5 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                                   />
                                 </div>
                                 {/* Countries List */}
@@ -4613,7 +4634,7 @@ const DriverManagement = () => {
                               </div>
                             )}
                           </div>
-                          <div className="h-5 w-px bg-gray-300"></div>
+                          <div className="h-5 w-px bg-[rgba(255,255,255,0.15)]"></div>
                           <input
                             type="tel"
                             placeholder=""
@@ -4791,7 +4812,7 @@ const DriverManagement = () => {
                           placeholder="Address"
                           value={formData.address}
                           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -4801,7 +4822,7 @@ const DriverManagement = () => {
                           placeholder="Unit"
                           value={formData.unit}
                           onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -4811,7 +4832,7 @@ const DriverManagement = () => {
                           placeholder="City"
                           value={formData.city}
                           onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -4821,7 +4842,7 @@ const DriverManagement = () => {
                           placeholder="Postal Code"
                           value={formData.postalCode}
                           onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -4887,7 +4908,7 @@ const DriverManagement = () => {
                             onClick={() => {
                               fileInputRef.current?.click();
                             }}
-                            className="inline-block !mr-3 px-4 py-2 bg-[var(--accent-blue)] !text-white rounded-lg cursor-pointer hover:bg-[rgba(0,209,255,0.15)] transition-colors"
+                            className="inline-block !mr-3 px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg cursor-pointer hover:bg-[var(--accent-navyblue)]/80 transition-colors"
                           >
                             {formData.profileImage ? 'Change Image' : 'Select Image'}
                           </button>
@@ -4901,7 +4922,7 @@ const DriverManagement = () => {
                                   fileInputRef.current.value = '';
                                 }
                               }}
-                              className="ml-2 px-4 py-2 bg-red-500 !text-white rounded-lg hover:bg-red-600 transition-colors"
+                              className="ml-2 px-4 py-2 bg-[var(--accent-red)] !text-white rounded-lg hover:bg-[var(--accent-red)]/80 transition-colors"
                             >
                               Remove
                             </button>
@@ -4915,7 +4936,7 @@ const DriverManagement = () => {
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="block text-xs font-medium text-primary mb-0.5">
-                          Country<span className="text-red-500">*</span>
+                          Country<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <select
                           value={(() => {
@@ -4937,7 +4958,7 @@ const DriverManagement = () => {
                               setValidationErrors({ ...validationErrors, stateProvince: '' });
                             }
                           }}
-                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent ${validationErrors.country ? 'border-red-500' : 'border-theme'
+                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.country ? 'border-[var(--accent-red)]' : 'border-theme'
                             }`}
                         >
                           <option value="">Select Country</option>
@@ -4948,12 +4969,12 @@ const DriverManagement = () => {
                           ))}
                         </select>
                         {validationErrors.country && (
-                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.country}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.country}</p>
                         )}
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-primary mb-0.5">
-                          Province/State<span className="text-red-500">*</span>
+                          Province/State<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <input
                           type="text"
@@ -4966,11 +4987,11 @@ const DriverManagement = () => {
                           }}
                           disabled={!formData.country}
                           placeholder={formData.country ? "Enter Province/State" : "Select country first"}
-                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent disabled:bg-card disabled:cursor-not-allowed ${validationErrors.stateProvince ? 'border-red-500' : 'border-theme'
+                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent disabled:bg-card disabled:cursor-not-allowed ${validationErrors.stateProvince ? 'border-[var(--accent-red)]' : 'border-theme'
                             }`}
                         />
                         {validationErrors.stateProvince && (
-                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.stateProvince}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.stateProvince}</p>
                         )}
                       </div>
                     </div>
@@ -4990,7 +5011,7 @@ const DriverManagement = () => {
                           placeholder="Social Insurance Nu"
                           value={personalData.socialInsuranceNumber}
                           onChange={(e) => setPersonalData({ ...personalData, socialInsuranceNumber: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -5001,7 +5022,7 @@ const DriverManagement = () => {
                             type="date"
                             value={personalData.hireDate}
                             onChange={(e) => setPersonalData({ ...personalData, hireDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             placeholder="Select"
                           />
                         </div>
@@ -5014,14 +5035,14 @@ const DriverManagement = () => {
                             type="date"
                             value={personalData.terminationDate}
                             onChange={(e) => setPersonalData({ ...personalData, terminationDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             placeholder="Select"
                           />
                         </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">
-                          Status<span className="text-red-500">*</span>
+                          Status<span className="text-[var(--accent-red)]">*</span>
                         </label>
                         <select
                           value={personalData.status}
@@ -5031,7 +5052,7 @@ const DriverManagement = () => {
                               setValidationErrors({ ...validationErrors, status: '' });
                             }
                           }}
-                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent ${validationErrors.status ? 'border-red-500' : 'border-theme'
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.status ? 'border-[var(--accent-red)]' : 'border-theme'
                             }`}
                         >
                           <option value="">Select Status</option>
@@ -5040,7 +5061,7 @@ const DriverManagement = () => {
                           <option value="Terminated">Terminated</option>
                         </select>
                         {validationErrors.status && (
-                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.status}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.status}</p>
                         )}
                       </div>
                       <div>
@@ -5050,7 +5071,7 @@ const DriverManagement = () => {
                           placeholder="0"
                           value={personalData.vacationPercent}
                           onChange={(e) => setPersonalData({ ...personalData, vacationPercent: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -5066,7 +5087,7 @@ const DriverManagement = () => {
                             placeholder="Corporation Name"
                             value={personalData.corporationName}
                             onChange={(e) => setPersonalData({ ...personalData, corporationName: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                         <div>
@@ -5076,7 +5097,7 @@ const DriverManagement = () => {
                             placeholder="Driver Name"
                             value={personalData.driverName}
                             onChange={(e) => setPersonalData({ ...personalData, driverName: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                         <div>
@@ -5086,7 +5107,7 @@ const DriverManagement = () => {
                             placeholder="GST No."
                             value={personalData.gstNo}
                             onChange={(e) => setPersonalData({ ...personalData, gstNo: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -5232,7 +5253,7 @@ const DriverManagement = () => {
                             placeholder="Payment Address"
                             value={personalData.paymentAddress}
                             onChange={(e) => setPersonalData({ ...personalData, paymentAddress: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                         <div>
@@ -5242,7 +5263,7 @@ const DriverManagement = () => {
                             placeholder="Payment City"
                             value={personalData.paymentCity}
                             onChange={(e) => setPersonalData({ ...personalData, paymentCity: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                         <div>
@@ -5252,7 +5273,7 @@ const DriverManagement = () => {
                             placeholder="Payment Postal Code"
                             value={personalData.paymentPostalCode}
                             onChange={(e) => setPersonalData({ ...personalData, paymentPostalCode: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -5276,7 +5297,7 @@ const DriverManagement = () => {
                                 paymentStateProvince: ''
                               });
                             }}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           >
                             <option value="">Select Country</option>
                             {countries.map((country) => (
@@ -5296,7 +5317,7 @@ const DriverManagement = () => {
                             onChange={(e) => setPersonalData({ ...personalData, paymentStateProvince: e.target.value })}
                             disabled={!personalData.paymentCountry}
                             placeholder={personalData.paymentCountry ? "Enter Province/State" : "Select country first"}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent disabled:bg-card disabled:cursor-not-allowed"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent disabled:bg-card disabled:cursor-not-allowed"
                           />
                         </div>
                       </div>
@@ -5313,8 +5334,8 @@ const DriverManagement = () => {
                             type="button"
                             onClick={() => setPersonalData({ ...personalData, driverType: 'COMPANY DRIVER' })}
                             className={`px-4 py-1.5 text-xs font-medium transition-colors rounded-l ${personalData.driverType === 'COMPANY DRIVER'
-                              ? 'bg-gray-700 !text-white'
-                              : 'bg-gray-200 text-primary hover:bg-gray-300'
+                              ? 'bg-[var(--accent-navyblue)] !text-white'
+                              : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                               }`}
                           >
                             COMPANY DRIVER
@@ -5323,8 +5344,8 @@ const DriverManagement = () => {
                             type="button"
                             onClick={() => setPersonalData({ ...personalData, driverType: 'OWNER OPERATOR' })}
                             className={`px-4 py-1.5 text-xs font-medium transition-colors rounded-r ${personalData.driverType === 'OWNER OPERATOR'
-                              ? 'bg-gray-700 !text-white'
-                              : 'bg-gray-200 text-primary hover:bg-gray-300'
+                              ? 'bg-[var(--accent-navyblue)] !text-white'
+                              : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                               }`}
                           >
                             OWNER OPERATOR
@@ -5355,8 +5376,8 @@ const DriverManagement = () => {
                               type="button"
                               onClick={() => setPersonalData({ ...personalData, paymentMethod: method as any })}
                               className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${personalData.paymentMethod === method
-                                ? 'bg-gray-700 !text-white'
-                                : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                ? 'bg-[var(--accent-navyblue)] !text-white'
+                                : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                                 }`}
                             >
                               {method}
@@ -5370,24 +5391,24 @@ const DriverManagement = () => {
                         <div className="grid grid-cols-4 gap-4 mt-4">
                           <div>
                             <label className="block text-sm font-medium text-primary mb-1">
-                              ALONE<span className="text-red-500">*</span>
+                              ALONE<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.alone}
                               onChange={(e) => setPersonalData({ ...personalData, alone: e.target.value })}
-                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-primary mb-1">
-                              EMPTY<span className="text-red-500">*</span>
+                              EMPTY<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.empty}
                               onChange={(e) => setPersonalData({ ...personalData, empty: e.target.value })}
-                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                           <div>
@@ -5396,29 +5417,29 @@ const DriverManagement = () => {
                               type="text"
                               value={personalData.bonusDrop}
                               onChange={(e) => setPersonalData({ ...personalData, bonusDrop: e.target.value })}
-                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-primary mb-1">
-                              TEAM<span className="text-red-500">*</span>
+                              TEAM<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.team}
                               onChange={(e) => setPersonalData({ ...personalData, team: e.target.value })}
-                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-primary mb-1">
-                              EMPTY-TEAM<span className="text-red-500">*</span>
+                              EMPTY-TEAM<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.emptyTeam}
                               onChange={(e) => setPersonalData({ ...personalData, emptyTeam: e.target.value })}
-                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                           <div>
@@ -5427,7 +5448,7 @@ const DriverManagement = () => {
                               type="text"
                               value={personalData.bonusPick}
                               onChange={(e) => setPersonalData({ ...personalData, bonusPick: e.target.value })}
-                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                           <div>
@@ -5436,7 +5457,7 @@ const DriverManagement = () => {
                               type="text"
                               value={personalData.bonusLayover}
                               onChange={(e) => setPersonalData({ ...personalData, bonusLayover: e.target.value })}
-                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                         </div>
@@ -5448,13 +5469,13 @@ const DriverManagement = () => {
                           <h4 className="text-md font-bold text-primary mb-4">Percent Rate</h4>
                           <div>
                             <label className="block text-sm font-medium text-primary mb-1">
-                              %<span className="text-red-500">*</span>
+                              %<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.percentRate}
                               onChange={(e) => setPersonalData({ ...personalData, percentRate: e.target.value })}
-                              className="w-full px-3 py-2 border border-theme rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full px-3 py-2 border border-theme rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                         </div>
@@ -5465,13 +5486,13 @@ const DriverManagement = () => {
                         <div className="mt-4">
                           <div>
                             <label className="block text-xs font-medium text-primary mb-0.5">
-                              Per Trip Amount<span className="text-red-500">*</span>
+                              Per Trip Amount<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.perTripAmount}
                               onChange={(e) => setPersonalData({ ...personalData, perTripAmount: e.target.value })}
-                              className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               placeholder="0"
                             />
                           </div>
@@ -5483,13 +5504,13 @@ const DriverManagement = () => {
                         <div className="mt-4">
                           <div>
                             <label className="block text-xs font-medium text-primary mb-0.5">
-                              PER HOUR<span className="text-red-500">*</span>
+                              PER HOUR<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.hourlyRate}
                               onChange={(e) => setPersonalData({ ...personalData, hourlyRate: e.target.value })}
-                              className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               placeholder="0"
                             />
                           </div>
@@ -5501,13 +5522,13 @@ const DriverManagement = () => {
                         <div className="mt-4">
                           <div>
                             <label className="block text-xs font-medium text-primary mb-0.5">
-                              PER DAY<span className="text-red-500">*</span>
+                              PER DAY<span className="text-[var(--accent-red)]">*</span>
                             </label>
                             <input
                               type="text"
                               value={personalData.dailyRate}
                               onChange={(e) => setPersonalData({ ...personalData, dailyRate: e.target.value })}
-                              className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full px-2 py-1 text-xs border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               placeholder="0"
                             />
                           </div>
@@ -5523,8 +5544,8 @@ const DriverManagement = () => {
                           type="button"
                           onClick={() => setPersonalData({ ...personalData, driverTypeSolo: true })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${personalData.driverTypeSolo
-                            ? 'bg-gray-700 !text-white'
-                            : 'bg-gray-300 text-primary hover:bg-gray-400'
+                            ? 'bg-[var(--accent-navyblue)] !text-white'
+                            : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                             }`}
                         >
                           SOLO
@@ -5533,8 +5554,8 @@ const DriverManagement = () => {
                           type="button"
                           onClick={() => setPersonalData({ ...personalData, driverTypeSolo: false })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${!personalData.driverTypeSolo
-                            ? 'bg-gray-700 !text-white'
-                            : 'bg-gray-300 text-primary hover:bg-gray-400'
+                            ? 'bg-[var(--accent-navyblue)] !text-white'
+                            : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                             }`}
                         >
                           TEAM
@@ -5551,7 +5572,7 @@ const DriverManagement = () => {
                             type="checkbox"
                             checked={personalData.cppExempt}
                             onChange={(e) => setPersonalData({ ...personalData, cppExempt: e.target.checked })}
-                            className="w-4 h-4 text-[var(--accent-blue)] border-theme rounded focus:ring-[var(--accent-blue)]"
+                            className="w-4 h-4 text-[var(--accent-navyblue)] border-theme rounded focus:ring-[var(--accent-navyblue)]"
                           />
                           <span className="text-sm font-medium text-primary">CPP Exempt</span>
                         </label>
@@ -5560,7 +5581,7 @@ const DriverManagement = () => {
                             type="checkbox"
                             checked={personalData.payrollTaxExempt}
                             onChange={(e) => setPersonalData({ ...personalData, payrollTaxExempt: e.target.checked })}
-                            className="w-4 h-4 text-[var(--accent-blue)] border-theme rounded focus:ring-[var(--accent-blue)]"
+                            className="w-4 h-4 text-[var(--accent-navyblue)] border-theme rounded focus:ring-[var(--accent-navyblue)]"
                           />
                           <span className="text-sm font-medium text-primary">Payroll Tax Exempt</span>
                         </label>
@@ -5575,7 +5596,7 @@ const DriverManagement = () => {
                           type="checkbox"
                           checked={personalData.cross_border_eligible}
                           onChange={(e) => setPersonalData({ ...personalData, cross_border_eligible: e.target.checked })}
-                          className="w-4 h-4 text-[var(--accent-blue)] border-theme rounded focus:ring-[var(--accent-blue)]"
+                          className="w-4 h-4 text-[var(--accent-navyblue)] border-theme rounded focus:ring-[var(--accent-navyblue)]"
                         />
                         <span className="text-sm font-medium text-primary">Cross-Border Eligible</span>
                       </label>
@@ -5589,7 +5610,7 @@ const DriverManagement = () => {
                         placeholder="Leave Empty To Use Compar"
                         value={personalData.customHst}
                         onChange={(e) => setPersonalData({ ...personalData, customHst: e.target.value })}
-                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                       />
                     </div>
 
@@ -5600,7 +5621,7 @@ const DriverManagement = () => {
                         <select
                           value={personalData.gender}
                           onChange={(e) => setPersonalData({ ...personalData, gender: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
                           <option value="">Select Gender</option>
                           <option value="Male">Male</option>
@@ -5614,7 +5635,7 @@ const DriverManagement = () => {
                         <select
                           value={personalData.citizenship}
                           onChange={(e) => setPersonalData({ ...personalData, citizenship: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
                           <option value="">Select Citizenship</option>
                           {countries.map((country) => (
@@ -5639,7 +5660,7 @@ const DriverManagement = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-primary mb-1">
-                            Drivers License #<span className="text-red-500">*</span>
+                            Drivers License #<span className="text-[var(--accent-red)]">*</span>
                           </label>
                           <input
                             type="text"
@@ -5651,16 +5672,16 @@ const DriverManagement = () => {
                                 setValidationErrors({ ...validationErrors, driversLicenseNumber: '' });
                               }
                             }}
-                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent ${validationErrors.driversLicenseNumber ? 'border-red-500' : 'border-theme'
+                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.driversLicenseNumber ? 'border-[var(--accent-red)]' : 'border-theme'
                               }`}
                           />
                           {validationErrors.driversLicenseNumber && (
-                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.driversLicenseNumber}</p>
+                            <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.driversLicenseNumber}</p>
                           )}
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-primary mb-1">
-                            Date Of Expiry<span className="text-red-500">*</span>
+                            Date Of Expiry<span className="text-[var(--accent-red)]">*</span>
                           </label>
                           <div className="relative">
                             <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
@@ -5673,13 +5694,13 @@ const DriverManagement = () => {
                                   setValidationErrors({ ...validationErrors, driversLicenseExpiry: '' });
                                 }
                               }}
-                              className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent ${validationErrors.driversLicenseExpiry ? 'border-red-500' : 'border-theme'
+                              className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.driversLicenseExpiry ? 'border-[var(--accent-red)]' : 'border-theme'
                                 }`}
                               placeholder="Select"
                             />
                           </div>
                           {validationErrors.driversLicenseExpiry && (
-                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.driversLicenseExpiry}</p>
+                            <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.driversLicenseExpiry}</p>
                           )}
                         </div>
                         <div>
@@ -5689,7 +5710,7 @@ const DriverManagement = () => {
                             value={travelData.licenseStateProvince}
                             onChange={(e) => setTravelData({ ...travelData, licenseStateProvince: e.target.value })}
                             placeholder="Enter State/Province"
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -5701,7 +5722,7 @@ const DriverManagement = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-primary mb-1">
-                            Passport #<span className="text-red-500">*</span>
+                            Passport #<span className="text-[var(--accent-red)]">*</span>
                           </label>
                           <input
                             type="text"
@@ -5713,11 +5734,11 @@ const DriverManagement = () => {
                                 setValidationErrors({ ...validationErrors, passportNumber: '' });
                               }
                             }}
-                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent ${validationErrors.passportNumber ? 'border-red-500' : 'border-theme'
+                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.passportNumber ? 'border-[var(--accent-red)]' : 'border-theme'
                               }`}
                           />
                           {validationErrors.passportNumber && (
-                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.passportNumber}</p>
+                            <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.passportNumber}</p>
                           )}
                         </div>
                         <div>
@@ -5725,7 +5746,7 @@ const DriverManagement = () => {
                           <select
                             value={travelData.passportCountry}
                             onChange={(e) => setTravelData({ ...travelData, passportCountry: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           >
                             <option value="">Select Passport Country</option>
                             {countries.map((country) => (
@@ -5737,7 +5758,7 @@ const DriverManagement = () => {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-primary mb-1">
-                            Date Of Expiry<span className="text-red-500">*</span>
+                            Date Of Expiry<span className="text-[var(--accent-red)]">*</span>
                           </label>
                           <div className="relative">
                             <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
@@ -5750,13 +5771,13 @@ const DriverManagement = () => {
                                   setValidationErrors({ ...validationErrors, passportExpiry: '' });
                                 }
                               }}
-                              className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent ${validationErrors.passportExpiry ? 'border-red-500' : 'border-theme'
+                              className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.passportExpiry ? 'border-[var(--accent-red)]' : 'border-theme'
                                 }`}
                               placeholder="Select"
                             />
                           </div>
                           {validationErrors.passportExpiry && (
-                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.passportExpiry}</p>
+                            <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.passportExpiry}</p>
                           )}
                         </div>
                       </div>
@@ -5773,7 +5794,7 @@ const DriverManagement = () => {
                             placeholder="Fast Card #"
                             value={travelData.fastCardNumber}
                             onChange={(e) => setTravelData({ ...travelData, fastCardNumber: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                         <div>
@@ -5784,7 +5805,7 @@ const DriverManagement = () => {
                               type="date"
                               value={travelData.fastCardExpiry}
                               onChange={(e) => setTravelData({ ...travelData, fastCardExpiry: e.target.value })}
-                              className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               placeholder="Select"
                             />
                           </div>
@@ -5795,7 +5816,7 @@ const DriverManagement = () => {
                               type="checkbox"
                               checked={travelData.fastCardValid}
                               onChange={(e) => setTravelData({ ...travelData, fastCardValid: e.target.checked })}
-                              className="w-4 h-4 text-[var(--accent-blue)] border-theme rounded focus:ring-[var(--accent-blue)]"
+                              className="w-4 h-4 text-[var(--accent-navyblue)] border-theme rounded focus:ring-[var(--accent-navyblue)]"
                             />
                             <span className="text-sm font-medium text-primary">Fast Card Valid</span>
                           </label>
@@ -5811,8 +5832,8 @@ const DriverManagement = () => {
                           type="button"
                           onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'CANADIAN CITIZEN' })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${travelData.canadianWorkerStatus === 'CANADIAN CITIZEN'
-                            ? 'bg-gray-700 !text-white'
-                            : 'bg-gray-300 text-primary hover:bg-gray-400'
+                            ? 'bg-[var(--accent-navyblue)] !text-white'
+                            : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                             }`}
                         >
                           CANADIAN CITIZEN
@@ -5821,8 +5842,8 @@ const DriverManagement = () => {
                           type="button"
                           onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'PERMANENT RESIDENT' })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${travelData.canadianWorkerStatus === 'PERMANENT RESIDENT'
-                            ? 'bg-gray-700 !text-white'
-                            : 'bg-gray-300 text-primary hover:bg-gray-400'
+                            ? 'bg-[var(--accent-navyblue)] !text-white'
+                            : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                             }`}
                         >
                           PERMANENT RESIDENT
@@ -5831,8 +5852,8 @@ const DriverManagement = () => {
                           type="button"
                           onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'WORK PERMIT' })}
                           className={`px-6 py-2 rounded-sm font-medium transition-colors ${travelData.canadianWorkerStatus === 'WORK PERMIT'
-                            ? 'bg-gray-700 !text-white'
-                            : 'bg-gray-300 text-primary hover:bg-gray-400'
+                            ? 'bg-[var(--accent-navyblue)] !text-white'
+                            : 'bg-[rgba(255,255,255,0.08)] text-secondary hover:bg-[rgba(255,255,255,0.12)]'
                             }`}
                         >
                           WORK PERMIT
@@ -5850,7 +5871,7 @@ const DriverManagement = () => {
                             type="date"
                             value={travelData.permanentResidenceExpiry}
                             onChange={(e) => setTravelData({ ...travelData, permanentResidenceExpiry: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             placeholder="Select"
                           />
                         </div>
@@ -5867,7 +5888,7 @@ const DriverManagement = () => {
                             type="date"
                             value={travelData.workPermitExpiry}
                             onChange={(e) => setTravelData({ ...travelData, workPermitExpiry: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             placeholder="Select"
                           />
                         </div>
@@ -5882,14 +5903,14 @@ const DriverManagement = () => {
                         placeholder="WCB (Workers' Compensation Board) Number"
                         value={travelData.wcbNumber}
                         onChange={(e) => setTravelData({ ...travelData, wcbNumber: e.target.value })}
-                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent max-w-md"
+                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent max-w-md"
                       />
                     </div>
 
                     {/* SIN Number - Mandatory */}
                     <div className="mt-6">
                       <label className="block text-sm font-medium text-primary mb-1">
-                        SIN Number <span className="text-red-500">*</span>
+                        SIN Number <span className="text-[var(--accent-red)]">*</span>
                       </label>
                       <input
                         type="text"
@@ -5901,12 +5922,12 @@ const DriverManagement = () => {
                             setValidationErrors({ ...validationErrors, sinNumber: '' });
                           }
                         }}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent max-w-md ${validationErrors.sinNumber ? 'border-red-500' : 'border-theme'
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent max-w-md ${validationErrors.sinNumber ? 'border-[var(--accent-red)]' : 'border-theme'
                           }`}
                         required
                       />
                       {validationErrors.sinNumber && (
-                        <p className="text-xs text-red-500 mt-0.5">{validationErrors.sinNumber}</p>
+                        <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.sinNumber}</p>
                       )}
                     </div>
 
@@ -5914,20 +5935,20 @@ const DriverManagement = () => {
                     {travelData.canadianWorkerStatus === 'WORK PERMIT' && (
                       <div className="mt-6">
                         <label className="block text-sm font-medium text-primary mb-1">
-                          Work Permit Document <span className="text-red-500">*</span>
+                          Work Permit Document <span className="text-[var(--accent-red)]">*</span>
                         </label>
                         {travelData.existingWorkPermitUrl && !travelData.workPermitDocument && (
-                          <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="mb-2 p-2 bg-[var(--accent-green)]/10 border border-[var(--accent-green)]/30 rounded-lg">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <FileText size={16} className="text-green-600" />
-                                <span className="text-sm text-green-700">Existing document uploaded</span>
+                                <FileText size={16} className="text-[var(--accent-green)]" />
+                                <span className="text-sm text-[var(--accent-green)]">Existing document uploaded</span>
                               </div>
                               <a
                                 href={travelData.existingWorkPermitUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-[#00D1FF] hover:text-blue-800 underline"
+                                className="text-xs text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]/70 underline"
                               >
                                 View Document
                               </a>
@@ -5938,14 +5959,14 @@ const DriverManagement = () => {
                           type="file"
                           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                           onChange={(e) => setTravelData({ ...travelData, workPermitDocument: e.target.files?.[0] || null })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent max-w-md"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent max-w-md"
                           required={!travelData.existingWorkPermitUrl}
                         />
                         {travelData.workPermitDocument && (
                           <p className="text-xs text-secondary mt-1">Selected: {travelData.workPermitDocument.name}</p>
                         )}
                         {travelData.existingWorkPermitUrl && travelData.workPermitDocument && (
-                          <p className="text-xs text-amber-600 mt-1">⚠️ New file will replace existing document</p>
+                          <p className="text-xs text-[var(--accent-orange)] mt-1">⚠️ New file will replace existing document</p>
                         )}
                       </div>
                     )}
@@ -5954,20 +5975,20 @@ const DriverManagement = () => {
                     {travelData.canadianWorkerStatus === 'PERMANENT RESIDENT' && (
                       <div className="mt-6">
                         <label className="block text-sm font-medium text-primary mb-1">
-                          PR Card Document <span className="text-red-500">*</span>
+                          PR Card Document <span className="text-[var(--accent-red)]">*</span>
                         </label>
                         {travelData.existingPrCardUrl && !travelData.prCardDocument && (
-                          <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="mb-2 p-2 bg-[var(--accent-green)]/10 border border-[var(--accent-green)]/30 rounded-lg">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <FileText size={16} className="text-green-600" />
-                                <span className="text-sm text-green-700">Existing document uploaded</span>
+                                <FileText size={16} className="text-[var(--accent-green)]" />
+                                <span className="text-sm text-[var(--accent-green)]">Existing document uploaded</span>
                               </div>
                               <a
                                 href={travelData.existingPrCardUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-[#00D1FF] hover:text-blue-800 underline"
+                                className="text-xs text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]/70 underline"
                               >
                                 View Document
                               </a>
@@ -5978,14 +5999,14 @@ const DriverManagement = () => {
                           type="file"
                           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                           onChange={(e) => setTravelData({ ...travelData, prCardDocument: e.target.files?.[0] || null })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent max-w-md"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent max-w-md"
                           required={!travelData.existingPrCardUrl}
                         />
                         {travelData.prCardDocument && (
                           <p className="text-xs text-secondary mt-1">Selected: {travelData.prCardDocument.name}</p>
                         )}
                         {travelData.existingPrCardUrl && travelData.prCardDocument && (
-                          <p className="text-xs text-amber-600 mt-1">⚠️ New file will replace existing document</p>
+                          <p className="text-xs text-[var(--accent-orange)] mt-1">⚠️ New file will replace existing document</p>
                         )}
                       </div>
                     )}
@@ -6015,7 +6036,7 @@ const DriverManagement = () => {
                                 type="date"
                                 value={newDocument.expiryDate}
                                 onChange={(e) => setNewDocument({ ...newDocument, expiryDate: e.target.value })}
-                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               />
                             </td>
                             <td className="px-4 py-3">
@@ -6025,7 +6046,7 @@ const DriverManagement = () => {
                                   placeholder="Description"
                                   value={newDocument.description}
                                   onChange={(e) => setNewDocument({ ...newDocument, description: e.target.value })}
-                                  className="flex-1 px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                  className="flex-1 px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                                 />
                                 {documentFile ? (
                                   <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
@@ -6067,7 +6088,7 @@ const DriverManagement = () => {
                                     type="checkbox"
                                     checked={newDocument.ignoreExpiration}
                                     onChange={(e) => setNewDocument({ ...newDocument, ignoreExpiration: e.target.checked })}
-                                    className="w-4 h-4 text-[var(--accent-blue)] border-theme rounded focus:ring-[var(--accent-blue)]"
+                                    className="w-4 h-4 text-[var(--accent-navyblue)] border-theme rounded focus:ring-[var(--accent-navyblue)]"
                                   />
                                   <span className="text-sm text-primary">Ignore Expiration</span>
                                 </label>
@@ -6122,7 +6143,7 @@ const DriverManagement = () => {
                                       setDocumentFile(null);
                                     }
                                   }}
-                                  className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                                  className="w-10 h-10 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                                 >
                                   {editingDocumentId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                                 </button>
@@ -6198,7 +6219,7 @@ const DriverManagement = () => {
                                             }
                                           }
                                         }}
-                                        className="flex items-center gap-1 text-[#00D1FF] hover:text-blue-800 hover:underline"
+                                        className="flex items-center gap-1 text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]/70 hover:underline"
                                         title={doc.fileName || 'View document'}
                                       >
                                         <FileText className="w-4 h-4" />
@@ -6206,7 +6227,7 @@ const DriverManagement = () => {
                                       </button>
                                     ) : uploadedFiles[doc.id] ? (
                                       <span title={uploadedFiles[doc.id].name} className="flex items-center gap-1 text-secondary">
-                                        <FileText className="w-4 h-4 text-blue-500" />
+                                        <FileText className="w-4 h-4 text-[var(--accent-navyblue)]" />
                                         <span className="text-xs">{uploadedFiles[doc.id].name}</span>
                                       </span>
                                     ) : (
@@ -6216,7 +6237,7 @@ const DriverManagement = () => {
                                 </td>
                                 <td className="px-4 py-3 text-sm text-primary">
                                   {doc.ignoreExpiration ? (
-                                    <Check className="w-5 h-5 text-green-500" />
+                                    <Check className="w-5 h-5 text-[var(--accent-green)]" />
                                   ) : (
                                     <span className="text-secondary">-</span>
                                   )}
@@ -6243,7 +6264,7 @@ const DriverManagement = () => {
                                           setDocumentFile(null);
                                         }
                                       }}
-                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                       title="Edit document"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -6288,7 +6309,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                       title="Delete document"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -6329,7 +6350,7 @@ const DriverManagement = () => {
                                   type="date"
                                   value={newCertification.expiryDate}
                                   onChange={(e) => setNewCertification({ ...newCertification, expiryDate: e.target.value })}
-                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                                   placeholder="mm/dd/yyyy"
                                 />
                                 <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
@@ -6341,7 +6362,7 @@ const DriverManagement = () => {
                                 placeholder="Description"
                                 value={newCertification.description}
                                 onChange={(e) => setNewCertification({ ...newCertification, description: e.target.value })}
-                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               />
                             </td>
                             <td className="px-3 py-2">
@@ -6351,7 +6372,7 @@ const DriverManagement = () => {
                                     type="checkbox"
                                     checked={newCertification.ignoreExpiration}
                                     onChange={(e) => setNewCertification({ ...newCertification, ignoreExpiration: e.target.checked })}
-                                    className="w-4 h-4 text-[var(--accent-blue)] border-theme rounded focus:ring-[var(--accent-blue)]"
+                                    className="w-4 h-4 text-[var(--accent-navyblue)] border-theme rounded focus:ring-[var(--accent-navyblue)]"
                                   />
                                   <span className="text-sm text-primary">Ignore Expiration</span>
                                 </label>
@@ -6427,7 +6448,7 @@ const DriverManagement = () => {
                                       setCertificationFile(null);
                                     }
                                   }}
-                                  className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                                  className="w-10 h-10 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                                 >
                                   {editingCertificationId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                                 </button>
@@ -6467,7 +6488,7 @@ const DriverManagement = () => {
                                 <td className="px-4 py-3 text-sm text-primary">{cert.description || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-primary">
                                   {cert.ignoreExpiration ? (
-                                    <Check className="w-5 h-5 text-green-500" />
+                                    <Check className="w-5 h-5 text-[var(--accent-green)]" />
                                   ) : (
                                     <span className="text-secondary">-</span>
                                   )}
@@ -6475,7 +6496,7 @@ const DriverManagement = () => {
                                 <td className="px-4 py-3 text-sm text-primary">
                                   {(cert.file instanceof File || cert.fileUrl || cert.fileName) ? (
                                     <div className="flex items-center gap-2">
-                                      <FileText className="w-4 h-4 text-blue-500" />
+                                      <FileText className="w-4 h-4 text-[var(--accent-navyblue)]" />
                                       <span className="text-sm text-primary truncate max-w-[150px]" title={cert.file instanceof File ? cert.file.name : (cert.fileName || 'File attached')}>
                                         {cert.file instanceof File ? cert.file.name : (cert.fileName || 'File attached')}
                                       </span>
@@ -6504,7 +6525,7 @@ const DriverManagement = () => {
                                           setCertificationFile(null);
                                         }
                                       }}
-                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                       title="Edit certification"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -6514,7 +6535,7 @@ const DriverManagement = () => {
                                         e.stopPropagation();
                                         setConfirmDeleteCertification({ open: true, cert });
                                       }}
-                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                       title="Delete certification"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -6576,7 +6597,7 @@ const DriverManagement = () => {
                               <div className="px-3 py-2 bg-card border border-theme rounded-lg">
                                 {selectedCertificate.ignoreExpiration ? (
                                   <div className="flex items-center gap-2">
-                                    <Check className="w-5 h-5 text-green-500" />
+                                    <Check className="w-5 h-5 text-[var(--accent-green)]" />
                                     <span className="text-primary">Yes</span>
                                   </div>
                                 ) : (
@@ -6591,7 +6612,7 @@ const DriverManagement = () => {
                                   setCertifications(certifications.filter(c => c.id !== selectedCertificate.id));
                                   setSelectedCertificate(null);
                                 }}
-                                className="w-full px-4 py-2 bg-red-500 !text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                                className="w-full px-4 py-2 bg-[var(--accent-red)] !text-white rounded-lg hover:bg-[var(--accent-red)]/80 transition-colors font-medium"
                               >
                                 Delete Certificate
                               </button>
@@ -6630,7 +6651,7 @@ const DriverManagement = () => {
                                   type="date"
                                   value={newTicket.date}
                                   onChange={(e) => setNewTicket({ ...newTicket, date: e.target.value })}
-                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                                 />
                                 <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                               </div>
@@ -6641,7 +6662,7 @@ const DriverManagement = () => {
                                 placeholder="Title"
                                 value={newTicket.title}
                                 onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
-                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               />
                             </td>
                             <td className="px-3 py-2">
@@ -6650,7 +6671,7 @@ const DriverManagement = () => {
                                 placeholder="Description"
                                 value={newTicket.description}
                                 onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
-                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               />
                             </td>
                             <td className="px-3 py-2">
@@ -6660,12 +6681,12 @@ const DriverManagement = () => {
                                   placeholder="Amount"
                                   value={newTicket.amount}
                                   onChange={(e) => setNewTicket({ ...newTicket, amount: e.target.value })}
-                                  className="flex-1 px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                  className="flex-1 px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                                 />
                                 <select
                                   value={newTicket.currency}
                                   onChange={(e) => setNewTicket({ ...newTicket, currency: e.target.value })}
-                                  className="w-20 px-2 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent text-sm"
+                                  className="w-20 px-2 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent text-sm"
                                 >
                                   <option value="CAD">CAD</option>
                                   <option value="USD">USD</option>
@@ -6676,7 +6697,7 @@ const DriverManagement = () => {
                               <select
                                 value={newTicket.status}
                                 onChange={(e) => setNewTicket({ ...newTicket, status: e.target.value })}
-                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               >
                                 <option value="Unpaid">Unpaid</option>
                                 <option value="Paid">Paid</option>
@@ -6762,7 +6783,7 @@ const DriverManagement = () => {
                                       setTicketFile(null);
                                     }
                                   }}
-                                  className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors flex-shrink-0"
+                                  className="w-10 h-10 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors flex-shrink-0"
                                   title={editingTicketId ? "Save changes" : "Add ticket"}
                                 >
                                   {editingTicketId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
@@ -6823,10 +6844,10 @@ const DriverManagement = () => {
                                   ) : '-'}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-primary">
-                                  <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${ticket.status === 'Paid' ? 'bg-green-100 text-green-700' :
-                                      ticket.status === 'Unpaid' ? 'bg-amber-100 text-amber-700' :
-                                        ticket.status === 'Contested' ? 'bg-blue-100 text-blue-700' :
-                                          'bg-card text-primary'
+                                  <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${ticket.status === 'Paid' ? 'bg-[var(--accent-green)]/15 text-[var(--accent-green)]' :
+                                    ticket.status === 'Unpaid' ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]' :
+                                      ticket.status === 'Contested' ? 'bg-[var(--accent-navyblue)]/15 text-[var(--accent-navyblue)]' :
+                                        'bg-card text-primary'
                                     }`}>
                                     {ticket.status}
                                   </span>
@@ -6834,7 +6855,7 @@ const DriverManagement = () => {
                                 <td className="px-4 py-3 text-sm text-primary">
                                   {(ticket.file instanceof File || ticket.fileUrl || ticket.fileName) ? (
                                     <div className="flex items-center gap-2">
-                                      <FileText className="w-4 h-4 text-blue-500" />
+                                      <FileText className="w-4 h-4 text-[var(--accent-navyblue)]" />
                                       {(ticket.fileUrl || ticket.file instanceof File) ? (
                                         <button
                                           onClick={async (e) => {
@@ -6881,7 +6902,7 @@ const DriverManagement = () => {
                                               }
                                             }
                                           }}
-                                          className="text-sm text-[#00D1FF] hover:underline truncate max-w-[150px] cursor-pointer"
+                                          className="text-sm text-[var(--accent-navyblue)] hover:underline truncate max-w-[150px] cursor-pointer"
                                           title={ticket.fileName || (ticket.file instanceof File ? ticket.file.name : 'View Document')}
                                         >
                                           {ticket.fileName || (ticket.file instanceof File ? ticket.file.name : 'View Document')}
@@ -6918,7 +6939,7 @@ const DriverManagement = () => {
                                           setTicketFile(null);
                                         }
                                       }}
-                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                       title="Edit ticket"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -6928,7 +6949,7 @@ const DriverManagement = () => {
                                         e.stopPropagation();
                                         setConfirmDeleteTicket({ open: true, ticket });
                                       }}
-                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                       title="Delete ticket"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -6992,7 +7013,7 @@ const DriverManagement = () => {
                                   setTickets(tickets.filter(t => t.id !== selectedTicket.id));
                                   setSelectedTicket(null);
                                 }}
-                                className="w-full px-4 py-2 bg-red-500 !text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                                className="w-full px-4 py-2 bg-[var(--accent-red)] !text-white rounded-lg hover:bg-[var(--accent-red)]/80 transition-colors font-medium"
                               >
                                 Delete Ticket
                               </button>
@@ -7008,7 +7029,7 @@ const DriverManagement = () => {
                         <div className="bg-card rounded-xl shadow-2xl w-full max-w-md">
                           <div className="p-6">
                             <div className="flex items-center gap-4 mb-4">
-                              <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                              <div className="flex-shrink-0 w-12 h-12 bg-[var(--accent-red)]/15 rounded-full flex items-center justify-center">
                                 <Trash2 className="w-6 h-6 text-[#A855F7]" />
                               </div>
                               <div>
@@ -7032,7 +7053,7 @@ const DriverManagement = () => {
                                   setConfirmDeleteTicket({ open: false, ticket: null });
                                   setSelectedTicket(null);
                                 }}
-                                className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                                className="px-4 py-2 bg-[var(--accent-red)] !text-white rounded-lg hover:bg-[var(--accent-red)]/80 transition-colors font-medium"
                               >
                                 Delete
                               </button>
@@ -7053,7 +7074,7 @@ const DriverManagement = () => {
                     <div className="space-y-4 p-4 bg-card rounded-lg">
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-1">Violation Type <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-primary mb-1">Violation Type <span className="text-[var(--accent-red)]">*</span></label>
                           <select
                             value={newViolation.violationType}
                             onChange={(e) => {
@@ -7062,7 +7083,7 @@ const DriverManagement = () => {
                                 setValidationErrors({ ...validationErrors, violationType: '' });
                               }
                             }}
-                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent ${validationErrors.violationType ? 'border-red-500' : 'border-theme'
+                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.violationType ? 'border-[var(--accent-red)]' : 'border-theme'
                               }`}
                           >
                             <option value="">Select Type</option>
@@ -7074,7 +7095,7 @@ const DriverManagement = () => {
                             <option value="Other">Other</option>
                           </select>
                           {validationErrors.violationType && (
-                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.violationType}</p>
+                            <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.violationType}</p>
                           )}
                         </div>
                         <div>
@@ -7084,18 +7105,18 @@ const DriverManagement = () => {
                             placeholder="Short one-line summary"
                             value={newViolation.title}
                             onChange={(e) => setNewViolation({ ...newViolation, title: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-1">Date of Incident <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-primary mb-1">Date of Incident <span className="text-[var(--accent-red)]">*</span></label>
                           <div className="relative">
                             <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                             <input
                               type="date"
                               value={newViolation.dateOfIncident}
                               onChange={(e) => setNewViolation({ ...newViolation, dateOfIncident: e.target.value })}
-                              className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                              className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                             />
                           </div>
                         </div>
@@ -7106,7 +7127,7 @@ const DriverManagement = () => {
                             placeholder="Manager/Admin name"
                             value={newViolation.reportedBy}
                             onChange={(e) => setNewViolation({ ...newViolation, reportedBy: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                         <div>
@@ -7114,7 +7135,7 @@ const DriverManagement = () => {
                           <select
                             value={newViolation.severity}
                             onChange={(e) => setNewViolation({ ...newViolation, severity: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           >
                             <option value="">Select Severity</option>
                             <option value="Low">Low</option>
@@ -7127,7 +7148,7 @@ const DriverManagement = () => {
                           <select
                             value={newViolation.actionTaken}
                             onChange={(e) => setNewViolation({ ...newViolation, actionTaken: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           >
                             <option value="">Select Action</option>
                             <option value="None">None</option>
@@ -7141,7 +7162,7 @@ const DriverManagement = () => {
                           <select
                             value={newViolation.status}
                             onChange={(e) => setNewViolation({ ...newViolation, status: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           >
                             <option value="">Select Status</option>
                             <option value="Open">Open</option>
@@ -7156,7 +7177,7 @@ const DriverManagement = () => {
                             value={newViolation.description}
                             onChange={(e) => setNewViolation({ ...newViolation, description: e.target.value })}
                             rows={3}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -7273,7 +7294,7 @@ const DriverManagement = () => {
                               });
                               setViolationFile(null);
                             }}
-                            className="px-4 py-2 bg-black !text-white rounded-lg flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors font-medium"
+                            className="px-4 py-2 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center gap-2 hover:bg-[rgba(255,255,255,0.12)] transition-colors font-medium"
                           >
                             <Plus className="w-4 h-4" />
                             {editingViolationId ? 'Update' : 'Add'} Violation
@@ -7310,7 +7331,7 @@ const DriverManagement = () => {
                                   {violation.dateOfIncident ? new Date(violation.dateOfIncident).toLocaleDateString() : '-'}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-primary">
-                                  <span className="px-2 py-1 bg-card text-blue-700 rounded-md text-xs font-medium">
+                                  <span className="px-2 py-1 bg-card text-[var(--accent-navyblue)] rounded-md text-xs font-medium">
                                     {violation.violationType || '-'}
                                   </span>
                                 </td>
@@ -7319,9 +7340,9 @@ const DriverManagement = () => {
                                 </td>
                                 <td className="px-4 py-3 text-sm text-primary">
                                   {violation.severity ? (
-                                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${violation.severity === 'High' ? 'bg-red-100 text-red-700' :
-                                        violation.severity === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                                          'bg-green-100 text-green-700'
+                                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${violation.severity === 'High' ? 'bg-[var(--accent-red)]/15 text-[var(--accent-red)]' :
+                                      violation.severity === 'Medium' ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]' :
+                                        'bg-[var(--accent-green)]/15 text-[var(--accent-green)]'
                                       }`}>
                                       {violation.severity}
                                     </span>
@@ -7330,8 +7351,8 @@ const DriverManagement = () => {
                                 <td className="px-4 py-3 text-sm text-primary">
                                   {violation.status ? (
                                     <span className={`px-2 py-1 rounded-md text-xs font-medium ${violation.status === 'Closed' ? 'bg-card text-primary' :
-                                        violation.status === 'Under Review' ? 'bg-blue-100 text-blue-700' :
-                                          'bg-orange-100 text-orange-700'
+                                      violation.status === 'Under Review' ? 'bg-[var(--accent-navyblue)]/15 text-[var(--accent-navyblue)]' :
+                                        'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]'
                                       }`}>
                                       {violation.status}
                                     </span>
@@ -7344,7 +7365,7 @@ const DriverManagement = () => {
                                         href={violation.fileUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-1 text-[#00D1FF] hover:text-blue-800 hover:underline"
+                                        className="flex items-center gap-1 text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]/70 hover:underline"
                                         title={violation.file instanceof File ? violation.file.name : (violation.fileName || 'View File')}
                                         onClick={(e) => e.stopPropagation()}
                                       >
@@ -7353,7 +7374,7 @@ const DriverManagement = () => {
                                       </a>
                                     ) : (
                                       <span className="flex items-center gap-1 text-secondary" title={violation.file instanceof File ? violation.file.name : (violation.fileName || 'File attached')}>
-                                        <FileText className="w-4 h-4 text-blue-500" />
+                                        <FileText className="w-4 h-4 text-[var(--accent-navyblue)]" />
                                         <span className="text-xs">{violation.file instanceof File ? violation.file.name : (violation.fileName || 'File attached')}</span>
                                       </span>
                                     )
@@ -7385,7 +7406,7 @@ const DriverManagement = () => {
                                           setViolationFile(null);
                                         }
                                       }}
-                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                       title="Edit violation"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -7429,7 +7450,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                       title="Delete violation"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -7458,14 +7479,14 @@ const DriverManagement = () => {
                           placeholder="Note"
                           value={newNote.note}
                           onChange={(e) => setNewNote({ ...newNote, note: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div className="flex-1">
                         <select
                           value={newNote.category}
                           onChange={(e) => setNewNote({ ...newNote, category: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
                           <option value="">Category</option>
                           <option value="Safety">Safety</option>
@@ -7505,7 +7526,7 @@ const DriverManagement = () => {
                               });
                             }
                           }}
-                          className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                          className="w-10 h-10 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                         >
                           {editingNoteId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                         </button>
@@ -7538,7 +7559,7 @@ const DriverManagement = () => {
                                       });
                                       setEditingNoteId(note.id);
                                     }}
-                                    className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                                    className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                     title="Edit note"
                                   >
                                     <Edit className="w-4 h-4" />
@@ -7556,7 +7577,7 @@ const DriverManagement = () => {
                                         }
                                       }
                                     }}
-                                    className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                                    className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                     title="Delete note"
                                   >
                                     <Trash2 className="w-4 h-4" />
@@ -7586,7 +7607,7 @@ const DriverManagement = () => {
                             type="date"
                             value={newDeduction.startDate}
                             onChange={(e) => setNewDeduction({ ...newDeduction, startDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -7597,7 +7618,7 @@ const DriverManagement = () => {
                           placeholder="Description"
                           value={newDeduction.description}
                           onChange={(e) => setNewDeduction({ ...newDeduction, description: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div className="flex-1">
@@ -7607,7 +7628,7 @@ const DriverManagement = () => {
                           placeholder="0"
                           value={newDeduction.amount}
                           onChange={(e) => setNewDeduction({ ...newDeduction, amount: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div className="flex-1">
@@ -7615,7 +7636,7 @@ const DriverManagement = () => {
                         <select
                           value={newDeduction.interval}
                           onChange={(e) => setNewDeduction({ ...newDeduction, interval: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
                           <option value="">Interval</option>
                           <option value="Weekly">Weekly</option>
@@ -7630,7 +7651,7 @@ const DriverManagement = () => {
                         <select
                           value={newDeduction.currency}
                           onChange={(e) => setNewDeduction({ ...newDeduction, currency: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
                           <option value="CAD">CAD</option>
                           <option value="USD">USD</option>
@@ -7675,7 +7696,7 @@ const DriverManagement = () => {
                               });
                             }
                           }}
-                          className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                          className="w-10 h-10 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                         >
                           {editingDeductionId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                         </button>
@@ -7722,7 +7743,7 @@ const DriverManagement = () => {
                                         });
                                         setEditingDeductionId(deduction.id);
                                       }}
-                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                       title="Edit deduction"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -7761,7 +7782,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                       title="Delete deduction"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -7792,7 +7813,7 @@ const DriverManagement = () => {
                             type="date"
                             value={newAddition.startDate}
                             onChange={(e) => setNewAddition({ ...newAddition, startDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -7803,7 +7824,7 @@ const DriverManagement = () => {
                           placeholder="Description"
                           value={newAddition.description}
                           onChange={(e) => setNewAddition({ ...newAddition, description: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div className="flex-1">
@@ -7813,7 +7834,7 @@ const DriverManagement = () => {
                           placeholder="0"
                           value={newAddition.amount}
                           onChange={(e) => setNewAddition({ ...newAddition, amount: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         />
                       </div>
                       <div className="flex-1">
@@ -7821,7 +7842,7 @@ const DriverManagement = () => {
                         <select
                           value={newAddition.interval}
                           onChange={(e) => setNewAddition({ ...newAddition, interval: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
                           <option value="">Interval</option>
                           <option value="Weekly">Weekly</option>
@@ -7836,7 +7857,7 @@ const DriverManagement = () => {
                         <select
                           value={newAddition.currency}
                           onChange={(e) => setNewAddition({ ...newAddition, currency: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
                           <option value="CAD">CAD</option>
                           <option value="USD">USD</option>
@@ -7881,7 +7902,7 @@ const DriverManagement = () => {
                               });
                             }
                           }}
-                          className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                          className="w-10 h-10 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                         >
                           {editingAdditionId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                         </button>
@@ -7928,7 +7949,7 @@ const DriverManagement = () => {
                                         });
                                         setEditingAdditionId(addition.id);
                                       }}
-                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                       title="Edit addition"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -7967,7 +7988,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                       title="Delete addition"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -8002,7 +8023,7 @@ const DriverManagement = () => {
                                 <span className="text-xs font-medium text-primary">{test.testType}</span>
                                 {test.hrApproved ? (
                                   <div className="flex items-center gap-2">
-                                    <span className="px-2 py-1 rounded bg-green-100 text-green-800 text-xs font-medium flex items-center gap-1">
+                                    <span className="px-2 py-1 rounded bg-[var(--accent-green)]/15 text-[var(--accent-green)] text-xs font-medium flex items-center gap-1">
                                       <Check className="w-3 h-3" />
                                       Approved
                                     </span>
@@ -8017,7 +8038,7 @@ const DriverManagement = () => {
                                   </div>
                                 ) : test.hrRejected ? (
                                   <div className="flex items-center gap-2">
-                                    <span className="px-2 py-1 rounded bg-red-100 text-red-800 text-xs font-medium flex items-center gap-1">
+                                    <span className="px-2 py-1 rounded bg-[var(--accent-red)]/15 text-[var(--accent-red)] text-xs font-medium flex items-center gap-1">
                                       <X className="w-3 h-3" />
                                       Rejected
                                     </span>
@@ -8026,7 +8047,7 @@ const DriverManagement = () => {
                                     )}
                                   </div>
                                 ) : (
-                                  <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-800 text-xs font-medium">
+                                  <span className="px-2 py-1 rounded bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-xs font-medium">
                                     Pending Review
                                   </span>
                                 )}
@@ -8052,14 +8073,14 @@ const DriverManagement = () => {
 
                       {/* Warning message if base tests not completed */}
                       {!areBaseTestsCompleted() && (
-                        <div className="bg-card border border-yellow-200 rounded-lg p-3 mb-3">
+                        <div className="bg-card border border-[var(--accent-orange)]/30 rounded-lg p-3 mb-3">
                           <div className="flex items-start gap-2">
                             <AlertTriangle className="w-4 h-4 text-[#00FFA3] mt-0.5 flex-shrink-0" />
                             <div className="flex-1">
-                              <p className="text-xs font-medium text-yellow-800 mb-1">
+                              <p className="text-xs font-medium text-[var(--accent-orange)] mb-1">
                                 Complete Required Tests First
                               </p>
-                              <p className="text-xs text-yellow-700">
+                              <p className="text-xs text-[var(--accent-orange)]">
                                 Driver must complete and have HR approval for VEHICLE and HOS tests before enabling driver flags.
                               </p>
                             </div>
@@ -8069,8 +8090,8 @@ const DriverManagement = () => {
 
                       <div className="space-y-3">
                         <div className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${!areBaseTestsCompleted() && !handlesHazardousLoads
-                            ? 'bg-card border-theme opacity-60'
-                            : 'bg-card border-theme hover:bg-[rgba(255,255,255,0.03)]'
+                          ? 'bg-card border-theme opacity-60'
+                          : 'bg-card border-theme hover:bg-[rgba(255,255,255,0.03)]'
                           }`}>
                           <input
                             type="checkbox"
@@ -8081,17 +8102,17 @@ const DriverManagement = () => {
                               e.preventDefault();
                               handleFlagChange('handlesHazardousLoads', !handlesHazardousLoads);
                             }}
-                            className={`w-4 h-4 mt-0.5 text-[rgba(0,209,255,0.15)] border-theme rounded focus:ring-[rgba(0,209,255,0.15)] ${!areBaseTestsCompleted() && !handlesHazardousLoads
-                                ? 'cursor-not-allowed opacity-50'
-                                : 'cursor-pointer'
+                            className={`w-4 h-4 mt-0.5 text-[var(--accent-navyblue)]/15 border-theme rounded focus:ring-[var(--accent-navyblue)]/15 ${!areBaseTestsCompleted() && !handlesHazardousLoads
+                              ? 'cursor-not-allowed opacity-50'
+                              : 'cursor-pointer'
                               }`}
                           />
                           <div className="flex-1">
                             <label
                               htmlFor="handlesHazardousLoads"
                               className={`text-xs font-medium block ${!areBaseTestsCompleted() && !handlesHazardousLoads
-                                  ? 'text-secondary cursor-not-allowed'
-                                  : 'text-primary cursor-pointer'
+                                ? 'text-secondary cursor-not-allowed'
+                                : 'text-primary cursor-pointer'
                                 }`}
                             >
                               Handles hazardous loads
@@ -8100,7 +8121,7 @@ const DriverManagement = () => {
                               When enabled, driver must complete TDG (Transportation of Dangerous Goods) test
                             </p>
                             {handlesHazardousLoads && (
-                              <span className="inline-block mt-1 px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded font-medium">
+                              <span className="inline-block mt-1 px-2 py-0.5 bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-xs rounded font-medium">
                                 TDG Test Required
                               </span>
                             )}
@@ -8108,8 +8129,8 @@ const DriverManagement = () => {
                         </div>
 
                         <div className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${!areBaseTestsCompleted() && !winterTestRequired
-                            ? 'bg-card border-theme opacity-60'
-                            : 'bg-card border-theme hover:bg-[rgba(255,255,255,0.03)]'
+                          ? 'bg-card border-theme opacity-60'
+                          : 'bg-card border-theme hover:bg-[rgba(255,255,255,0.03)]'
                           }`}>
                           <input
                             type="checkbox"
@@ -8120,17 +8141,17 @@ const DriverManagement = () => {
                               e.preventDefault();
                               handleFlagChange('winterTestRequired', !winterTestRequired);
                             }}
-                            className={`w-4 h-4 mt-0.5 text-[rgba(0,209,255,0.15)] border-theme rounded focus:ring-[rgba(0,209,255,0.15)] ${!areBaseTestsCompleted() && !winterTestRequired
-                                ? 'cursor-not-allowed opacity-50'
-                                : 'cursor-pointer'
+                            className={`w-4 h-4 mt-0.5 text-[var(--accent-navyblue)]/15 border-theme rounded focus:ring-[var(--accent-navyblue)]/15 ${!areBaseTestsCompleted() && !winterTestRequired
+                              ? 'cursor-not-allowed opacity-50'
+                              : 'cursor-pointer'
                               }`}
                           />
                           <div className="flex-1">
                             <label
                               htmlFor="winterTestRequired"
                               className={`text-xs font-medium block ${!areBaseTestsCompleted() && !winterTestRequired
-                                  ? 'text-secondary cursor-not-allowed'
-                                  : 'text-primary cursor-pointer'
+                                ? 'text-secondary cursor-not-allowed'
+                                : 'text-primary cursor-pointer'
                                 }`}
                             >
                               Winter test required (optional override)
@@ -8139,7 +8160,7 @@ const DriverManagement = () => {
                               When enabled, driver must complete Winter Driving test
                             </p>
                             {winterTestRequired && (
-                              <span className="inline-block mt-1 px-2 py-0.5 bg-cyan-100 text-cyan-800 text-xs rounded font-medium">
+                              <span className="inline-block mt-1 px-2 py-0.5 bg-[var(--accent-navyblue)]/15 text-[var(--accent-navyblue)] text-xs rounded font-medium">
                                 Winter Test Required
                               </span>
                             )}
@@ -8176,7 +8197,7 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Section 4: Required Tests */}
-                    <div className="bg-card rounded-lg p-4 space-y-3 border border-blue-200">
+                    <div className="bg-card rounded-lg p-4 space-y-3 border border-[var(--accent-navyblue)]/30">
                       <h4 className="text-sm font-bold text-primary mb-3">Required Tests</h4>
                       <p className="text-xs text-secondary mb-3">Based on the flags above, the following tests are required for this driver:</p>
 
@@ -8194,14 +8215,14 @@ const DriverManagement = () => {
 
                       <div className="space-y-2">
                         {/* Base tests - always required */}
-                        <div className="flex items-center gap-2 bg-card rounded-lg p-2 border border-blue-100">
-                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <div className="flex items-center gap-2 bg-card rounded-lg p-2 border border-[var(--accent-navyblue)]/20">
+                          <div className="w-2 h-2 rounded-full bg-[var(--accent-navyblue)]"></div>
                           <span className="text-xs font-medium text-primary">VEHICLE</span>
                           <span className="text-xs text-secondary">- Vehicle Inspection</span>
                         </div>
 
-                        <div className="flex items-center gap-2 bg-card rounded-lg p-2 border border-blue-100">
-                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <div className="flex items-center gap-2 bg-card rounded-lg p-2 border border-[var(--accent-navyblue)]/20">
+                          <div className="w-2 h-2 rounded-full bg-[var(--accent-navyblue)]"></div>
                           <span className="text-xs font-medium text-primary">HOS</span>
                           <span className="text-xs text-secondary">- Hours of Service</span>
                         </div>
@@ -8210,11 +8231,11 @@ const DriverManagement = () => {
                         {(() => {
                           console.log('🔍 Rendering Required Tests - handlesHazardousLoads:', handlesHazardousLoads, 'type:', typeof handlesHazardousLoads);
                           return handlesHazardousLoads === true ? (
-                            <div className="flex items-center gap-2 bg-card rounded-lg p-2 border border-orange-200">
-                              <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                            <div className="flex items-center gap-2 bg-card rounded-lg p-2 border border-[var(--accent-orange)]/30">
+                              <div className="w-2 h-2 rounded-full bg-[var(--accent-orange)]"></div>
                               <span className="text-xs font-medium text-primary">TDG</span>
                               <span className="text-xs text-secondary">- Transportation of Dangerous Goods</span>
-                              <span className="ml-auto px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded">Hazardous Loads</span>
+                              <span className="ml-auto px-2 py-0.5 bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-xs rounded">Hazardous Loads</span>
                             </div>
                           ) : null;
                         })()}
@@ -8223,17 +8244,17 @@ const DriverManagement = () => {
                         {(() => {
                           console.log('🔍 Rendering Required Tests - winterTestRequired:', winterTestRequired, 'type:', typeof winterTestRequired);
                           return winterTestRequired === true ? (
-                            <div className="flex items-center gap-2 bg-cyan-50 rounded-lg p-2 border border-cyan-200">
-                              <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
+                            <div className="flex items-center gap-2 bg-[var(--accent-navyblue)]/10 rounded-lg p-2 border border-[var(--accent-navyblue)]/20">
+                              <div className="w-2 h-2 rounded-full bg-[var(--accent-navyblue)]"></div>
                               <span className="text-xs font-medium text-primary">WINTER</span>
                               <span className="text-xs text-secondary">- Winter Driving</span>
-                              <span className="ml-auto px-2 py-0.5 bg-cyan-100 text-cyan-800 text-xs rounded">Winter Season</span>
+                              <span className="ml-auto px-2 py-0.5 bg-[var(--accent-navyblue)]/15 text-[var(--accent-navyblue)] text-xs rounded">Winter Season</span>
                             </div>
                           ) : null;
                         })()}
                       </div>
 
-                      <div className="mt-3 pt-3 border-t border-blue-200">
+                      <div className="mt-3 pt-3 border-t border-[var(--accent-navyblue)]/30">
                         <p className="text-xs text-secondary">
                           <span className="font-medium">Total Required Tests:</span> {2 + (handlesHazardousLoads ? 1 : 0) + (winterTestRequired ? 1 : 0)}
                         </p>
@@ -8271,24 +8292,24 @@ const DriverManagement = () => {
                                   <td className="px-4 py-2 text-xs text-primary font-medium">{test.testType}</td>
                                   <td className="px-4 py-2 text-xs text-primary">{test.score}%</td>
                                   <td className="px-4 py-2">
-                                    <span className={`px-2 py-1 rounded text-xs font-medium ${test.passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${test.passed ? 'bg-[var(--accent-green)]/15 text-[var(--accent-green)]' : 'bg-[var(--accent-red)]/15 text-[var(--accent-red)]'
                                       }`}>
                                       {test.passed ? 'Passed' : 'Failed'}
                                     </span>
                                   </td>
                                   <td className="px-4 py-2">
                                     {test.hrApproved ? (
-                                      <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 !text-green-800 flex items-center gap-1">
+                                      <span className="px-2 py-1 rounded text-xs font-medium bg-[var(--accent-green)]/15 !text-[var(--accent-green)] flex items-center gap-1">
                                         <Check className="w-3 h-3" />
                                         Approved
                                       </span>
                                     ) : test.hrRejected ? (
-                                      <span className="px-2 py-1 rounded text-xs font-medium bg-red-100 !text-red-800 flex items-center gap-1">
+                                      <span className="px-2 py-1 rounded text-xs font-medium bg-[var(--accent-red)]/15 !text-[var(--accent-red)] flex items-center gap-1">
                                         <X className="w-3 h-3" />
                                         Rejected
                                       </span>
                                     ) : (
-                                      <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                      <span className="px-2 py-1 rounded text-xs font-medium bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
                                         Pending
                                       </span>
                                     )}
@@ -8302,7 +8323,7 @@ const DriverManagement = () => {
                                       <div className="flex items-center gap-1">
                                         <button
                                           onClick={() => openApprovalModal(test, 'approve')}
-                                          className="px-2 py-1 bg-green-600 !text-white text-xs rounded hover:bg-green-700 transition-colors flex items-center gap-1"
+                                          className="px-2 py-1 bg-[var(--accent-green)] !text-white text-xs rounded hover:bg-[var(--accent-green)]/80 transition-colors flex items-center gap-1"
                                           title="Approve Test"
                                         >
                                           <Check className="w-3 h-3" />
@@ -8310,7 +8331,7 @@ const DriverManagement = () => {
                                         </button>
                                         <button
                                           onClick={() => openApprovalModal(test, 'reject')}
-                                          className="px-2 py-1 bg-red-600 !text-white text-xs rounded hover:bg-red-700 transition-colors flex items-center gap-1"
+                                          className="px-2 py-1 bg-[var(--accent-red)] !text-white text-xs rounded hover:bg-[var(--accent-red)]/80 transition-colors flex items-center gap-1"
                                           title="Reject Test"
                                         >
                                           <X className="w-3 h-3" />
@@ -8320,7 +8341,7 @@ const DriverManagement = () => {
                                     )}
                                     {test.hrApproved && (
                                       <div className="text-xs">
-                                        <div className="text-green-700 font-medium">Approved</div>
+                                        <div className="text-[var(--accent-green)] font-medium">Approved</div>
                                         {test.hrApprovedBy && (
                                           <div className="text-secondary">By: {test.hrApprovedBy}</div>
                                         )}
@@ -8331,7 +8352,7 @@ const DriverManagement = () => {
                                     )}
                                     {test.hrRejected && (
                                       <div className="text-xs">
-                                        <div className="text-red-700 font-medium">Rejected</div>
+                                        <div className="text-[var(--accent-red)] font-medium">Rejected</div>
                                         {test.hrRejectionReason && (
                                           <div className="text-[#A855F7] mt-1">Reason: {test.hrRejectionReason}</div>
                                         )}
@@ -8366,7 +8387,7 @@ const DriverManagement = () => {
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-bold text-primary">Drug Test</h3>
                       <div className="flex items-center gap-2 text-sm text-secondary">
-                        <Lock className="w-4 h-4 text-green-500" />
+                        <Lock className="w-4 h-4 text-[var(--accent-green)]" />
                         <span>Protected Section</span>
                       </div>
                     </div>
@@ -8390,14 +8411,14 @@ const DriverManagement = () => {
                                 type="date"
                                 value={newDrugTest.date}
                                 onChange={(e) => setNewDrugTest({ ...newDrugTest, date: e.target.value })}
-                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               />
                             </td>
                             <td className="px-4 py-3">
                               <select
                                 value={newDrugTest.result}
                                 onChange={(e) => setNewDrugTest({ ...newDrugTest, result: e.target.value })}
-                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               >
                                 <option value="">Select Result</option>
                                 <option value="Negative">Negative</option>
@@ -8411,7 +8432,7 @@ const DriverManagement = () => {
                                 placeholder="Document Name"
                                 value={newDrugTest.labName}
                                 onChange={(e) => setNewDrugTest({ ...newDrugTest, labName: e.target.value })}
-                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               />
                             </td>
                             <td className="px-4 py-3">
@@ -8493,7 +8514,7 @@ const DriverManagement = () => {
                                       setDrugTestFile(null);
                                     }
                                   }}
-                                  className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                                  className="w-10 h-10 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                                 >
                                   {editingDrugTestId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                                 </button>
@@ -8540,9 +8561,9 @@ const DriverManagement = () => {
                                   })() : '-'}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-primary">
-                                  <span className={`px-2 py-1 rounded text-xs font-medium ${dt.result === 'Negative' ? 'bg-green-100 text-green-800' :
-                                      dt.result === 'Positive' ? 'bg-red-100 text-red-800' :
-                                        'bg-yellow-100 text-yellow-800'
+                                  <span className={`px-2 py-1 rounded text-xs font-medium ${dt.result === 'Negative' ? 'bg-[var(--accent-green)]/15 text-[var(--accent-green)]' :
+                                    dt.result === 'Positive' ? 'bg-[var(--accent-red)]/15 text-[var(--accent-red)]' :
+                                      'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]'
                                     }`}>
                                     {dt.result || '-'}
                                   </span>
@@ -8572,7 +8593,7 @@ const DriverManagement = () => {
                                             addNotification('error', 'Failed to open file');
                                           }
                                         }}
-                                        className="flex items-center gap-1 text-[#00D1FF] hover:text-blue-800 hover:underline"
+                                        className="flex items-center gap-1 text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]/70 hover:underline"
                                         title={dt.fileName || 'View file'}
                                       >
                                         <FileText className="w-4 h-4" />
@@ -8591,7 +8612,7 @@ const DriverManagement = () => {
                                             window.open(url, '_blank');
                                           }
                                         }}
-                                        className="flex items-center gap-1 text-[#00D1FF] hover:text-blue-800 hover:underline"
+                                        className="flex items-center gap-1 text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]/70 hover:underline"
                                         title={uploadedFiles[dt.id].name}
                                       >
                                         <FileText className="w-4 h-4" />
@@ -8620,7 +8641,7 @@ const DriverManagement = () => {
                                         }
                                         setEditingDrugTestId(dt.id);
                                       }}
-                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/15 rounded transition-colors"
                                       title="Edit drug test"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -8661,7 +8682,7 @@ const DriverManagement = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/10 rounded transition-colors"
                                       title="Delete drug test"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -8755,15 +8776,15 @@ const DriverManagement = () => {
                   New status: <span className="font-medium">{selectedFlag.newValue ? 'Enabled' : 'Disabled'}</span>
                 </p>
                 {selectedFlag.flagName === 'handlesHazardousLoads' && selectedFlag.newValue && (
-                  <div className="bg-card border border-orange-200 rounded-lg p-3 mb-4">
-                    <p className="text-xs text-orange-800">
+                  <div className="bg-card border border-[var(--accent-orange)]/30 rounded-lg p-3 mb-4">
+                    <p className="text-xs text-[var(--accent-orange)]">
                       <span className="font-medium">Note:</span> Enabling this flag will require the driver to complete the TDG (Transportation of Dangerous Goods) test.
                     </p>
                   </div>
                 )}
                 {selectedFlag.flagName === 'winterTestRequired' && selectedFlag.newValue && (
-                  <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-3 mb-4">
-                    <p className="text-xs text-cyan-800">
+                  <div className="bg-[var(--accent-navyblue)]/10 border border-[var(--accent-navyblue)]/30 rounded-lg p-3 mb-4">
+                    <p className="text-xs text-[var(--accent-navyblue)]">
                       <span className="font-medium">Note:</span> Enabling this flag will require the driver to complete the Winter Driving test.
                     </p>
                   </div>
@@ -8773,13 +8794,13 @@ const DriverManagement = () => {
               <div className="flex gap-3">
                 <button
                   onClick={handleCancelFlagUpdate}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-primary rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                  className="flex-1 px-4 py-2 bg-[rgba(255,255,255,0.08)] text-primary rounded-lg hover:bg-[rgba(255,255,255,0.12)] transition-colors font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmFlagUpdate}
-                  className="flex-1 px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors font-medium"
+                  className="flex-1 px-4 py-2 bg-[var(--accent-navyblue)]/15 !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors font-medium"
                 >
                   {selectedFlag.newValue ? 'Enable' : 'Disable'}
                 </button>
@@ -8831,7 +8852,7 @@ const DriverManagement = () => {
                     }
                   }}
                   placeholder="Enter your account password"
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] focus:border-transparent ${drugTestPasswordError ? 'border-red-500' : 'border-theme'
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)]/15 focus:border-transparent ${drugTestPasswordError ? 'border-[var(--accent-red)]' : 'border-theme'
                     }`}
                   autoFocus
                 />
@@ -8850,14 +8871,14 @@ const DriverManagement = () => {
                     }
                   }}
                   disabled={verifyingPassword}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-primary rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-[rgba(255,255,255,0.08)] text-primary rounded-lg hover:bg-[rgba(255,255,255,0.12)] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDrugTestPasswordVerify}
                   disabled={verifyingPassword || !drugTestPassword.trim()}
-                  className="flex-1 px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 bg-[var(--accent-navyblue)]/15 !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {verifyingPassword ? (
                     <>
@@ -8904,7 +8925,7 @@ const DriverManagement = () => {
                       value={rejectionReason}
                       onChange={(e) => setRejectionReason(e.target.value)}
                       placeholder="Enter reason for rejection..."
-                      className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] focus:border-transparent resize-none"
+                      className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)]/15 focus:border-transparent resize-none"
                       rows={4}
                     />
                   </div>
@@ -8919,15 +8940,15 @@ const DriverManagement = () => {
               <div className="flex items-center gap-3 justify-end">
                 <button
                   onClick={closeApprovalModal}
-                  className="px-4 py-2 text-sm font-medium text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-primary bg-card rounded-lg hover:bg-[rgba(255,255,255,0.08)] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={selectedTest.action === 'approve' ? handleTestApproval : handleTestRejection}
                   className={`px-4 py-2 text-sm font-medium !text-white rounded-lg transition-colors ${selectedTest.action === 'approve'
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-red-600 hover:bg-red-700'
+                    ? 'bg-[var(--accent-green)] hover:bg-[var(--accent-green)]/80'
+                    : 'bg-[var(--accent-red)] hover:bg-[var(--accent-red)]/80'
                     }`}
                 >
                   {selectedTest.action === 'approve' ? 'Approve' : 'Reject'}
@@ -8944,7 +8965,7 @@ const DriverManagement = () => {
           <div className="bg-card rounded-xl shadow-xl max-w-md w-full">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <div className="flex-shrink-0 w-12 h-12 bg-[var(--accent-red)]/15 rounded-full flex items-center justify-center">
                   <Trash2 className="w-6 h-6 text-[#A855F7]" />
                 </div>
                 <div>
@@ -8964,7 +8985,7 @@ const DriverManagement = () => {
                 </button>
                 <button
                   onClick={confirmDeleteDriver}
-                  className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors"
+                  className="px-4 py-2 bg-[var(--accent-red)] !text-white rounded-lg hover:bg-[var(--accent-red)]/80 transition-colors"
                 >
                   Delete
                 </button>
@@ -8980,7 +9001,7 @@ const DriverManagement = () => {
           <div className="bg-card rounded-xl shadow-2xl w-full max-w-md">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <div className="flex-shrink-0 w-12 h-12 bg-[var(--accent-red)]/15 rounded-full flex items-center justify-center">
                   <Trash2 className="w-6 h-6 text-[#A855F7]" />
                 </div>
                 <div>
@@ -9000,7 +9021,7 @@ const DriverManagement = () => {
                 </button>
                 <button
                   onClick={handleConfirmDeleteCertification}
-                  className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  className="px-4 py-2 bg-[var(--accent-red)] !text-white rounded-lg hover:bg-[var(--accent-red)]/80 transition-colors font-medium"
                 >
                   Delete
                 </button>
