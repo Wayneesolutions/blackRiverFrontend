@@ -1635,13 +1635,13 @@ const Trucks: React.FC = () => {
                 {/* Header Section */}
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h1 className="text-3xl font-bold text-primary">Trucks</h1>
+                        <h1 className="text-3xl font-bold text-[var(--accent-navyblue)]">Trucks</h1>
                         <div className="flex items-center gap-3">
-                            <span className="text-2xl font-bold text-primary">({filteredTrucks.length})</span>
+                            <span className="text-2xl font-bold text-[var(--accent-navyblue)]">({filteredTrucks.length})</span>
                             <button
                                 onClick={handleExportTrucks}
                                 title="Export to Excel"
-                                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+                                className="w-10 h-10 bg-[var(--accent-teal)] !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
                             >
                                 <FileDown className="w-5 h-5" />
                             </button>
@@ -1692,7 +1692,7 @@ const Trucks: React.FC = () => {
                                     setShowSidebar(true);
                                     setActiveStep('Details');
                                 }}
-                                className="w-10 h-10 bg-[var(--accent-blue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-blue)] transition-colors shadow-md"
+                                className="w-10 h-10 bg-[var(--accent-navyblue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-navyblue)] transition-colors shadow-md"
                             >
                                 <Plus className="w-5 h-5" />
                             </button>
@@ -1717,7 +1717,7 @@ const Trucks: React.FC = () => {
                                 }`}
                         >
                             <div>
-                                <div className="font-semibold">
+                                <div className="font-semibold text-[var(--accent-navyblue)]">
                                     All ({getCountByCategory('All')})
                                 </div>
                             </div>
@@ -1761,7 +1761,7 @@ const Trucks: React.FC = () => {
                                 }`}
                         >
                             <div>
-                                <div className="font-semibold">
+                                <div className="font-semibold text-[var(--accent-navyblue)]">
                                     External ({getCountByCategory('External')})
                                 </div>
                             </div>
@@ -1781,7 +1781,7 @@ const Trucks: React.FC = () => {
                                 }`}
                         >
                             <div>
-                                <div className="font-semibold">
+                                <div className="font-semibold text-[var(--accent-navyblue)]">
                                     Unassigned ({getCountByCategory('Unassigned')})
                                 </div>
                             </div>
@@ -1794,7 +1794,7 @@ const Trucks: React.FC = () => {
                     <div className="flex flex-wrap items-center gap-4">
                         {/* Search Input */}
                         <div className="flex items-center gap-2 flex-1 min-w-[300px]">
-                            <label className="text-sm font-medium text-primary whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)] whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
                             <input
                                 type="text"
                                 placeholder="Search..."
@@ -1807,7 +1807,7 @@ const Trucks: React.FC = () => {
 
                         {/* Global Filters */}
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-primary">Category:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Category:</label>
                             <select
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
@@ -1819,7 +1819,7 @@ const Trucks: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-primary">Compliance Status:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Compliance Status:</label>
                             <select
                                 value={complianceStatus}
                                 onChange={(e) => setComplianceStatus(e.target.value)}
@@ -1833,7 +1833,7 @@ const Trucks: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-primary">Sort By:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Sort By:</label>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
@@ -1856,7 +1856,7 @@ const Trucks: React.FC = () => {
                             <thead className="bg-card border-b border-theme">
                                 <tr>
                                     {/* Unit # */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Unit #</span>
                                             <button onClick={() => handleSort('unitNumber')} className="flex flex-col">
@@ -1873,7 +1873,7 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Plate # */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Plate #</span>
                                             <button onClick={() => handleSort('plateNumber')} className="flex flex-col">
@@ -1890,7 +1890,7 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Ownership */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Ownership</span>
                                             <button onClick={() => handleSort('ownership')} className="flex flex-col">
@@ -1909,7 +1909,7 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Operating Status */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Operating Status</span>
                                         </div>
@@ -1926,7 +1926,7 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Dispatch Status */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Dispatch Status</span>
                                         </div>
@@ -1945,7 +1945,7 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Dispatch Info */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Dispatch Info</span>
                                         </div>
@@ -1959,7 +1959,7 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Compliance */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Compliance</span>
                                         </div>
@@ -1976,12 +1976,12 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Actions */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <span>Actions</span>
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-theme">
+                            <tbody className="bg-card divide-y divide-theme divide-white/5">
                                 {filteredTrucks.length === 0 ? (
                                     <tr>
                                         <td colSpan={8} className="px-4 py-8 text-center text-secondary">
@@ -2020,7 +2020,7 @@ const Trucks: React.FC = () => {
                                                             e.stopPropagation();
                                                             handleEditTruck((truck._id || truck.id) ?? '');
                                                         }}
-                                                        className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                                                        className="p-1.5 text-[#00D1FF] hover:bg-[var(--accent-navyblue)] rounded transition-colors"
                                                         title="Edit"
                                                     >
                                                         <Edit className="w-4 h-4" />
@@ -2030,7 +2030,7 @@ const Trucks: React.FC = () => {
                                                             e.stopPropagation();
                                                             handleDeleteClick((truck._id || truck.id) ?? '');
                                                         }}
-                                                        className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                                                        className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)] rounded transition-colors"
                                                         title="Delete"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -2105,7 +2105,7 @@ const Trucks: React.FC = () => {
                                             key={step}
                                             onClick={() => setActiveStep(step)}
                                             className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
-                                                ? 'bg-[var(--accent-blue)] !text-white shadow-sm'
+                                                ? 'bg-[var(--accent-navyblue)] !text-white shadow-sm'
                                                 : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                 }`}
                                         >
@@ -2137,7 +2137,7 @@ const Trucks: React.FC = () => {
                         <div className="flex-1 flex flex-col overflow-hidden">
                             {/* Header */}
                             <div className="flex items-center justify-between p-4 border-b border-theme bg-card">
-                                <h2 className="text-xl font-bold text-primary">{editingId ? 'Edit Truck' : 'New Truck'}</h2>
+                                <h2 className="text-xl font-bold text-[var(--accent-navyblue)]">{editingId ? 'Edit Truck' : 'New Truck'}</h2>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={handleSaveTruck}
@@ -2166,10 +2166,10 @@ const Trucks: React.FC = () => {
                                 {/* Details Step */}
                                 {activeStep === 'Details' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-primary">Basic Information</h3>
+                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Basic Information</h3>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Unit #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2181,7 +2181,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     VIN<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2193,7 +2193,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Plate #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2205,7 +2205,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Registration Country<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2222,7 +2222,7 @@ const Trucks: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Registration Province/State
                                                 </label>
                                                 <input
@@ -2235,7 +2235,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Make<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2247,7 +2247,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Model<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2259,7 +2259,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Year<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2271,7 +2271,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Type<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2282,7 +2282,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Weight<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2293,7 +2293,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     UoM
                                                 </label>
                                                 <select
@@ -2306,7 +2306,7 @@ const Trucks: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Asset Value
                                                 </label>
                                                 <input
@@ -2317,7 +2317,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Status<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2331,7 +2331,7 @@ const Trucks: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-primary mb-1">
+                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
                                                     Odometer
                                                 </label>
                                                 <input
@@ -2378,24 +2378,29 @@ const Trucks: React.FC = () => {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => {
-                                                        setFormData({ ...formData, ownership: 'COMPANY ASSET' });
-                                                        // If switching to Company Asset and currently on conditional tabs, switch to Details
-                                                        if (['Payroll', 'Deductions', 'Additions'].includes(activeStep)) {
-                                                            setActiveStep('Details');
+                                                        setFormData({ ...formData, ownership: "COMPANY ASSET" });
+
+                                                        if (["Payroll", "Deductions", "Additions"].includes(activeStep)) {
+                                                            setActiveStep("Details");
                                                         }
                                                     }}
-                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'COMPANY ASSET'
-                                                        ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors duration-200
+    ${formData.ownership === "COMPANY ASSET"
+                                                            ? "bg-[var(--accent-navyblue)] text-white"
+                                                            : "bg-gray-700 text-white hover:bg-[var(--accent-navyblue)]"
                                                         }`}
                                                 >
                                                     COMPANY ASSET
                                                 </button>
+
                                                 <button
-                                                    onClick={() => setFormData({ ...formData, ownership: 'OWNER OPERATOR' })}
-                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'OWNER OPERATOR'
-                                                        ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                    onClick={() =>
+                                                        setFormData({ ...formData, ownership: "OWNER OPERATOR" })
+                                                    }
+                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors duration-200
+    ${formData.ownership === "OWNER OPERATOR"
+                                                            ? "bg-[var(--accent-navyblue)] text-white"
+                                                            : "bg-gray-700 text-white hover:bg-[var(--accent-navyblue)]"
                                                         }`}
                                                 >
                                                     OWNER OPERATOR
@@ -3589,8 +3594,8 @@ const Trucks: React.FC = () => {
                                                             key={method}
                                                             onClick={() => setPaymentMethod(method)}
                                                             className={`px-4 py-2 rounded-sm font-medium transition-colors text-sm ${paymentMethod === method
-                                                                    ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-card border border-theme text-primary hover:bg-[rgba(255,255,255,0.03)]'
+                                                                ? 'bg-gray-700 !text-white'
+                                                                : 'bg-card border border-theme text-primary hover:bg-[rgba(255,255,255,0.03)]'
                                                                 }`}
                                                         >
                                                             {method}
@@ -3989,8 +3994,8 @@ const Trucks: React.FC = () => {
                                         onClick={handlePrevious}
                                         disabled={!getPreviousStep()}
                                         className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${getPreviousStep()
-                                                ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                : 'bg-gray-200 text-secondary cursor-not-allowed'
+                                            ? 'bg-gray-700 !text-white hover:bg-[var(--accent-navyblue)]'
+                                            : 'bg-gray-700 text-secondary cursor-not-allowed'
                                             }`}
                                     >
                                         <ChevronLeft className="w-3.5 h-3.5" />
@@ -4000,8 +4005,8 @@ const Trucks: React.FC = () => {
                                         onClick={handleNext}
                                         disabled={!getNextStep()}
                                         className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${getNextStep()
-                                                ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                : 'bg-gray-200 text-secondary cursor-not-allowed'
+                                            ? 'bg-gray-700 !text-white hover:bg-gray-800'
+                                            : 'bg-gray-200 text-secondary cursor-not-allowed'
                                             }`}
                                     >
                                         Next

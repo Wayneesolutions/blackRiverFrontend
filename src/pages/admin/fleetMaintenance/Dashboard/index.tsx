@@ -575,15 +575,12 @@ const ComplianceDashboard: React.FC = () => {
 
   return (
     <>
-      <div className="min-h-screen" >
+      <div className="min-h-screen bg-main " >
         <div className="w-full mx-auto p-2 relative">
           {/* Gradient band */}
           <div
             className="absolute inset-x-0 top-0"
-            style={{
-              background: `linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)`,
-              height: '101px'
-            }}
+
             aria-hidden="true"
           />
 
@@ -592,8 +589,8 @@ const ComplianceDashboard: React.FC = () => {
             {/* Header Section */}
             <div className="mb-4 relative z-10">
               <div className="flex items-center justify-between">
-                <h1 className="text-xl font-bold text-white">Overview</h1>
-                <div className="flex items-center gap-2 text-white/90">
+                <h1 className="text-xl font-bold text-[var(--accent-navyblue)]">Overview</h1>
+                <div className="flex items-center gap-2 text-[var(--accent-navyblue)]/90">
                   <span className="text-xs">Fleet Maintenance</span>
                 </div>
               </div>
@@ -619,7 +616,7 @@ const ComplianceDashboard: React.FC = () => {
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
                   <p className="text-xs text-secondary">Reporting Period</p>
-                  <h3 className="text-base font-bold text-primary">
+                  <h3 className="text-base font-bold text-[var(--accent-navyblue)]">
                     {selectedPeriod === 'month' ? 'This Month' : 'Year to Date'}
                   </h3>
                 </div>
@@ -627,7 +624,7 @@ const ComplianceDashboard: React.FC = () => {
                   <button
                     onClick={() => setSelectedPeriod('month')}
                     className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${selectedPeriod === 'month'
-                      ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow'
+                      ? 'bg-[var(--accent-navyblue)] !text-white shadow'
                       : 'bg-card text-secondary hover:bg-gray-200'
                       }`}
                   >
@@ -636,7 +633,7 @@ const ComplianceDashboard: React.FC = () => {
                   <button
                     onClick={() => setSelectedPeriod('ytd')}
                     className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${selectedPeriod === 'ytd'
-                      ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow'
+                      ? 'bg-[var(--accent-navyblue)] !text-white shadow'
                       : 'bg-card text-secondary hover:bg-gray-200'
                       }`}
                   >
@@ -647,7 +644,7 @@ const ComplianceDashboard: React.FC = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 border-2 border-red-700">
               {/* Fleet Operational Stats - First Row (Active Trucks, Out of Service, Under Repair) */}
               {features.slice(0, 3).map((feature) => {
                 const Icon = feature.icon;
@@ -756,7 +753,7 @@ const ComplianceDashboard: React.FC = () => {
 
             {/* Invoice Breakdown Section */}
             <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6 mb-6">
-              <h2 className="text-lg font-bold text-primary mb-4">Invoice Breakdown</h2>
+              <h2 className="text-lg font-bold text-[var(--accent-navyblue)] mb-4">Invoice Breakdown</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {invoiceBreakdown.map((item) => {
@@ -1035,8 +1032,8 @@ const ComplianceDashboard: React.FC = () => {
                             <td className="px-6 py-4 font-medium text-primary">{unit.unitNo}</td>
                             <td className="px-6 py-4">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${unit.unitType === 'Truck'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-purple-100 text-purple-800'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-purple-100 text-purple-800'
                                 }`}>
                                 {unit.unitType || 'N/A'}
                               </span>
