@@ -269,12 +269,12 @@ const Issues: React.FC = () => {
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-primary">Issues Management</h1>
+              <h1 className="text-2xl font-bold text-headings">Issues Management</h1>
               <p className="text-secondary">Manage and track fleet issues</p>
             </div>
             <button
               onClick={() => setShowNewIssueSidebar(true)}
-              style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+              style={{ background: 'var(--accent-navyblue)' }}
               className="flex items-center gap-2 !text-white px-4 py-2 rounded-lg transition-colors shadow-sm hover:shadow-md"
             >
               <MdAdd className="text-xl" />
@@ -322,7 +322,7 @@ const Issues: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-secondary">Total Issues</p>
-                  <p className="text-2xl font-bold text-primary">{pagination.total}</p>
+                  <p className="text-2xl font-bold text-headings">{pagination.total}</p>
                 </div>
                 <MdWarning className="text-2xl text-secondary" />
               </div>
@@ -407,27 +407,27 @@ const Issues: React.FC = () => {
               <table className="min-w-full divide-y divide-theme" style={{ minWidth: '1000px' }}>
                 <thead className="bg-card">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                       Issue Details
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                       Type & Category
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                       Priority
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                       Vehicle
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-theme">
+                <tbody className="bg-card divide-y divide-theme divide-white/5">
                   {loading ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-4 text-center text-secondary">
@@ -454,7 +454,7 @@ const Issues: React.FC = () => {
                           <div className="flex items-center gap-3">
                             {getIssueTypeIcon(issue.issueType)}
                             <div>
-                              <div className="text-sm font-medium text-primary">
+                              <div className="text-sm font-medium text-headings">
                                 {issue.issueType.charAt(0).toUpperCase() + issue.issueType.slice(1)}
                               </div>
                               <div className="text-sm text-secondary truncate max-w-xs">
@@ -467,7 +467,7 @@ const Issues: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-primary">
+                          <div className="text-sm text-headings">
                             {issue.issueCategory.replace('-', ' ').charAt(0).toUpperCase() +
                               issue.issueCategory.replace('-', ' ').slice(1)}
                           </div>
@@ -484,7 +484,7 @@ const Issues: React.FC = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-primary">
+                          <div className="text-sm text-headings">
                             {issue.vehicle && typeof issue.vehicle === 'object' ? (
                               (() => {
                                 const make = issue.vehicle.make || '';
@@ -534,21 +534,21 @@ const Issues: React.FC = () => {
                   <button
                     onClick={() => fetchIssues(pagination.current - 1)}
                     disabled={pagination.current === 1}
-                    className="relative inline-flex items-center px-4 py-2 border border-theme text-sm font-medium rounded-md text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
+                    className="relative inline-flex items-center px-4 py-2 border border-theme text-sm font-medium rounded-md text-headings bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => fetchIssues(pagination.current + 1)}
                     disabled={pagination.current === pagination.pages}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-theme text-sm font-medium rounded-md text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-theme text-sm font-medium rounded-md text-headings bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
                   >
                     Next
                   </button>
                 </div>
                 <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm text-primary">
+                    <p className="text-sm text-headings">
                       Showing{' '}
                       <span className="font-medium">{(pagination.current - 1) * pagination.limit + 1}</span>
                       {' '}to{' '}
@@ -644,7 +644,7 @@ const Issues: React.FC = () => {
             <div className="p-6">
               {/* Header */}
               <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
-                <h2 className="text-2xl font-bold text-primary">Issue Details</h2>
+                <h2 className="text-2xl font-bold text-headings">Issue Details</h2>
                 <button
                   onClick={() => {
                     setShowIssueDetails(false);
@@ -679,17 +679,17 @@ const Issues: React.FC = () => {
 
                 {/* Issue Information */}
                 <div className="bg-card p-6 rounded-lg border border-theme">
-                  <h4 className="font-semibold text-primary mb-4 text-lg">Issue Information</h4>
+                  <h4 className="font-semibold text-headings mb-4 text-lg">Issue Information</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-secondary mb-1">Issue Type</p>
-                      <p className="font-medium text-primary">
+                      <p className="font-medium text-headings">
                         {selectedIssue.issueType.charAt(0).toUpperCase() + selectedIssue.issueType.slice(1)}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-secondary mb-1">Category</p>
-                      <p className="font-medium text-primary">
+                      <p className="font-medium text-headings">
                         {selectedIssue.issueCategory.replace('-', ' ').charAt(0).toUpperCase() + selectedIssue.issueCategory.replace('-', ' ').slice(1)}
                       </p>
                     </div>
@@ -707,15 +707,15 @@ const Issues: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm text-secondary mb-1">Reported By</p>
-                      <p className="font-medium text-primary">{selectedIssue.reportedBy || "—"}</p>
+                      <p className="font-medium text-headings">{selectedIssue.reportedBy || "—"}</p>
                     </div>
                     <div>
                       <p className="text-sm text-secondary mb-1">Assigned To</p>
-                      <p className="font-medium text-primary">{selectedIssue.assignedTo || "—"}</p>
+                      <p className="font-medium text-headings">{selectedIssue.assignedTo || "—"}</p>
                     </div>
                     <div>
                       <p className="text-sm text-secondary mb-1">Created Date</p>
-                      <p className="font-medium text-primary">
+                      <p className="font-medium text-headings">
                         {new Date(selectedIssue.createdAt).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
@@ -726,13 +726,13 @@ const Issues: React.FC = () => {
                     {selectedIssue.address && (
                       <div>
                         <p className="text-sm text-secondary mb-1">Address</p>
-                        <p className="font-medium text-primary">{selectedIssue.address}</p>
+                        <p className="font-medium text-headings">{selectedIssue.address}</p>
                       </div>
                     )}
                   </div>
                   <div className="mt-4">
                     <p className="text-sm text-secondary mb-1">Issue Report</p>
-                    <p className="font-medium text-primary">{selectedIssue.issueReport || "—"}</p>
+                    <p className="font-medium text-headings">{selectedIssue.issueReport || "—"}</p>
                   </div>
                   {selectedIssue.issueTags && selectedIssue.issueTags.length > 0 && (
                     <div className="mt-4">
@@ -751,26 +751,26 @@ const Issues: React.FC = () => {
                 {/* Vehicle Information */}
                 {selectedIssue.vehicle && (
                   <div className="bg-card p-6 rounded-lg border border-theme">
-                    <h4 className="font-semibold text-primary mb-4 text-lg">Vehicle Information</h4>
+                    <h4 className="font-semibold text-headings mb-4 text-lg">Vehicle Information</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {selectedIssue.vehicle && typeof selectedIssue.vehicle === 'object' ? (
                         <>
                           {selectedIssue.vehicle.make && (
                             <div>
                               <p className="text-sm text-secondary mb-1">Make</p>
-                              <p className="font-medium text-primary">{selectedIssue.vehicle.make}</p>
+                              <p className="font-medium text-headings">{selectedIssue.vehicle.make}</p>
                             </div>
                           )}
                           {selectedIssue.vehicle.model && (
                             <div>
                               <p className="text-sm text-secondary mb-1">Model</p>
-                              <p className="font-medium text-primary">{selectedIssue.vehicle.model}</p>
+                              <p className="font-medium text-headings">{selectedIssue.vehicle.model}</p>
                             </div>
                           )}
                           {(selectedIssue.vehicle.plateNumber || selectedIssue.vehicle.internalId) && (
                             <div>
                               <p className="text-sm text-secondary mb-1">Plate / ID</p>
-                              <p className="font-medium text-primary">
+                              <p className="font-medium text-headings">
                                 {selectedIssue.vehicle.plateNumber || selectedIssue.vehicle.internalId}
                               </p>
                             </div>
@@ -779,7 +779,7 @@ const Issues: React.FC = () => {
                       ) : (
                         <div>
                           <p className="text-sm text-secondary mb-1">Vehicle ID</p>
-                          <p className="font-medium text-primary">{selectedIssue.vehicle}</p>
+                          <p className="font-medium text-headings">{selectedIssue.vehicle}</p>
                         </div>
                       )}
                     </div>
@@ -793,7 +793,7 @@ const Issues: React.FC = () => {
                       setShowIssueDetails(false);
                       setTimeout(() => setSelectedIssue(null), 300);
                     }}
-                    className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
+                    className="px-6 py-2.5 bg-gray-200 text-headings font-medium rounded-lg hover:bg-gray-300 transition-all"
                   >
                     Close
                   </button>

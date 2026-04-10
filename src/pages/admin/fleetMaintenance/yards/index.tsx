@@ -211,7 +211,7 @@ const YardManagement = () => {
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-headings flex items-center gap-3">
                 <FaWarehouse className="text-[var(--accent-blue)]" />
                 Yard Management
               </h1>
@@ -219,7 +219,7 @@ const YardManagement = () => {
             </div>
             <button
               onClick={() => handleOpenModal()}
-              className="px-4 py-2 bg-[var(--accent-blue)] !text-white rounded-lg hover:bg-[#3598c7] transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[#3598c7] transition-colors flex items-center gap-2"
             >
               <FaPlus /> Add Yard
             </button>
@@ -246,10 +246,10 @@ const YardManagement = () => {
             <div
               key={notification.id}
               className={`px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px] ${notification.type === 'success'
-                  ? 'bg-green-50 border border-green-200 text-green-800'
-                  : notification.type === 'error'
-                    ? 'bg-card border border-red-200 text-red-800'
-                    : 'bg-card border border-blue-200 text-blue-800'
+                ? 'bg-green-50 border border-green-200 text-green-800'
+                : notification.type === 'error'
+                  ? 'bg-card border border-red-200 text-red-800'
+                  : 'bg-card border border-blue-200 text-blue-800'
                 }`}
             >
               {notification.type === 'success' ? (
@@ -313,10 +313,10 @@ const YardManagement = () => {
                 <tbody className="bg-card divide-y divide-theme">
                   {filteredYards.map((yard) => (
                     <tr key={yard._id} className="hover:bg-[rgba(255,255,255,0.03)]" onClick={() => handleOpenModal(yard)}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-headings">
                         {yard.yardId}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-headings">
                         {yard.yardName}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
@@ -328,8 +328,8 @@ const YardManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${yard.status === 'active'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
                             }`}
                         >
                           {yard.status}
@@ -391,7 +391,7 @@ const YardManagement = () => {
           <div className="fixed inset-0 bg-card/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-card rounded-lg shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
               <div className="flex items-center justify-between p-6 border-b border-theme flex-shrink-0">
-                <h2 className="text-xl font-bold text-primary">
+                <h2 className="text-xl font-bold text-headings">
                   {editingYard ? 'Edit Yard' : 'Add New Yard'}
                 </h2>
                 <button
@@ -405,7 +405,7 @@ const YardManagement = () => {
               <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
                 <div className="p-6 space-y-4 overflow-y-auto flex-1">
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">
+                    <label className="block text-sm font-medium text-headings mb-1">
                       Yard Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -419,7 +419,7 @@ const YardManagement = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">
+                    <label className="block text-sm font-medium text-headings mb-1">
                       Yard Code / Short Code <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -433,7 +433,7 @@ const YardManagement = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">
+                    <label className="block text-sm font-medium text-headings mb-1">
                       Yard Type <span className="text-red-500">*</span>
                     </label>
                     <select
@@ -451,7 +451,7 @@ const YardManagement = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">
+                    <label className="block text-sm font-medium text-headings mb-1">
                       Status <span className="text-red-500">*</span>
                     </label>
                     <select
@@ -470,7 +470,7 @@ const YardManagement = () => {
 
                   {/* Address Section */}
                   <div className="pt-4 border-t border-theme">
-                    <h3 className="text-sm font-semibold text-primary mb-4">Address Information</h3>
+                    <h3 className="text-sm font-semibold text-headings mb-4">Address Information</h3>
 
                     <div className="mb-4">
                       <AddressSearch
@@ -492,7 +492,7 @@ const YardManagement = () => {
                     </div>
 
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">
+                      <label className="block text-sm font-medium text-headings mb-1">
                         Address <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -506,7 +506,7 @@ const YardManagement = () => {
                     </div>
 
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-primary mb-1">
+                      <label className="block text-sm font-medium text-headings mb-1">
                         Unit / Lot
                       </label>
                       <input
@@ -520,7 +520,7 @@ const YardManagement = () => {
 
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-1">
+                        <label className="block text-sm font-medium text-headings mb-1">
                           City <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -533,7 +533,7 @@ const YardManagement = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-1">
+                        <label className="block text-sm font-medium text-headings mb-1">
                           State / Province <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -549,7 +549,7 @@ const YardManagement = () => {
 
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-1">
+                        <label className="block text-sm font-medium text-headings mb-1">
                           Country <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -562,7 +562,7 @@ const YardManagement = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-1">
+                        <label className="block text-sm font-medium text-headings mb-1">
                           ZIP / Postal Code <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -582,7 +582,7 @@ const YardManagement = () => {
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
+                    className="px-4 py-2 text-headings bg-card rounded-lg hover:bg-gray-200 transition-colors"
                   >
                     Cancel
                   </button>
