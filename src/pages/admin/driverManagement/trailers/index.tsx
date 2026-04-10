@@ -1675,13 +1675,13 @@ const TrailersPage: React.FC = () => {
                 {/* Header Section */}
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h1 className="text-3xl font-bold text-primary">Trailers</h1>
+                        <h1 className="text-3xl font-bold text-[var(--accent-navyblue)]">Trailers</h1>
                         <div className="flex items-center gap-3">
-                            <span className="text-2xl font-bold text-primary">({filteredTrailers.length})</span>
+                            <span className="text-2xl font-bold text-[var(--accent-navyblue)]">({filteredTrailers.length})</span>
                             <button
                                 onClick={handleExportTrailers}
                                 title="Export to Excel"
-                                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+                                className="w-10 h-10 bg-[var(--accent-teal)] !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
                             >
                                 <FileDown className="w-5 h-5" />
                             </button>
@@ -1710,7 +1710,7 @@ const TrailersPage: React.FC = () => {
                                     setShowSidebar(true);
                                     setActiveStep('Details');
                                 }}
-                                className="w-10 h-10 bg-[var(--accent-blue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-blue)] transition-colors shadow-md"
+                                className="w-10 h-10 bg-[var(--accent-navyblue)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-blue)] transition-colors shadow-md"
                             >
                                 <Plus className="w-5 h-5" />
                             </button>
@@ -1732,7 +1732,7 @@ const TrailersPage: React.FC = () => {
                                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
-                            <div className="font-semibold">
+                            <div className="font-semibold text-[var(--accent-navyblue)]">
                                 All ({getCountByCategory('All')})
                             </div>
                         </button>
@@ -1775,7 +1775,7 @@ const TrailersPage: React.FC = () => {
                                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
-                            <div className="font-semibold">
+                            <div className="font-semibold text-[var(--accent-navyblue)]">
                                 External ({getCountByCategory('External')})
                             </div>
                         </button>
@@ -1791,7 +1791,7 @@ const TrailersPage: React.FC = () => {
                                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
-                            <div className="font-semibold">
+                            <div className="font-semibold text-[var(--accent-navyblue)]">
                                 Unassigned ({getCountByCategory('Unassigned')})
                             </div>
                         </button>
@@ -1803,7 +1803,7 @@ const TrailersPage: React.FC = () => {
                     <div className="flex flex-wrap items-center gap-4">
                         {/* Search Input */}
                         <div className="flex items-center gap-2 flex-1 min-w-[300px]">
-                            <label className="text-sm font-medium text-primary whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
+                            <label className="text-sm font-medium  whitespace-nowrap text-[var(--accent-navyblue)]">Unit #, Plate #, Make, VIN:</label>
                             <input
                                 type="text"
                                 placeholder="Search..."
@@ -1816,7 +1816,7 @@ const TrailersPage: React.FC = () => {
 
                         {/* Global Filters */}
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-primary">Sort By:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Sort By:</label>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
@@ -1830,11 +1830,11 @@ const TrailersPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-primary">Compliance Status:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Compliance Status:</label>
                             <select
                                 value={complianceStatus}
                                 onChange={(e) => setComplianceStatus(e.target.value)}
-                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent  border-2 border-red-700"
                             >
                                 <option value="All">All</option>
                                 <option value="Compliant">Compliant</option>
@@ -1844,7 +1844,7 @@ const TrailersPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-primary">Operating Status:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Operating Status:</label>
                             <select
                                 value={operatingStatus}
                                 onChange={(e) => setOperatingStatus(e.target.value)}
@@ -1869,7 +1869,7 @@ const TrailersPage: React.FC = () => {
                             <thead className="bg-card border-b border-theme">
                                 <tr>
                                     {/* Trailer # */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Trailer #</span>
                                             <button onClick={() => handleSort('trailerNumber')} className="flex flex-col">
@@ -1886,7 +1886,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Plate # */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Plate #</span>
                                             <button onClick={() => handleSort('plateNumber')} className="flex flex-col">
@@ -1903,7 +1903,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Type */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Type</span>
                                             <button onClick={() => handleSort('type')} className="flex flex-col">
@@ -1920,7 +1920,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Ownership */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Ownership</span>
                                             <button onClick={() => handleSort('ownership')} className="flex flex-col">
@@ -1939,7 +1939,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Last Dispatch */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Last Dispatch</span>
                                             <button onClick={() => handleSort('lastDispatch')} className="flex flex-col">
@@ -1956,7 +1956,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Last Dispatch Date */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Last Dispatch Date</span>
                                             <button onClick={() => handleSort('lastDispatchDate')} className="flex flex-col">
@@ -1973,7 +1973,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Last Drop Location */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Last Drop Location</span>
                                             <button onClick={() => handleSort('lastDropLocation')} className="flex flex-col">
@@ -1990,7 +1990,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Notes */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Notes</span>
                                         </div>
@@ -2004,7 +2004,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Operating Status */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Operating Status</span>
                                             <button onClick={() => handleSort('operatingStatus')} className="flex flex-col">
@@ -2024,7 +2024,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Loaded Status */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Loaded Status</span>
                                             <HelpCircle className="w-4 h-4 text-secondary" />
@@ -2042,7 +2042,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Compliance */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Compliance</span>
                                         </div>
@@ -2058,12 +2058,12 @@ const TrailersPage: React.FC = () => {
                                         </select>
                                     </th>
                                     {/* Actions */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
                                         <span>Actions</span>
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-theme">
+                            <tbody className="bg-card divide-y divide-theme divide-white/5">
                                 {filteredTrailers.length === 0 ? (
                                     <tr>
                                         <td colSpan={12} className="px-4 py-8 text-center text-secondary">
@@ -3242,8 +3242,8 @@ const TrailersPage: React.FC = () => {
                                             onClick={handlePrevious}
                                             disabled={!getPreviousStep()}
                                             className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${getPreviousStep()
-                                                    ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                    : 'bg-gray-200 text-secondary cursor-not-allowed'
+                                                ? 'bg-gray-700 !text-white hover:bg-gray-800'
+                                                : 'bg-gray-200 text-secondary cursor-not-allowed'
                                                 }`}
                                         >
                                             <ChevronLeft className="w-3.5 h-3.5" />
@@ -3253,8 +3253,8 @@ const TrailersPage: React.FC = () => {
                                             onClick={handleNext}
                                             disabled={!getNextStep()}
                                             className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${getNextStep()
-                                                    ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                    : 'bg-gray-200 text-secondary cursor-not-allowed'
+                                                ? 'bg-gray-700 !text-white hover:bg-gray-800'
+                                                : 'bg-gray-200 text-secondary cursor-not-allowed'
                                                 }`}
                                         >
                                             Next
