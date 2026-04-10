@@ -469,7 +469,3 @@ body {
 .text-headings {
   color: var(--accent-navyblue);
 }
-
-.text-headings:hover {
-  color: var(--accent-blue);
-}

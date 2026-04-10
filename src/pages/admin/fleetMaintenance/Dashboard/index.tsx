@@ -818,7 +818,7 @@ const ComplianceDashboard: React.FC = () => {
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-bold text-headings flex items-center">
-                    <AlertTriangle className="h-5 w-5 mr-2 text-[#A855F7]" />
+                    <AlertTriangle className="h-5 w-5 mr-2 text-headings" />
                     Regulatory & Safety
                   </h3>
                   <span className="text-sm text-secondary">View All →</span>
@@ -897,7 +897,7 @@ const ComplianceDashboard: React.FC = () => {
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-bold text-headings flex items-center">
-                    <FileText className="h-5 w-5 mr-2 text-purple-600" />
+                    <FileText className="h-5 w-5 mr-2 text-headings" />
                     Compliance Documents (7 Mandatory Regulatory Requirements)
                   </h3>
                   <span className="text-sm text-secondary">View All →</span>
@@ -1013,7 +1013,7 @@ const ComplianceDashboard: React.FC = () => {
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-bold text-headings flex items-center">
-                    <Calendar className="h-5 w-5 mr-2 text-[#00D1FF]" />
+                    <Calendar className="h-5 w-5 mr-2 text-headings" />
                     Scheduled Service Status
                   </h3>
                   <span className="text-sm text-secondary">View All →</span>
