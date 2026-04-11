@@ -371,7 +371,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
             <CheckCircle className="text-green-600" size={20} />
             <span className="text-sm font-medium text-[var(--accent-green)]">Completed Orders</span>
           </div>
-          <p className="text-2xl font-bold text-primary mt-1">{pagination.completedCount}</p>
+          <p className="text-2xl font-bold text-headings mt-1">{pagination.completedCount}</p>
         </div>
       )}
 

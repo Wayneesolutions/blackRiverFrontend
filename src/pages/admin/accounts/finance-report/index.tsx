@@ -672,7 +672,7 @@ const FinanceReport = () => {
       'in-progress': 'bg-blue-100 text-blue-800 border-blue-200',
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-200'
     };
-    return styles[status as keyof typeof styles] || 'bg-card text-primary border-theme';
+    return styles[status as keyof typeof styles] || 'bg-card text-headings border-theme';
   };
 
   // Calculate totals from actual data
@@ -730,59 +730,53 @@ const FinanceReport = () => {
       value: formatCurrency(totalRevenue),
       subtitle: 'From all trucks',
       icon: DollarSign,
-      bgColor: 'bg-green-100',
-      iconColor: 'text-green-700',
-      cardBg: 'bg-gradient-to-br from-green-50 to-green-100',
-      trend: '—' // No trend data available from backend
+      iconColor: 'text-green-500',
+      cardBg: 'bg-card',
+      trend: '—'
     },
     {
       title: 'Total Expenses',
       value: formatCurrency(totalExpenses),
       subtitle: 'Operating costs',
       icon: TrendingDown,
-      bgColor: 'bg-red-100',
-      iconColor: 'text-red-700',
-      cardBg: 'bg-gradient-to-br from-red-50 to-red-100',
-      trend: '—' // No trend data available from backend
+      iconColor: 'text-red-500',
+      cardBg: 'bg-card',
+      trend: '—'
     },
     {
       title: 'Total Payroll',
       value: formatCurrency(totalPayroll),
       subtitle: 'Driver & employee costs',
       icon: Users,
-      bgColor: 'bg-blue-100',
-      iconColor: 'text-blue-700',
-      cardBg: 'bg-gradient-to-br from-blue-50 to-blue-100',
-      trend: '—' // No trend data available from backend
+      iconColor: 'text-blue-500',
+      cardBg: 'bg-card',
+      trend: '—'
     },
     {
       title: 'Net Profit',
       value: formatCurrency(totalNetProfit),
       subtitle: 'Revenue - Expenses - Payroll',
       icon: TrendingUp,
-      bgColor: 'bg-purple-100',
-      iconColor: 'text-purple-700',
-      cardBg: 'bg-gradient-to-br from-purple-50 to-purple-100',
-      trend: '—' // No trend data available from backend
+      iconColor: 'text-purple-500',
+      cardBg: 'bg-card',
+      trend: '—'
     },
     {
       title: 'Total Trips',
       value: totalTrips.toString(),
       subtitle: 'Completed trips',
       icon: MapPin,
-      bgColor: 'bg-cyan-100',
-      iconColor: 'text-cyan-700',
-      cardBg: 'bg-gradient-to-br from-cyan-50 to-cyan-100',
-      trend: '—' // No trend data available from backend
+      iconColor: 'text-cyan-500',
+      cardBg: 'bg-card',
+      trend: '—'
     },
     {
       title: 'Active Trucks',
       value: (overview.activeTrucks || truckFinancialData.length).toString(),
       subtitle: 'Fleet size',
       icon: Truck,
-      bgColor: 'bg-orange-100',
-      iconColor: 'text-orange-700',
-      cardBg: 'bg-gradient-to-br from-orange-50 to-orange-100',
+      iconColor: 'text-orange-500',
+      cardBg: 'bg-card',
       trend: '—'
     }
   ];
@@ -798,8 +792,8 @@ const FinanceReport = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl font-bold text-black">Finance Report</h1>
-                <p className="text-xs text-black/90 mt-1">Comprehensive financial insights and analysis</p>
+                <h1 className="text-xl font-bold text-headings">Finance Report</h1>
+                <p className="text-xs text-headings/90 mt-1">Comprehensive financial insights and analysis</p>
               </div>
 
             </div>
@@ -820,8 +814,8 @@ const FinanceReport = () => {
                     key={tab.id}
                     onClick={() => setActiveView(tab.id as ViewType)}
                     className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 ${activeView === tab.id
-                      ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
-                      : 'text-primary hover:bg-[rgba(255,255,255,0.03)]'
+                      ? 'bg-[var(--accent-navyblue)] !text-headings shadow-md'
+                      : 'text-headings hover:bg-[rgba(255,255,255,0.03)]'
                       }`}
                   >
                     <Icon size={16} />
@@ -851,7 +845,7 @@ const FinanceReport = () => {
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
-                          <h3 className="text-sm font-bold text-primary mb-1">{stat.title}</h3>
+                          <h3 className={`text-sm font-bold  mb-1 ${stat.iconColor}`}>{stat.title}</h3>
                           <div className="flex items-baseline gap-2 mb-0.5">
                             <span className="text-xl font-bold text-primary">{stat.value}</span>
                             {stat.trend !== '—' && (
@@ -864,7 +858,7 @@ const FinanceReport = () => {
                           </div>
                           <p className="text-xs text-secondary">{stat.subtitle}</p>
                         </div>
-                        <div className={`${stat.bgColor} rounded-lg p-2 shadow-sm`}>
+                        <div className={` rounded-lg p-2 shadow-sm`}>
                           <Icon className={stat.iconColor} size={21} strokeWidth={2} />
                         </div>
                       </div>
@@ -875,27 +869,27 @@ const FinanceReport = () => {
 
               {/* Consolidated Financial Summary */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                  <PieChart size={20} className="text-[var(--accent-blue)]" />
+                <h2 className="text-lg font-bold text-headings mb-4 flex items-center gap-2">
+                  <PieChart size={20} className="text-[var(--accent-navyblue)]" />
                   Consolidated Financial Summary
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                  <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+                  <div className="p-4 bg-card rounded-lg border-2 border-[var(--accent-green)]">
                     <div className="text-sm text-secondary mb-1">Accounts Revenue</div>
                     <div className="text-2xl font-bold text-green-600">{formatCurrency(totalRevenue)}</div>
                     <div className="text-xs text-secondary mt-1">From invoices</div>
                   </div>
-                  <div className="p-4 bg-card rounded-lg border border-red-100">
+                  <div className="p-4 bg-card rounded-lg border-2 border-[var(--accent-red)]">
                     <div className="text-sm text-secondary mb-1">Total Expenses</div>
                     <div className="text-2xl font-bold text-[#A855F7]">{formatCurrency(totalExpenses)}</div>
                     <div className="text-xs text-secondary mt-1">Operating costs</div>
                   </div>
-                  <div className="p-4 bg-card rounded-lg border border-blue-100">
+                  <div className="p-4 bg-card rounded-lg border-2 border-[var(--accent-blue)]">
                     <div className="text-sm text-secondary mb-1">Payroll Costs</div>
                     <div className="text-2xl font-bold text-[#00D1FF]">{formatCurrency(totalPayroll)}</div>
                     <div className="text-xs text-secondary mt-1">Employee & driver</div>
                   </div>
-                  <div className="p-4 bg-card rounded-lg border border-purple-100">
+                  <div className="p-4 bg-card rounded-lg border-2 border-[var(--accent-purple)]">
                     <div className="text-sm text-secondary mb-1">Net Profit</div>
                     <div className="text-2xl font-bold text-purple-600">{formatCurrency(totalNetProfit)}</div>
                     <div className="text-xs text-secondary mt-1">After all costs</div>
@@ -904,7 +898,7 @@ const FinanceReport = () => {
 
                 {/* Overall Comparison Chart */}
                 <div className="mt-6">
-                  <h3 className="text-base font-semibold text-primary mb-4">Revenue vs Expenses vs Net Profit Comparison</h3>
+                  <h3 className="text-base font-semibold text-headings mb-4">Revenue vs Expenses vs Net Profit Comparison</h3>
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
@@ -917,21 +911,46 @@ const FinanceReport = () => {
                           }
                         ]}
                         margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        style={{ backgroundColor: 'transparent' }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis dataKey="name" stroke="#6b7280" style={{ fontSize: '12px' }} />
-                        <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
+                        <CartesianGrid stroke="var(--border-color)" strokeDasharray="3 3" />
+
+                        <XAxis
+                          dataKey="name"
+                          stroke="var(--text-secondary)"
+                          style={{ fontSize: '12px' }}
+                        />
+
+                        <YAxis
+                          stroke="var(--text-secondary)"
+                          style={{ fontSize: '12px' }}
+                        />
+
                         <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#fff',
-                            border: 'none',
-                            borderRadius: '8px',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                            fontSize: '12px'
+                          cursor={{ fill: 'transparent' }}   // 🚀 THIS removes grey hover layer
+                          wrapperStyle={{
+                            background: 'transparent',
+                            outline: 'none'
                           }}
+                          contentStyle={{
+                            backgroundColor: 'var(--bg-card)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '10px',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                            color: 'var(--text-primary)'
+                          }}
+                          itemStyle={{ color: 'var(--text-primary)' }}
+                          labelStyle={{ color: 'var(--text-secondary)' }}
                           formatter={(value) => formatCurrency(value as number)}
                         />
-                        <Legend />
+
+                        <Legend
+                          wrapperStyle={{
+                            color: 'var(--text-secondary)',
+                            fontSize: '12px'
+                          }}
+                        />
+
                         <Bar dataKey="Revenue" fill="#10b981" radius={[8, 8, 0, 0]} />
                         <Bar dataKey="Expenses" fill="#ef4444" radius={[8, 8, 0, 0]} />
                         <Bar dataKey="Net Profit" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
@@ -942,7 +961,7 @@ const FinanceReport = () => {
 
                 {/* Financial Health Analysis */}
                 <div className="mt-6 bg-card rounded-xl border border-theme p-5">
-                  <h3 className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-headings mb-4 flex items-center gap-2">
                     <PieChart size={15} className="text-[var(--accent-blue)]" />
                     Financial Health Analysis
                   </h3>
@@ -971,7 +990,7 @@ const FinanceReport = () => {
                           <div className="h-7 bg-gray-200 rounded-lg overflow-hidden">
                             <div className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-lg flex items-center px-3 transition-all"
                               style={{ width: `${revWidth}%`, minWidth: totalRevenue > 0 ? '30px' : '0' }}>
-                              <span className="text-xs font-bold text-white drop-shadow">100%</span>
+                              <span className="text-xs font-bold text-headings drop-shadow">100%</span>
                             </div>
                           </div>
                         </div>
@@ -1005,7 +1024,7 @@ const FinanceReport = () => {
                                   ? 'linear-gradient(to right, #f87171, #dc2626)'
                                   : 'linear-gradient(to right, #fca5a5, #ef4444)'
                               }}>
-                              <span className="text-xs font-bold text-white drop-shadow">{costPct.toFixed(1)}%</span>
+                              <span className="text-xs font-bold text-headings drop-shadow">{costPct.toFixed(1)}%</span>
                             </div>
                           </div>
                         </div>
@@ -1015,7 +1034,7 @@ const FinanceReport = () => {
                             {totalNetProfit >= 0
                               ? <TrendingUp size={16} className="text-green-600" />
                               : <TrendingDown size={16} className="text-[#A855F7]" />}
-                            <span className="text-xs font-semibold text-primary">
+                            <span className="text-xs font-semibold text-headings">
                               Net {totalNetProfit >= 0 ? 'Profit' : 'Loss'}
                             </span>
                           </div>
@@ -1057,22 +1076,22 @@ const FinanceReport = () => {
               {/* Quick Insights */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                  <h3 className="text-base font-bold text-primary mb-4 flex items-center gap-2">
-                    <FileText size={18} className="text-[var(--accent-blue)]" />
+                  <h3 className="text-base font-bold text-headings mb-4 flex items-center gap-2">
+                    <FileText size={18} className="text-[var(--accent-navyblue)]" />
                     Invoice Summary
                   </h3>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                      <span className="text-sm font-medium text-primary">Paid Invoices</span>
-                      <span className="text-lg font-bold text-green-600">{formatCurrency(invoiceSummary.paidInvoices)}</span>
+                    <div className="flex justify-between items-center p-3  rounded-lg">
+                      <span className="text-sm font-medium text-[var(--accent-green)]">Paid Invoices</span>
+                      <span className="text-lg font-bold text-[var(--accent-green)]">{formatCurrency(invoiceSummary.paidInvoices)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-card rounded-lg">
-                      <span className="text-sm font-medium text-primary">Pending Invoices</span>
-                      <span className="text-lg font-bold text-[#00FFA3]">{formatCurrency(invoiceSummary.pendingInvoices)}</span>
+                      <span className="text-sm font-medium text-[var(--accent-green)]">Pending Invoices</span>
+                      <span className="text-lg font-bold text-[var(--accent-green)]">{formatCurrency(invoiceSummary.pendingInvoices)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-card rounded-lg">
-                      <span className="text-sm font-medium text-primary">Overdue Invoices</span>
-                      <span className="text-lg font-bold text-[#A855F7]">{formatCurrency(invoiceSummary.overdueInvoices)}</span>
+                      <span className="text-sm font-medium text-[var(--accent-purple)]">Overdue Invoices</span>
+                      <span className="text-lg font-bold text-[var(--accent-purple)]">{formatCurrency(invoiceSummary.overdueInvoices)}</span>
                     </div>
                   </div>
                   {dataLoaded && invoiceSummary.paidInvoices === 0 && invoiceSummary.pendingInvoices === 0 && invoiceSummary.overdueInvoices === 0 && (
@@ -1081,22 +1100,22 @@ const FinanceReport = () => {
                 </div>
 
                 <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                  <h3 className="text-base font-bold text-primary mb-4 flex items-center gap-2">
-                    <Receipt size={18} className="text-[var(--accent-blue)]" />
+                  <h3 className="text-base font-bold text-headings mb-4 flex items-center gap-2">
+                    <Receipt size={18} className="text-[var(--accent-navyblue)]" />
                     Expense Breakdown
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-card rounded-lg">
-                      <span className="text-sm font-medium text-primary">Fuel Costs</span>
-                      <span className="text-lg font-bold text-[#00D1FF]">{formatCurrency(expenseBreakdown.fuelCosts)}</span>
+                      <span className="text-sm font-medium text-[var(--accent-blue)]">Fuel Costs</span>
+                      <span className="text-lg font-bold text-[var(--accent-blue)]">{formatCurrency(expenseBreakdown.fuelCosts)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-card rounded-lg">
-                      <span className="text-sm font-medium text-primary">Fleet Invoices</span>
-                      <span className="text-lg font-bold text-[#F59E0B]">{formatCurrency(expenseBreakdown.fleetInvoices)}</span>
+                      <span className="text-sm font-medium text-[var(--accent-amber)]">Fleet Invoices</span>
+                      <span className="text-lg font-bold text-[var(--accent-amber)]">{formatCurrency(expenseBreakdown.fleetInvoices)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-card rounded-lg">
-                      <span className="text-sm font-medium text-primary">Other Expenses</span>
-                      <span className="text-lg font-bold text-purple-600">{formatCurrency(expenseBreakdown.otherExpenses)}</span>
+                      <span className="text-sm font-medium text-[var(--accent-purple)]">Other Expenses</span>
+                      <span className="text-lg font-bold text-[var(--accent-purple)]">{formatCurrency(expenseBreakdown.otherExpenses)}</span>
                     </div>
                   </div>
                   {dataLoaded && expenseBreakdown.fuelCosts === 0 && expenseBreakdown.fleetInvoices === 0 && expenseBreakdown.otherExpenses === 0 && (
@@ -1113,7 +1132,7 @@ const FinanceReport = () => {
               {/* Period Selector for Truck-wise */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
                 <div className="flex items-center gap-4 flex-wrap">
-                  <label className="text-sm font-medium text-primary">Timeline:</label>
+                  <label className="text-sm font-medium text-headings">Timeline:</label>
                   <div className="flex gap-2 flex-wrap">
                     {(['2weeks', '1month', 'monthly', 'quarterly', 'half-yearly', 'yearly'] as TimePeriod[]).map((period) => {
                       const getPeriodLabel = (p: TimePeriod) => {
@@ -1133,8 +1152,8 @@ const FinanceReport = () => {
                           onClick={() => setTimePeriod(period)}
                           disabled={loading}
                           className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${timePeriod === period
-                            ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
-                            : 'bg-card text-primary hover:bg-gray-200'
+                            ? 'bg-[var(--accent-navyblue)] !text-headings shadow-md'
+                            : 'bg-card text-headings hover:bg-gray-200'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
@@ -1147,7 +1166,7 @@ const FinanceReport = () => {
 
               {/* Truck-wise Comparison Chart - Grouped by Time Period */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-bold text-headings mb-4 flex items-center gap-2">
                   <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                   Truck-wise Revenue vs Expenses vs Net Profit (Grouped by {(() => {
                     switch (timePeriod) {
@@ -1294,11 +1313,11 @@ const FinanceReport = () => {
 
               <div className="bg-card rounded-xl shadow-sm border border-theme">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
-                  <h2 className="text-base font-bold text-primary flex items-center gap-2">
+                  <h2 className="text-base font-bold text-headings flex items-center gap-2">
                     <Truck size={18} className="text-[var(--accent-blue)]" />
                     Truck-wise Financial Performance
                   </h2>
-                  <button className="px-3 py-1.5 bg-card hover:bg-gray-200 text-primary rounded-lg text-xs font-medium transition-all flex items-center gap-2">
+                  <button className="px-3 py-1.5 bg-card hover:bg-gray-200 text-headings rounded-lg text-xs font-medium transition-all flex items-center gap-2">
                     <Filter size={13} />
                     Filter
                   </button>
@@ -1307,20 +1326,20 @@ const FinanceReport = () => {
                   <table className="w-full" style={{ minWidth: '1100px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#42AEEC' }}>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Truck ID</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Truck #</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Revenue</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Expenses</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Payroll</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Net Profit</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap" style={{ minWidth: '100px' }}>Margin</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Trips</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Miles</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Rev/Mile</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Fleet Invoice</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Truck ID</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Truck #</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Revenue</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Expenses</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Payroll</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Net Profit</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap" style={{ minWidth: '100px' }}>Margin</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Trips</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Miles</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Rev/Mile</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Fleet Invoice</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -1338,7 +1357,7 @@ const FinanceReport = () => {
                             <td className="px-4 py-3 whitespace-nowrap">
                               <span className="text-xs font-mono bg-card text-[#00D1FF] border border-blue-200 px-2 py-0.5 rounded">#{shortId}</span>
                             </td>
-                            <td className="px-4 py-3 text-sm font-bold text-primary whitespace-nowrap">{truck.truckNumber}</td>
+                            <td className="px-4 py-3 text-sm font-bold text-headings whitespace-nowrap">{truck.truckNumber}</td>
                             <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 whitespace-nowrap">{formatCurrency(truck.revenue)}</td>
                             <td className="px-4 py-3 text-sm text-right text-red-500 whitespace-nowrap">{formatCurrency(truck.expenses)}</td>
                             <td className="px-4 py-3 text-sm text-right text-blue-500 whitespace-nowrap">{formatCurrency(truck.payroll)}</td>
@@ -1363,7 +1382,7 @@ const FinanceReport = () => {
                                 {truck.trips}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-sm text-right text-primary whitespace-nowrap">{hasMiles ? truck.miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
+                            <td className="px-4 py-3 text-sm text-right text-headings whitespace-nowrap">{hasMiles ? truck.miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{revPerMile !== null ? <span className="text-emerald-600 font-medium">${revPerMile.toFixed(2)}</span> : dash}</td>
                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{costPerMile !== null ? <span className="text-red-500">${costPerMile.toFixed(2)}</span> : dash}</td>
                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
@@ -1391,14 +1410,14 @@ const FinanceReport = () => {
                         const totMargin = totRev > 0 ? (totProfit / totRev) * 100 : 0;
                         return (
                           <tr className="font-bold border-t-2 border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/5">
-                            <td colSpan={2} className="px-4 py-3 text-sm text-primary font-bold">Fleet Total</td>
+                            <td colSpan={2} className="px-4 py-3 text-sm text-headings font-bold">Fleet Total</td>
                             <td className="px-4 py-3 text-sm text-right text-green-700 font-bold whitespace-nowrap">{formatCurrency(totRev)}</td>
                             <td className="px-4 py-3 text-sm text-right text-[#A855F7] font-bold whitespace-nowrap">{formatCurrency(totExp)}</td>
                             <td className="px-4 py-3 text-sm text-right text-[#00D1FF] font-bold whitespace-nowrap">{formatCurrency(totPay)}</td>
                             <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-700' : 'text-[#A855F7]'}`}>{formatCurrency(totProfit)}</td>
-                            <td className="px-4 py-3 text-sm text-center font-bold text-primary whitespace-nowrap">{totMargin.toFixed(1)}%</td>
-                            <td className="px-4 py-3 text-sm text-center font-bold text-primary whitespace-nowrap">{totTrips}</td>
-                            <td className="px-4 py-3 text-sm text-right text-primary font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : <span className="text-gray-300 font-light">—</span>}</td>
+                            <td className="px-4 py-3 text-sm text-center font-bold text-headings whitespace-nowrap">{totMargin.toFixed(1)}%</td>
+                            <td className="px-4 py-3 text-sm text-center font-bold text-headings whitespace-nowrap">{totTrips}</td>
+                            <td className="px-4 py-3 text-sm text-right text-headings font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : <span className="text-gray-300 font-light">—</span>}</td>
                             <td className="px-4 py-3 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totRev / totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
                             <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totCost / totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
                             <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>{hasTotMiles ? `$${(totProfit / totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
@@ -1420,7 +1439,7 @@ const FinanceReport = () => {
               {/* Period Selector for Trip-wise */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
                 <div className="flex items-center gap-4 flex-wrap">
-                  <label className="text-sm font-medium text-primary">Timeline:</label>
+                  <label className="text-sm font-medium text-headings">Timeline:</label>
                   <div className="flex gap-2 flex-wrap">
                     {(['2weeks', '1month', 'monthly', 'quarterly', 'half-yearly', 'yearly'] as TimePeriod[]).map((period) => {
                       const getPeriodLabel = (p: TimePeriod) => {
@@ -1440,8 +1459,8 @@ const FinanceReport = () => {
                           onClick={() => setTimePeriod(period)}
                           disabled={loading}
                           className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${timePeriod === period
-                            ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
-                            : 'bg-card text-primary hover:bg-gray-200'
+                            ? 'bg-[var(--accent-navyblue)] !text-headings shadow-md'
+                            : 'bg-card text-headings hover:bg-gray-200'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
@@ -1454,7 +1473,7 @@ const FinanceReport = () => {
 
               {/* Trip-wise Comparison Chart - Grouped by Time Period */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-bold text-headings mb-4 flex items-center gap-2">
                   <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                   Trip-wise Revenue vs Expenses vs Net Profit (Grouped by {(() => {
                     switch (timePeriod) {
@@ -1586,11 +1605,11 @@ const FinanceReport = () => {
 
               <div className="bg-card rounded-xl shadow-sm border border-theme">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
-                  <h2 className="text-base font-bold text-primary flex items-center gap-2">
+                  <h2 className="text-base font-bold text-headings flex items-center gap-2">
                     <MapPin size={18} className="text-[var(--accent-blue)]" />
                     Trip-wise Financial Details
                   </h2>
-                  <button className="px-3 py-1.5 bg-card hover:bg-gray-200 text-primary rounded-lg text-xs font-medium transition-all flex items-center gap-2">
+                  <button className="px-3 py-1.5 bg-card hover:bg-gray-200 text-headings rounded-lg text-xs font-medium transition-all flex items-center gap-2">
                     <Filter size={13} />
                     Filter
                   </button>
@@ -1656,24 +1675,24 @@ const FinanceReport = () => {
                     <table className="w-full" style={{ minWidth: '1400px' }}>
                       <thead>
                         <tr style={{ backgroundColor: '#42AEEC' }}>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Trip ID</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Trip #</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Truck</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Driver</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider" style={{ minWidth: '180px' }}>Route</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Miles</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Start Date</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">End Date</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Revenue</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Other Exp</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Driver Pay</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Net Profit</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Rev/Mile</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
-                          <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap" style={{ minWidth: '100px' }}>Margin</th>
-                          <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Status</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Trip ID</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Trip #</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Truck</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Driver</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider" style={{ minWidth: '180px' }}>Route</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Miles</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Start Date</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">End Date</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Revenue</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Other Exp</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Driver Pay</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Net Profit</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Rev/Mile</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap" style={{ minWidth: '100px' }}>Margin</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Status</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
@@ -1704,16 +1723,16 @@ const FinanceReport = () => {
                               <td className="px-4 py-3 whitespace-nowrap">
                                 <span className="text-xs font-mono bg-card text-purple-600 border border-purple-200 px-2 py-0.5 rounded">#{shortId}</span>
                               </td>
-                              <td className="px-4 py-3 text-sm font-bold text-primary whitespace-nowrap">{trip.tripNumber || '—'}</td>
-                              <td className="px-4 py-3 text-sm font-semibold text-primary whitespace-nowrap">{trip.truckNumber || '—'}</td>
-                              <td className="px-4 py-3 text-sm text-primary whitespace-nowrap">{trip.driverName || <span className="text-gray-300">—</span>}</td>
+                              <td className="px-4 py-3 text-sm font-bold text-headings whitespace-nowrap">{trip.tripNumber || '—'}</td>
+                              <td className="px-4 py-3 text-sm font-semibold text-headings whitespace-nowrap">{trip.truckNumber || '—'}</td>
+                              <td className="px-4 py-3 text-sm text-headings whitespace-nowrap">{trip.driverName || <span className="text-gray-300">—</span>}</td>
                               <td className="px-4 py-3 text-sm text-secondary">
                                 <div className="relative group inline-flex items-center gap-1 min-w-0 cursor-default">
-                                  <span className="text-primary font-medium truncate" style={{ maxWidth: '80px' }}>{trip.origin && trip.origin !== 'N/A' ? trip.origin : <span className="text-gray-300">—</span>}</span>
+                                  <span className="text-headings font-medium truncate" style={{ maxWidth: '80px' }}>{trip.origin && trip.origin !== 'N/A' ? trip.origin : <span className="text-gray-300">—</span>}</span>
                                   <ArrowUpRight size={12} className="text-[var(--accent-blue)] flex-shrink-0" />
-                                  <span className="text-primary font-medium truncate" style={{ maxWidth: '80px' }}>{trip.destination && trip.destination !== 'N/A' ? trip.destination : <span className="text-gray-300">—</span>}</span>
+                                  <span className="text-headings font-medium truncate" style={{ maxWidth: '80px' }}>{trip.destination && trip.destination !== 'N/A' ? trip.destination : <span className="text-gray-300">—</span>}</span>
                                   {routeText !== '—' && (
-                                    <div className="absolute z-50 bottom-full left-0 mb-1.5 px-2.5 py-1.5 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150">
+                                    <div className="absolute z-50 bottom-full left-0 mb-1.5 px-2.5 py-1.5 bg-gray-900 text-headings text-xs rounded-lg whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150">
                                       {trip.origin && trip.origin !== 'N/A' ? trip.origin : '—'}
                                       <span className="mx-1.5 text-[var(--accent-blue)]">→</span>
                                       {trip.destination && trip.destination !== 'N/A' ? trip.destination : '—'}
@@ -1721,7 +1740,7 @@ const FinanceReport = () => {
                                   )}
                                 </div>
                               </td>
-                              <td className="px-4 py-3 text-sm text-right text-primary whitespace-nowrap">{hasMiles ? miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-headings whitespace-nowrap">{hasMiles ? miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
                               <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{formattedStartDate}</td>
                               <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{formattedEndDate}</td>
                               <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 whitespace-nowrap">{formatCurrency(revenue)}</td>
@@ -1773,9 +1792,9 @@ const FinanceReport = () => {
                           const dash = <span className="text-gray-300 font-light">—</span>;
                           return (
                             <tr className="font-bold border-t-2 border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/5">
-                              <td colSpan={4} className="px-4 py-3 text-sm text-primary font-bold whitespace-nowrap">All Trips Total</td>
+                              <td colSpan={4} className="px-4 py-3 text-sm text-headings font-bold whitespace-nowrap">All Trips Total</td>
                               <td className="px-4 py-3 whitespace-nowrap"></td>
-                              <td className="px-4 py-3 text-sm text-right text-primary font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-headings font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
                               <td colSpan={2} className="px-4 py-3 whitespace-nowrap"></td>
                               <td className="px-4 py-3 text-sm text-right text-green-700 font-bold whitespace-nowrap">{formatCurrency(totRev)}</td>
                               <td className="px-4 py-3 text-sm text-right text-orange-500 font-bold whitespace-nowrap">{totFuelCost > 0 ? formatCurrency(totFuelCost) : dash}</td>
@@ -1785,7 +1804,7 @@ const FinanceReport = () => {
                               <td className="px-4 py-3 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totRev / totMiles).toFixed(2)}` : dash}</td>
                               <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totCost / totMiles).toFixed(2)}` : dash}</td>
                               <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>{hasTotMiles ? `$${(totProfit / totMiles).toFixed(2)}` : dash}</td>
-                              <td className="px-4 py-3 text-sm text-center font-bold text-primary whitespace-nowrap">{totMargin.toFixed(1)}%</td>
+                              <td className="px-4 py-3 text-sm text-center font-bold text-headings whitespace-nowrap">{totMargin.toFixed(1)}%</td>
                               <td className="px-4 py-3 whitespace-nowrap"></td>
                             </tr>
                           );
@@ -1804,7 +1823,7 @@ const FinanceReport = () => {
               {/* Period Selector */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
                 <div className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-primary">Report Period:</label>
+                  <label className="text-sm font-medium text-headings">Report Period:</label>
                   <div className="flex gap-2 flex-wrap">
                     {(['2weeks', '1month', 'monthly', 'quarterly', 'half-yearly', 'yearly'] as TimePeriod[]).map((period) => {
                       const getPeriodLabel = (p: TimePeriod) => {
@@ -1824,8 +1843,8 @@ const FinanceReport = () => {
                           }}
                           disabled={loading}
                           className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${timePeriod === period
-                            ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white shadow-md'
-                            : 'bg-card text-primary hover:bg-gray-200'
+                            ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-headings shadow-md'
+                            : 'bg-card text-headings hover:bg-gray-200'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
@@ -1847,7 +1866,7 @@ const FinanceReport = () => {
               {!loading && getCurrentReports().length === 0 && dataLoaded && (
                 <div className="bg-card rounded-lg shadow-sm border border-theme p-8 text-center">
                   <Calendar size={48} className="mx-auto text-secondary mb-4" />
-                  <h3 className="text-lg font-semibold text-primary mb-2">No Data Available</h3>
+                  <h3 className="text-lg font-semibold text-headings mb-2">No Data Available</h3>
                   <p className="text-secondary mb-4">No financial data found for the selected period ({timePeriod}).</p>
                   <p className="text-sm text-secondary">Try selecting a different period or check if you have invoices, expenses, or payroll records.</p>
                 </div>
@@ -1859,7 +1878,7 @@ const FinanceReport = () => {
 
                   {/* Time-based Comparison Chart */}
                   <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                    <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-headings mb-4 flex items-center gap-2">
                       <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                       {(() => {
                         switch (timePeriod) {
@@ -1941,7 +1960,7 @@ const FinanceReport = () => {
 
                   {/* Time-based Comparison Bar Chart */}
                   <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                    <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-headings mb-4 flex items-center gap-2">
                       <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                       {(() => {
                         switch (timePeriod) {
@@ -2155,7 +2174,7 @@ const FinanceReport = () => {
                       <CreditCard size={15} className="text-[var(--accent-blue)]" />
                       <span className="text-xs text-secondary font-medium uppercase tracking-wide">Total Payables</span>
                     </div>
-                    <div className="text-2xl font-bold text-primary">{fmtCur(totalPayable)}</div>
+                    <div className="text-2xl font-bold text-headings">{fmtCur(totalPayable)}</div>
                     <div className="text-xs text-secondary mt-1">{filtered.length} records</div>
                   </div>
                   <div className="bg-card rounded-xl border border-theme p-4">
@@ -2201,7 +2220,7 @@ const FinanceReport = () => {
                           </span>
                           {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-blue)]" />}
                         </div>
-                        <div className="text-sm font-bold text-primary truncate">{fmtCur(total)}</div>
+                        <div className="text-sm font-bold text-headings truncate">{fmtCur(total)}</div>
                         <div className="text-xs text-secondary mt-0.5 truncate">{meta.label}</div>
                         <div className="text-xs text-secondary">{count} items</div>
                       </button>
@@ -2270,7 +2289,7 @@ const FinanceReport = () => {
                 <div className="bg-card rounded-xl border border-theme">
                   <div className="flex items-center justify-between px-4 py-3 border-b border-theme">
                     <div>
-                      <h2 className="text-sm font-semibold text-primary">Payables List</h2>
+                      <h2 className="text-sm font-semibold text-headings">Payables List</h2>
                       <p className="text-xs text-secondary">Showing {Math.min(pageRows.length, PAYABLE_PAGE_SIZE)} of {filtered.length} records</p>
                     </div>
                   </div>
@@ -2286,30 +2305,30 @@ const FinanceReport = () => {
                         <thead>
                           <tr className="bg-card text-xs text-secondary uppercase tracking-wide">
                             <th className="text-left px-4 py-2.5 font-medium">
-                              <button onClick={() => handlePayableSort('subCategory')} className="flex items-center gap-1 hover:text-primary">
+                              <button onClick={() => handlePayableSort('subCategory')} className="flex items-center gap-1 text-headings">
                                 Category <SortIcon k="subCategory" />
                               </button>
                             </th>
-                            <th className="text-left px-4 py-2.5 font-medium">Description</th>
-                            <th className="text-left px-4 py-2.5 font-medium">Reference</th>
+                            <th className="text-left px-4 py-2.5 font-medium text-headings">Description</th>
+                            <th className="text-left px-4 py-2.5 font-medium text-headings">Reference</th>
                             <th className="text-right px-4 py-2.5 font-medium">
-                              <button onClick={() => handlePayableSort('amount')} className="flex items-center gap-1 hover:text-primary ml-auto">
+                              <button onClick={() => handlePayableSort('amount')} className="flex items-center gap-1 text-headings ml-auto">
                                 Amount <SortIcon k="amount" />
                               </button>
                             </th>
                             <th className="text-left px-4 py-2.5 font-medium">
-                              <button onClick={() => handlePayableSort('date')} className="flex items-center gap-1 hover:text-primary">
+                              <button onClick={() => handlePayableSort('date')} className="flex items-center gap-1 text-headings">
                                 Date <SortIcon k="date" />
                               </button>
                             </th>
                             <th className="text-left px-4 py-2.5 font-medium">
-                              <button onClick={() => handlePayableSort('status')} className="flex items-center gap-1 hover:text-primary">
+                              <button onClick={() => handlePayableSort('status')} className="flex items-center gap-1 text-headings">
                                 Status <SortIcon k="status" />
                               </button>
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
+                        <tbody className="divide-y divide-theme divide-white/5">
                           {pageRows.length === 0 ? (
                             <tr>
                               <td colSpan={6} className="text-center py-14 text-secondary text-sm">
@@ -2327,11 +2346,11 @@ const FinanceReport = () => {
                                     {catMeta.label}
                                   </span>
                                 </td>
-                                <td className="px-4 py-2.5 text-primary max-w-[200px]">
+                                <td className="px-4 py-2.5 text-secondary max-w-[200px]">
                                   <div className="truncate">{row.description}</div>
                                 </td>
                                 <td className="px-4 py-2.5 text-secondary text-xs font-mono">{row.reference}</td>
-                                <td className="px-4 py-2.5 text-right font-semibold text-primary">
+                                <td className="px-4 py-2.5 text-right font-semibold text-secondary">
                                   {formatCurrency(row.amount)}
                                 </td>
                                 <td className="px-4 py-2.5 text-secondary text-xs whitespace-nowrap">
@@ -2352,10 +2371,10 @@ const FinanceReport = () => {
                         {pageRows.length > 0 && (
                           <tfoot>
                             <tr className="bg-[var(--accent-blue)]/5 border-t-2 border-[var(--accent-blue)]/20 font-semibold">
-                              <td colSpan={3} className="px-4 py-2.5 text-sm text-primary">
+                              <td colSpan={3} className="px-4 py-2.5 text-sm ">
                                 Filtered Total ({filtered.length} records)
                               </td>
-                              <td className="px-4 py-2.5 text-right text-sm font-bold text-primary">
+                              <td className="px-4 py-2.5 text-right text-sm font-bold ">
                                 {formatCurrency(totalPayable)}
                               </td>
                               <td colSpan={2} className="px-4 py-2.5 text-xs text-secondary">
@@ -2381,7 +2400,7 @@ const FinanceReport = () => {
                           const p = totalPgPages <= 5 ? i + 1 : Math.max(1, Math.min(payablePage - 2, totalPgPages - 4)) + i;
                           return (
                             <button key={p} onClick={() => setPayablePage(p)}
-                              className={`w-7 h-7 text-xs rounded transition ${p === payablePage ? 'bg-[var(--accent-blue)] text-white font-semibold' : 'border border-theme text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}>
+                              className={`w-7 h-7 text-xs rounded transition ${p === payablePage ? 'bg-[var(--accent-blue)] text-headings font-semibold' : 'border border-theme text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}>
                               {p}
                             </button>
                           );

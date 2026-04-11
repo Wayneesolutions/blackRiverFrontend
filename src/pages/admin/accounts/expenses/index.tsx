@@ -975,7 +975,7 @@ const ExpensesPage = () => {
   }
 
   return (
-    <div className="min-h-screen p-6 bg-main">
+    <div className="min-h-screen p-6 bg-main border-red-700 ">
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
@@ -1008,8 +1008,8 @@ const ExpensesPage = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Expense Management</h1>
-              <p className="text-[#063f6f] mt-2">Track and manage all expenses</p>
+              <h1 className="text-3xl font-bold text-[var(--accent-navyblue)]" >Expense Management</h1>
+              <p className="text-secondary mt-2">Track and manage all expenses</p>
             </div>
             <button
               onClick={() => {
@@ -1124,8 +1124,8 @@ const ExpensesPage = () => {
                 <button
                   onClick={() => setSelectedCategoryTab('all')}
                   className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${selectedCategoryTab === 'all'
-                      ? 'bg-card text-blue-700 border-2 border-blue-400 shadow-sm'
-                      : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)] border-2 border-transparent hover:border-theme'
+                    ? 'bg-card text-blue-700 border-2 border-blue-400 shadow-sm'
+                    : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)] border-2 border-transparent hover:border-theme'
                     }`}
                 >
                   All Expenses <span className="font-normal">({expenses.length})</span>
@@ -1163,8 +1163,8 @@ const ExpensesPage = () => {
                       key={category._id}
                       onClick={() => setSelectedCategoryTab(category._id)}
                       className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${selectedCategoryTab === category._id
-                          ? 'bg-card text-blue-700 border-2 border-blue-400 shadow-sm'
-                          : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)] border-2 border-transparent hover:border-theme'
+                        ? 'bg-card text-blue-700 border-2 border-blue-400 shadow-sm'
+                        : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)] border-2 border-transparent hover:border-theme'
                         }`}
                     >
                       {category.name} <span className="font-normal">({categoryExpenseCount})</span>
@@ -1204,8 +1204,8 @@ const ExpensesPage = () => {
               <button
                 onClick={() => setActiveTab('list')}
                 className={`px-6 py-4 text-sm font-semibold transition-all duration-200 relative ${activeTab === 'list'
-                    ? 'text-[#00D1FF]'
-                    : 'text-secondary hover:text-primary'
+                  ? 'text-[#00D1FF]'
+                  : 'text-secondary hover:text-primary'
                   }`}
               >
                 Expense List
@@ -1216,8 +1216,8 @@ const ExpensesPage = () => {
               <button
                 onClick={() => setActiveTab('create')}
                 className={`px-6 py-4 text-sm font-semibold transition-all duration-200 relative ${activeTab === 'create'
-                    ? 'text-[#00D1FF]'
-                    : 'text-secondary hover:text-primary'
+                  ? 'text-[#00D1FF]'
+                  : 'text-secondary hover:text-primary'
                   }`}
               >
                 {editingExpense ? 'Edit Expense' : 'Add Expense'}
@@ -2144,8 +2144,8 @@ const ExpensesPage = () => {
                               <div className="flex items-center gap-2">
                                 <p className="text-sm font-semibold text-primary">{type.name}</p>
                                 <span className={`px-2 py-0.5 text-xs rounded-full ${type.status === 'active'
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-card text-secondary'
+                                  ? 'bg-green-100 text-green-700'
+                                  : 'bg-card text-secondary'
                                   }`}>
                                   {type.status === 'active' ? 'Active' : 'Inactive'}
                                 </span>

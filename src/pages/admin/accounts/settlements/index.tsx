@@ -480,28 +480,28 @@ export default function SettlementSystem() {
       value: `$${summaryValues.totalSettlements.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       change: '+12.5%',
       icon: DollarSign,
-      color: 'blue'
+      color: 'text-[var(--accent-blue)]'
     },
     {
       title: 'Pending Payments',
       value: `$${summaryValues.pendingAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       change: `${summaryValues.pendingCount} pending`,
       icon: FileText,
-      color: 'orange'
+      color: 'text-[var(--accent-red)]'
     },
     {
       title: 'Total Miles (Week)',
       value: summaryValues.totalMiles.toLocaleString(),
       change: '+8.3%',
       icon: MapPin,
-      color: 'green'
+      color: 'text-[var(--accent-green)]'
     },
     {
       title: 'Active Drivers',
       value: summaryValues.activeDrivers.toString(),
       change: summaryValues.activeDrivers > 0 ? '100% active' : '0% active',
       icon: Users,
-      color: 'purple'
+      color: 'text-[var(--accent-purple)]'
     }
   ];
 
@@ -546,7 +546,7 @@ export default function SettlementSystem() {
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Settlement Management</h1>
+                <h1 className="text-2xl font-bold text-headings" >Settlement Management</h1>
                 <p className="text-sm text-secondary mt-1">
                   Manage driver settlements, deductions/additions, and miles tracking for IFTA reporting
                 </p>
@@ -569,8 +569,8 @@ export default function SettlementSystem() {
                     setShowSettlementModal(true);
                   }}
 
-                  className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2"
-                  style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+                  className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2 bg-[var(--accent-navyblue)]"
+
                 >
                   <Plus className="w-4 h-4" />
                   New Settlement Generation
@@ -589,11 +589,11 @@ export default function SettlementSystem() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === tab.id
-                      ? 'border-[var(--accent-blue)] text-[#016ab2]'
-                      : 'border-transparent text-secondary hover:text-primary hover:border-theme'
+                      ? 'border-[var(--accent-blue)] text-[var(--accent-navyblue)]'
+                      : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--accent-navyblue)] hover:border-theme'
                       }`}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4 text-current" /> {/* ✅ important */}
                     {tab.label}
                   </button>
                 );
@@ -607,24 +607,40 @@ export default function SettlementSystem() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {summaryCards.map((card, index) => {
             const Icon = card.icon;
+
             return (
-              <div key={index} className={`rounded-lg shadow-sm p-6 border ${card.color === 'blue' ? 'bg-[#E3F2FD] border-blue-100' :
-                card.color === 'green' ? 'bg-[#E8F5E9] border-green-100' :
-                  card.color === 'purple' ? 'bg-[#F3E5F5] border-purple-100' :
-                    'bg-[#FFF3E0] border-orange-100'
-                }`}>
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-card`}>
-                    <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[var(--accent-blue)]' :
-                      card.color === 'green' ? 'text-[rgba(0,209,255,0.15)]' :
-                        card.color === 'purple' ? 'text-[var(--accent-blue)]' :
-                          'text-orange-500'
-                      }`} />
+              <div
+                key={index}
+                className="rounded-xl border border-theme bg-card p-6 shadow-sm hover:shadow-md transition-all"
+              >
+                <div className="flex items-center justify-between mb-4 flex-nowrap ">
+
+                  {/* Icon */}
+                  <div className=" rounded-lg bg-card  ">
+                    <div className='flex gap-1 flex-nowrap'>
+                      <Icon
+                        className={`w-4 h-4 ${card.color
+                          }`}
+                      />
+                      {/* Title */}
+                      <h3 className="text-secondary text-sm font-medium mb-1">
+                        {card.title}
+                      </h3>
+                    </div>
                   </div>
-                  <span className="text-sm text-[#063f6f] font-medium">{card.change}</span>
+
+                  {/* Change */}
+                  <span className={`text-sm font-medium  ${card.color}  mx-0 my-0`}>
+                    {card.change}
+                  </span>
                 </div>
-                <h3 className="text-[#063f6f] text-sm font-medium mb-1">{card.title}</h3>
-                <p className="text-2xl font-bold text-[#016ab2]">{card.value}</p>
+
+
+
+                {/* Value */}
+                <p className="text-2xl font-bold text-[var(--text-primary)]">
+                  {card.value}
+                </p>
               </div>
             );
           })}
@@ -670,8 +686,8 @@ export default function SettlementSystem() {
                     });
                     setShowDeductionModal(true);
                   }}
-                  className="px-4 py-2 text-sm hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2"
-                  style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+                  className="px-4 py-2 text-sm hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2 bg-[var(--accent-navyblue)]"
+
                 >
                   <Plus className="w-4 h-4" />
                   Add New
@@ -695,7 +711,7 @@ export default function SettlementSystem() {
                     setShowMilesModal(true);
                   }}
                   className="px-4 py-2 text-sm hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all flex items-center gap-2"
-                  style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+
                 >
                   <Plus className="w-4 h-4" />
                   Add New
@@ -717,19 +733,19 @@ export default function SettlementSystem() {
                 </div>
               ) : (
                 <table className="w-full">
-                  <thead className="bg-card border-b border-theme">
+                  <thead className="bg-card border-b border-theme text-headings">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Settlement ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Pay Period</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Payee</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Gross Pay</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Deductions</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Net Pay</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Settlement ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Pay Period</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Payee</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Gross Pay</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Deductions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Net Pay</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-theme">
+                  <tbody className="bg-card divide-y divide-theme divide-white/5">
                     {filteredSettlements.map(settlement => (
                       <tr
                         key={settlement._id}
@@ -740,22 +756,22 @@ export default function SettlementSystem() {
                         }}
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#00D1FF]">{settlement.settlementId}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                           {formatPayPeriod(settlement.payPeriod.startDate, settlement.payPeriod.endDate)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">{settlement.driver?.name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">{settlement.driver?.name || 'Unknown'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${settlement.status === 'Paid' ? 'bg-green-100 text-green-800' :
                             settlement.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                               settlement.status === 'Processing' ? 'bg-blue-100 text-blue-800' :
-                                'bg-card text-primary'
+                                'bg-card text-secondary'
                             }`}>
                             {settlement.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">${settlement.grossPay.toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">${settlement.grossPay.toLocaleString()}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-[#A855F7]">-${settlement.deductions.toLocaleString()}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">${settlement.netPay.toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-secondary">${settlement.netPay.toLocaleString()}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
 
@@ -778,10 +794,10 @@ export default function SettlementSystem() {
                                 });
                                 setShowSettlementModal(true);
                               }}
-                              className="p-1 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded"
+                              className="p-1   rounded hover:bg-[var(--accent-blue)]/10"
                               title="Edit"
                             >
-                              <Edit className="w-4 h-4" />
+                              <Edit className="w-4 h-4 text-[var(--accent-blue)]" />
                             </button>
 
                           </div>
@@ -809,15 +825,15 @@ export default function SettlementSystem() {
                 <table className="w-full">
                   <thead className="bg-card border-b border-theme">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Recurrence</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Assigned To</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Recurrence</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Amount</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Assigned To</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-theme">
+                  <tbody className="bg-card divide-y divide-theme divide-white/5 ">
                     {filteredDeductions.map(item => (
                       <tr
                         key={item._id}
@@ -827,7 +843,7 @@ export default function SettlementSystem() {
                           setShowDetailModal(true);
                         }}
                       >
-                        <td className="px-6 py-4 text-sm font-medium text-primary">{item.name}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-secondary">{item.name}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit ${item.type === 'Addition' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                             }`}>
@@ -835,9 +851,9 @@ export default function SettlementSystem() {
                             {item.type}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">{item.recurrence}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">${item.amount.toLocaleString()}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">{item.assignedTo?.name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">{item.recurrence}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-secondary">${item.amount.toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">{item.assignedTo?.name || 'Unknown'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button
@@ -855,15 +871,15 @@ export default function SettlementSystem() {
                                 });
                                 setShowDeductionModal(true);
                               }}
-                              className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                              className="p-1  hover:bg-blue-50 rounded"
                             >
-                              <Edit className="w-4 h-4" />
+                              <Edit className="w-4 h-4 text-[var(--accent-blue)]" />
                             </button>
                             <button
                               onClick={() => handleDelete(item._id, 'deduction')}
                               className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4 text-[var(--accent-red)]" />
                             </button>
                           </div>
                         </td>
@@ -900,7 +916,7 @@ export default function SettlementSystem() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">IFTA Miles</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-theme">
+                  <tbody className="bg-card divide-y divide-theme divide-white/5">
                     {filteredMilesTracking.map(record => (
                       <tr
                         key={record._id}
@@ -942,7 +958,7 @@ export default function SettlementSystem() {
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
             <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
-                <h3 className="text-xl font-bold text-primary">
+                <h3 className="text-xl font-bold text-[var(--accent-navyblue)]">
                   {editingItem ? 'Edit Settlement' : 'Create New Settlement'}
                 </h3>
                 <button onClick={() => setShowSettlementModal(false)} className="text-secondary hover:text-secondary">
@@ -951,7 +967,7 @@ export default function SettlementSystem() {
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">Driver *</label>
+                  <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-2">Driver *</label>
                   <select
                     value={settlementForm.driver}
                     onChange={(e) => setSettlementForm({ ...settlementForm, driver: e.target.value })}
@@ -972,29 +988,41 @@ export default function SettlementSystem() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-2">Start Date *</label>
+                    <label className="block text-sm font-medium text-headings mb-2">Start Date *</label>
                     <input
                       type="date"
                       value={settlementForm.payPeriod.startDate}
                       onChange={(e) => setSettlementForm({ ...settlementForm, payPeriod: { ...settlementForm.payPeriod, startDate: e.target.value } })}
                       className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
+                      style={{ colorScheme: 'dark' }}
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-2">End Date *</label>
+                    <label className="block text-sm font-medium text-headings mb-2">End Date *</label>
                     <input
                       type="date"
                       value={settlementForm.payPeriod.endDate}
-                      onChange={(e) => setSettlementForm({ ...settlementForm, payPeriod: { ...settlementForm.payPeriod, endDate: e.target.value } })}
-                      className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) =>
+                        setSettlementForm({
+                          ...settlementForm,
+                          payPeriod: {
+                            ...settlementForm.payPeriod,
+                            endDate: e.target.value,
+                          },
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-theme rounded-lg 
+  bg-card text-[var(--text-primary)] 
+  focus:ring-2 focus:ring-[var(--accent-blue)]"
+                      style={{ colorScheme: 'dark' }}   // ✅ important
                       required
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-2">Gross Pay *</label>
+                    <label className="block text-sm font-medium text-headings mb-2">Gross Pay *</label>
                     <input
                       type="number"
                       value={settlementForm.grossPay}
@@ -1006,7 +1034,7 @@ export default function SettlementSystem() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-2">Deductions</label>
+                    <label className="block text-sm font-medium text-headings mb-2">Deductions</label>
                     <input
                       type="number"
                       value={settlementForm.deductions}
@@ -1017,7 +1045,7 @@ export default function SettlementSystem() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-2">Additions</label>
+                    <label className="block text-sm font-medium text-headings mb-2">Additions</label>
                     <input
                       type="number"
                       value={settlementForm.additions}
@@ -1029,7 +1057,7 @@ export default function SettlementSystem() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">Status</label>
+                  <label className="block text-sm font-medium text-headings mb-2">Status</label>
                   <select
                     value={settlementForm.status}
                     onChange={(e) => setSettlementForm({ ...settlementForm, status: e.target.value as any })}
@@ -1089,7 +1117,7 @@ export default function SettlementSystem() {
                       }
                     }}
                     style={{
-                      background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                      background: 'var(--accent-navyblue)'
                     }}
                     className="flex-1 px-4 py-2 !text-white rounded-lg  disabled:opacity-50"
                     disabled={submitting}
@@ -1109,7 +1137,7 @@ export default function SettlementSystem() {
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
             <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
-                <h3 className="text-xl font-bold text-primary">
+                <h3 className="text-xl font-bold text-headings">
                   {editingItem ? 'Edit Deduction/Addition' : 'Create New Deduction/Addition'}
                 </h3>
                 <button onClick={() => setShowDeductionModal(false)} className="text-secondary hover:text-secondary">
@@ -1118,7 +1146,7 @@ export default function SettlementSystem() {
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">Name *</label>
+                  <label className="block text-sm font-medium text-headings mb-2">Name *</label>
                   <input
                     type="text"
                     value={deductionForm.name}
@@ -1129,7 +1157,7 @@ export default function SettlementSystem() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-2">Type *</label>
+                    <label className="block text-sm font-medium text-headings mb-2">Type *</label>
                     <select
                       value={deductionForm.type}
                       onChange={(e) => setDeductionForm({ ...deductionForm, type: e.target.value as any })}
@@ -1141,7 +1169,7 @@ export default function SettlementSystem() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-2">Recurrence *</label>
+                    <label className="block text-sm font-medium text-headings mb-2">Recurrence *</label>
                     <select
                       value={deductionForm.recurrence}
                       onChange={(e) => setDeductionForm({ ...deductionForm, recurrence: e.target.value as any })}
@@ -1159,7 +1187,7 @@ export default function SettlementSystem() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-2">Amount *</label>
+                    <label className="block text-sm font-medium text-headings mb-2">Amount *</label>
                     <input
                       type="number"
                       value={deductionForm.amount}
@@ -1171,7 +1199,7 @@ export default function SettlementSystem() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-2">Assigned To (Driver) *</label>
+                    <label className="block text-sm font-medium text-headings mb-2">Assigned To (Driver) *</label>
                     <select
                       value={deductionForm.assignedTo}
                       onChange={(e) => setDeductionForm({ ...deductionForm, assignedTo: e.target.value })}
@@ -1186,7 +1214,7 @@ export default function SettlementSystem() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">Description</label>
+                  <label className="block text-sm font-medium text-headings mb-2">Description</label>
                   <textarea
                     value={deductionForm.description}
                     onChange={(e) => setDeductionForm({ ...deductionForm, description: e.target.value })}
@@ -1236,7 +1264,7 @@ export default function SettlementSystem() {
                         setSubmitting(false);
                       }
                     }}
-                    style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+                    style={{ background: 'var(--accent-navyblue)' }}
                     className="flex-1 px-4 py-2  !text-white rounded-lg  disabled:opacity-50"
                     disabled={submitting}
                   >
@@ -1480,13 +1508,13 @@ export default function SettlementSystem() {
       {showDetailModal && selectedItem && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-card rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] p-6 flex justify-between items-center rounded-t-xl">
+            <div className="sticky top-0 text-[var(--accent-navyblue)] p-6 flex justify-between items-center rounded-t-xl ">
               <div className="flex items-center gap-3">
-                {selectedItem.type === 'settlement' && <DollarSign className="w-7 h-7 text-white" />}
-                {selectedItem.type === 'deduction' && (selectedItem.type === 'Addition' ? <TrendingUp className="w-7 h-7 text-white" /> : <TrendingDown className="w-7 h-7 text-white" />)}
-                {selectedItem.type === 'miles' && <MapPin className="w-7 h-7 text-white" />}
+                {selectedItem.type === 'settlement' && <DollarSign className="w-7 h-7 text-[var(--accent-navyblue)]" />}
+                {selectedItem.type === 'deduction' && (selectedItem.type === 'Addition' ? <TrendingUp className="w-7 h-7 text-[var(--accent-navyblue)]" /> : <TrendingDown className="w-7 h-7 text-[var(--accent-navyblue)]" />)}
+                {selectedItem.type === 'miles' && <MapPin className="w-7 h-7 text-[var(--accent-navyblue)]" />}
                 <div>
-                  <h3 className="text-2xl font-bold text-white">
+                  <h3 className="text-2xl font-bold text-[var(--accent-navyblue)]">
                     {selectedItem.type === 'settlement' && 'Settlement Details'}
                     {selectedItem.type === 'deduction' && 'Deduction/Addition Details'}
                     {selectedItem.type === 'miles' && 'Miles Tracking Details'}
@@ -1511,44 +1539,44 @@ export default function SettlementSystem() {
               {selectedItem.type === 'settlement' && (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                      <label className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-2 block">Driver/Payee</label>
-                      <p className="text-lg font-bold text-blue-900">{selectedItem.driver?.name || 'Unknown'}</p>
+                    <div className="bg-card rounded-lg p-4 border-2 border-theme">
+                      <label className="text-xs font-semibold text-headings uppercase tracking-wide mb-2 block">Driver/Payee</label>
+                      <p className="text-lg font-bold text-secondary">{selectedItem.driver?.name || 'Unknown'}</p>
                       {selectedItem.driver?.email && (
-                        <p className="text-sm text-blue-700 mt-1">{selectedItem.driver.email}</p>
+                        <p className="text-sm text-secondary mt-1">{selectedItem.driver.email}</p>
                       )}
                       {selectedItem.driver?.phone && (
-                        <p className="text-sm text-blue-700">{selectedItem.driver.phone}</p>
+                        <p className="text-sm text-secondary">{selectedItem.driver.phone}</p>
                       )}
                       {selectedItem.driver?.internalId && (
                         <p className="text-xs text-[#00D1FF] mt-2">ID: {selectedItem.driver.internalId}</p>
                       )}
                     </div>
 
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-                      <label className="text-xs font-semibold text-purple-900 uppercase tracking-wide mb-2 block">Pay Period</label>
-                      <p className="text-lg font-bold text-purple-900">
+                    <div className="bg-card rounded-lg p-4 border-2 border-theme">
+                      <label className="text-xs font-semibold text-[var(--accent-purple)] uppercase tracking-wide mb-2 block">Pay Period</label>
+                      <p className="text-lg font-bold text-secondary">
                         {formatPayPeriod(selectedItem.payPeriod.startDate, selectedItem.payPeriod.endDate)}
                       </p>
                       <div className="mt-2 space-y-1">
-                        <p className="text-sm text-purple-700">Start: {new Date(selectedItem.payPeriod.startDate).toLocaleDateString()}</p>
-                        <p className="text-sm text-purple-700">End: {new Date(selectedItem.payPeriod.endDate).toLocaleDateString()}</p>
+                        <p className="text-sm text-secondary">Start: {new Date(selectedItem.payPeriod.startDate).toLocaleDateString()}</p>
+                        <p className="text-sm text-secondary">End: {new Date(selectedItem.payPeriod.endDate).toLocaleDateString()}</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                      <label className="text-xs font-semibold text-green-900 uppercase tracking-wide mb-1 block">Gross Pay</label>
-                      <p className="text-3xl font-bold text-green-700">${selectedItem.grossPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    <div className="bg-card rounded-lg p-4 border-2 border-theme">
+                      <label className="text-xs font-semibold text-[var(--accent-green)] uppercase tracking-wide mb-1 block">Gross Pay</label>
+                      <p className="text-3xl font-bold text-secondary">${selectedItem.grossPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     </div>
 
-                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
-                      <label className="text-xs font-semibold text-orange-900 uppercase tracking-wide mb-1 block">Status</label>
+                    <div className="bg-card rounded-lg p-4 border-2 border-theme">
+                      <label className="text-xs font-semibold text-[var(--accent-orange)] uppercase tracking-wide mb-1 block">Status</label>
                       <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${selectedItem.status === 'Paid' ? 'bg-green-500 text-white' :
-                          selectedItem.status === 'Pending' ? 'bg-yellow-500 text-white' :
-                            selectedItem.status === 'Processing' ? 'bg-blue-500 text-white' :
-                              'bg-gray-500 text-white'
+                        selectedItem.status === 'Pending' ? 'bg-yellow-500 text-white' :
+                          selectedItem.status === 'Processing' ? 'bg-blue-500 text-white' :
+                            'bg-gray-500 text-white'
                         }`}>
                         {selectedItem.status}
                       </span>
@@ -1556,7 +1584,7 @@ export default function SettlementSystem() {
                   </div>
 
                   <div className="bg-card rounded-lg p-4 border border-theme">
-                    <h4 className="text-sm font-bold text-primary mb-3 uppercase tracking-wide">Payment Breakdown</h4>
+                    <h4 className="text-sm font-bold text-headings mb-3 uppercase tracking-wide">Payment Breakdown</h4>
                     <div className="space-y-3">
                       <div className="flex justify-between items-center py-2 border-b border-theme">
                         <span className="text-primary font-medium">Gross Pay</span>
@@ -1589,8 +1617,8 @@ export default function SettlementSystem() {
                     </div>
 
                     <div className={`rounded-lg p-4 border ${selectedItem.type === 'Addition'
-                        ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
-                        : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200'
+                      ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
+                      : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200'
                       }`}>
                       <label className={`text-xs font-semibold uppercase tracking-wide mb-2 block flex items-center gap-2 ${selectedItem.type === 'Addition' ? 'text-green-900' : 'text-red-900'
                         }`}>
@@ -1703,7 +1731,7 @@ export default function SettlementSystem() {
             <div className="sticky bottom-0 bg-card p-4 border-t border-theme rounded-b-xl flex justify-end">
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="px-6 py-2.5 bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transform transition-all duration-200"
+                className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transform transition-all duration-200"
               >
                 Close
               </button>
