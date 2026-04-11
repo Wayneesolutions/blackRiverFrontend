@@ -63,7 +63,7 @@ const ToastNotificationComponent = ({
           className={`flex items-start gap-3 p-3 rounded-lg border-2 shadow-lg ${bgColors[n.type]} min-w-[250px] max-w-[400px]`}
         >
           <div className="flex-shrink-0 mt-0.5">{icons[n.type]}</div>
-          <p className="flex-1 text-sm font-medium text-primary">{n.message}</p>
+          <p className="flex-1 text-sm font-medium text-headings">{n.message}</p>
           <button onClick={() => removeNotification(n.id)} className="flex-shrink-0 text-secondary hover:text-secondary">
             <X size={16} />
           </button>
@@ -199,7 +199,7 @@ const MechanicsProfile: React.FC = () => {
   return (
     <div className="p-6 bg-main min-h-screen">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-primary">My Profile</h1>
+        <h1 className="text-xl font-bold text-headings">My Profile</h1>
         <p className="text-sm text-secondary mt-1">Manage your account information</p>
       </div>
 
@@ -209,7 +209,7 @@ const MechanicsProfile: React.FC = () => {
           <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex items-center justify-between">
             <div className="flex items-center gap-2">
               <User className="text-[var(--accent-blue)]" size={20} />
-              <h2 className="text-sm font-bold text-primary">Personal Information</h2>
+              <h2 className="text-sm font-bold text-headings">Personal Information</h2>
             </div>
             {!isEditing && (
               <button
@@ -280,8 +280,8 @@ const MechanicsProfile: React.FC = () => {
         {/* Location */}
         <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
           <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex items-center gap-2">
-            <MapPin className="text-[var(--accent-blue)]" size={20} />
-            <h2 className="text-sm font-bold text-primary">Location</h2>
+            <MapPin className="text-[var(--accent-navyblue)]" size={20} />
+            <h2 className="text-sm font-bold text-headings">Location</h2>
           </div>
           <div className="p-4 space-y-4">
             <div>
@@ -352,8 +352,8 @@ const MechanicsProfile: React.FC = () => {
       {profile.company && (
         <div className="mt-6 bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
           <div className="px-4 py-3 border-b border-theme flex items-center gap-2">
-            <Building className="text-[var(--accent-blue)]" size={20} />
-            <h2 className="text-sm font-bold text-primary">Company</h2>
+            <Building className="text-[var(--accent-navyblue)]" size={20} />
+            <h2 className="text-sm font-bold text-headings">Company</h2>
           </div>
           <div className="p-4">
             <div className="px-3 py-2 bg-card rounded-lg text-sm">
@@ -367,8 +367,8 @@ const MechanicsProfile: React.FC = () => {
       <div className="mt-6 bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
         <div className="px-4 py-3 border-b border-theme flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Key className="text-[var(--accent-blue)]" size={20} />
-            <h2 className="text-sm font-bold text-primary">Password</h2>
+            <Key className="text-[var(--accent-navyblue)]" size={20} />
+            <h2 className="text-sm font-bold text-headings">Password</h2>
           </div>
           {!showPasswordSection && (
             <button
@@ -435,7 +435,7 @@ const MechanicsProfile: React.FC = () => {
               )}
             </div>
             <div className="flex justify-end gap-3 pt-4 border-t border-theme">
-              <button onClick={handleCancelPassword} disabled={loading} className="px-4 py-2 text-primary bg-card hover:bg-gray-200 rounded-lg text-sm font-medium disabled:opacity-50">
+              <button onClick={handleCancelPassword} disabled={loading} className="px-4 py-2 text-headings bg-card hover:bg-gray-200 rounded-lg text-sm font-medium disabled:opacity-50">
                 Cancel
               </button>
               <button
@@ -459,7 +459,7 @@ const MechanicsProfile: React.FC = () => {
           <button
             onClick={handleSaveProfile}
             disabled={loading}
-            className="px-4 py-2 bg-[var(--accent-blue)] text-white hover:bg-[#3598c4] rounded-lg text-sm font-medium disabled:opacity-50"
+            className="px-4 py-2 bg-[var(--accent-navyblue)] text-white hover:bg-[#3598c4] rounded-lg text-sm font-medium disabled:opacity-50"
           >
             {loading ? "Saving..." : "Save Changes"}
           </button>
