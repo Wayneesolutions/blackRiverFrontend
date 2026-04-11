@@ -283,7 +283,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
 
   if (loading) {
     return (
-      <div className="p-6 min-h-screen bg-main">
+      <div className="p-6 min-h-screen bg-main ">
         <div className="flex items-center justify-center py-16">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--accent-blue)]" />
         </div>
@@ -294,9 +294,9 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
   const isCompletedOnly = defaultStatus === "completed";
 
   return (
-    <div className="p-6 bg-main min-h-screen">
+    <div className="p-6 bg-main min-h-screen ">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-primary">{isCompletedOnly ? "Completed Orders" : "Mechanics Portal"}</h1>
+        <h1 className="text-xl font-bold text-headings">{isCompletedOnly ? "Completed Orders" : "Mechanics Portal"}</h1>
         <p className="text-sm text-secondary mt-1">
           {isCompletedOnly ? "All completed maintenance orders" : "Maintenance orders assigned to mechanics"}
         </p>
@@ -305,8 +305,8 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
       {notification && (
         <div
           className={`mb-4 rounded-lg border px-4 py-3 ${notification.type === "success"
-              ? "border-green-200 bg-green-50 text-green-800"
-              : "border-red-200 bg-card text-red-800"
+            ? "border-green-200 bg-green-50 text-green-800"
+            : "border-red-200 bg-card text-red-800"
             }`}
         >
           {notification.message}
@@ -321,43 +321,43 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
 
       {/* Count cards - hidden on Completed Orders page */}
       {!isCompletedOnly && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 ">
           <div
             onClick={() => { setStatusFilter("all"); setPage(1); }}
             className={`p-4 rounded-lg border-2 cursor-pointer transition ${statusFilter === "all"
-                ? "border-[var(--accent-blue)] bg-[var(--accent-blue)]/5"
-                : "border-theme bg-card hover:border-theme"
+              ? "border-[var(--accent-blue)] bg-[var(--accent-blue)]/5"
+              : "border-theme bg-card hover:border-theme"
               }`}
           >
             <div className="flex items-center gap-2">
               <LayoutGrid className="text-[var(--accent-blue)]" size={20} />
-              <span className="text-sm font-medium text-secondary">All Orders</span>
+              <span className="text-sm font-medium text-[var(--accent-blue)]">All Orders</span>
             </div>
             <p className="text-2xl font-bold text-primary mt-1">{pagination.allCount}</p>
           </div>
           <div
             onClick={() => { setStatusFilter("pending"); setPage(1); }}
             className={`p-4 rounded-lg border-2 cursor-pointer transition ${statusFilter === "pending"
-                ? "border-amber-500 bg-amber-50"
-                : "border-theme bg-card hover:border-theme"
+              ? "border-[var(--accent-amber)] bg-[var(--accent-amber)]/5"
+              : "border-theme bg-card hover:border-theme"
               }`}
           >
             <div className="flex items-center gap-2">
-              <Play className="text-amber-600" size={20} />
-              <span className="text-sm font-medium text-secondary">Pending</span>
+              <Play className="text-[var(--accent-amber)]" size={20} />
+              <span className="text-sm font-medium text-[var(--accent-amber)]">Pending</span>
             </div>
             <p className="text-2xl font-bold text-primary mt-1">{pagination.pendingCount}</p>
           </div>
           <div
             onClick={() => { setStatusFilter("completed"); setPage(1); }}
             className={`p-4 rounded-lg border-2 cursor-pointer transition ${statusFilter === "completed"
-                ? "border-green-500 bg-green-50"
-                : "border-theme bg-card hover:border-theme"
+              ? "border-[var(--accent-green)] bg-[var(--accent-green)]/5"
+              : "border-theme bg-card hover:border-theme"
               }`}
           >
             <div className="flex items-center gap-2">
-              <CheckCircle className="text-green-600" size={20} />
-              <span className="text-sm font-medium text-secondary">Completed</span>
+              <CheckCircle className="text-[var(--accent-green)]" size={20} />
+              <span className="text-sm font-medium text-[var(--accent-green)]">Completed</span>
             </div>
             <p className="text-2xl font-bold text-primary mt-1">{pagination.completedCount}</p>
           </div>
@@ -369,16 +369,16 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
         <div className="mb-6 p-4 rounded-lg border-2 border-green-500 bg-green-50">
           <div className="flex items-center gap-2">
             <CheckCircle className="text-green-600" size={20} />
-            <span className="text-sm font-medium text-primary">Completed Orders</span>
+            <span className="text-sm font-medium text-headings">Completed Orders</span>
           </div>
-          <p className="text-2xl font-bold text-primary mt-1">{pagination.completedCount}</p>
+          <p className="text-2xl font-bold text-headings mt-1">{pagination.completedCount}</p>
         </div>
       )}
 
       <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
         <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-sm font-bold text-primary">{isCompletedOnly ? "Completed Orders" : "Orders"}</h2>
+            <h2 className="text-sm font-bold text-headings">{isCompletedOnly ? "Completed Orders" : "Orders"}</h2>
             <p className="text-xs text-secondary mt-0.5">
               {pagination.totalCount} order{pagination.totalCount !== 1 ? "s" : ""} found
               {pagination.totalPages > 1 && ` • Page ${pagination.page} of ${pagination.totalPages}`}
@@ -398,16 +398,23 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
             {!isCompletedOnly && (
               <select
                 value={statusFilter}
-                onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                className="px-3 py-2 text-sm border border-theme rounded-lg focus:border-[var(--accent-blue)] focus:ring-2 focus:ring-[var(--accent-blue)]/20"
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="px-3 py-2 text-sm border border-theme rounded-lg 
+    bg-[var(--bg-primary)] text-[var(--text-primary)]
+    focus:border-[var(--accent-blue)] 
+    focus:ring-2 focus:ring-[var(--accent-blue)]/20
+    outline-none cursor-pointer"
               >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
-                <option value="Created">Created</option>
-                <option value="Assigned">Assigned</option>
-                <option value="Shared">Shared</option>
-                <option value="in-progress">In Progress</option>
+                <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="all">All Status</option>
+                <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="pending">Pending</option>
+                <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="completed">Completed</option>
+                <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="Created">Created</option>
+                <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="Assigned">Assigned</option>
+                <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="Shared">Shared</option>
+                <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="in-progress">In Progress</option>
               </select>
             )}
           </div>
@@ -418,27 +425,27 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
             <thead className="bg-card">
               <tr>
                 <th className="w-8 px-2 py-3" />
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Service Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Unit
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Description
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Completed
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-theme">
+            <tbody className="bg-card divide-y divide-theme divide-white/5">
               {orders.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-secondary">
@@ -462,24 +469,24 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                           {expandedId === order._id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </button>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {formatDate(order.serviceDate)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {order.unitNumber || "—"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-primary max-w-xs truncate">
+                      <td className="px-6 py-4 text-sm text-secondary max-w-xs truncate">
                         {order.description || order.repairDetails || "—"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${order.status === "completed" || order.status === "Completed"
-                              ? "bg-green-100 text-green-800"
-                              : order.status === "in-progress"
-                                ? "bg-blue-100 text-blue-800"
-                                : order.status === "Assigned" || order.status === "Shared"
-                                  ? "bg-amber-100 text-amber-800"
-                                  : "bg-card text-primary"
+                            ? "bg-green-100 text-green-800"
+                            : order.status === "in-progress"
+                              ? "bg-blue-100 text-blue-800"
+                              : order.status === "Assigned" || order.status === "Shared"
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-card text-secondary"
                             }`}
                         >
                           {order.status || "—"}
@@ -513,7 +520,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                             {/* Vehicle details */}
                             <div className="p-4 rounded-lg bg-card border border-theme">
-                              <div className="flex items-center gap-2 mb-2 font-semibold text-primary">
+                              <div className="flex items-center gap-2 mb-2 font-semibold text-headings">
                                 <Car size={16} className="text-[var(--accent-blue)]" />
                                 Vehicle Details
                               </div>
@@ -525,7 +532,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                             </div>
                             {/* Repair details */}
                             <div className="p-4 rounded-lg bg-card border border-theme md:col-span-2">
-                              <div className="flex items-center gap-2 mb-2 font-semibold text-primary">
+                              <div className="flex items-center gap-2 mb-2 font-semibold text-headings">
                                 <FileText size={16} className="text-[var(--accent-blue)]" />
                                 Repair Details
                               </div>
@@ -533,7 +540,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                             </div>
                             {/* Parts used */}
                             <div className="p-4 rounded-lg bg-card border border-theme lg:col-span-2">
-                              <div className="flex items-center gap-2 mb-2 font-semibold text-primary">
+                              <div className="flex items-center gap-2 mb-2 font-semibold text-headings">
                                 <PackageOpen size={16} className="text-[var(--accent-blue)]" />
                                 Parts Used ({order.completedParts?.length ?? 0})
                               </div>
@@ -566,7 +573,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                             </div>
                             {/* Dates & total */}
                             <div className="p-4 rounded-lg bg-card border border-theme">
-                              <div className="flex items-center gap-2 mb-2 font-semibold text-primary">
+                              <div className="flex items-center gap-2 mb-2 font-semibold text-headings">
                                 <Calendar size={16} className="text-[var(--accent-blue)]" />
                                 Dates & Total
                               </div>
@@ -602,7 +609,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                 type="button"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={pagination.page <= 1 || loading}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-headings bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={16} />
                 Previous
@@ -614,7 +621,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                 type="button"
                 onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                 disabled={pagination.page >= pagination.totalPages || loading}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-headings bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
                 <ChevronRight size={16} />
@@ -635,7 +642,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                   <Wrench className="text-[var(--accent-blue)]" size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-primary">Complete Order</h3>
+                  <h3 className="text-lg font-bold text-headings">Complete Order</h3>
                   <p className="text-xs text-secondary mt-0.5">Unit {completeModal.unitNumber || "—"}</p>
                 </div>
               </div>
@@ -654,21 +661,21 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
               <div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-card border border-theme">
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Unit</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{completeModal.unitNumber || "—"}</p>
+                  <p className="text-sm font-semibold text-headings mt-0.5">{completeModal.unitNumber || "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Service Date</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{formatDate(completeModal.serviceDate)}</p>
+                  <p className="text-sm font-semibold text-headings mt-0.5">{formatDate(completeModal.serviceDate)}</p>
                 </div>
                 <div className="col-span-2">
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Description</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{completeModal.description || "—"}</p>
+                  <p className="text-sm font-semibold text-headings mt-0.5">{completeModal.description || "—"}</p>
                 </div>
               </div>
 
               {/* Repair Details */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-primary mb-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-headings mb-2">
                   <FileText size={16} className="text-[var(--accent-blue)]" />
                   Repair Details <span className="text-red-500">*</span>
                 </label>
@@ -683,7 +690,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
 
               {/* Parts Used */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-primary mb-3">
+                <label className="flex items-center gap-2 text-sm font-semibold text-headings mb-3">
                   <Package size={16} className="text-[var(--accent-blue)]" />
                   Parts Used
                 </label>
@@ -712,7 +719,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                   <button
                     type="button"
                     onClick={addPart}
-                    className="px-4 py-2 text-sm font-medium text-primary border border-theme hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition"
+                    className="px-4 py-2 text-sm font-medium text-headings border border-theme hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition"
                   >
                     Custom Part
                   </button>
@@ -803,7 +810,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                   </div>
                 )}
                 <div className="flex justify-between items-center pt-2 border-t border-theme">
-                  <label className="text-sm font-semibold text-primary">Total Amount ($) <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-semibold text-headings">Total Amount ($) <span className="text-red-500">*</span></label>
                   <input
                     type="number"
                     min="0"
@@ -818,7 +825,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
 
               {/* Invoice Upload */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-primary mb-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-headings mb-2">
                   <FileText size={16} className="text-[var(--accent-blue)]" />
                   Invoice File <span className="text-red-500">*</span>
                 </label>
@@ -835,7 +842,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                       <FileText className="text-secondary" size={24} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-primary">
+                      <p className="text-sm font-medium text-headings">
                         {invoiceFile ? invoiceFile.name : "Choose file (PDF, JPG, PNG)"}
                       </p>
                       <p className="text-xs text-secondary mt-0.5">
@@ -852,7 +859,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
               <button
                 type="button"
                 onClick={closeCompleteModal}
-                className="px-5 py-2.5 text-sm font-medium text-primary bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition"
+                className="px-5 py-2.5 text-sm font-medium text-headings bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition"
               >
                 Cancel
               </button>
@@ -880,7 +887,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                   <Eye className="text-[var(--accent-blue)]" size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-primary">Order Details</h3>
+                  <h3 className="text-lg font-bold text-headings">Order Details</h3>
                   <p className="text-xs text-secondary mt-0.5">
                     Unit {detailsOrder.unitNumber || "—"} • {formatDate(detailsOrder.serviceDate)}
                   </p>
@@ -900,12 +907,12 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
               <div className="flex flex-wrap items-center gap-3">
                 <span
                   className={`inline-flex px-3 py-1.5 text-sm font-medium rounded-full ${detailsOrder.status === "completed" || detailsOrder.status === "Completed"
-                      ? "bg-green-100 text-green-800"
-                      : detailsOrder.status === "in-progress"
-                        ? "bg-blue-100 text-blue-800"
-                        : detailsOrder.status === "Assigned" || detailsOrder.status === "Shared"
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-card text-primary"
+                    ? "bg-green-100 text-green-800"
+                    : detailsOrder.status === "in-progress"
+                      ? "bg-blue-100 text-blue-800"
+                      : detailsOrder.status === "Assigned" || detailsOrder.status === "Shared"
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-card text-headings"
                     }`}
                 >
                   {detailsOrder.status || "—"}
@@ -923,28 +930,28 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
               <div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-card border border-theme">
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Unit</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{detailsOrder.unitNumber || "—"}</p>
+                  <p className="text-sm font-semibold text-headings mt-0.5">{detailsOrder.unitNumber || "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Service Date</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{formatDate(detailsOrder.serviceDate)}</p>
+                  <p className="text-sm font-semibold text-headings mt-0.5">{formatDate(detailsOrder.serviceDate)}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Make/Model</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{detailsOrder.makeModel || "—"}</p>
+                  <p className="text-sm font-semibold text-headings mt-0.5">{detailsOrder.makeModel || "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Odometer</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{detailsOrder.odometer != null ? detailsOrder.odometer.toLocaleString() : "—"}</p>
+                  <p className="text-sm font-semibold text-headings mt-0.5">{detailsOrder.odometer != null ? detailsOrder.odometer.toLocaleString() : "—"}</p>
                 </div>
                 <div className="col-span-2">
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Description</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{detailsOrder.description || "—"}</p>
+                  <p className="text-sm font-semibold text-headings mt-0.5">{detailsOrder.description || "—"}</p>
                 </div>
                 {detailsOrder.notes && (
                   <div className="col-span-2">
                     <p className="text-xs font-medium text-secondary uppercase tracking-wide">Notes</p>
-                    <p className="text-sm text-primary mt-0.5">{detailsOrder.notes}</p>
+                    <p className="text-sm text-headings mt-0.5">{detailsOrder.notes}</p>
                   </div>
                 )}
               </div>
@@ -953,7 +960,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
               {(detailsOrder.status === "completed" || detailsOrder.status === "Completed") && detailsOrder.repairDetails && (
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide mb-2">Repair Details</p>
-                  <p className="text-sm text-primary p-4 rounded-lg bg-card border border-theme whitespace-pre-wrap">
+                  <p className="text-sm text-headings p-4 rounded-lg bg-card border border-theme whitespace-pre-wrap">
                     {detailsOrder.repairDetails}
                   </p>
                 </div>
@@ -969,10 +976,10 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                       <table className="min-w-full text-sm">
                         <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold text-secondary">Part Name</th>
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold text-secondary">Part #</th>
-                            <th className="px-4 py-2.5 text-right text-xs font-semibold text-secondary">Qty</th>
-                            <th className="px-4 py-2.5 text-right text-xs font-semibold text-secondary">Cost</th>
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold text-headings">Part Name</th>
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold text-headings">Part #</th>
+                            <th className="px-4 py-2.5 text-right text-xs font-semibold text-headings">Qty</th>
+                            <th className="px-4 py-2.5 text-right text-xs font-semibold text-headings">Cost</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -994,7 +1001,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
               {(detailsOrder.status === "completed" || detailsOrder.status === "Completed") &&
                 detailsOrder.completionTotalAmount != null && (
                   <div className="flex justify-between items-center p-4 rounded-lg bg-[var(--accent-blue)]/5 border border-[var(--accent-blue)]/20">
-                    <span className="text-sm font-semibold text-primary">Total Amount</span>
+                    <span className="text-sm font-semibold text-headings">Total Amount</span>
                     <span className="text-lg font-bold text-[var(--accent-blue)]">${Number(detailsOrder.completionTotalAmount).toFixed(2)}</span>
                   </div>
                 )}
@@ -1017,7 +1024,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                 )}
             </div>
 
-            <div className="px-6 py-4 border-t border-theme bg-gray-50/30 flex-shrink-0">
+            <div className="px-6 py-4 border-t border-theme flex-shrink-0 ">
               <div className="flex justify-end gap-2">
                 {canCompleteOrder(detailsOrder.status) && (
                   <button
