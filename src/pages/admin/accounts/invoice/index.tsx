@@ -853,7 +853,7 @@ const InvoiceManagement: React.FC = () => {
             {/* Total Revenue */}
             <div className="bg-[#121A2B] rounded-xl p-5 border border-[rgba(0,209,255,0.12)] shadow-[0_0_20px_rgba(0,209,255,0.05)] hover:border-[rgba(0,209,255,0.25)] transition-all">
                 <div className="flex items-center justify-between mb-3">
-                    <p className="text-xs font-medium text-[#8B9BB4] uppercase tracking-wider">Total Revenue</p>
+                    <p className="text-xs font-medium text-[var(--accent-blue)] uppercase tracking-wider">Total Revenue</p>
                     <div className="p-2 rounded-lg bg-[#00D1FF]/10 shadow-[0_0_12px_rgba(0,209,255,0.2)]">
                         <DollarSign className="h-4 w-4 text-[#00D1FF]" />
                     </div>
@@ -865,7 +865,7 @@ const InvoiceManagement: React.FC = () => {
             {/* Paid */}
             <div className="bg-[#121A2B] rounded-xl p-5 border border-[rgba(0,255,163,0.12)] shadow-[0_0_20px_rgba(0,255,163,0.05)] hover:border-[rgba(0,255,163,0.25)] transition-all">
                 <div className="flex items-center justify-between mb-3">
-                    <p className="text-xs font-medium text-[#8B9BB4] uppercase tracking-wider">Paid</p>
+                    <p className="text-xs font-medium text-[var(--accent-green)] uppercase tracking-wider">Paid</p>
                     <div className="p-2 rounded-lg bg-[#00FFA3]/10 shadow-[0_0_12px_rgba(0,255,163,0.2)]">
                         <TrendingUp className="h-4 w-4 text-[#00FFA3]" />
                     </div>
@@ -877,7 +877,7 @@ const InvoiceManagement: React.FC = () => {
             {/* Pending */}
             <div className="bg-[#121A2B] rounded-xl p-5 border border-[rgba(245,158,11,0.12)] shadow-[0_0_20px_rgba(245,158,11,0.05)] hover:border-[rgba(245,158,11,0.25)] transition-all">
                 <div className="flex items-center justify-between mb-3">
-                    <p className="text-xs font-medium text-[#8B9BB4] uppercase tracking-wider">Pending</p>
+                    <p className="text-xs font-medium text-[var(--accent-orange)] uppercase tracking-wider">Pending</p>
                     <div className="p-2 rounded-lg bg-[#F59E0B]/10 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
                         <Calendar className="h-4 w-4 text-[#F59E0B]" />
                     </div>
@@ -889,7 +889,7 @@ const InvoiceManagement: React.FC = () => {
             {/* Collection Rate */}
             <div className="bg-[#121A2B] rounded-xl p-5 border border-[rgba(168,85,247,0.12)] shadow-[0_0_20px_rgba(168,85,247,0.05)] hover:border-[rgba(168,85,247,0.25)] transition-all">
                 <div className="flex items-center justify-between mb-3">
-                    <p className="text-xs font-medium text-[#8B9BB4] uppercase tracking-wider">Collection Rate</p>
+                    <p className="text-xs font-medium text-[var(--accent-purple)] uppercase tracking-wider">Collection Rate</p>
                     <div className="p-2 rounded-lg bg-[#A855F7]/10 shadow-[0_0_12px_rgba(168,85,247,0.2)]">
                         <Users className="h-4 w-4 text-[#A855F7]" />
                     </div>
@@ -933,16 +933,16 @@ const InvoiceManagement: React.FC = () => {
                     <table className="w-full">
                         <thead className="bg-card">
                             <tr>
-                                <th className="text-left py-3 px-6 font-medium text-secondary">Invoice ID</th>
-                                <th className="text-left py-3 px-6 font-medium text-secondary">Client</th>
-                                <th className="text-left py-3 px-6 font-medium text-secondary">Trip Details</th>
-                                <th className="text-left py-3 px-6 font-medium text-secondary">Amount</th>
-                                <th className="text-left py-3 px-6 font-medium text-secondary">Due Date</th>
-                                <th className="text-left py-3 px-6 font-medium text-secondary">Status</th>
-                                <th className="text-left py-3 px-6 font-medium text-secondary">Actions</th>
+                                <th className="text-left py-3 px-6 font-medium text-headings">Invoice ID</th>
+                                <th className="text-left py-3 px-6 font-medium text-headings">Client</th>
+                                <th className="text-left py-3 px-6 font-medium text-headings">Trip Details</th>
+                                <th className="text-left py-3 px-6 font-medium text-headings">Amount</th>
+                                <th className="text-left py-3 px-6 font-medium text-headings">Due Date</th>
+                                <th className="text-left py-3 px-6 font-medium text-headings">Status</th>
+                                <th className="text-left py-3 px-6 font-medium text-headings">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[rgba(255,255,255,0.05)]">
+                        <tbody className="divide-y divide-theme divide-white/5">
                             {filteredInvoices.map((invoice) => {
                                 // Extract trip number from notes if tripId is null
                                 const extractTripNumberFromNotes = (notes: string): string | null => {
@@ -976,7 +976,7 @@ const InvoiceManagement: React.FC = () => {
                                         </td>
                                         <td className="py-4 px-6">
                                             <div>
-                                                <div className="font-medium text-primary">{invoice.clientName}</div>
+                                                <div className="font-medium text-secondary">{invoice.clientName}</div>
                                                 <div className="text-sm text-secondary">{invoice.clientEmail}</div>
                                             </div>
                                         </td>
@@ -984,7 +984,7 @@ const InvoiceManagement: React.FC = () => {
                                             {trip ? (
                                                 <div className="space-y-1">
                                                     {trip?.tripNumber && (
-                                                        <div className="font-medium text-primary text-sm">
+                                                        <div className="font-medium text-secondary text-sm">
                                                             {trip?.tripNumber}
                                                         </div>
                                                     )}
@@ -1004,7 +1004,7 @@ const InvoiceManagement: React.FC = () => {
                                                 </div>
                                             ) : displayId ? (
                                                 <div className="space-y-1">
-                                                    <div className="font-medium text-primary text-sm">
+                                                    <div className="font-medium text-secondary text-sm">
                                                         {displayId}
                                                     </div>
                                                     <div className="text-xs text-secondary">
@@ -1030,9 +1030,9 @@ const InvoiceManagement: React.FC = () => {
                                             )}
                                         </td>
                                         <td className="py-4 px-6">
-                                            <span className="font-medium text-primary">{formatCurrency(Number(invoice.amount))}</span>
+                                            <span className="font-medium text-secondary">{formatCurrency(Number(invoice.amount))}</span>
                                         </td>
-                                        <td className="py-4 px-6 text-sm text-primary">
+                                        <td className="py-4 px-6 text-sm text-secondary">
                                             {formatDate(invoice.dueDate)}
                                         </td>
                                         <td className="py-4 px-6">
@@ -1126,14 +1126,14 @@ const InvoiceManagement: React.FC = () => {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => handleDownloadPDF(selectedInvoice)}
-                                className="px-5 py-2.5 bg-gradient-to-r from-gray-700 to-gray-800 !text-white rounded-md hover:from-gray-800 hover:to-gray-900 transition-all flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105 duration-200 font-medium"
+                                className="px-5 py-2.5 bg-[var(--accent-navyblue)] !text-white rounded-md hover:from-gray-800 hover:to-gray-900 transition-all flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105 duration-200 font-medium"
                             >
                                 <Download className="h-4 w-4" />
                                 Download PDF
                             </button>
                             <button
                                 onClick={() => setActiveTab('list')}
-                                className="text-[#8B9BB4] hover:text-[#00D1FF] transition-colors px-3 py-2 hover:bg-[rgba(0,209,255,0.08)] rounded-lg text-sm"
+                                className="text-[#8B9BB4] bg-[var(--accent-navyblue)] hover:text-[#00D1FF] transition-colors px-3 py-2 hover:bg-[rgba(0,209,255,0.08)] rounded-lg text-sm"
                             >
                                 ← Back to List
                             </button>
@@ -2194,11 +2194,11 @@ const InvoiceManagement: React.FC = () => {
             <div className="bg-card rounded-lg">
                 <div className="p-6 border-b border-theme">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-semibold text-primary">Create New Invoice</h2>
+                        <h2 className="text-xl font-semibold text-headings">Create New Invoice</h2>
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setActiveTab('list')}
-                                className="text-secondary hover:text-primary transition-colors"
+                                className="text-secondary hover:text-headings transition-colors"
                             >
                                 Cancel
                             </button>
@@ -2219,30 +2219,57 @@ const InvoiceManagement: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-primary mb-1">
+                                <label className="block text-sm font-medium text-headings mb-1">
                                     Select Order (Optional)
                                 </label>
                                 <select
                                     value={newInvoice.tripId}
                                     onChange={(e) => handleOrderSelect(e.target.value)}
-                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     disabled={loading}
+                                    className="w-full border border-theme rounded-md px-3 py-2 text-sm
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all
+  disabled:opacity-60 disabled:cursor-not-allowed"
                                 >
-                                    <option value="">
-                                        {loading ? "Loading orders..." : orders.length === 0 ? "No completed orders available" : "Select an order..."}
+                                    <option
+                                        value=""
+                                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                                    >
+                                        {loading
+                                            ? "Loading orders..."
+                                            : orders.length === 0
+                                                ? "No completed orders available"
+                                                : "Select an order..."}
                                     </option>
+
                                     {orders.map((order) => {
                                         const orderId = order._id;
                                         const orderNumber = order.orderNumber || 'Unknown Order';
-                                        const pickupLocation = order.pickupLocation?.place || order.pickupLocation?.placeId?.name || order.pickupLocation?.placeId?.currentLocation?.address || "N/A";
-                                        const deliveryLocation = order.deliveryLocation?.place || order.deliveryLocation?.placeId?.name || order.deliveryLocation?.placeId?.currentLocation?.address || "N/A";
+                                        const pickupLocation =
+                                            order.pickupLocation?.place ||
+                                            order.pickupLocation?.placeId?.name ||
+                                            order.pickupLocation?.placeId?.currentLocation?.address ||
+                                            "N/A";
+
+                                        const deliveryLocation =
+                                            order.deliveryLocation?.place ||
+                                            order.deliveryLocation?.placeId?.name ||
+                                            order.deliveryLocation?.placeId?.currentLocation?.address ||
+                                            "N/A";
+
                                         const customer = order.customer;
                                         const customerName = customer?.name || '';
                                         const customerEmail = customer?.email || '';
                                         const customerOrderNo = order.customerOrderNo || '';
 
                                         return (
-                                            <option key={orderId} value={orderId}>
+                                            <option
+                                                key={orderId}
+                                                value={orderId}
+                                                className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                                            >
                                                 {orderNumber} {customerOrderNo && `(PO: ${customerOrderNo})`} - {pickupLocation} → {deliveryLocation}
                                                 {customerName && ` (${customerName})`}
                                                 {customerEmail && ` [${customerEmail}]`}
@@ -2289,7 +2316,7 @@ const InvoiceManagement: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-primary mb-1">
+                                <label className="block text-sm font-medium text-headings mb-1">
                                     Client Name *
                                     {newInvoice.tripId && newInvoice.clientName && (
                                         <span className="text-xs text-green-600 ml-2">✓ Auto-filled from order</span>
@@ -2309,7 +2336,7 @@ const InvoiceManagement: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-primary mb-1">
+                                <label className="block text-sm font-medium text-headings mb-1">
                                     Client Email
                                     {newInvoice.tripId && newInvoice.clientEmail && (
                                         <span className="text-xs text-green-600 ml-2">✓ Auto-filled from order</span>
@@ -2329,7 +2356,7 @@ const InvoiceManagement: React.FC = () => {
 
 
                             <div>
-                                <label className="block text-sm font-medium text-primary mb-1">Amount *</label>
+                                <label className="block text-sm font-medium text-headings mb-1">Amount *</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -2343,7 +2370,7 @@ const InvoiceManagement: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-primary mb-1">GST Rate (%)</label>
+                                <label className="block text-sm font-medium text-headings mb-1">GST Rate (%)</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -2357,7 +2384,7 @@ const InvoiceManagement: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-primary mb-1">PST Rate (%)</label>
+                                <label className="block text-sm font-medium text-headings mb-1">PST Rate (%)</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -2373,35 +2400,52 @@ const InvoiceManagement: React.FC = () => {
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-primary mb-1">Currency</label>
+                                <label className="block text-sm font-medium text-headings mb-1">Currency</label>
                                 <select
                                     value={newInvoice.currency}
                                     onChange={(e) => handleInputChange('currency', e.target.value)}
-                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full border border-theme rounded-md px-3 py-2 text-sm
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                                 >
-                                    <option value="USD">USD - US Dollar</option>
-                                    <option value="EUR">EUR - Euro</option>
-                                    <option value="GBP">GBP - British Pound</option>
-                                    <option value="CAD">CAD - Canadian Dollar</option>
-                                    <option value="AUD">AUD - Australian Dollar</option>
-                                    <option value="INR">INR - Indian Rupee</option>
+                                    <option value="USD" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                                        USD - US Dollar
+                                    </option>
+                                    <option value="EUR" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                                        EUR - Euro
+                                    </option>
+                                    <option value="GBP" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                                        GBP - British Pound
+                                    </option>
+                                    <option value="CAD" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                                        CAD - Canadian Dollar
+                                    </option>
+                                    <option value="AUD" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                                        AUD - Australian Dollar
+                                    </option>
+                                    <option value="INR" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                                        INR - Indian Rupee
+                                    </option>
                                 </select>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-primary mb-1">Due Date *</label>
+                                <label className="block text-sm font-medium text-headings mb-1">Due Date *</label>
                                 <input
                                     type="date"
                                     value={newInvoice.dueDate}
                                     onChange={(e) => handleInputChange('dueDate', e.target.value)}
                                     className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     min={new Date().toISOString().split('T')[0]}
+                                    style={{ colorScheme: 'dark' }}
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-primary mb-1">Notes</label>
+                                <label className="block text-sm font-medium text-headings mb-1">Notes</label>
                                 <textarea
                                     value={newInvoice.notes}
                                     onChange={(e) => handleInputChange('notes', e.target.value)}
@@ -2463,7 +2507,7 @@ const InvoiceManagement: React.FC = () => {
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Invoice Management</h1>
+                            <h1 className="text-3xl font-bold" style={{ background: 'var(--accent-navyblue)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Invoice Management</h1>
                             <p className="mt-2 text-secondary">Manage invoices, track payments, and monitor revenue</p>
                         </div>
                         {activeTab === 'list' && (

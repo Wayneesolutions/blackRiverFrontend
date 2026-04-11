@@ -769,7 +769,7 @@ const VehicleEldMonitor = () => {
                                     </button>
                                     <button
                                         style={{
-                                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                                            background: 'var(--accent-navyblue)',
                                         }}
                                         className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                                         <Download size={16} /> Export HOS Report

@@ -660,7 +660,7 @@ export default function FleetMaintenanceFinance() {
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold border-none" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Fleet & Maintenance Finance</h1>
+                <h1 className="text-3xl font-bold border-none" style={{ background: 'var(--accent-navyblue)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Fleet & Maintenance Finance</h1>
                 <p className="text-sm text-secondary mt-1">
                   Financial reporting and tracking for maintenance operations, parts costs, and service expenses
                 </p>
@@ -1184,7 +1184,7 @@ export default function FleetMaintenanceFinance() {
               <button
                 onClick={handleCreateParts}
                 style={{
-                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                  background: 'var(--accent-navyblue)'
                 }}
                 className="px-4 py-2  !text-white rounded-lg transition-colors"
               >
@@ -1268,7 +1268,7 @@ export default function FleetMaintenanceFinance() {
               <button
                 onClick={handleCreateLabor}
                 style={{
-                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                  background: 'var(--accent-navyblue)'
                 }}
                 className="px-4 py-2  !text-white rounded-lg  transition-colors"
               >
@@ -1392,7 +1392,7 @@ export default function FleetMaintenanceFinance() {
               <button
                 onClick={handleCreatePlan}
                 style={{
-                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                  background: 'var(--accent-navyblue)'
                 }}
                 className="px-4 py-2 !text-white rounded-lg  transition-colors"
               >

@@ -955,7 +955,7 @@ const DrugTest = () => {
                                 <button
                                     type="submit"
                                     style={{
-                                        background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                                        background: 'var(--accent-navyblue)',
                                     }}
                                     className="px-6 py-2 !text-white font-semibold rounded-lg hover:opacity-90 disabled:opacity-50"
                                     disabled={saving}
@@ -1118,7 +1118,7 @@ const DrugTest = () => {
                                         handleEditClick(selectedRequest);
                                     }}
                                     style={{
-                                        background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                                        background: 'var(--accent-navyblue)',
                                     }}
                                     className="px-6 py-2 !text-white font-semibold rounded-lg hover:opacity-90"
                                 >

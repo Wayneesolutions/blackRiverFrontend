@@ -1468,7 +1468,7 @@ const HazardControl = () => {
                                         } : handleSaveHazard}
                                         disabled={editingHazard ? !(editingHazard as Hazard).description || !(editingHazard as Hazard).location : (!newHazard.type || !newHazard.description || !newHazard.location || !newHazard.reporter)}
                                         style={{
-                                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                                            background: 'var(--accent-navyblue)'
                                         }}
                                         className="flex-1 px-4 py-3  !text-white rounded-lg  transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
@@ -1578,7 +1578,7 @@ const HazardControl = () => {
                                     onClick={handleSaveObservation}
                                     disabled={!newObservation.driver || !newObservation.observer}
                                     style={{
-                                        background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                                        background: 'var(--accent-navyblue)'
                                     }}
                                     className="w-full px-4 py-3  !text-white rounded-lg  transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
@@ -1743,7 +1743,7 @@ const HazardControl = () => {
                                         disabled={editingHazard ? (!(editingHazard as TruckingHazard).truckingType || !(editingHazard as TruckingHazard).description || !(editingHazard as TruckingHazard).location) : (!newTruckingHazard.truckingType || !newTruckingHazard.description || !newTruckingHazard.location || !newTruckingHazard.reporter)}
                                         className="flex-1 px-4 py-3  !text-white rounded-lg  transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                         style={{
-                                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                                            background: 'var(--accent-navyblue)'
                                         }}
                                     >
                                         <FaSave /> {editingHazard ? 'Update Trucking Hazard' : 'Save Trucking Hazard'}

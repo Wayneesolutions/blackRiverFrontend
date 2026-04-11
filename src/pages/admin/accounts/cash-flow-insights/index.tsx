@@ -103,7 +103,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                         <div className="flex items-center gap-4">
 
                             <div>
-                                <h1 className="text-3xl font-bold flex items-center gap-2" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                <h1 className="text-3xl font-bold flex items-center gap-2" style={{ background: 'var(--accent-navyblue)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
 
                                     Cash Flow Insights
                                 </h1>

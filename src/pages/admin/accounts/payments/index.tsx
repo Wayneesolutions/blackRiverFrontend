@@ -65,14 +65,14 @@ export default function PaymentsPage() {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Payments Overview</h1>
+              <h1 className="text-2xl font-bold" style={{ background: 'var(--accent-navyblue)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Payments Overview</h1>
               <p className="text-sm text-secondary mt-1">
                 Manage and track outgoing payments, transaction history, and status
               </p>
             </div>
             <button
               className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 text-white rounded-lg transition-all flex items-center gap-2"
-              style={{background:'var(--accent-navyblue)}};
+              style={{ background: 'var(--accent-navyblue)' }}
             >
               <Plus className="w-4 h-4" />
               Record Payment

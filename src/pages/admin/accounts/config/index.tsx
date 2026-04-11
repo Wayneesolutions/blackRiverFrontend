@@ -652,7 +652,7 @@ export default function AccountsSetup() {
       <div className='p-5'>
         <div className="bg-card border-b border-theme">
           <div className="px-6 py-4">
-            <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Accounts & Setup</h1>
+            <h1 className="text-3xl font-bold" style={{ background: 'var(--accent-navyblue)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Accounts & Setup</h1>
             <p className="text-sm text-secondary mt-1">Backend control panel for the entire accounting system</p>
           </div>
 

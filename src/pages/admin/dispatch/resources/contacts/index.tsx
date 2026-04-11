@@ -183,7 +183,7 @@ const Index = () => {
   // Details sidebar state
   const [selectedItem, setSelectedItem] = useState<Contact | Customer | Place | null>(null);
   const [showDetailsSidebar, setShowDetailsSidebar] = useState(false);
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -359,7 +359,7 @@ const Index = () => {
       } else {
         res = await deletePlace(deleteTarget.item._id);
       }
-      
+
       if (res?.success) {
         const itemType = deleteTarget.type === "contact" ? "Contact" : deleteTarget.type === "customer" ? "Customer" : "Place";
         showToast('success', res.message || `${itemType} deleted successfully`);
@@ -449,7 +449,7 @@ const Index = () => {
     } else {
       type = "place";
     }
-    
+
     setEditLoading(true);
     try {
       let res;
@@ -603,8 +603,8 @@ const Index = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -659,7 +659,7 @@ const Index = () => {
               <Users className="w-4 h-4" />
               Customers
             </button>
-  
+
             <button
               onClick={() => setActiveTab("contacts")}
               className={`pb-2 px-2 text-sm font-medium flex items-center gap-2 transition-colors ${activeTab === "contacts"
@@ -689,7 +689,7 @@ const Index = () => {
             <button
               onClick={() => setIsSidebarOpen(true)}
               style={{
-                background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                background: 'var(--accent-navyblue)',
               }}
               className="!text-white px-4 py-2 rounded-md hover:opacity-90 transition-opacity flex items-center space-x-2 text-sm font-medium"
             >
@@ -734,10 +734,10 @@ const Index = () => {
               display: none; /* Chrome, Safari, Opera */
             }
           `}</style>
-          <div 
+          <div
             ref={topScrollRef}
             className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-            style={{ 
+            style={{
               maxHeight: '20px',
               marginBottom: '2px',
               scrollbarWidth: 'thin',
@@ -747,41 +747,41 @@ const Index = () => {
             <div className="top-scroll-content" style={{ height: '1px' }}></div>
           </div>
           {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-          <div 
+          <div
             ref={bottomScrollRef}
             className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
           >
             <table className="w-full" style={{ minWidth: '1000px' }}>
               <thead className="bg-card border-b border-theme">
                 <tr>
-           
-                    <>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Internal ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Email
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Phone
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Country
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Role
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Created At
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </>
-            
+
+                  <>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Internal ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Phone
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Country
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Role
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Created At
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </>
+
                 </tr>
               </thead>
               <tbody className="divide-y divide-theme">
@@ -804,8 +804,8 @@ const Index = () => {
                       const postalCode = place.postalCode || place.securityAccessCodepostalCode || "N/A";
 
                       return (
-                        <tr 
-                          key={place._id} 
+                        <tr
+                          key={place._id}
                           className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                           onClick={() => {
                             setSelectedItem(place);
@@ -826,11 +826,10 @@ const Index = () => {
                           <td className="px-6 py-4 text-sm">
                             <span
                               onClick={() => updateStatusPlace(place._id).then(() => fetchPlaces())}
-                              className={`cursor-pointer px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                place.status === "active"
+                              className={`cursor-pointer px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${place.status === "active"
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"
-                              }`}
+                                }`}
                             >
                               {place.status || "N/A"}
                             </span>
@@ -843,7 +842,7 @@ const Index = () => {
                               <button
                                 onClick={() => handleEdit(place)}
                                 style={{
-                                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                                  background: 'var(--accent-navyblue)',
                                 }}
                                 className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium !text-white hover:opacity-90 transition-opacity"
                               >
@@ -864,8 +863,8 @@ const Index = () => {
                     } else {
                       const contactOrCustomer = item as Contact | Customer;
                       return (
-                        <tr 
-                          key={contactOrCustomer._id} 
+                        <tr
+                          key={contactOrCustomer._id}
                           className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                           onClick={() => {
                             setSelectedItem(contactOrCustomer);
@@ -884,7 +883,7 @@ const Index = () => {
                               <button
                                 onClick={() => handleEdit(contactOrCustomer)}
                                 style={{
-                                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                                  background: 'var(--accent-navyblue)',
                                 }}
                                 className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium !text-white hover:opacity-90 transition-opacity"
                               >
@@ -1046,11 +1045,10 @@ const Index = () => {
                         {(selectedItem as Place).status && (
                           <div>
                             <p className="text-sm text-secondary mb-1">Status</p>
-                            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
-                              (selectedItem as Place).status === "active"
+                            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${(selectedItem as Place).status === "active"
                                 ? "bg-green-100 text-green-800"
                                 : "bg-red-100 text-red-800"
-                            }`}>
+                              }`}>
                               {(selectedItem as Place).status}
                             </span>
                           </div>
@@ -1336,7 +1334,7 @@ const Index = () => {
               </button>
               <button
                 style={{
-                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                  background: 'var(--accent-navyblue)',
                 }}
                 className="px-4 py-2 !text-white rounded-lg hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed text-sm"
                 onClick={handleUpdate}

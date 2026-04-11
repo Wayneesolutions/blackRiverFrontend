@@ -263,7 +263,7 @@ const Index = () => {
               <button
                 onClick={() => setIsSidebarOpen(true)}
                 style={{
-                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                  background: 'var(--accent-navyblue)',
                 }}
                 className="!text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
               >
@@ -337,8 +337,8 @@ const Index = () => {
                               <span
                                 onClick={() => handleStatusUpdate(place._id)}
                                 className={`cursor-pointer px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${place.status === "active"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-red-100 text-red-800"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
                                   }`}
                               >
                                 {place.status || "N/A"}
@@ -520,7 +520,7 @@ const Index = () => {
                 onClick={handleEditSave}
                 disabled={editLoading}
                 style={{
-                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                  background: 'var(--accent-navyblue)',
                 }}
                 className="rounded-md  px-4 py-2 text-sm font-medium !text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
               >

@@ -5,76 +5,76 @@ import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import { createtCustomer, updateCustomer } from '../../../../../axios/api/distapcher';
 
 interface ToastNotification {
-  id: number;
-  type: 'success' | 'error';
-  message: string;
+    id: number;
+    type: 'success' | 'error';
+    message: string;
 }
 
 const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
-  const icons = {
-    success: <FaCheckCircle className="text-green-500" size={24} />,
-    error: <FaExclamationCircle className="text-red-500" size={24} />,
-  };
+    const icons = {
+        success: <FaCheckCircle className="text-green-500" size={24} />,
+        error: <FaExclamationCircle className="text-red-500" size={24} />,
+    };
 
-  const bgColors = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-card border-red-200',
-  };
+    const bgColors = {
+        success: 'bg-green-50 border-green-200',
+        error: 'bg-card border-red-200',
+    };
 
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose(notification.id);
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [notification.id, onClose]);
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            onClose(notification.id);
+        }, 5000);
+        return () => clearTimeout(timer);
+    }, [notification.id, onClose]);
 
-  return (
-    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
-      <div className="flex-shrink-0 mt-0.5">
-        {icons[notification.type]}
-      </div>
-      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
-      <button
-        onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
-      >
-        <FaTimes size={16} />
-      </button>
-    </div>
-  );
+    return (
+        <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+            <div className="flex-shrink-0 mt-0.5">
+                {icons[notification.type]}
+            </div>
+            <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
+            <button
+                onClick={() => onClose(notification.id)}
+                className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
+            >
+                <FaTimes size={16} />
+            </button>
+        </div>
+    );
 };
 
 interface CustomerDetails {
-  _id?: string;
-  internalId?: string;
-  name?: string;
-  email?: string;
-  phone?: string;
-  country?: string;
-  state?: string;
-  city?: string;
-  customerDetails?: {
-    customerId?: string;
-    emailPrimary?: string;
-    emailSecondary?: string;
-    trackingEmail?: string;
-    taxId?: string;
-    assignedSalesperson?: string;
-    phonePrimary?: string;
-    phoneSecondary?: string;
-    contact?: string;
-    address?: string;
-    unit?: string;
-    zipCode?: string;
-    creditLimit?: string;
-    creditTerm?: string;
-    invoiceNet?: string;
-    defaultQuickPayDiscount?: string;
-    useFactoringCompany?: boolean;
-    csaFastApproved?: boolean;
-    softBlock?: boolean;
-    hardBlock?: boolean;
-  };
+    _id?: string;
+    internalId?: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    country?: string;
+    state?: string;
+    city?: string;
+    customerDetails?: {
+        customerId?: string;
+        emailPrimary?: string;
+        emailSecondary?: string;
+        trackingEmail?: string;
+        taxId?: string;
+        assignedSalesperson?: string;
+        phonePrimary?: string;
+        phoneSecondary?: string;
+        contact?: string;
+        address?: string;
+        unit?: string;
+        zipCode?: string;
+        creditLimit?: string;
+        creditTerm?: string;
+        invoiceNet?: string;
+        defaultQuickPayDiscount?: string;
+        useFactoringCompany?: boolean;
+        csaFastApproved?: boolean;
+        softBlock?: boolean;
+        hardBlock?: boolean;
+    };
 }
 
 interface NewCustomerSidebarProps {
@@ -86,11 +86,11 @@ interface NewCustomerSidebarProps {
 }
 
 const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
-  isOpen,
-  onClose,
-  mode = 'create',
-  customer,
-  onSaved
+    isOpen,
+    onClose,
+    mode = 'create',
+    customer,
+    onSaved
 }) => {
     const [customerData, setCustomerData] = useState({
         // Basic Information
@@ -104,7 +104,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
         phonePrimary: '',
         phoneSecondary: '',
         contact: '',
-        
+
         // Address
         address: '',
         city: '',
@@ -112,26 +112,26 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
         stateProvince: '',
         country: '',
         zipCode: '',
-        
+
         // Finance
         creditLimit: '',
         creditTerm: '',
         invoiceNet: '',
         defaultQuickPayDiscount: '',
         useFactoringCompany: false,
-        
+
         // Additional Settings
         csaFastApproved: false,
         softBlock: false,
         hardBlock: false,
-        
+
         // Legacy fields for API compatibility
         name: '',
         email: '',
         phone: '',
         internalId: ''
     });
-    
+
     const [isLoading, setIsLoading] = useState(false);
     const [notifications, setNotifications] = useState<ToastNotification[]>([]);
     const notificationIdRef = useRef(0);
@@ -148,7 +148,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
         const checked = (e.target as HTMLInputElement).checked;
-        
+
         setCustomerData(prev => ({
             ...prev,
             [name]: type === 'checkbox' ? checked : value,
@@ -162,45 +162,45 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
 
     // Prefill form when editing an existing customer
     useEffect(() => {
-      if (mode === 'edit' && customer) {
-        const details = customer.customerDetails || {};
+        if (mode === 'edit' && customer) {
+            const details = customer.customerDetails || {};
 
-        setCustomerData(prev => ({
-          ...prev,
-          customerId: details.customerId || customer.internalId || '',
-          customer: customer.name || '',
-          emailPrimary: details.emailPrimary || customer.email || '',
-          emailSecondary: details.emailSecondary || '',
-          trackingEmail: details.trackingEmail || '',
-          taxId: details.taxId || '',
-          assignedSalesperson: details.assignedSalesperson || '',
-          phonePrimary: details.phonePrimary || customer.phone || '',
-          phoneSecondary: details.phoneSecondary || '',
-          contact: details.contact || '',
-          address: details.address || '',
-          city: customer.city || '',
-          unit: details.unit || '',
-          stateProvince: customer.state || '',
-          country: customer.country || '',
-          zipCode: details.zipCode || '',
-          creditLimit: details.creditLimit || '',
-          creditTerm: details.creditTerm || '',
-          invoiceNet: details.invoiceNet || '',
-          defaultQuickPayDiscount: details.defaultQuickPayDiscount || '',
-          useFactoringCompany: !!details.useFactoringCompany,
-          csaFastApproved: !!details.csaFastApproved,
-          softBlock: !!details.softBlock,
-          hardBlock: !!details.hardBlock,
-          name: customer.name || '',
-          email: customer.email || '',
-          phone: customer.phone || '',
-          internalId: customer.internalId || ''
-        }));
-      } else if (mode === 'create' && !customer && !isOpen) {
-        // When closing create sidebar, ensure form is reset
-        resetForm();
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+            setCustomerData(prev => ({
+                ...prev,
+                customerId: details.customerId || customer.internalId || '',
+                customer: customer.name || '',
+                emailPrimary: details.emailPrimary || customer.email || '',
+                emailSecondary: details.emailSecondary || '',
+                trackingEmail: details.trackingEmail || '',
+                taxId: details.taxId || '',
+                assignedSalesperson: details.assignedSalesperson || '',
+                phonePrimary: details.phonePrimary || customer.phone || '',
+                phoneSecondary: details.phoneSecondary || '',
+                contact: details.contact || '',
+                address: details.address || '',
+                city: customer.city || '',
+                unit: details.unit || '',
+                stateProvince: customer.state || '',
+                country: customer.country || '',
+                zipCode: details.zipCode || '',
+                creditLimit: details.creditLimit || '',
+                creditTerm: details.creditTerm || '',
+                invoiceNet: details.invoiceNet || '',
+                defaultQuickPayDiscount: details.defaultQuickPayDiscount || '',
+                useFactoringCompany: !!details.useFactoringCompany,
+                csaFastApproved: !!details.csaFastApproved,
+                softBlock: !!details.softBlock,
+                hardBlock: !!details.hardBlock,
+                name: customer.name || '',
+                email: customer.email || '',
+                phone: customer.phone || '',
+                internalId: customer.internalId || ''
+            }));
+        } else if (mode === 'create' && !customer && !isOpen) {
+            // When closing create sidebar, ensure form is reset
+            resetForm();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mode, customer, isOpen]);
 
     const handleSubmit = async () => {
@@ -244,31 +244,31 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
 
             let customerResponse;
             if (mode === 'edit' && customer?._id) {
-              // Update existing customer
-              customerResponse = await updateCustomer(customer._id, apiData);
+                // Update existing customer
+                customerResponse = await updateCustomer(customer._id, apiData);
             } else {
-              // Create new customer
-              customerResponse = await createtCustomer(apiData);
+                // Create new customer
+                customerResponse = await createtCustomer(apiData);
             }
 
             if (!customerResponse?.success) {
                 showToast('error', customerResponse?.message || 'Error creating customer. Please try again.');
-            setIsLoading(false);
-            return;
+                setIsLoading(false);
+                return;
             }
 
             showToast('success', customerResponse.message || (mode === 'edit' ? 'Customer updated successfully!' : 'Customer created successfully!'));
 
             if (onSaved) {
-              onSaved();
+                onSaved();
             }
 
             if (mode === 'create') {
-              resetForm();
+                resetForm();
             }
-            
+
             setTimeout(() => {
-              onClose();
+                onClose();
             }, 800);
         } catch (error: any) {
             console.error('Error creating customer:', error);
@@ -332,8 +332,8 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
             </div>
 
             {/* Backdrop */}
-            <div 
-                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" 
+            <div
+                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]"
                 onClick={(e) => {
                     if (e.target === e.currentTarget) {
                         handleClose();
@@ -342,7 +342,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
             ></div>
 
             {/* Sidebar */}
-            <div 
+            <div
                 className="fixed right-0 top-0 h-full w-[600px] bg-card border-l border-theme shadow-xl z-[101] flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
@@ -701,7 +701,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                         onClick={handleSubmit}
                         className="px-5 py-2.5 rounded-lg !text-white transition-all font-medium"
                         style={{
-                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                            background: 'var(--accent-navyblue)',
                         }}
                         disabled={isLoading || !customerData.customer.trim()}
                     >

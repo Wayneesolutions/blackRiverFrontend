@@ -1350,7 +1350,7 @@ const ExpensesPage = () => {
 
             {activeTab === 'create' && (
               <div className="max-w-2xl">
-                <h2 className="text-xl font-semibold mb-6" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <h2 className="text-xl font-semibold mb-6" style={{ background: 'var(--accent-navyblue)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   {editingExpense ? 'Edit Expense' : 'Add New Expense'}
                 </h2>
 
@@ -1757,7 +1757,7 @@ const ExpensesPage = () => {
                             <button
                               onClick={() => window.open(receiptSignedUrl, '_blank')}
                               style={{
-                                background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                                background: 'var(--accent-navyblue)'
                               }}
                               className=" !text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
                             >
@@ -1845,7 +1845,7 @@ const ExpensesPage = () => {
                     setReceiptSignedUrl(null);
                   }}
                   style={{
-                    background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                    background: 'var(--accent-navyblue)'
                   }}
                   className=" !text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
                 >

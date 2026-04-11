@@ -251,7 +251,7 @@ const NewContactSidebar: FC<NewContactSidebarProps> = ({ isOpen, onClose }) => {
             <button
               onClick={handleSubmit}
               style={{
-                background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                background: 'var(--accent-navyblue)',
               }}
               className="px-4 py-2  !text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
               disabled={loading}

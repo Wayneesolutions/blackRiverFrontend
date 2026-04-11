@@ -707,7 +707,7 @@ export default function TaxConfigurationPage() {
                 < Settings className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Tax Configuration Management</h1>
+                <h1 className="text-2xl font-bold" style={{ background: 'var(--accent-navyblue)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Tax Configuration Management</h1>
                 <p className="text-slate-600 text-sm mt-1">Add, edit, and manage tax settings across all components</p>
               </div>
             </div>
@@ -955,7 +955,7 @@ export default function TaxConfigurationPage() {
                   </button>
                   <button type="submit"
                     style={{
-                      background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                      background: 'var(--accent-navyblue)'
                     }}
                     className="flex-1  !text-white px-4 py-2 rounded-lg ">
                     <Save className="w-4 h-4 inline mr-2" />

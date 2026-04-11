@@ -245,7 +245,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
         <div className="min-h-screen flex flex-col bg-card">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-theme" style={{
-                background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                background: 'var(--accent-navyblue)'
             }}>
                 <h2 className="text-base font-semibold text-white">
                     {order ? "Edit Order" : "New Order"}
@@ -364,7 +364,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                         : "bg-card text-primary hover:bg-gray-200"
                                         }`}
                                     style={loadType === "FTL" ? {
-                                        background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                                        background: 'var(--accent-navyblue)'
                                     } : {}}
                                 >
                                     FTL
@@ -376,7 +376,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                         : "bg-card text-primary hover:bg-gray-200"
                                         }`}
                                     style={loadType === "LTL" ? {
-                                        background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                                        background: 'var(--accent-navyblue)'
                                     } : {}}
                                 >
                                     LTL
@@ -665,7 +665,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                     onClick={handleSubmit}
                     className="px-5 py-2 text-[13px] font-medium !text-white rounded-lg transition-all shadow-md hover:shadow-lg"
                     style={{
-                        background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                        background: 'var(--accent-navyblue)'
                     }}
                 >
                     {order ? "Update" : "Add"}
@@ -829,7 +829,7 @@ const BulkOrder = () => {
                         onClick={handleAddOrder}
                         className="flex items-center gap-2 px-3 py-1.5 !text-white rounded text-[13px] transition-all shadow-md hover:shadow-lg"
                         style={{
-                            background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                            background: 'var(--accent-navyblue)'
                         }}
                     >
                         <Plus className="w-3.5 h-3.5" />
