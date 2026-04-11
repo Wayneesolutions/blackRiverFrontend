@@ -588,7 +588,9 @@ export default function AccountsSetup() {
                 <button
                   type="submit"
                   className="flex-1 !text-white px-4 py-2 rounded-lg transition-all flex items-center justify-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
-                  style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+                  style={{
+                    background: 'var(--accent-navyblue)'
+                  }}
                 >
                   <Save className="w-4 h-4" />
                   Save
@@ -596,8 +598,8 @@ export default function AccountsSetup() {
               </div>
             </form>
           </div>
-        </div>
-      </div>
+        </div >
+      </div >
     );
   };
 
@@ -699,8 +701,8 @@ export default function AccountsSetup() {
                 Export
               </button>
               {activeTab !== 'sms-billing' && (
-                <button onClick={handleAdd} className="flex-1 sm:flex-none px-4 py-2 text-sm !text-white rounded-lg transition-all flex items-center justify-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}>
-                  <Plus className="w-4 h-4" />
+                <button onClick={handleAdd} className="flex-1 sm:flex-none px-4 py-2 text-sm !text-white rounded-lg transition-all flex items-center justify-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200" style={{ background: 'var(--accent-navyblue)' }}>
+                  < Plus className="w-4 h-4" />
                   Add New
                 </button>
               )}
@@ -896,134 +898,136 @@ export default function AccountsSetup() {
       {renderDeleteModal()}
 
       {/* Detail View Modal */}
-      {showDetailModal && selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-card rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-primary">
-                {selectedItemType === 'chart-of-accounts' && 'Account Details'}
-                {selectedItemType === 'tax-codes' && 'Tax Code Details'}
-                {selectedItemType === 'payment-methods' && 'Payment Method Details'}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setSelectedItem(null);
-                  setSelectedItemType(null);
-                }}
-                className="text-secondary hover:text-secondary transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
+      {
+        showDetailModal && selectedItem && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-card rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-primary">
+                  {selectedItemType === 'chart-of-accounts' && 'Account Details'}
+                  {selectedItemType === 'tax-codes' && 'Tax Code Details'}
+                  {selectedItemType === 'payment-methods' && 'Payment Method Details'}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    setSelectedItem(null);
+                    setSelectedItemType(null);
+                  }}
+                  className="text-secondary hover:text-secondary transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
 
-            <div className="p-6">
-              {/* Chart of Accounts Details */}
-              {selectedItemType === 'chart-of-accounts' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-card p-4 rounded-lg border border-blue-200">
-                      <label className="text-sm font-medium text-blue-900 mb-1 block">Account Number</label>
-                      <p className="text-xl font-semibold text-blue-700">{(selectedItem as ChartOfAccount).number}</p>
+              <div className="p-6">
+                {/* Chart of Accounts Details */}
+                {selectedItemType === 'chart-of-accounts' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-card p-4 rounded-lg border border-blue-200">
+                        <label className="text-sm font-medium text-blue-900 mb-1 block">Account Number</label>
+                        <p className="text-xl font-semibold text-blue-700">{(selectedItem as ChartOfAccount).number}</p>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <label className="text-sm font-medium text-green-900 mb-1 block">Account Name</label>
+                        <p className="text-xl font-semibold text-green-700">{(selectedItem as ChartOfAccount).name}</p>
+                      </div>
                     </div>
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <label className="text-sm font-medium text-green-900 mb-1 block">Account Name</label>
-                      <p className="text-xl font-semibold text-green-700">{(selectedItem as ChartOfAccount).name}</p>
-                    </div>
-                  </div>
 
-                  <div className="bg-card p-4 rounded-lg border border-purple-200">
-                    <label className="text-sm font-medium text-purple-900 mb-2 block">Account Type</label>
-                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as ChartOfAccount).type === 'Asset' ? 'bg-green-100 text-green-800 border-green-300' :
+                    <div className="bg-card p-4 rounded-lg border border-purple-200">
+                      <label className="text-sm font-medium text-purple-900 mb-2 block">Account Type</label>
+                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as ChartOfAccount).type === 'Asset' ? 'bg-green-100 text-green-800 border-green-300' :
                         (selectedItem as ChartOfAccount).type === 'Liability' ? 'bg-red-100 text-red-800 border-red-300' :
                           (selectedItem as ChartOfAccount).type === 'Equity' ? 'bg-blue-100 text-blue-800 border-blue-300' :
                             (selectedItem as ChartOfAccount).type === 'Revenue' ? 'bg-purple-100 text-purple-800 border-purple-300' :
                               'bg-orange-100 text-orange-800 border-orange-300'
-                      }`}>
-                      {(selectedItem as ChartOfAccount).type}
-                    </span>
-                  </div>
-
-                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                    <label className="text-sm font-medium text-indigo-900 mb-1 block">Current Balance</label>
-                    <p className="text-3xl font-bold text-indigo-700">
-                      ${(selectedItem as ChartOfAccount).balance.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Tax Code Details */}
-              {selectedItemType === 'tax-codes' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-card p-4 rounded-lg border border-blue-200">
-                      <label className="text-sm font-medium text-blue-900 mb-1 block">Tax Code</label>
-                      <p className="text-xl font-semibold text-blue-700">{(selectedItem as AccountTaxCode).code}</p>
+                        }`}>
+                        {(selectedItem as ChartOfAccount).type}
+                      </span>
                     </div>
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <label className="text-sm font-medium text-green-900 mb-1 block">Tax Rate</label>
-                      <p className="text-3xl font-bold text-green-700">{(selectedItem as AccountTaxCode).rate}%</p>
+
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                      <label className="text-sm font-medium text-indigo-900 mb-1 block">Current Balance</label>
+                      <p className="text-3xl font-bold text-indigo-700">
+                        ${(selectedItem as ChartOfAccount).balance.toLocaleString()}
+                      </p>
                     </div>
                   </div>
+                )}
 
-                  <div className="bg-card p-4 rounded-lg border border-theme">
-                    <label className="text-sm font-medium text-primary mb-1 block">Description</label>
-                    <p className="text-primary">{(selectedItem as AccountTaxCode).description}</p>
-                  </div>
+                {/* Tax Code Details */}
+                {selectedItemType === 'tax-codes' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-card p-4 rounded-lg border border-blue-200">
+                        <label className="text-sm font-medium text-blue-900 mb-1 block">Tax Code</label>
+                        <p className="text-xl font-semibold text-blue-700">{(selectedItem as AccountTaxCode).code}</p>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <label className="text-sm font-medium text-green-900 mb-1 block">Tax Rate</label>
+                        <p className="text-3xl font-bold text-green-700">{(selectedItem as AccountTaxCode).rate}%</p>
+                      </div>
+                    </div>
 
-                  <div className="bg-card p-4 rounded-lg border border-purple-200">
-                    <label className="text-sm font-medium text-purple-900 mb-2 block">Category</label>
-                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as AccountTaxCode).category === 'IFTA'
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <label className="text-sm font-medium text-primary mb-1 block">Description</label>
+                      <p className="text-primary">{(selectedItem as AccountTaxCode).description}</p>
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-purple-200">
+                      <label className="text-sm font-medium text-purple-900 mb-2 block">Category</label>
+                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as AccountTaxCode).category === 'IFTA'
                         ? 'bg-blue-100 text-blue-800 border-blue-300'
                         : (selectedItem as AccountTaxCode).category === 'Sales Tax'
                           ? 'bg-green-100 text-green-800 border-green-300'
                           : 'bg-yellow-100 text-yellow-800 border-yellow-300'
-                      }`}>
-                      {(selectedItem as AccountTaxCode).category}
-                    </span>
+                        }`}>
+                        {(selectedItem as AccountTaxCode).category}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Payment Method Details */}
-              {selectedItemType === 'payment-methods' && (
-                <div className="space-y-6">
-                  <div className="bg-card p-4 rounded-lg border border-blue-200">
-                    <label className="text-sm font-medium text-blue-900 mb-1 block">Payment Method</label>
-                    <p className="text-2xl font-semibold text-blue-700">{(selectedItem as PaymentMethod).method}</p>
+                {/* Payment Method Details */}
+                {selectedItemType === 'payment-methods' && (
+                  <div className="space-y-6">
+                    <div className="bg-card p-4 rounded-lg border border-blue-200">
+                      <label className="text-sm font-medium text-blue-900 mb-1 block">Payment Method</label>
+                      <p className="text-2xl font-semibold text-blue-700">{(selectedItem as PaymentMethod).method}</p>
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <label className="text-sm font-medium text-primary mb-1 block">Description</label>
+                      <p className="text-primary whitespace-pre-wrap">{(selectedItem as PaymentMethod).description}</p>
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-purple-200">
+                      <label className="text-sm font-medium text-purple-900 mb-2 block">Preferred For</label>
+                      <span className="inline-block px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold border-2 border-purple-300">
+                        {(selectedItem as PaymentMethod).preferred}
+                      </span>
+                    </div>
                   </div>
+                )}
+              </div>
 
-                  <div className="bg-card p-4 rounded-lg border border-theme">
-                    <label className="text-sm font-medium text-primary mb-1 block">Description</label>
-                    <p className="text-primary whitespace-pre-wrap">{(selectedItem as PaymentMethod).description}</p>
-                  </div>
-
-                  <div className="bg-card p-4 rounded-lg border border-purple-200">
-                    <label className="text-sm font-medium text-purple-900 mb-2 block">Preferred For</label>
-                    <span className="inline-block px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold border-2 border-purple-300">
-                      {(selectedItem as PaymentMethod).preferred}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4">
-              <button
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setSelectedItem(null);
-                  setSelectedItemType(null);
-                }}
-                className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
-              >
-                Close
-              </button>
+              <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4">
+                <button
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    setSelectedItem(null);
+                    setSelectedItemType(null);
+                  }}
+                  className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }

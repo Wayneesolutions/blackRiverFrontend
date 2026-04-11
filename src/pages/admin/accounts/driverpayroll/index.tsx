@@ -2277,7 +2277,7 @@ const DriverPayrollManagement = () => {
             <button
               onClick={() => setShowBulkGenerateModal(true)}
               className="px-4 py-2 !text-white rounded-lg transition-all font-medium flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
-              style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+              style={{background:'var(--accent-navyblue)}};
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -2287,7 +2287,7 @@ const DriverPayrollManagement = () => {
             <button
               onClick={() => setShowCreateModal(true)}
               className="px-4 py-2 !text-white rounded-lg transition-all font-medium flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
-              style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+              style={{background:'var(--accent-navyblue)}};
             >
               <Plus size={16} />
               Create Driver Payroll
@@ -2360,7 +2360,7 @@ const DriverPayrollManagement = () => {
           </div>
         </div>
 
-        {/* Driver Type Tabs */}
+        {/* Driver Type Tabs */ }
         <div className="bg-card rounded-xl border-theme shadow-sm border mb-6">
           <div className="flex border-b border-theme">
             <button
@@ -2566,1226 +2566,366 @@ const DriverPayrollManagement = () => {
           )}
         </div>
 
-        {/* Create/Edit Modal */}
-        {(showCreateModal || showEditModal) && (
-          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
-            <div className="bg-card rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-green-100">
-                    <Truck className="text-green-600" size={20} />
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-bold text-primary">
-                      {showCreateModal ? 'Create Driver Payroll' : 'Edit Driver Payroll'}
-                    </h4>
-                    <p className="text-sm text-secondary">Based on completed trips and mileage</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowCreateModal(false);
-                    setShowEditModal(false);
-                    setAiAnalysis(null); // Clear AI analysis when modal is closed
-                    resetForm();
-                  }}
-                  className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
-                >
-                  <X size={24} />
-                </button>
+  {/* Create/Edit Modal */ }
+  {
+    (showCreateModal || showEditModal) && (
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
+        <div className="bg-card rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-green-100">
+                <Truck className="text-green-600" size={20} />
               </div>
-
-              <div className="p-6 space-y-5">
-                {showCreateModal && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-primary mb-2">
-                        Select Driver <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        name="userId"
-                        value={formData.userId}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      >
-                        <option value="">Choose a driver...</option>
-                        {filteredDriversByType.map((driver) => (
-                          <option key={driver._id} value={driver._id}>
-                            {driver.name} - Base: ${driver.details?.salaryPerMile || 0}/mi
-                            {driver.details?.salaryPerMileSnow ? ` | Snow: +$${driver.details.salaryPerMileSnow}/mi` : ''}
-                            {driver.details?.salaryPerMileHighTemp ? ` | High Temp: +$${driver.details.salaryPerMileHighTemp}/mi` : ''}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <h5 className="text-sm font-medium text-primary mb-3 flex items-center gap-2">
-                        <Calendar size={16} />
-                        Trip Period
-                      </h5>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
-                            Start Date <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="date"
-                            name="startDate"
-                            value={formData.startDate}
-                            onChange={(e) => handleDateRangeChange(e.target.value, formData.endDate)}
-                            className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
-                            End Date <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="date"
-                            name="endDate"
-                            value={formData.endDate}
-                            onChange={(e) => handleDateRangeChange(formData.startDate, e.target.value)}
-                            className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Trip Summary */}
-                    {driverPayrollSummary && (
-                      <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg">
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h5 className="text-lg font-bold flex items-center gap-2">
-                              <TrendingUp size={20} />
-                              Trip Summary for {selectedDriver?.name}
-                            </h5>
-                          </div>
-                          <button
-                            onClick={handleAICalculation}
-                            disabled={loadingAI || !formData.userId || !formData.startDate || !formData.endDate}
-                            className="px-4 py-2 bg-card !text-green-600 rounded-lg font-medium hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
-                            title="Calculate bonus and deductions using AI"
-                          >
-                            {loadingAI ? (
-                              <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-                                Analyzing...
-                              </>
-                            ) : (
-                              <>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                </svg>
-                                AI Calculate Salary
-                              </>
-                            )}
-                          </button>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                          <div className="text-center">
-                            <div className="text-3xl font-bold">{driverPayrollSummary.totalTrips}</div>
-                            <div className="text-sm text-green-100">Total Trips</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-3xl font-bold">{driverPayrollSummary.totalDistanceMiles.toLocaleString()}</div>
-                            <div className="text-sm text-green-100">Total Miles</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-3xl font-bold">${(driverPayrollSummary.baseRate || driverPayrollSummary.ratePerMile || 0).toFixed(2)}</div>
-                            <div className="text-sm text-green-100">Base Rate/mi</div>
-                          </div>
-                          {(driverPayrollSummary.snowRate && driverPayrollSummary.snowRate > 0) && (
-                            <div className="text-center">
-                              <div className="text-2xl font-bold">+${driverPayrollSummary.snowRate}</div>
-                              <div className="text-xs text-green-100">Snow Premium/mi</div>
-                            </div>
-                          )}
-                          {(driverPayrollSummary.highTempRate && driverPayrollSummary.highTempRate > 0) && (
-                            <div className="text-center">
-                              <div className="text-2xl font-bold">+${driverPayrollSummary.highTempRate}</div>
-                              <div className="text-xs text-green-100">High Temp Premium/mi</div>
-                            </div>
-                          )}
-                          <div className="text-center">
-                            <div className="text-3xl font-bold">${driverPayrollSummary.totalEarnings.toFixed(2)}</div>
-                            <div className="text-sm text-green-100">Total Earnings</div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Additions and Deductions */}
-                    {(driverAdditions.length > 0 || driverDeductions.length > 0) && (
-                      <div className="bg-card border border-theme rounded-lg overflow-hidden">
-                        <div className="bg-card px-4 py-3 border-b border-theme">
-                          <h5 className="text-sm font-medium text-primary">Driver Additions & Deductions</h5>
-                          <p className="text-xs text-secondary mt-1">These will be automatically included in the payroll calculation</p>
-                        </div>
-                        <div className="p-4 space-y-4">
-                          {driverAdditions.length > 0 && (
-                            <div>
-                              <h6 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
-                                <TrendingUp size={16} />
-                                Additions ({driverAdditions.length})
-                              </h6>
-                              <div className="space-y-2">
-                                {driverAdditions.map((addition) => {
-                                  // Calculate the amount to display (edited or calculated)
-                                  const calculatedAmount = editedAdditionAmounts[addition._id] !== undefined
-                                    ? editedAdditionAmounts[addition._id]
-                                    : (() => {
-                                      // Calculate from base amount and recurrence (same logic as calculateAdditionsDeductions)
-                                      if (!formData.startDate || !formData.endDate) return addition.amount || 0;
-                                      const startDateObj = new Date(formData.startDate);
-                                      const endDateObj = new Date(formData.endDate);
-                                      endDateObj.setHours(23, 59, 59, 999);
-                                      const addStartDate = addition.startDate ? new Date(addition.startDate) : null;
-                                      const addEndDate = addition.endDate ? new Date(addition.endDate) : null;
-                                      const effectiveStartDate = addStartDate && addStartDate > startDateObj ? addStartDate : startDateObj;
-                                      const effectiveEndDate = addEndDate && addEndDate < endDateObj ? addEndDate : endDateObj;
-                                      let amount = addition.amount || 0;
-                                      if (addition.recurrence === 'Weekly') {
-                                        const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-                                        amount = amount * Math.max(1, weeks);
-                                      } else if (addition.recurrence === 'Bi-weekly') {
-                                        const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
-                                        amount = amount * Math.max(1, biWeeks);
-                                      } else if (addition.recurrence === 'Monthly') {
-                                        const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
-                                        amount = amount * Math.max(1, months);
-                                      }
-                                      return amount;
-                                    })();
-
-                                  return (
-                                    <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
-                                      <div className="flex justify-between items-start gap-4">
-                                        <div className="flex-1">
-                                          <p className="text-sm font-medium text-primary">{addition.name || addition.description || 'Addition'}</p>
-                                          <p className="text-xs text-secondary mt-1">
-                                            {addition.recurrence} • Base: ${addition.amount?.toFixed(2) || '0.00'}
-                                            {addition.startDate && (
-                                              <span> • From {new Date(addition.startDate).toLocaleDateString()}</span>
-                                            )}
-                                            {addition.endDate && (
-                                              <span> • Until {new Date(addition.endDate).toLocaleDateString()}</span>
-                                            )}
-                                          </p>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-xs text-secondary">Amount:</span>
-                                          <input
-                                            type="number"
-                                            value={calculatedAmount}
-                                            onChange={(e) => {
-                                              const newAmount = parseFloat(e.target.value) || 0;
-                                              setEditedAdditionAmounts(prev => ({
-                                                ...prev,
-                                                [addition._id]: newAmount
-                                              }));
-                                            }}
-                                            step="0.01"
-                                            min="0"
-                                            className="w-24 px-2 py-1 text-sm border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-card"
-                                          />
-                                          <span className="text-sm font-semibold text-green-700">+${calculatedAmount.toFixed(2)}</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-                          {driverDeductions.length > 0 && (
-                            <div>
-                              <h6 className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-2">
-                                <TrendingUp size={16} className="rotate-180" />
-                                Deductions ({driverDeductions.length})
-                              </h6>
-                              <div className="space-y-2">
-                                {driverDeductions.map((deduction) => {
-                                  // Calculate the amount to display (edited or calculated)
-                                  const calculatedAmount = editedDeductionAmounts[deduction._id] !== undefined
-                                    ? editedDeductionAmounts[deduction._id]
-                                    : (() => {
-                                      // Calculate from base amount and recurrence (same logic as calculateAdditionsDeductions)
-                                      if (!formData.startDate || !formData.endDate) return deduction.amount || 0;
-                                      const startDateObj = new Date(formData.startDate);
-                                      const endDateObj = new Date(formData.endDate);
-                                      endDateObj.setHours(23, 59, 59, 999);
-                                      const dedStartDate = deduction.startDate ? new Date(deduction.startDate) : null;
-                                      const dedEndDate = deduction.endDate ? new Date(deduction.endDate) : null;
-                                      const effectiveStartDate = dedStartDate && dedStartDate > startDateObj ? dedStartDate : startDateObj;
-                                      const effectiveEndDate = dedEndDate && dedEndDate < endDateObj ? dedEndDate : endDateObj;
-                                      let amount = deduction.amount || 0;
-                                      if (deduction.recurrence === 'Weekly') {
-                                        const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-                                        amount = amount * Math.max(1, weeks);
-                                      } else if (deduction.recurrence === 'Bi-weekly') {
-                                        const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
-                                        amount = amount * Math.max(1, biWeeks);
-                                      } else if (deduction.recurrence === 'Monthly') {
-                                        // Simplified monthly calculation for display
-                                        const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
-                                        amount = amount * Math.max(1, months);
-                                      }
-                                      return amount;
-                                    })();
-
-                                  return (
-                                    <div key={deduction._id} className="bg-card p-3 rounded-lg border border-red-200">
-                                      <div className="flex justify-between items-start gap-4">
-                                        <div className="flex-1">
-                                          <p className="text-sm font-medium text-primary">{deduction.name || deduction.description || 'Deduction'}</p>
-                                          <p className="text-xs text-secondary mt-1">
-                                            {deduction.recurrence} • Base: ${deduction.amount?.toFixed(2) || '0.00'}
-                                            {deduction.startDate && (
-                                              <span> • From {new Date(deduction.startDate).toLocaleDateString()}</span>
-                                            )}
-                                            {deduction.endDate && (
-                                              <span> • Until {new Date(deduction.endDate).toLocaleDateString()}</span>
-                                            )}
-                                          </p>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-xs text-secondary">Amount:</span>
-                                          <input
-                                            type="number"
-                                            value={calculatedAmount}
-                                            onChange={(e) => {
-                                              const newAmount = parseFloat(e.target.value) || 0;
-                                              setEditedDeductionAmounts(prev => ({
-                                                ...prev,
-                                                [deduction._id]: newAmount
-                                              }));
-                                            }}
-                                            step="0.01"
-                                            min="0"
-                                            className="w-24 px-2 py-1 text-sm border border-red-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500 bg-card"
-                                          />
-                                          <span className="text-sm font-semibold text-red-700">-${calculatedAmount.toFixed(2)}</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Trip List */}
-                    {driverTrips.length > 0 && (
-                      <div className="bg-card border border-theme rounded-lg overflow-hidden">
-                        <div className="bg-card px-4 py-3 border-b border-theme flex justify-between items-center">
-                          <h5 className="text-sm font-medium text-primary">Completed Trips ({driverTrips.length})</h5>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={selectAllTrips}
-                              className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
-                            >
-                              Select All
-                            </button>
-                            <button
-                              onClick={deselectAllTrips}
-                              className="px-3 py-1 text-xs bg-card text-primary rounded hover:bg-gray-200"
-                            >
-                              Deselect All
-                            </button>
-                          </div>
-                        </div>
-                        <div className="overflow-x-auto max-h-96">
-                          <table className="w-full">
-                            <thead className="bg-card sticky top-0">
-                              <tr>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Select</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Trip #</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Route</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Role</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Completed</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Truck</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Miles</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Rate</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Earnings</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-theme">
-                              {driverTrips.map((trip) => (
-                                <tr key={trip._id} className={`hover:bg-[rgba(255,255,255,0.03)] ${trip.selected ? 'bg-green-50' : ''}`}>
-                                  <td className="px-3 py-2">
-                                    <input
-                                      type="checkbox"
-                                      checked={trip.selected || false}
-                                      onChange={() => toggleTripSelection(trip._id)}
-                                      className="w-4 h-4 text-green-600 bg-card border-theme rounded focus:ring-green-500"
-                                    />
-                                  </td>
-                                  <td className="px-3 py-2 text-sm font-medium text-primary">
-                                    {trip.tripNumber || trip._id?.slice(-6).toUpperCase()}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm text-secondary">
-                                    <div className="flex items-center gap-1">
-                                      <MapPin size={14} className="text-secondary" />
-                                      <span>
-                                        {(() => {
-                                          // Try to get location from trip, orders, or use Unknown
-                                          if (trip.startLocation?.place && trip.startLocation.place !== 'Unknown') {
-                                            return trip.startLocation.place;
-                                          }
-                                          if (trip.orders && trip.orders.length > 0) {
-                                            const firstOrder = Array.isArray(trip.orders) ? trip.orders[0] : trip.orders;
-                                            if (firstOrder?.pickupLocation?.place) {
-                                              return firstOrder.pickupLocation.place;
-                                            }
-                                            if (firstOrder?.pickupLocation?.placeId?.name) {
-                                              return firstOrder.pickupLocation.placeId.name;
-                                            }
-                                          }
-                                          return 'Unknown';
-                                        })()}
-                                      </span>
-                                      <span className="text-secondary">→</span>
-                                      <span>
-                                        {(() => {
-                                          // Try to get location from trip, orders, or use Unknown
-                                          if (trip.endLocation?.place && trip.endLocation.place !== 'Unknown') {
-                                            return trip.endLocation.place;
-                                          }
-                                          if (trip.orders && trip.orders.length > 0) {
-                                            const orderArray = Array.isArray(trip.orders) ? trip.orders : [trip.orders];
-                                            const lastOrder = orderArray[orderArray.length - 1];
-                                            if (lastOrder?.deliveryLocation?.place) {
-                                              return lastOrder.deliveryLocation.place;
-                                            }
-                                            if (lastOrder?.deliveryLocation?.placeId?.name) {
-                                              return lastOrder.deliveryLocation.placeId.name;
-                                            }
-                                          }
-                                          return 'Unknown';
-                                        })()}
-                                      </span>
-                                    </div>
-                                  </td>
-                                  <td className="px-3 py-2 text-sm">
-                                    {trip.driverRole === 'coDriver' ? (
-                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        Co-Driver
-                                      </span>
-                                    ) : (
-                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        Driver
-                                      </span>
-                                    )}
-                                    {trip.coDriverDetails && trip.driverRole === 'driver' && (
-                                      <div className="text-xs text-secondary mt-1">
-                                        Co: {trip.coDriverDetails.name}
-                                      </div>
-                                    )}
-                                    {trip.driverDetails && trip.driverRole === 'coDriver' && (
-                                      <div className="text-xs text-secondary mt-1">
-                                        Driver: {trip.driverDetails.name}
-                                      </div>
-                                    )}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm text-secondary">
-                                    {trip.actualEndDate ? new Date(trip.actualEndDate).toLocaleDateString() : '-'}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm text-secondary">
-                                    {trip.truck?.plateNumber || trip.truck?.licensePlate || trip.truck?.internalId || 'N/A'}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm font-medium text-primary">
-                                    {(() => {
-                                      const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
-                                      return miles || 0;
-                                    })()}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm text-secondary">
-                                    <div className="flex items-center gap-2">
-                                      <span>${trip.baseRate || 0}/mi</span>
-                                      {trip.rateType && (
-                                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${trip.rateType === 'TEAM'
-                                            ? 'bg-blue-100 text-blue-800'
-                                            : 'bg-card text-primary'
-                                          }`}>
-                                          {trip.rateType}
-                                        </span>
-                                      )}
-                                    </div>
-                                    {trip.weatherConditions?.snow && trip.snowRate ? (
-                                      <div className="text-xs text-secondary mt-1">+ ${trip.snowRate} (snow)</div>
-                                    ) : null}
-                                    {trip.weatherConditions?.highTemperature && trip.highTempRate ? (
-                                      <div className="text-xs text-secondary mt-1">+ ${trip.highTempRate} (high temp)</div>
-                                    ) : null}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm font-bold text-green-600">
-                                    ${(() => {
-                                      const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
-                                      return earnings.toFixed(2);
-                                    })()}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                            <tfoot className="bg-green-50 sticky bottom-0">
-                              <tr>
-                                <td colSpan={6} className="px-3 py-3 text-sm font-medium text-primary text-right">
-                                  Selected Totals:
-                                </td>
-                                <td className="px-3 py-3 text-sm font-bold text-primary">
-                                  {getSelectedTripsTotals().totalMiles.toLocaleString()} mi
-                                </td>
-                                <td className="px-3 py-3 text-sm text-secondary">-</td>
-                                <td className="px-3 py-3 text-sm font-bold text-green-600">
-                                  ${getSelectedTripsTotals().totalEarnings.toFixed(2)}
-                                </td>
-                              </tr>
-                            </tfoot>
-                          </table>
-                        </div>
-                      </div>
-                    )}
-
-                    {loadingTrips && (
-                      <div className="bg-green-50 p-4 rounded-lg border border-green-200 text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
-                        <p className="text-sm text-green-600 font-medium mt-2">Loading trips...</p>
-                      </div>
-                    )}
-
-                    {!loadingTrips && driverTrips.length === 0 && selectedDriver && formData.startDate && formData.endDate && (
-                      <div className="bg-card p-4 rounded-lg border border-yellow-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <AlertCircle className="text-[#00FFA3]" size={18} />
-                          <div className="text-sm font-medium text-yellow-800">No completed trips found</div>
-                        </div>
-                        <p className="text-xs text-yellow-700">
-                          No trips found for {selectedDriver.name} between {formData.startDate} and {formData.endDate}.
-                        </p>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {/* AI Analysis Results */}
-                {aiAnalysis && (
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h5 className="text-lg font-bold text-primary">AI Payroll Analysis</h5>
-                          <p className="text-sm text-secondary">Performance Score: {aiAnalysis.performanceScore}/100</p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setAiAnalysis(null)}
-                        className="text-secondary hover:text-secondary"
-                      >
-                        <X size={20} />
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div className="bg-card rounded-lg p-4 border border-green-200">
-                        <div className="text-sm text-secondary mb-1">Recommended Bonus</div>
-                        <div className="text-2xl font-bold text-green-600">${aiAnalysis.recommendedBonus.toFixed(2)}</div>
-                      </div>
-                      <div className="bg-card rounded-lg p-4 border border-red-200">
-                        <div className="text-sm text-secondary mb-1">Recommended Deductions</div>
-                        <div className="text-2xl font-bold text-[#A855F7]">${aiAnalysis.recommendedDeductions.toFixed(2)}</div>
-                      </div>
-                    </div>
-
-                    {aiAnalysis.reasoning && (
-                      <div className="bg-card rounded-lg p-4 border border-theme mb-4">
-                        <div className="text-sm font-medium text-primary mb-2">AI Reasoning:</div>
-                        <p className="text-sm text-secondary">{aiAnalysis.reasoning}</p>
-                      </div>
-                    )}
-
-                    {aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0 && (
-                      <div className="bg-card rounded-lg p-4 border border-theme">
-                        <div className="text-sm font-medium text-primary mb-2">Recommendations:</div>
-                        <ul className="space-y-1">
-                          {aiAnalysis.recommendations.map((rec, idx) => (
-                            <li key={idx} className="text-sm text-secondary flex items-start gap-2">
-                              <span className="text-blue-500 mt-1">•</span>
-                              <span>{rec}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {aiAnalysis.performanceNotes && (
-                      <div className="mt-4 bg-card rounded-lg p-4 border border-theme">
-                        <div className="text-sm font-medium text-primary mb-2">Performance Notes:</div>
-                        <p className="text-sm text-secondary">{aiAnalysis.performanceNotes}</p>
-                      </div>
-                    )}
-
-                    {/* AI Analysis Trips */}
-                    {aiAnalysis.trips && aiAnalysis.trips.length > 0 && (
-                      <div className="mt-4 bg-card border border-theme rounded-lg overflow-hidden">
-                        <div className="bg-card px-4 py-3 border-b border-theme">
-                          <h5 className="text-sm font-medium text-primary">Completed Trips ({aiAnalysis.trips.length})</h5>
-                        </div>
-                        <div className="overflow-x-auto max-h-96">
-                          <table className="w-full">
-                            <thead className="bg-card sticky top-0">
-                              <tr>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Trip #</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Route</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Role</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Completed</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Truck</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Miles</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Rate</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Earnings</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-theme">
-                              {aiAnalysis.trips.map((trip) => (
-                                <tr key={trip._id} className="hover:bg-[rgba(255,255,255,0.03)]">
-                                  <td className="px-3 py-2 text-sm font-medium text-primary">
-                                    {trip.tripNumber || trip._id?.slice(-6).toUpperCase()}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm text-secondary">
-                                    <div className="flex items-center gap-1">
-                                      <MapPin size={14} className="text-secondary" />
-                                      <span>
-                                        {(() => {
-                                          if (trip.startLocation?.place && trip.startLocation.place !== 'Unknown') {
-                                            return trip.startLocation.place;
-                                          }
-                                          if (trip.pickupLocation?.place) {
-                                            return trip.pickupLocation.place;
-                                          }
-                                          return 'Unknown';
-                                        })()}
-                                      </span>
-                                      <span className="text-secondary">→</span>
-                                      <span>
-                                        {(() => {
-                                          if (trip.endLocation?.place && trip.endLocation.place !== 'Unknown') {
-                                            return trip.endLocation.place;
-                                          }
-                                          if (trip.deliveryLocation?.place) {
-                                            return trip.deliveryLocation.place;
-                                          }
-                                          return 'Unknown';
-                                        })()}
-                                      </span>
-                                    </div>
-                                  </td>
-                                  <td className="px-3 py-2 text-sm">
-                                    {trip.driverRole === 'coDriver' ? (
-                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        Co-Driver
-                                      </span>
-                                    ) : (
-                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        Driver
-                                      </span>
-                                    )}
-                                    {trip.coDriverDetails && trip.driverRole === 'driver' && (
-                                      <div className="text-xs text-secondary mt-1">
-                                        Co: {trip.coDriverDetails.name}
-                                      </div>
-                                    )}
-                                    {trip.driverDetails && trip.driverRole === 'coDriver' && (
-                                      <div className="text-xs text-secondary mt-1">
-                                        Driver: {trip.driverDetails.name}
-                                      </div>
-                                    )}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm text-secondary">
-                                    {trip.actualEndDate ? new Date(trip.actualEndDate).toLocaleDateString() : '-'}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm text-secondary">
-                                    {trip.truck?.plateNumber || trip.truck?.licensePlate || trip.truck?.internalId || 'N/A'}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm font-medium text-primary">
-                                    {(() => {
-                                      const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
-                                      return miles || 0;
-                                    })()}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm text-secondary">
-                                    <div className="flex items-center gap-2">
-                                      <span>${trip.baseRate || 0}/mi</span>
-                                      {trip.rateType && (
-                                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${trip.rateType === 'TEAM'
-                                            ? 'bg-blue-100 text-blue-800'
-                                            : trip.rateType === 'EMPTY'
-                                              ? 'bg-yellow-100 text-yellow-800'
-                                              : trip.rateType === 'EMPTY-TEAM'
-                                                ? 'bg-orange-100 text-orange-800'
-                                                : 'bg-card text-primary'
-                                          }`}>
-                                          {trip.rateTypeLabel || trip.rateType}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </td>
-                                  <td className="px-3 py-2 text-sm font-bold text-green-600">
-                                    ${(() => {
-                                      const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
-                                      return earnings.toFixed(2);
-                                    })()}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                            <tfoot className="bg-green-50 sticky bottom-0">
-                              <tr>
-                                <td colSpan={5} className="px-3 py-3 text-sm font-medium text-primary text-right">
-                                  Selected Totals:
-                                </td>
-                                <td className="px-3 py-3 text-sm font-bold text-primary">
-                                  {(() => {
-                                    const totalMiles = aiAnalysis.trips?.reduce((sum, trip) => {
-                                      const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
-                                      return sum + miles;
-                                    }, 0) || 0;
-                                    return totalMiles.toLocaleString();
-                                  })()} mi
-                                </td>
-                                <td className="px-3 py-3 text-sm text-secondary">-</td>
-                                <td className="px-3 py-3 text-sm font-bold text-green-600">
-                                  ${(() => {
-                                    const totalEarnings = aiAnalysis.trips?.reduce((sum, trip) => {
-                                      const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
-                                      return sum + earnings;
-                                    }, 0) || 0;
-                                    return totalEarnings.toFixed(2);
-                                  })()}
-                                </td>
-                              </tr>
-                            </tfoot>
-                          </table>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
-                    Bonus ($)
-                  </label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={18} />
-                    <input
-                      type="number"
-                      name="bonus"
-                      value={formData.bonus}
-                      onChange={handleInputChange}
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      className="w-full pl-10 pr-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-                  <p className="text-xs text-secondary mt-1">
-                    Note: Deductions are automatically calculated from driver deductions and will be shown in the summary below.
-                  </p>
-                </div>
-
-                {/* Tax Section */}
-                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border border-purple-200">
-                  <h5 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                    <DollarSign size={20} className="text-purple-600" />
-                    Tax Information
-                  </h5>
-
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-primary mb-2">
-                      Country <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="country"
-                      value={formData.country}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-card"
-                    >
-                      <option value="USA">United States</option>
-                      <option value="Canada">Canada</option>
-                    </select>
-                  </div>
-
-                  {formData.country === 'Canada' && (
-                    <div className="space-y-4">
-                      <h6 className="text-sm font-semibold text-primary mb-3">Canada Taxes</h6>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
-                            Federal Income Tax ($)
-                          </label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
-                            <input
-                              type="number"
-                              name="federalIncomeTaxCA"
-                              value={formData.federalIncomeTaxCA}
-                              onChange={handleInputChange}
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
-                            Provincial Income Tax ($)
-                          </label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
-                            <input
-                              type="number"
-                              name="provincialIncomeTaxCA"
-                              value={formData.provincialIncomeTaxCA}
-                              onChange={handleInputChange}
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
-                            Canada Pension Plan (CPP) ($)
-                          </label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
-                            <input
-                              type="number"
-                              name="cpp"
-                              value={formData.cpp}
-                              onChange={handleInputChange}
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
-                            Employment Insurance (EI) ($)
-                          </label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
-                            <input
-                              type="number"
-                              name="ei"
-                              value={formData.ei}
-                              onChange={handleInputChange}
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
-                            Provincial Health Tax ($)
-                          </label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
-                            <input
-                              type="number"
-                              name="provincialHealthTaxCA"
-                              value={formData.provincialHealthTaxCA}
-                              onChange={handleInputChange}
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {formData.country === 'USA' && (
-                    <div className="space-y-4">
-                      <h6 className="text-sm font-semibold text-primary mb-3">United States Taxes</h6>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
-                            Federal Income Tax ($)
-                          </label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
-                            <input
-                              type="number"
-                              name="federalIncomeTaxUS"
-                              value={formData.federalIncomeTaxUS}
-                              onChange={handleInputChange}
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
-                            State Income Tax ($)
-                          </label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
-                            <input
-                              type="number"
-                              name="stateIncomeTaxUS"
-                              value={formData.stateIncomeTaxUS}
-                              onChange={handleInputChange}
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
-                            Social Security Tax (FICA) ($)
-                          </label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
-                            <input
-                              type="number"
-                              name="socialSecurityTax"
-                              value={formData.socialSecurityTax}
-                              onChange={handleInputChange}
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
-                            Medicare Tax ($)
-                          </label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
-                            <input
-                              type="number"
-                              name="medicareTax"
-                              value={formData.medicareTax}
-                              onChange={handleInputChange}
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
-                            State Disability Insurance (SDI) ($)
-                          </label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
-                            <input
-                              type="number"
-                              name="stateDisabilityInsurance"
-                              value={formData.stateDisabilityInsurance}
-                              onChange={handleInputChange}
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-primary mb-2">
-                            Local Tax ($)
-                          </label>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
-                            <input
-                              type="number"
-                              name="localTax"
-                              value={formData.localTax}
-                              onChange={handleInputChange}
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
-                              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Tax Summary */}
-                  {getSelectedTripsTotals().count > 0 && (
-                    <div className="mt-4 p-4 bg-card rounded-lg border border-purple-300">
-                      <h6 className="text-sm font-semibold text-primary mb-2">Total Taxes</h6>
-                      <div className="text-2xl font-bold text-purple-600">
-                        ${(() => {
-                          let totalTax = 0;
-                          if (formData.country === 'Canada') {
-                            totalTax =
-                              parseFloat(formData.federalIncomeTaxCA || '0') +
-                              parseFloat(formData.provincialIncomeTaxCA || '0') +
-                              parseFloat(formData.cpp || '0') +
-                              parseFloat(formData.ei || '0') +
-                              parseFloat(formData.provincialHealthTaxCA || '0');
-                          } else {
-                            totalTax =
-                              parseFloat(formData.federalIncomeTaxUS || '0') +
-                              parseFloat(formData.stateIncomeTaxUS || '0') +
-                              parseFloat(formData.socialSecurityTax || '0') +
-                              parseFloat(formData.medicareTax || '0') +
-                              parseFloat(formData.stateDisabilityInsurance || '0') +
-                              parseFloat(formData.localTax || '0');
-                          }
-                          return totalTax.toFixed(2);
-                        })()}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
-                    Payment Date <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    name="payDate"
-                    value={formData.payDate}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                {getSelectedTripsTotals().count > 0 && (() => {
-                  const { totalAdditions, totalDeductions: calculatedDeductions } = calculateAdditionsDeductions();
-                  const tripsTotals = getSelectedTripsTotals();
-                  const manualBonus = parseFloat(formData.bonus || '0');
-
-                  // Gross Earnings = Trip Earnings + Manual Bonus + Calculated Additions
-                  const grossEarnings = tripsTotals.totalEarnings + manualBonus + totalAdditions;
-
-                  // Total Deductions = Only Calculated Deductions (from backend/driver deductions)
-                  // No manual deductions - all deductions come from driver deductions
-                  const totalDeductions = calculatedDeductions;
-
-                  // Calculate taxes
-                  let totalTax = 0;
-                  if (formData.country === 'Canada') {
-                    totalTax =
-                      parseFloat(formData.federalIncomeTaxCA || '0') +
-                      parseFloat(formData.provincialIncomeTaxCA || '0') +
-                      parseFloat(formData.cpp || '0') +
-                      parseFloat(formData.ei || '0') +
-                      parseFloat(formData.provincialHealthTaxCA || '0');
-                  } else {
-                    totalTax =
-                      parseFloat(formData.federalIncomeTaxUS || '0') +
-                      parseFloat(formData.stateIncomeTaxUS || '0') +
-                      parseFloat(formData.socialSecurityTax || '0') +
-                      parseFloat(formData.medicareTax || '0') +
-                      parseFloat(formData.stateDisabilityInsurance || '0') +
-                      parseFloat(formData.localTax || '0');
-                  }
-
-                  // Net Pay = Gross Earnings - Total Deductions - Taxes
-                  const netPay = grossEarnings - totalDeductions - totalTax;
-
-                  return (
-                    <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <p className="text-sm text-green-100">Gross Earnings</p>
-                          <p className="text-lg font-semibold">
-                            ${grossEarnings.toFixed(2)}
-                          </p>
-                        </div>
-                        {(totalAdditions > 0 || manualBonus > 0) && (
-                          <div className="pl-4 text-xs text-green-200">
-                            {tripsTotals.totalEarnings > 0 && (
-                              <div className="flex justify-between">
-                                <span>Trips Earnings:</span>
-                                <span>${tripsTotals.totalEarnings.toFixed(2)}</span>
-                              </div>
-                            )}
-                            {manualBonus > 0 && (
-                              <div className="flex justify-between">
-                                <span>Manual Bonus:</span>
-                                <span>+${manualBonus.toFixed(2)}</span>
-                              </div>
-                            )}
-                            {totalAdditions > 0 && (
-                              <div className="flex justify-between">
-                                <span>Additions ({driverAdditions.length}):</span>
-                                <span>+${totalAdditions.toFixed(2)}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        <div className="flex justify-between items-center text-sm">
-                          <p className="text-green-100">Deductions</p>
-                          <p className="text-red-200">-${totalDeductions.toFixed(2)}</p>
-                        </div>
-                        {calculatedDeductions > 0 && (
-                          <div className="pl-4 text-xs text-red-200">
-                            <div className="flex justify-between">
-                              <span>Deductions ({driverDeductions.length}):</span>
-                              <span>-${calculatedDeductions.toFixed(2)}</span>
-                            </div>
-                          </div>
-                        )}
-                        <div className="flex justify-between items-center text-sm">
-                          <p className="text-green-100">Taxes</p>
-                          <p className="text-red-200">-${totalTax.toFixed(2)}</p>
-                        </div>
-                        <div className="pt-2 border-t border-green-500 flex justify-between items-center">
-                          <p className="text-sm font-bold text-green-100">Net Pay</p>
-                          <p className="text-4xl font-bold mt-1">
-                            ${netPay.toFixed(2)}
-                          </p>
-                        </div>
-                        <div className="text-right mt-2">
-                          <p className="text-xs text-green-100">Based on</p>
-                          <p className="text-sm font-bold">{tripsTotals.count} trips</p>
-                          <p className="text-xs text-green-100">{tripsTotals.totalMiles.toLocaleString()} miles</p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                <div className="flex justify-end gap-3 pt-4 border-t border-theme">
-                  <button
-                    onClick={() => {
-                      setShowCreateModal(false);
-                      setShowEditModal(false);
-                      setAiAnalysis(null); // Clear AI analysis when modal is closed
-                      resetForm();
-                    }}
-                    className="px-4 py-2 text-primary bg-card hover:bg-gray-200 rounded-lg font-medium flex items-center gap-2"
-                    disabled={loading}
-                  >
-                    <X size={16} />
-                    Cancel
-                  </button>
-                  <button
-                    onClick={showCreateModal ? handleCreate : handleUpdate}
-                    style={{
-                      background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
-                    }}
-                    className="px-4 py-2   !text-white rounded-lg font-medium flex items-center gap-2 disabled:opacity-50"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        {showCreateModal ? <Plus size={16} /> : <CheckCircle size={16} />}
-                        {showCreateModal ? 'Create Payroll' : 'Update Payroll'}
-                      </>
-                    )}
-                  </button>
-                </div>
+              <div>
+                <h4 className="text-xl font-bold text-primary">
+                  {showCreateModal ? 'Create Driver Payroll' : 'Edit Driver Payroll'}
+                </h4>
+                <p className="text-sm text-secondary">Based on completed trips and mileage</p>
               </div>
             </div>
+            <button
+              onClick={() => {
+                setShowCreateModal(false);
+                setShowEditModal(false);
+                setAiAnalysis(null); // Clear AI analysis when modal is closed
+                resetForm();
+              }}
+              className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
+            >
+              <X size={24} />
+            </button>
           </div>
-        )}
 
-        {/* View Modal */}
-        {showViewModal && selectedPayroll && (
-          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
-            <div className="bg-card rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Eye className="text-green-600" size={20} />
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-bold text-primary">Driver Payroll Details</h4>
-                    <p className="text-sm text-secondary">{selectedPayroll.userId.name}</p>
+          <div className="p-6 space-y-5">
+            {showCreateModal && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-2">
+                    Select Driver <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="userId"
+                    value={formData.userId}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="">Choose a driver...</option>
+                    {filteredDriversByType.map((driver) => (
+                      <option key={driver._id} value={driver._id}>
+                        {driver.name} - Base: ${driver.details?.salaryPerMile || 0}/mi
+                        {driver.details?.salaryPerMileSnow ? ` | Snow: +$${driver.details.salaryPerMileSnow}/mi` : ''}
+                        {driver.details?.salaryPerMileHighTemp ? ` | High Temp: +$${driver.details.salaryPerMileHighTemp}/mi` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <h5 className="text-sm font-medium text-primary mb-3 flex items-center gap-2">
+                    <Calendar size={16} />
+                    Trip Period
+                  </h5>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">
+                        Start Date <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        name="startDate"
+                        value={formData.startDate}
+                        onChange={(e) => handleDateRangeChange(e.target.value, formData.endDate)}
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">
+                        End Date <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        name="endDate"
+                        value={formData.endDate}
+                        onChange={(e) => handleDateRangeChange(formData.startDate, e.target.value)}
+                        className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => setShowViewModal(false)}
-                  className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
-                >
-                  <X size={24} />
-                </button>
-              </div>
 
-              <div className="p-6 space-y-6">
-                {/* Driver Info */}
-                <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl">
-                  <h5 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <Truck size={20} />
-                    Driver Information
-                  </h5>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="text-sm text-green-100">Driver Name</label>
-                      <div className="text-xl font-bold mt-1">{selectedPayroll.userId.name}</div>
+                {/* Trip Summary */}
+                {driverPayrollSummary && (
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h5 className="text-lg font-bold flex items-center gap-2">
+                          <TrendingUp size={20} />
+                          Trip Summary for {selectedDriver?.name}
+                        </h5>
+                      </div>
+                      <button
+                        onClick={handleAICalculation}
+                        disabled={loadingAI || !formData.userId || !formData.startDate || !formData.endDate}
+                        className="px-4 py-2 bg-card !text-green-600 rounded-lg font-medium hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+                        title="Calculate bonus and deductions using AI"
+                      >
+                        {loadingAI ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                            AI Calculate Salary
+                          </>
+                        )}
+                      </button>
                     </div>
-                    <div>
-                      <label className="text-sm text-green-100">Total Trips</label>
-                      <div className="text-xl font-bold mt-1">{selectedPayroll.trips?.length || 0}</div>
-                    </div>
-                    <div>
-                      <label className="text-sm text-green-100">Pay Period</label>
-                      <div className="text-sm font-medium mt-1">
-                        {new Date(selectedPayroll.startDate).toLocaleDateString()} - {new Date(selectedPayroll.endDate).toLocaleDateString()}
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                      <div className="text-center">
+                        <div className="text-3xl font-bold">{driverPayrollSummary.totalTrips}</div>
+                        <div className="text-sm text-green-100">Total Trips</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-3xl font-bold">{driverPayrollSummary.totalDistanceMiles.toLocaleString()}</div>
+                        <div className="text-sm text-green-100">Total Miles</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-3xl font-bold">${(driverPayrollSummary.baseRate || driverPayrollSummary.ratePerMile || 0).toFixed(2)}</div>
+                        <div className="text-sm text-green-100">Base Rate/mi</div>
+                      </div>
+                      {(driverPayrollSummary.snowRate && driverPayrollSummary.snowRate > 0) && (
+                        <div className="text-center">
+                          <div className="text-2xl font-bold">+${driverPayrollSummary.snowRate}</div>
+                          <div className="text-xs text-green-100">Snow Premium/mi</div>
+                        </div>
+                      )}
+                      {(driverPayrollSummary.highTempRate && driverPayrollSummary.highTempRate > 0) && (
+                        <div className="text-center">
+                          <div className="text-2xl font-bold">+${driverPayrollSummary.highTempRate}</div>
+                          <div className="text-xs text-green-100">High Temp Premium/mi</div>
+                        </div>
+                      )}
+                      <div className="text-center">
+                        <div className="text-3xl font-bold">${driverPayrollSummary.totalEarnings.toFixed(2)}</div>
+                        <div className="text-sm text-green-100">Total Earnings</div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* Trip Details */}
-                {selectedPayroll.trips && selectedPayroll.trips.length > 0 && (
+                {/* Additions and Deductions */}
+                {(driverAdditions.length > 0 || driverDeductions.length > 0) && (
                   <div className="bg-card border border-theme rounded-lg overflow-hidden">
                     <div className="bg-card px-4 py-3 border-b border-theme">
-                      <h5 className="text-sm font-medium text-primary">Trip Details ({selectedPayroll.trips.length})</h5>
+                      <h5 className="text-sm font-medium text-primary">Driver Additions & Deductions</h5>
+                      <p className="text-xs text-secondary mt-1">These will be automatically included in the payroll calculation</p>
                     </div>
-                    <div className="overflow-x-auto max-h-80">
+                    <div className="p-4 space-y-4">
+                      {driverAdditions.length > 0 && (
+                        <div>
+                          <h6 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
+                            <TrendingUp size={16} />
+                            Additions ({driverAdditions.length})
+                          </h6>
+                          <div className="space-y-2">
+                            {driverAdditions.map((addition) => {
+                              // Calculate the amount to display (edited or calculated)
+                              const calculatedAmount = editedAdditionAmounts[addition._id] !== undefined
+                                ? editedAdditionAmounts[addition._id]
+                                : (() => {
+                                  // Calculate from base amount and recurrence (same logic as calculateAdditionsDeductions)
+                                  if (!formData.startDate || !formData.endDate) return addition.amount || 0;
+                                  const startDateObj = new Date(formData.startDate);
+                                  const endDateObj = new Date(formData.endDate);
+                                  endDateObj.setHours(23, 59, 59, 999);
+                                  const addStartDate = addition.startDate ? new Date(addition.startDate) : null;
+                                  const addEndDate = addition.endDate ? new Date(addition.endDate) : null;
+                                  const effectiveStartDate = addStartDate && addStartDate > startDateObj ? addStartDate : startDateObj;
+                                  const effectiveEndDate = addEndDate && addEndDate < endDateObj ? addEndDate : endDateObj;
+                                  let amount = addition.amount || 0;
+                                  if (addition.recurrence === 'Weekly') {
+                                    const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+                                    amount = amount * Math.max(1, weeks);
+                                  } else if (addition.recurrence === 'Bi-weekly') {
+                                    const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+                                    amount = amount * Math.max(1, biWeeks);
+                                  } else if (addition.recurrence === 'Monthly') {
+                                    const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
+                                    amount = amount * Math.max(1, months);
+                                  }
+                                  return amount;
+                                })();
+
+                              return (
+                                <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
+                                  <div className="flex justify-between items-start gap-4">
+                                    <div className="flex-1">
+                                      <p className="text-sm font-medium text-primary">{addition.name || addition.description || 'Addition'}</p>
+                                      <p className="text-xs text-secondary mt-1">
+                                        {addition.recurrence} • Base: ${addition.amount?.toFixed(2) || '0.00'}
+                                        {addition.startDate && (
+                                          <span> • From {new Date(addition.startDate).toLocaleDateString()}</span>
+                                        )}
+                                        {addition.endDate && (
+                                          <span> • Until {new Date(addition.endDate).toLocaleDateString()}</span>
+                                        )}
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-secondary">Amount:</span>
+                                      <input
+                                        type="number"
+                                        value={calculatedAmount}
+                                        onChange={(e) => {
+                                          const newAmount = parseFloat(e.target.value) || 0;
+                                          setEditedAdditionAmounts(prev => ({
+                                            ...prev,
+                                            [addition._id]: newAmount
+                                          }));
+                                        }}
+                                        step="0.01"
+                                        min="0"
+                                        className="w-24 px-2 py-1 text-sm border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-card"
+                                      />
+                                      <span className="text-sm font-semibold text-green-700">+${calculatedAmount.toFixed(2)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      {driverDeductions.length > 0 && (
+                        <div>
+                          <h6 className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-2">
+                            <TrendingUp size={16} className="rotate-180" />
+                            Deductions ({driverDeductions.length})
+                          </h6>
+                          <div className="space-y-2">
+                            {driverDeductions.map((deduction) => {
+                              // Calculate the amount to display (edited or calculated)
+                              const calculatedAmount = editedDeductionAmounts[deduction._id] !== undefined
+                                ? editedDeductionAmounts[deduction._id]
+                                : (() => {
+                                  // Calculate from base amount and recurrence (same logic as calculateAdditionsDeductions)
+                                  if (!formData.startDate || !formData.endDate) return deduction.amount || 0;
+                                  const startDateObj = new Date(formData.startDate);
+                                  const endDateObj = new Date(formData.endDate);
+                                  endDateObj.setHours(23, 59, 59, 999);
+                                  const dedStartDate = deduction.startDate ? new Date(deduction.startDate) : null;
+                                  const dedEndDate = deduction.endDate ? new Date(deduction.endDate) : null;
+                                  const effectiveStartDate = dedStartDate && dedStartDate > startDateObj ? dedStartDate : startDateObj;
+                                  const effectiveEndDate = dedEndDate && dedEndDate < endDateObj ? dedEndDate : endDateObj;
+                                  let amount = deduction.amount || 0;
+                                  if (deduction.recurrence === 'Weekly') {
+                                    const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+                                    amount = amount * Math.max(1, weeks);
+                                  } else if (deduction.recurrence === 'Bi-weekly') {
+                                    const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+                                    amount = amount * Math.max(1, biWeeks);
+                                  } else if (deduction.recurrence === 'Monthly') {
+                                    // Simplified monthly calculation for display
+                                    const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
+                                    amount = amount * Math.max(1, months);
+                                  }
+                                  return amount;
+                                })();
+
+                              return (
+                                <div key={deduction._id} className="bg-card p-3 rounded-lg border border-red-200">
+                                  <div className="flex justify-between items-start gap-4">
+                                    <div className="flex-1">
+                                      <p className="text-sm font-medium text-primary">{deduction.name || deduction.description || 'Deduction'}</p>
+                                      <p className="text-xs text-secondary mt-1">
+                                        {deduction.recurrence} • Base: ${deduction.amount?.toFixed(2) || '0.00'}
+                                        {deduction.startDate && (
+                                          <span> • From {new Date(deduction.startDate).toLocaleDateString()}</span>
+                                        )}
+                                        {deduction.endDate && (
+                                          <span> • Until {new Date(deduction.endDate).toLocaleDateString()}</span>
+                                        )}
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-secondary">Amount:</span>
+                                      <input
+                                        type="number"
+                                        value={calculatedAmount}
+                                        onChange={(e) => {
+                                          const newAmount = parseFloat(e.target.value) || 0;
+                                          setEditedDeductionAmounts(prev => ({
+                                            ...prev,
+                                            [deduction._id]: newAmount
+                                          }));
+                                        }}
+                                        step="0.01"
+                                        min="0"
+                                        className="w-24 px-2 py-1 text-sm border border-red-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500 bg-card"
+                                      />
+                                      <span className="text-sm font-semibold text-red-700">-${calculatedAmount.toFixed(2)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Trip List */}
+                {driverTrips.length > 0 && (
+                  <div className="bg-card border border-theme rounded-lg overflow-hidden">
+                    <div className="bg-card px-4 py-3 border-b border-theme flex justify-between items-center">
+                      <h5 className="text-sm font-medium text-primary">Completed Trips ({driverTrips.length})</h5>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={selectAllTrips}
+                          className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+                        >
+                          Select All
+                        </button>
+                        <button
+                          onClick={deselectAllTrips}
+                          className="px-3 py-1 text-xs bg-card text-primary rounded hover:bg-gray-200"
+                        >
+                          Deselect All
+                        </button>
+                      </div>
+                    </div>
+                    <div className="overflow-x-auto max-h-96">
                       <table className="w-full">
                         <thead className="bg-card sticky top-0">
                           <tr>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Select</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Trip #</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Route</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Role</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Completed</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Truck</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Miles</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Rate</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Earnings</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-theme">
-                          {selectedPayroll.trips.map((trip) => (
-                            <tr key={trip._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                          {driverTrips.map((trip) => (
+                            <tr key={trip._id} className={`hover:bg-[rgba(255,255,255,0.03)] ${trip.selected ? 'bg-green-50' : ''}`}>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="checkbox"
+                                  checked={trip.selected || false}
+                                  onChange={() => toggleTripSelection(trip._id)}
+                                  className="w-4 h-4 text-green-600 bg-card border-theme rounded focus:ring-green-500"
+                                />
+                              </td>
                               <td className="px-3 py-2 text-sm font-medium text-primary">
                                 {trip.tripNumber || trip._id?.slice(-6).toUpperCase()}
                               </td>
@@ -3842,1426 +2982,2298 @@ const DriverPayrollManagement = () => {
                                     Driver
                                   </span>
                                 )}
+                                {trip.coDriverDetails && trip.driverRole === 'driver' && (
+                                  <div className="text-xs text-secondary mt-1">
+                                    Co: {trip.coDriverDetails.name}
+                                  </div>
+                                )}
+                                {trip.driverDetails && trip.driverRole === 'coDriver' && (
+                                  <div className="text-xs text-secondary mt-1">
+                                    Driver: {trip.driverDetails.name}
+                                  </div>
+                                )}
                               </td>
                               <td className="px-3 py-2 text-sm text-secondary">
                                 {trip.actualEndDate ? new Date(trip.actualEndDate).toLocaleDateString() : '-'}
                               </td>
+                              <td className="px-3 py-2 text-sm text-secondary">
+                                {trip.truck?.plateNumber || trip.truck?.licensePlate || trip.truck?.internalId || 'N/A'}
+                              </td>
                               <td className="px-3 py-2 text-sm font-medium text-primary">
                                 {(() => {
-                                  // Calculate miles from route or use stored value
-                                  let miles: number = 0;
-                                  if (trip.distanceInMiles) {
-                                    miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : trip.distanceInMiles;
-                                  } else if (trip.route && trip.route.totalDistance) {
-                                    miles = parseFloat((trip.route.totalDistance * 0.621371).toFixed(2));
-                                  }
+                                  const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
                                   return miles || 0;
-                                })()} mi
+                                })()}
+                              </td>
+                              <td className="px-3 py-2 text-sm text-secondary">
+                                <div className="flex items-center gap-2">
+                                  <span>${trip.baseRate || 0}/mi</span>
+                                  {trip.rateType && (
+                                    <span className={`px-2 py-0.5 text-xs font-medium rounded ${trip.rateType === 'TEAM'
+                                      ? 'bg-blue-100 text-blue-800'
+                                      : 'bg-card text-primary'
+                                      }`}>
+                                      {trip.rateType}
+                                    </span>
+                                  )}
+                                </div>
+                                {trip.weatherConditions?.snow && trip.snowRate ? (
+                                  <div className="text-xs text-secondary mt-1">+ ${trip.snowRate} (snow)</div>
+                                ) : null}
+                                {trip.weatherConditions?.highTemperature && trip.highTempRate ? (
+                                  <div className="text-xs text-secondary mt-1">+ ${trip.highTempRate} (high temp)</div>
+                                ) : null}
                               </td>
                               <td className="px-3 py-2 text-sm font-bold text-green-600">
-                                {(() => {
-                                  // Calculate earnings from miles and rate, or use stored value
-                                  let earnings: number = 0;
-                                  if (trip.earnings) {
-                                    earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : trip.earnings;
-                                  }
-                                  if (!earnings || earnings === 0) {
-                                    let miles: number = 0;
-                                    if (trip.distanceInMiles) {
-                                      miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : trip.distanceInMiles;
-                                    } else if (trip.route?.totalDistance) {
-                                      miles = parseFloat((trip.route.totalDistance * 0.621371).toFixed(2));
-                                    }
-                                    const rate = selectedPayroll.ratePerMile || 0; // This comes from payroll record
-                                    if (miles && rate) {
-                                      earnings = parseFloat((miles * rate).toFixed(2));
-                                    }
-                                  }
-                                  return `$${earnings.toFixed(2)}`;
+                                ${(() => {
+                                  const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
+                                  return earnings.toFixed(2);
                                 })()}
                               </td>
                             </tr>
                           ))}
                         </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-                {/* Earnings Breakdown */}
-                <div className="bg-green-50 p-6 rounded-xl border border-green-200">
-                  <h5 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                    <DollarSign size={20} className="text-green-600" />
-                    Earnings Breakdown
-                  </h5>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-card rounded-lg">
-                      <span className="text-sm font-medium text-primary">Trip Earnings ({selectedPayroll.totalMiles?.toLocaleString()} miles @ ${(selectedPayroll.ratePerMile || 0).toFixed(2)}/mi)</span>
-                      <span className="text-lg font-bold text-primary">${selectedPayroll.baseSalary.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-card rounded-lg">
-                      <span className="text-sm font-medium text-primary">Bonus</span>
-                      <span className="text-lg font-bold text-green-600">+${selectedPayroll.bonus.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-card rounded-lg">
-                      <span className="text-sm font-medium text-primary">Deductions</span>
-                      <span className="text-lg font-bold text-[#A855F7]">-${selectedPayroll.deductions.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-card rounded-lg">
-                      <span className="text-sm font-medium text-primary">Taxes</span>
-                      <span className="text-lg font-bold text-[#A855F7]">
-                        -${(() => {
-                          let totalTax = 0;
-                          const country = selectedPayroll.country || 'USA';
-                          if (country === 'Canada') {
-                            totalTax =
-                              (selectedPayroll.federalIncomeTaxCA || 0) +
-                              (selectedPayroll.provincialIncomeTaxCA || 0) +
-                              (selectedPayroll.cpp || 0) +
-                              (selectedPayroll.ei || 0) +
-                              (selectedPayroll.provincialHealthTaxCA || 0);
-                          } else {
-                            totalTax =
-                              (selectedPayroll.federalIncomeTaxUS || 0) +
-                              (selectedPayroll.stateIncomeTaxUS || 0) +
-                              (selectedPayroll.socialSecurityTax || 0) +
-                              (selectedPayroll.medicareTax || 0) +
-                              (selectedPayroll.stateDisabilityInsurance || 0) +
-                              (selectedPayroll.localTax || 0);
-                          }
-                          return totalTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                        })()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-600 to-green-700 rounded-lg">
-                      <span className="text-sm font-medium text-white">Net Pay</span>
-                      <span className="text-2xl font-bold text-white">${selectedPayroll.totalSalary.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tax Information */}
-                {(() => {
-                  const country = selectedPayroll.country || 'USA';
-                  const totalTaxes = country === 'Canada'
-                    ? ((selectedPayroll.federalIncomeTaxCA || 0) +
-                      (selectedPayroll.provincialIncomeTaxCA || 0) +
-                      (selectedPayroll.cpp || 0) +
-                      (selectedPayroll.ei || 0) +
-                      (selectedPayroll.provincialHealthTaxCA || 0))
-                    : ((selectedPayroll.federalIncomeTaxUS || 0) +
-                      (selectedPayroll.stateIncomeTaxUS || 0) +
-                      (selectedPayroll.socialSecurityTax || 0) +
-                      (selectedPayroll.medicareTax || 0) +
-                      (selectedPayroll.stateDisabilityInsurance || 0) +
-                      (selectedPayroll.localTax || 0));
-
-                  if (totalTaxes > 0) {
-                    return (
-                      <div className="bg-card p-6 rounded-xl border border-purple-200">
-                        <h5 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                          <DollarSign size={20} className="text-purple-600" />
-                          Tax Information ({country})
-                        </h5>
-                        {country === 'Canada' ? (
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="flex justify-between p-2 bg-card rounded">
-                              <span className="text-sm text-secondary">Federal Income Tax:</span>
-                              <span className="text-sm font-medium">${(selectedPayroll.federalIncomeTaxCA || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between p-2 bg-card rounded">
-                              <span className="text-sm text-secondary">Provincial Income Tax:</span>
-                              <span className="text-sm font-medium">${(selectedPayroll.provincialIncomeTaxCA || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between p-2 bg-card rounded">
-                              <span className="text-sm text-secondary">CPP:</span>
-                              <span className="text-sm font-medium">${(selectedPayroll.cpp || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between p-2 bg-card rounded">
-                              <span className="text-sm text-secondary">EI:</span>
-                              <span className="text-sm font-medium">${(selectedPayroll.ei || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between p-2 bg-card rounded">
-                              <span className="text-sm text-secondary">Provincial Health Tax:</span>
-                              <span className="text-sm font-medium">${(selectedPayroll.provincialHealthTaxCA || 0).toFixed(2)}</span>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="flex justify-between p-2 bg-card rounded">
-                              <span className="text-sm text-secondary">Federal Income Tax:</span>
-                              <span className="text-sm font-medium">${(selectedPayroll.federalIncomeTaxUS || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between p-2 bg-card rounded">
-                              <span className="text-sm text-secondary">State Income Tax:</span>
-                              <span className="text-sm font-medium">${(selectedPayroll.stateIncomeTaxUS || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between p-2 bg-card rounded">
-                              <span className="text-sm text-secondary">Social Security:</span>
-                              <span className="text-sm font-medium">${(selectedPayroll.socialSecurityTax || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between p-2 bg-card rounded">
-                              <span className="text-sm text-secondary">Medicare:</span>
-                              <span className="text-sm font-medium">${(selectedPayroll.medicareTax || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between p-2 bg-card rounded">
-                              <span className="text-sm text-secondary">SDI:</span>
-                              <span className="text-sm font-medium">${(selectedPayroll.stateDisabilityInsurance || 0).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between p-2 bg-card rounded">
-                              <span className="text-sm text-secondary">Local Tax:</span>
-                              <span className="text-sm font-medium">${(selectedPayroll.localTax || 0).toFixed(2)}</span>
-                            </div>
-                          </div>
-                        )}
-                        <div className="mt-3 pt-3 border-t border-purple-300 flex justify-between items-center">
-                          <span className="text-sm font-semibold text-primary">Total Taxes:</span>
-                          <span className="text-lg font-bold text-purple-600">${totalTaxes.toFixed(2)}</span>
-                        </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
-
-                {/* Payment Info */}
-                <div className="bg-card p-6 rounded-xl border border-theme">
-                  <h5 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                    <Calendar size={20} className="text-[#F59E0B]" />
-                    Payment Information
-                  </h5>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-semibold text-secondary">Payment Date</label>
-                      <div className="mt-1 px-4 py-3 bg-card rounded-lg text-primary font-medium">
-                        {new Date(selectedPayroll.payDate).toLocaleDateString()}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold text-secondary">Pay Period</label>
-                      <div className="mt-1 px-4 py-3 bg-card rounded-lg text-primary font-medium">
-                        {new Date(selectedPayroll.startDate).toLocaleDateString()} - {new Date(selectedPayroll.endDate).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 border-t border-theme">
-                <button
-                  onClick={() => setShowViewModal(false)}
-                  className="w-full px-6 py-3 bg-card hover:bg-gray-200 text-primary rounded-lg font-medium flex items-center justify-center gap-2"
-                >
-                  <X size={18} />
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Delete Modal */}
-        {showDeleteModal && selectedPayroll && (
-          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <div className="bg-card rounded-xl shadow-xl max-w-md w-full p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <AlertCircle className="text-[#A855F7]" size={24} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-primary">Delete Driver Payroll</h3>
-                  <p className="text-sm text-secondary">This action cannot be undone</p>
-                </div>
-              </div>
-
-              <p className="text-primary mb-6">
-                Are you sure you want to delete the payroll record for driver <strong>{selectedPayroll.userId.name}</strong>?
-              </p>
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => {
-                    setShowDeleteModal(false);
-                    setSelectedPayroll(null);
-                  }}
-                  className="px-4 py-2 text-primary !mr-3 bg-card hover:bg-gray-200 rounded-lg font-medium"
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 !text-white rounded-lg font-medium disabled:opacity-50"
-                  disabled={loading}
-                >
-                  {loading ? 'Deleting...' : 'Delete'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Professional Paystub Modal */}
-        {showPaystubModal && selectedPaystub && (
-          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
-            <div className="bg-card rounded-xl shadow-xl max-w-5xl w-full max-h-[95vh] overflow-y-auto">
-              {/* Header */}
-              <div className="p-6 border-b-2 border-theme sticky top-0 bg-card z-10">
-                <div className="flex justify-between items-start mb-4">
-                  <button
-                    onClick={() => {
-                      setShowPaystubModal(false);
-                      setSelectedPaystub(null);
-                    }}
-                    className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
-                  >
-                    <X size={24} />
-                  </button>
-                </div>
-
-                {/* Company Header Section */}
-                <div className="border-b-2 border-theme pb-4 mb-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      {selectedPaystub.companyDetails?.companyLogo && (
-                        <img
-                          src={selectedPaystub.companyDetails.companyLogo}
-                          alt="Company Logo"
-                          className="h-12 mb-3"
-                        />
-                      )}
-                      <h2 className="text-2xl font-bold text-primary mb-1">
-                        {selectedPaystub.companyDetails?.companyName || 'Company Name'}
-                      </h2>
-                      {selectedPaystub.companyDetails?.companyAddress && (
-                        <p className="text-sm text-secondary mb-1">
-                          {selectedPaystub.companyDetails.companyAddress}
-                        </p>
-                      )}
-                      <div className="flex gap-4 text-sm text-secondary">
-                        {selectedPaystub.companyDetails?.companyPhone && (
-                          <span>Phone: {selectedPaystub.companyDetails.companyPhone}</span>
-                        )}
-                        {selectedPaystub.companyDetails?.companyEmail && (
-                          <span>Email: {selectedPaystub.companyDetails.companyEmail}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <h1 className="text-3xl font-bold text-primary mb-2">PAY STUB</h1>
-                      <p className="text-sm text-secondary">EARNINGS STATEMENT</p>
-                      {selectedPaystub.paystubId && (
-                        <p className="text-xs text-secondary mt-2">ID: {selectedPaystub.paystubId}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pay Period Header */}
-                <div className="grid grid-cols-3 gap-4 bg-card p-4 rounded-lg border border-blue-200">
-                  <div>
-                    <label className="text-xs font-semibold text-secondary uppercase">Pay Period Start</label>
-                    <div className="text-sm font-bold text-primary mt-1">
-                      {new Date(selectedPaystub.payPeriod.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-secondary uppercase">Pay Period End</label>
-                    <div className="text-sm font-bold text-primary mt-1">
-                      {new Date(selectedPaystub.payPeriod.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-secondary uppercase">Pay Date</label>
-                    <div className="text-sm font-bold text-primary mt-1">
-                      {new Date(selectedPaystub.payPeriod.payDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 space-y-6">
-                {/* Employee Information Section */}
-                <div className="bg-card p-5 rounded-lg border border-theme">
-                  <h3 className="text-lg font-bold text-primary mb-4 border-b border-theme pb-2">Employee Information</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-semibold text-secondary uppercase">Employee / Driver Name</label>
-                      <div className="mt-1 text-base font-semibold text-primary">
-                        {selectedPaystub.employeeName || 'Unknown'}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-secondary uppercase">Employee ID / Driver ID</label>
-                      <div className="mt-1 text-base font-semibold text-primary">
-                        {selectedPaystub.employeeId || 'N/A'}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-secondary uppercase">Role / Position</label>
-                      <div className="mt-1">
-                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800">
-                          {selectedPaystub.employeeRole || 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-secondary uppercase">Work Type</label>
-                      <div className="mt-1 text-base font-semibold text-primary">
-                        {selectedPaystub.workType || 'Employee'}
-                      </div>
-                    </div>
-                    {selectedPaystub.employeeDepartment && (
-                      <div>
-                        <label className="text-xs font-semibold text-secondary uppercase">Department</label>
-                        <div className="mt-1 text-base text-primary">
-                          {selectedPaystub.employeeDepartment}
-                        </div>
-                      </div>
-                    )}
-                    {selectedPaystub.employeeAddress && (
-                      <div>
-                        <label className="text-xs font-semibold text-secondary uppercase">Address</label>
-                        <div className="mt-1 text-sm text-primary">
-                          {selectedPaystub.employeeAddress}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Earnings Section */}
-                <div className="bg-green-50 p-5 rounded-lg border border-green-200">
-                  <h3 className="text-lg font-bold text-primary mb-4 border-b border-green-300 pb-2">Earnings</h3>
-                  {selectedPaystub.earnings.earningsBreakdown && selectedPaystub.earnings.earningsBreakdown.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-green-300">
-                            <th className="text-left py-2 px-3 text-xs font-semibold text-primary uppercase">Earning Type</th>
-                            <th className="text-center py-2 px-3 text-xs font-semibold text-primary uppercase">Units</th>
-                            <th className="text-right py-2 px-3 text-xs font-semibold text-primary uppercase">Rate</th>
-                            <th className="text-right py-2 px-3 text-xs font-semibold text-primary uppercase">Amount</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {selectedPaystub.earnings.earningsBreakdown.map((earning: any, index: number) => (
-                            <tr key={index} className="border-b border-green-200">
-                              <td className="py-2 px-3 text-sm text-primary">{earning.type}</td>
-                              <td className="py-2 px-3 text-sm text-center text-secondary">{earning.units || '-'}</td>
-                              <td className="py-2 px-3 text-sm text-right text-secondary">
-                                {earning.rate > 0 ? `$${earning.rate.toFixed(2)}` : '-'}
-                              </td>
-                              <td className="py-2 px-3 text-sm text-right font-semibold text-primary">
-                                ${earning.amount.toFixed(2)}
-                              </td>
-                            </tr>
-                          ))}
-                          <tr className="bg-green-100 font-bold">
-                            <td colSpan={3} className="py-3 px-3 text-sm text-primary">Total Earnings</td>
-                            <td className="py-3 px-3 text-sm text-right text-green-700">
-                              ${selectedPaystub.earnings.totalEarnings.toFixed(2)}
+                        <tfoot className="bg-green-50 sticky bottom-0">
+                          <tr>
+                            <td colSpan={6} className="px-3 py-3 text-sm font-medium text-primary text-right">
+                              Selected Totals:
+                            </td>
+                            <td className="px-3 py-3 text-sm font-bold text-primary">
+                              {getSelectedTripsTotals().totalMiles.toLocaleString()} mi
+                            </td>
+                            <td className="px-3 py-3 text-sm text-secondary">-</td>
+                            <td className="px-3 py-3 text-sm font-bold text-green-600">
+                              ${getSelectedTripsTotals().totalEarnings.toFixed(2)}
                             </td>
                           </tr>
-                        </tbody>
+                        </tfoot>
                       </table>
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center py-2 border-b border-green-200">
-                        <span className="text-sm text-primary">Basic Pay</span>
-                        <span className="text-sm font-semibold text-primary">
-                          ${selectedPaystub.earnings.baseSalary.toFixed(2)}
-                        </span>
-                      </div>
-                      {selectedPaystub.earnings.bonus > 0 && (
-                        <div className="flex justify-between items-center py-2 border-b border-green-200">
-                          <span className="text-sm text-primary">Bonus</span>
-                          <span className="text-sm font-semibold text-green-600">
-                            ${selectedPaystub.earnings.bonus.toFixed(2)}
-                          </span>
-                        </div>
-                      )}
-                      {selectedPaystub.earnings.mileageEarnings > 0 && (
-                        <div className="flex justify-between items-center py-2 border-b border-green-200">
-                          <span className="text-sm text-primary">Trip Pay / Mileage</span>
-                          <span className="text-sm font-semibold text-green-600">
-                            ${selectedPaystub.earnings.mileageEarnings.toFixed(2)}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex justify-between items-center py-3 bg-green-100 rounded mt-2 px-3 font-bold">
-                        <span className="text-base text-primary">Total Earnings</span>
-                        <span className="text-base text-green-700">
-                          ${selectedPaystub.earnings.totalEarnings.toFixed(2)}
-                        </span>
-                      </div>
+                  </div>
+                )}
+
+                {loadingTrips && (
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+                    <p className="text-sm text-green-600 font-medium mt-2">Loading trips...</p>
+                  </div>
+                )}
+
+                {!loadingTrips && driverTrips.length === 0 && selectedDriver && formData.startDate && formData.endDate && (
+                  <div className="bg-card p-4 rounded-lg border border-yellow-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertCircle className="text-[#00FFA3]" size={18} />
+                      <div className="text-sm font-medium text-yellow-800">No completed trips found</div>
                     </div>
-                  )}
+                    <p className="text-xs text-yellow-700">
+                      No trips found for {selectedDriver.name} between {formData.startDate} and {formData.endDate}.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* AI Analysis Results */}
+            {aiAnalysis && (
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h5 className="text-lg font-bold text-primary">AI Payroll Analysis</h5>
+                      <p className="text-sm text-secondary">Performance Score: {aiAnalysis.performanceScore}/100</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setAiAnalysis(null)}
+                    className="text-secondary hover:text-secondary"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
 
-                {/* Deductions Section */}
-                <div className="bg-card p-5 rounded-lg border border-red-200">
-                  <h3 className="text-lg font-bold text-primary mb-4 border-b border-red-300 pb-2">Deductions</h3>
-                  {selectedPaystub.deductions.deductionsBreakdown && selectedPaystub.deductions.deductionsBreakdown.length > 0 ? (
-                    <div className="overflow-x-auto">
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="bg-card rounded-lg p-4 border border-green-200">
+                    <div className="text-sm text-secondary mb-1">Recommended Bonus</div>
+                    <div className="text-2xl font-bold text-green-600">${aiAnalysis.recommendedBonus.toFixed(2)}</div>
+                  </div>
+                  <div className="bg-card rounded-lg p-4 border border-red-200">
+                    <div className="text-sm text-secondary mb-1">Recommended Deductions</div>
+                    <div className="text-2xl font-bold text-[#A855F7]">${aiAnalysis.recommendedDeductions.toFixed(2)}</div>
+                  </div>
+                </div>
+
+                {aiAnalysis.reasoning && (
+                  <div className="bg-card rounded-lg p-4 border border-theme mb-4">
+                    <div className="text-sm font-medium text-primary mb-2">AI Reasoning:</div>
+                    <p className="text-sm text-secondary">{aiAnalysis.reasoning}</p>
+                  </div>
+                )}
+
+                {aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0 && (
+                  <div className="bg-card rounded-lg p-4 border border-theme">
+                    <div className="text-sm font-medium text-primary mb-2">Recommendations:</div>
+                    <ul className="space-y-1">
+                      {aiAnalysis.recommendations.map((rec, idx) => (
+                        <li key={idx} className="text-sm text-secondary flex items-start gap-2">
+                          <span className="text-blue-500 mt-1">•</span>
+                          <span>{rec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {aiAnalysis.performanceNotes && (
+                  <div className="mt-4 bg-card rounded-lg p-4 border border-theme">
+                    <div className="text-sm font-medium text-primary mb-2">Performance Notes:</div>
+                    <p className="text-sm text-secondary">{aiAnalysis.performanceNotes}</p>
+                  </div>
+                )}
+
+                {/* AI Analysis Trips */}
+                {aiAnalysis.trips && aiAnalysis.trips.length > 0 && (
+                  <div className="mt-4 bg-card border border-theme rounded-lg overflow-hidden">
+                    <div className="bg-card px-4 py-3 border-b border-theme">
+                      <h5 className="text-sm font-medium text-primary">Completed Trips ({aiAnalysis.trips.length})</h5>
+                    </div>
+                    <div className="overflow-x-auto max-h-96">
                       <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-red-300">
-                            <th className="text-left py-2 px-3 text-xs font-semibold text-primary uppercase">Deduction Type</th>
-                            <th className="text-right py-2 px-3 text-xs font-semibold text-primary uppercase">Amount</th>
+                        <thead className="bg-card sticky top-0">
+                          <tr>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Trip #</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Route</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Role</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Completed</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Truck</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Miles</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Rate</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Earnings</th>
                           </tr>
                         </thead>
-                        <tbody>
-                          {selectedPaystub.deductions.deductionsBreakdown.map((deduction: any, index: number) => (
-                            <tr key={index} className="border-b border-red-200">
-                              <td className="py-2 px-3 text-sm text-primary">{deduction.type}</td>
-                              <td className="py-2 px-3 text-sm text-right font-semibold text-[#A855F7]">
-                                ${deduction.amount.toFixed(2)}
+                        <tbody className="divide-y divide-theme">
+                          {aiAnalysis.trips.map((trip) => (
+                            <tr key={trip._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                              <td className="px-3 py-2 text-sm font-medium text-primary">
+                                {trip.tripNumber || trip._id?.slice(-6).toUpperCase()}
                               </td>
-                            </tr>
-                          ))}
-                          <tr className="bg-red-100 font-bold">
-                            <td className="py-3 px-3 text-sm text-primary">Total Deductions</td>
-                            <td className="py-3 px-3 text-sm text-right text-red-700">
-                              ${selectedPaystub.deductions.totalDeductions.toFixed(2)}
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {selectedPaystub.deductions.otherDeductions > 0 && (
-                        <div className="flex justify-between items-center py-2 border-b border-red-200">
-                          <span className="text-sm text-primary">Other Deductions</span>
-                          <span className="text-sm font-semibold text-[#A855F7]">
-                            ${selectedPaystub.deductions.otherDeductions.toFixed(2)}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex justify-between items-center py-2 border-b border-red-200">
-                        <span className="text-sm text-primary">Taxes</span>
-                        <span className="text-sm font-semibold text-[#A855F7]">
-                          ${selectedPaystub.summary.totalTaxes.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center py-3 bg-red-100 rounded mt-2 px-3 font-bold">
-                        <span className="text-base text-primary">Total Deductions</span>
-                        <span className="text-base text-red-700">
-                          ${selectedPaystub.deductions.totalDeductions.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Employer Contributions (if applicable) */}
-                {selectedPaystub.employerContributions && selectedPaystub?.employerContributions?.total && selectedPaystub?.employerContributions?.total > 0 && (
-                  <div className="bg-card p-5 rounded-lg border border-purple-200">
-                    <h3 className="text-lg font-bold text-primary mb-4 border-b border-purple-300 pb-2">Employer Contributions</h3>
-                    <div className="space-y-2">
-                      {selectedPaystub?.employerContributions?.companyInsurance && selectedPaystub?.employerContributions?.companyInsurance > 0 && (
-                        <div className="flex justify-between items-center py-2 border-b border-purple-200">
-                          <span className="text-sm text-primary">Company Insurance</span>
-                          <span className="text-sm font-semibold text-purple-600">
-                            ${selectedPaystub?.employerContributions?.companyInsurance?.toFixed(2)}
-                          </span>
-                        </div>
-                      )}
-                      {selectedPaystub?.employerContributions?.pensionPF && selectedPaystub?.employerContributions?.pensionPF > 0 && (
-                        <div className="flex justify-between items-center py-2 border-b border-purple-200">
-                          <span className="text-sm text-primary">Pension / PF</span>
-                          <span className="text-sm font-semibold text-purple-600">
-                            ${selectedPaystub?.employerContributions?.pensionPF?.toFixed(2)}
-                          </span>
-                        </div>
-                      )}
-                      {selectedPaystub?.employerContributions?.benefitContributions && selectedPaystub?.employerContributions?.benefitContributions > 0 && (
-                        <div className="flex justify-between items-center py-2 border-b border-purple-200">
-                          <span className="text-sm text-primary">Benefit Contributions</span>
-                          <span className="text-sm font-semibold text-purple-600">
-                            ${selectedPaystub?.employerContributions?.benefitContributions?.toFixed(2)}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex justify-between items-center py-3 bg-purple-100 rounded mt-2 px-3 font-bold">
-                        <span className="text-base text-primary">Total Employer Contributions</span>
-                        <span className="text-base text-purple-700">
-                          ${selectedPaystub.employerContributions.total.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Summary Section */}
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-lg text-white shadow-lg">
-                  <h3 className="text-xl font-bold mb-4 border-b border-blue-400 pb-2">Pay Summary</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-semibold opacity-90 uppercase">Gross Earnings</label>
-                      <div className="mt-1 text-2xl font-bold">
-                        ${selectedPaystub.summary.grossPay.toFixed(2)}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold opacity-90 uppercase">Total Deductions</label>
-                      <div className="mt-1 text-2xl font-bold">
-                        ${selectedPaystub.summary.totalDeductions.toFixed(2)}
-                      </div>
-                    </div>
-                    <div className="col-span-2 border-t border-blue-400 pt-4 mt-2">
-                      <div className="flex justify-between items-center">
-                        <div className="text-3xl font-bold">
-                          ${selectedPaystub.summary.netPay.toFixed(2)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* YTD Summary */}
-                {selectedPaystub.ytd && (
-                  <div className="bg-indigo-50 p-5 rounded-lg border border-indigo-200">
-                    <h3 className="text-lg font-bold text-primary mb-4 border-b border-indigo-300 pb-2">Year-to-Date (YTD) Summary</h3>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <label className="text-xs font-semibold text-secondary uppercase">YTD Earnings</label>
-                        <div className="mt-1 text-base font-bold text-indigo-700">
-                          ${selectedPaystub.ytd.earnings.toFixed(2)}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-xs font-semibold text-secondary uppercase">YTD Deductions</label>
-                        <div className="mt-1 text-base font-bold text-[#A855F7]">
-                          ${selectedPaystub.ytd.deductions.toFixed(2)}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-xs font-semibold text-secondary uppercase">YTD Net Pay</label>
-                        <div className="mt-1 text-base font-bold text-green-700">
-                          ${selectedPaystub.ytd.netPay.toFixed(2)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Footer Section */}
-                <div className="bg-card p-5 rounded-lg border border-theme">
-                  {selectedPaystub.notes && (
-                    <div className="mb-4">
-                      <label className="text-xs font-semibold text-secondary uppercase">Notes / Remarks</label>
-                      <div className="mt-1 text-sm text-primary">
-                        {selectedPaystub.notes}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="pt-4 border-t border-theme flex justify-between items-end">
-                    <div>
-                      {selectedPaystub.hrName && (
-                        <div>
-                          <label className="text-xs font-semibold text-secondary uppercase">HR Signature</label>
-                          <div className="mt-1 text-sm font-semibold text-primary">
-                            {selectedPaystub.hrName}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-secondary">
-                        Status: <span className={`font-semibold ${selectedPaystub.status === 'issued'
-                            ? 'text-green-600'
-                            : selectedPaystub.status === 'void'
-                              ? 'text-[#A855F7]'
-                              : 'text-secondary'
-                          }`}>
-                          {selectedPaystub.status.charAt(0).toUpperCase() + selectedPaystub.status.slice(1)}
-                        </span>
-                      </div>
-                      <div className="text-xs text-secondary mt-1">
-                        Generated: {new Date(selectedPaystub.createdAt).toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer with Download PDF and Close Button */}
-              <div className="p-6 border-t-2 border-theme bg-card">
-                <div className="flex justify-between items-center">
-                  <button
-                    onClick={() => handleDownloadPaystubPDF(selectedPaystub)}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                  >
-                    <Download size={18} />
-                    Download PDF
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowPaystubModal(false);
-                      setSelectedPaystub(null);
-                    }}
-                    className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-primary rounded-lg font-medium transition-colors flex items-center gap-2"
-                  >
-                    <X size={18} />
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Bulk Generate AI Payroll Modal */}
-        {showBulkGenerateModal && (
-          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
-            <div className="bg-card rounded-xl shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
-                  <svg className="w-6 h-6 text-[#00D1FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                  AI Generate Payroll for All Drivers
-                </h2>
-                <button
-                  onClick={() => {
-                    setShowBulkGenerateModal(false);
-                    setBulkGenerateResult(null);
-                  }}
-                  className="text-secondary hover:text-secondary"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div className="bg-card border border-blue-200 rounded-lg p-4 mb-4">
-                  <p className="text-sm text-blue-800">
-                    This will automatically calculate and create payroll for <strong>all drivers</strong> who have completed trips in the selected date range using AI analysis.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-2">
-                      Start Date <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={bulkDateRange.startDate}
-                      onChange={(e) => setBulkDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-2">
-                      End Date <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={bulkDateRange.endDate}
-                      onChange={(e) => setBulkDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                      className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
-                    Pay Date
-                  </label>
-                  <input
-                    type="date"
-                    value={bulkDateRange.payDate}
-                    onChange={(e) => setBulkDateRange(prev => ({ ...prev, payDate: e.target.value }))}
-                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                {loadingBulkAI && (
-                  <div className="bg-card border border-blue-200 rounded-lg p-4 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                    <p className="text-sm text-blue-800 font-medium">Processing all drivers...</p>
-                    <p className="text-xs text-[#00D1FF] mt-1">This may take a few minutes</p>
-                  </div>
-                )}
-
-                {bulkGenerateResult && (
-                  <div className="bg-card border border-theme rounded-lg p-4">
-                    <h3 className="text-lg font-bold text-primary mb-3">Generation Results</h3>
-                    <div className="grid grid-cols-4 gap-4 mb-4">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-primary">{bulkGenerateResult.summary?.total || 0}</div>
-                        <div className="text-xs text-secondary">Total Drivers</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">{bulkGenerateResult.summary?.successful || 0}</div>
-                        <div className="text-xs text-secondary">Successful</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-[#A855F7]">{bulkGenerateResult.summary?.failed || 0}</div>
-                        <div className="text-xs text-secondary">Failed</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-[#00FFA3]">{bulkGenerateResult.summary?.skipped || 0}</div>
-                        <div className="text-xs text-secondary">Skipped</div>
-                      </div>
-                    </div>
-
-                    {bulkGenerateResult.successful && bulkGenerateResult.successful.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-sm font-medium text-primary mb-2">Successfully Created ({bulkGenerateResult.successful.length})</h4>
-                        <div className="max-h-32 overflow-y-auto">
-                          {bulkGenerateResult.successful.map((item: any, idx: number) => (
-                            <div key={idx} className="text-xs text-secondary py-1 border-b border-theme">
-                              {item.driverName}: ${item.totalSalary.toFixed(2)} ({item.totalTrips} trips, {item.totalMiles.toFixed(0)} mi)
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {bulkGenerateResult.failed && bulkGenerateResult.failed.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-sm font-medium text-red-700 mb-2">Failed ({bulkGenerateResult.failed.length})</h4>
-                        <div className="max-h-32 overflow-y-auto">
-                          {bulkGenerateResult.failed.map((item: any, idx: number) => (
-                            <div key={idx} className="text-xs text-[#A855F7] py-1 border-b border-red-200">
-                              {item.driverName || item.driverId}: {item.reason}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {bulkGenerateResult.skipped && bulkGenerateResult.skipped.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-medium text-yellow-700 mb-2">Skipped ({bulkGenerateResult.skipped.length})</h4>
-                        <div className="max-h-32 overflow-y-auto">
-                          {bulkGenerateResult.skipped.map((item: any, idx: number) => (
-                            <div key={idx} className="text-xs text-[#00FFA3] py-1 border-b border-yellow-200">
-                              {item.driverName || item.driverId}: {item.reason}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex justify-end gap-2 pt-4">
-                  <button
-                    onClick={() => {
-                      setShowBulkGenerateModal(false);
-                      setBulkGenerateResult(null);
-                    }}
-                    className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
-                    disabled={loadingBulkAI}
-                  >
-                    {bulkGenerateResult ? 'Close' : 'Cancel'}
-                  </button>
-                  <button
-                    onClick={handleBulkAIGeneration}
-                    disabled={loadingBulkAI || !bulkDateRange.startDate || !bulkDateRange.endDate}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {loadingBulkAI ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        Analyze All Drivers
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Bulk AI Payroll Suggestions Modal */}
-        {showBulkSuggestionsModal && bulkPayrollSuggestions.length > 0 && (
-          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
-            <div className="bg-card rounded-xl shadow-xl p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
-                    <svg className="w-6 h-6 text-[#00D1FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Review AI Payroll Suggestions
-                  </h2>
-                  <p className="text-sm text-secondary mt-1">
-                    {bulkPayrollSuggestions.length} drivers found. Review and edit before creating payrolls.
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowBulkSuggestionsModal(false);
-                    setBulkPayrollSuggestions([]);
-                    setBulkGenerateResult(null);
-                  }}
-                  className="text-secondary hover:text-secondary"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="space-y-4 max-h-[calc(90vh-200px)] overflow-y-auto">
-                {bulkPayrollSuggestions.map((suggestion: any, index: number) => (
-                  <div key={index} className="border border-theme rounded-lg p-4 bg-card">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-primary">{suggestion.driverName}</h3>
-                        <p className="text-sm text-secondary">{suggestion.driverEmail || ''} • {suggestion.totalTrips} trips • {suggestion.totalMiles?.toFixed(0) || 0} miles</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm text-secondary">Total Salary</div>
-                        <div className="text-xl font-bold text-green-600">${(suggestion.totalSalary || 0).toFixed(2)}</div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div>
-                        <label className="block text-xs font-medium text-primary mb-1">Base Salary ($)</label>
-                        <input
-                          type="number"
-                          value={suggestion.baseSalary || 0}
-                          onChange={(e) => updateBulkSuggestion(index, 'baseSalary', e.target.value)}
-                          step="0.01"
-                          className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-primary mb-1">Bonus ($)</label>
-                        <input
-                          type="number"
-                          value={suggestion.bonus || 0}
-                          onChange={(e) => updateBulkSuggestion(index, 'bonus', e.target.value)}
-                          step="0.01"
-                          className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-primary mb-1">Deductions ($)</label>
-                        <input
-                          type="number"
-                          value={suggestion.deductions || 0}
-                          onChange={(e) => updateBulkSuggestion(index, 'deductions', e.target.value)}
-                          step="0.01"
-                          className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-xs font-medium text-primary mb-1">Country</label>
-                      <select
-                        value={suggestion.country || 'USA'}
-                        onChange={(e) => updateBulkSuggestion(index, 'country', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      >
-                        <option value="USA">United States</option>
-                        <option value="Canada">Canada</option>
-                      </select>
-                    </div>
-
-                    {suggestion.country === 'Canada' ? (
-                      <div className="grid grid-cols-5 gap-2">
-                        <div>
-                          <label className="block text-xs font-medium text-primary mb-1">Federal Tax ($)</label>
-                          <input
-                            type="number"
-                            value={suggestion.federalIncomeTaxCA || 0}
-                            onChange={(e) => updateBulkSuggestion(index, 'federalIncomeTaxCA', e.target.value)}
-                            step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-theme rounded"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-primary mb-1">Provincial Tax ($)</label>
-                          <input
-                            type="number"
-                            value={suggestion.provincialIncomeTaxCA || 0}
-                            onChange={(e) => updateBulkSuggestion(index, 'provincialIncomeTaxCA', e.target.value)}
-                            step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-theme rounded"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-primary mb-1">CPP ($)</label>
-                          <input
-                            type="number"
-                            value={suggestion.cpp || 0}
-                            onChange={(e) => updateBulkSuggestion(index, 'cpp', e.target.value)}
-                            step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-theme rounded"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-primary mb-1">EI ($)</label>
-                          <input
-                            type="number"
-                            value={suggestion.ei || 0}
-                            onChange={(e) => updateBulkSuggestion(index, 'ei', e.target.value)}
-                            step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-theme rounded"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-primary mb-1">Health Tax ($)</label>
-                          <input
-                            type="number"
-                            value={suggestion.provincialHealthTaxCA || 0}
-                            onChange={(e) => updateBulkSuggestion(index, 'provincialHealthTaxCA', e.target.value)}
-                            step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-theme rounded"
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-6 gap-2">
-                        <div>
-                          <label className="block text-xs font-medium text-primary mb-1">Federal Tax ($)</label>
-                          <input
-                            type="number"
-                            value={suggestion.federalIncomeTaxUS || 0}
-                            onChange={(e) => updateBulkSuggestion(index, 'federalIncomeTaxUS', e.target.value)}
-                            step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-theme rounded"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-primary mb-1">State Tax ($)</label>
-                          <input
-                            type="number"
-                            value={suggestion.stateIncomeTaxUS || 0}
-                            onChange={(e) => updateBulkSuggestion(index, 'stateIncomeTaxUS', e.target.value)}
-                            step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-theme rounded"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-primary mb-1">Social Security ($)</label>
-                          <input
-                            type="number"
-                            value={suggestion.socialSecurityTax || 0}
-                            onChange={(e) => updateBulkSuggestion(index, 'socialSecurityTax', e.target.value)}
-                            step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-theme rounded"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-primary mb-1">Medicare ($)</label>
-                          <input
-                            type="number"
-                            value={suggestion.medicareTax || 0}
-                            onChange={(e) => updateBulkSuggestion(index, 'medicareTax', e.target.value)}
-                            step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-theme rounded"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-primary mb-1">SDI ($)</label>
-                          <input
-                            type="number"
-                            value={suggestion.stateDisabilityInsurance || 0}
-                            onChange={(e) => updateBulkSuggestion(index, 'stateDisabilityInsurance', e.target.value)}
-                            step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-theme rounded"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-primary mb-1">Local Tax ($)</label>
-                          <input
-                            type="number"
-                            value={suggestion.localTax || 0}
-                            onChange={(e) => updateBulkSuggestion(index, 'localTax', e.target.value)}
-                            step="0.01"
-                            className="w-full px-2 py-1 text-xs border border-theme rounded"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Display Additions and Deductions (same as manual payroll) */}
-                    {(suggestion.additions && suggestion.additions.length > 0) || (suggestion.deductionsDetails && suggestion.deductionsDetails.length > 0) ? (
-                      <div className="bg-card border border-theme rounded-lg overflow-hidden mt-4">
-                        <div className="bg-card px-4 py-3 border-b border-theme">
-                          <h5 className="text-sm font-medium text-primary">Driver Additions & Deductions</h5>
-                          <p className="text-xs text-secondary mt-1">These are automatically included in the payroll calculation</p>
-                        </div>
-                        <div className="p-4 space-y-4">
-                          {suggestion.additions && suggestion.additions.length > 0 && (
-                            <div>
-                              <h6 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
-                                <TrendingUp size={16} />
-                                Additions ({suggestion.additions.length})
-                              </h6>
-                              <div className="space-y-2">
-                                {suggestion.additions.map((addition: any) => (
-                                  <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
-                                    <div className="flex justify-between items-start gap-4">
-                                      <div className="flex-1">
-                                        <p className="text-sm font-medium text-primary">{addition.name || addition.description || 'Addition'}</p>
-                                        <p className="text-xs text-secondary mt-1">
-                                          {addition.recurrence} • Base: ${addition.amount?.toFixed(2) || '0.00'}
-                                          {addition.startDate && (
-                                            <span> • From {new Date(addition.startDate).toLocaleDateString()}</span>
-                                          )}
-                                          {addition.endDate && (
-                                            <span> • Until {new Date(addition.endDate).toLocaleDateString()}</span>
-                                          )}
-                                        </p>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-xs text-secondary">Amount:</span>
-                                        <input
-                                          type="number"
-                                          value={addition.calculatedAmount || addition.amount || 0}
-                                          onChange={(e) => updateBulkSuggestionAddition(index, addition._id, e.target.value)}
-                                          step="0.01"
-                                          min="0"
-                                          className="w-24 px-2 py-1 text-sm border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-card"
-                                        />
-                                        <span className="text-sm font-semibold text-green-700">+${(addition.calculatedAmount || addition.amount || 0).toFixed(2)}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          {suggestion.deductionsDetails && suggestion.deductionsDetails.length > 0 && (
-                            <div>
-                              <h6 className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-2">
-                                <TrendingUp size={16} className="rotate-180" />
-                                Deductions ({suggestion.deductionsDetails.length})
-                              </h6>
-                              <div className="space-y-2">
-                                {suggestion.deductionsDetails.map((deduction: any) => (
-                                  <div key={deduction._id} className="bg-card p-3 rounded-lg border border-red-200">
-                                    <div className="flex justify-between items-start gap-4">
-                                      <div className="flex-1">
-                                        <p className="text-sm font-medium text-primary">{deduction.name || deduction.description || 'Deduction'}</p>
-                                        <p className="text-xs text-secondary mt-1">
-                                          {deduction.recurrence} • Base: ${deduction.amount?.toFixed(2) || '0.00'}
-                                          {deduction.startDate && (
-                                            <span> • From {new Date(deduction.startDate).toLocaleDateString()}</span>
-                                          )}
-                                          {deduction.endDate && (
-                                            <span> • Until {new Date(deduction.endDate).toLocaleDateString()}</span>
-                                          )}
-                                        </p>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-xs text-secondary">Amount:</span>
-                                        <input
-                                          type="number"
-                                          value={deduction.calculatedAmount || deduction.amount || 0}
-                                          onChange={(e) => updateBulkSuggestionDeduction(index, deduction._id, e.target.value)}
-                                          step="0.01"
-                                          min="0"
-                                          className="w-24 px-2 py-1 text-sm border border-red-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500 bg-card"
-                                        />
-                                        <span className="text-sm font-semibold text-red-700">-${(deduction.calculatedAmount || deduction.amount || 0).toFixed(2)}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {/* Display Trips */}
-                    {suggestion.trips && suggestion.trips.length > 0 && (
-                      <div className="bg-card border border-theme rounded-lg overflow-hidden mt-4">
-                        <div className="bg-card px-4 py-3 border-b border-theme">
-                          <h5 className="text-sm font-medium text-primary">Completed Trips ({suggestion.trips.length})</h5>
-                        </div>
-                        <div className="overflow-x-auto max-h-96">
-                          <table className="w-full">
-                            <thead className="bg-card sticky top-0">
-                              <tr>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Trip #</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Route</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Role</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Completed</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Truck</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Miles</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Rate</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Earnings</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-theme">
-                              {suggestion.trips.map((trip: any) => (
-                                <tr key={trip._id} className="hover:bg-[rgba(255,255,255,0.03)]">
-                                  <td className="px-3 py-2 text-sm font-medium text-primary">
-                                    {trip.tripNumber || trip.orderNumber || trip._id?.slice(-6).toUpperCase()}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm text-secondary">
-                                    <div className="flex items-center gap-1">
-                                      <MapPin size={14} className="text-secondary" />
-                                      <span>
-                                        {(() => {
-                                          if (trip.startLocation?.place && trip.startLocation.place !== 'Unknown') {
-                                            return trip.startLocation.place;
-                                          }
-                                          if (trip.pickupLocation?.place) {
-                                            return trip.pickupLocation.place;
-                                          }
-                                          return 'Unknown';
-                                        })()}
-                                      </span>
-                                      <span className="text-secondary">→</span>
-                                      <span>
-                                        {(() => {
-                                          if (trip.endLocation?.place && trip.endLocation.place !== 'Unknown') {
-                                            return trip.endLocation.place;
-                                          }
-                                          if (trip.deliveryLocation?.place) {
-                                            return trip.deliveryLocation.place;
-                                          }
-                                          return 'Unknown';
-                                        })()}
-                                      </span>
-                                    </div>
-                                  </td>
-                                  <td className="px-3 py-2 text-sm">
-                                    {trip.driverRole === 'coDriver' ? (
-                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        Co-Driver
-                                      </span>
-                                    ) : (
-                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        Driver
-                                      </span>
-                                    )}
-                                    {trip.coDriver && trip.driverRole === 'driver' && (
-                                      <div className="text-xs text-secondary mt-1">
-                                        Co: {trip.coDriver.name}
-                                      </div>
-                                    )}
-                                    {trip.driver && trip.driverRole === 'coDriver' && (
-                                      <div className="text-xs text-secondary mt-1">
-                                        Driver: {trip.driver.name}
-                                      </div>
-                                    )}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm text-secondary">
-                                    {trip.actualEndDate ? new Date(trip.actualEndDate).toLocaleDateString() : (trip.deliveryDate ? new Date(trip.deliveryDate).toLocaleDateString() : (trip.completedDate ? new Date(trip.completedDate).toLocaleDateString() : '-'))}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm text-secondary">
-                                    {trip.truck?.plateNumber || trip.truck?.licensePlate || trip.truck?.internalId || 'N/A'}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm font-medium text-primary">
+                              <td className="px-3 py-2 text-sm text-secondary">
+                                <div className="flex items-center gap-1">
+                                  <MapPin size={14} className="text-secondary" />
+                                  <span>
                                     {(() => {
-                                      const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
-                                      return miles || 0;
+                                      if (trip.startLocation?.place && trip.startLocation.place !== 'Unknown') {
+                                        return trip.startLocation.place;
+                                      }
+                                      if (trip.pickupLocation?.place) {
+                                        return trip.pickupLocation.place;
+                                      }
+                                      return 'Unknown';
                                     })()}
-                                  </td>
-                                  <td className="px-3 py-2 text-sm text-secondary">
-                                    <div className="flex items-center gap-2">
-                                      <span>${trip.baseRate || 0}/mi</span>
-                                      {trip.rateType && (
-                                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${trip.rateType === 'TEAM'
-                                            ? 'bg-blue-100 text-blue-800'
-                                            : trip.rateType === 'EMPTY'
-                                              ? 'bg-yellow-100 text-yellow-800'
-                                              : trip.rateType === 'EMPTY-TEAM'
-                                                ? 'bg-orange-100 text-orange-800'
-                                                : 'bg-card text-primary'
-                                          }`}>
-                                          {trip.rateTypeLabel || trip.rateType}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </td>
-                                  <td className="px-3 py-2 text-sm font-bold text-green-600">
-                                    ${(() => {
-                                      const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
-                                      return earnings.toFixed(2);
+                                  </span>
+                                  <span className="text-secondary">→</span>
+                                  <span>
+                                    {(() => {
+                                      if (trip.endLocation?.place && trip.endLocation.place !== 'Unknown') {
+                                        return trip.endLocation.place;
+                                      }
+                                      if (trip.deliveryLocation?.place) {
+                                        return trip.deliveryLocation.place;
+                                      }
+                                      return 'Unknown';
                                     })()}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                            <tfoot className="bg-green-50 sticky bottom-0">
-                              <tr>
-                                <td colSpan={5} className="px-3 py-3 text-sm font-medium text-primary text-right">
-                                  Selected Totals:
-                                </td>
-                                <td className="px-3 py-3 text-sm font-bold text-primary">
-                                  {(() => {
-                                    const totalMiles = suggestion.trips?.reduce((sum: number, trip: any) => {
-                                      const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
-                                      return sum + miles;
-                                    }, 0) || 0;
-                                    return totalMiles.toLocaleString();
-                                  })()} mi
-                                </td>
-                                <td className="px-3 py-3 text-sm text-secondary">-</td>
-                                <td className="px-3 py-3 text-sm font-bold text-green-600">
-                                  ${(() => {
-                                    const totalEarnings = suggestion.trips?.reduce((sum: number, trip: any) => {
-                                      const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
-                                      return sum + earnings;
-                                    }, 0) || 0;
-                                    return totalEarnings.toFixed(2);
-                                  })()}
-                                </td>
-                              </tr>
-                            </tfoot>
-                          </table>
-                        </div>
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-3 py-2 text-sm">
+                                {trip.driverRole === 'coDriver' ? (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    Co-Driver
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Driver
+                                  </span>
+                                )}
+                                {trip.coDriverDetails && trip.driverRole === 'driver' && (
+                                  <div className="text-xs text-secondary mt-1">
+                                    Co: {trip.coDriverDetails.name}
+                                  </div>
+                                )}
+                                {trip.driverDetails && trip.driverRole === 'coDriver' && (
+                                  <div className="text-xs text-secondary mt-1">
+                                    Driver: {trip.driverDetails.name}
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-3 py-2 text-sm text-secondary">
+                                {trip.actualEndDate ? new Date(trip.actualEndDate).toLocaleDateString() : '-'}
+                              </td>
+                              <td className="px-3 py-2 text-sm text-secondary">
+                                {trip.truck?.plateNumber || trip.truck?.licensePlate || trip.truck?.internalId || 'N/A'}
+                              </td>
+                              <td className="px-3 py-2 text-sm font-medium text-primary">
+                                {(() => {
+                                  const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
+                                  return miles || 0;
+                                })()}
+                              </td>
+                              <td className="px-3 py-2 text-sm text-secondary">
+                                <div className="flex items-center gap-2">
+                                  <span>${trip.baseRate || 0}/mi</span>
+                                  {trip.rateType && (
+                                    <span className={`px-2 py-0.5 text-xs font-medium rounded ${trip.rateType === 'TEAM'
+                                      ? 'bg-blue-100 text-blue-800'
+                                      : trip.rateType === 'EMPTY'
+                                        ? 'bg-yellow-100 text-yellow-800'
+                                        : trip.rateType === 'EMPTY-TEAM'
+                                          ? 'bg-orange-100 text-orange-800'
+                                          : 'bg-card text-primary'
+                                      }`}>
+                                      {trip.rateTypeLabel || trip.rateType}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-3 py-2 text-sm font-bold text-green-600">
+                                ${(() => {
+                                  const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
+                                  return earnings.toFixed(2);
+                                })()}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot className="bg-green-50 sticky bottom-0">
+                          <tr>
+                            <td colSpan={5} className="px-3 py-3 text-sm font-medium text-primary text-right">
+                              Selected Totals:
+                            </td>
+                            <td className="px-3 py-3 text-sm font-bold text-primary">
+                              {(() => {
+                                const totalMiles = aiAnalysis.trips?.reduce((sum, trip) => {
+                                  const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
+                                  return sum + miles;
+                                }, 0) || 0;
+                                return totalMiles.toLocaleString();
+                              })()} mi
+                            </td>
+                            <td className="px-3 py-3 text-sm text-secondary">-</td>
+                            <td className="px-3 py-3 text-sm font-bold text-green-600">
+                              ${(() => {
+                                const totalEarnings = aiAnalysis.trips?.reduce((sum, trip) => {
+                                  const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
+                                  return sum + earnings;
+                                }, 0) || 0;
+                                return totalEarnings.toFixed(2);
+                              })()}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-primary mb-2">
+                Bonus ($)
+              </label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={18} />
+                <input
+                  type="number"
+                  name="bonus"
+                  value={formData.bonus}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="w-full pl-10 pr-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+              <p className="text-xs text-secondary mt-1">
+                Note: Deductions are automatically calculated from driver deductions and will be shown in the summary below.
+              </p>
+            </div>
+
+            {/* Tax Section */}
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border border-purple-200">
+              <h5 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                <DollarSign size={20} className="text-purple-600" />
+                Tax Information
+              </h5>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-primary mb-2">
+                  Country <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="country"
+                  value={formData.country}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-card"
+                >
+                  <option value="USA">United States</option>
+                  <option value="Canada">Canada</option>
+                </select>
+              </div>
+
+              {formData.country === 'Canada' && (
+                <div className="space-y-4">
+                  <h6 className="text-sm font-semibold text-primary mb-3">Canada Taxes</h6>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">
+                        Federal Income Tax ($)
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
+                        <input
+                          type="number"
+                          name="federalIncomeTaxCA"
+                          value={formData.federalIncomeTaxCA}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                        />
                       </div>
-                    )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">
+                        Provincial Income Tax ($)
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
+                        <input
+                          type="number"
+                          name="provincialIncomeTaxCA"
+                          value={formData.provincialIncomeTaxCA}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">
+                        Canada Pension Plan (CPP) ($)
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
+                        <input
+                          type="number"
+                          name="cpp"
+                          value={formData.cpp}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">
+                        Employment Insurance (EI) ($)
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
+                        <input
+                          type="number"
+                          name="ei"
+                          value={formData.ei}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">
+                        Provincial Health Tax ($)
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
+                        <input
+                          type="number"
+                          name="provincialHealthTaxCA"
+                          value={formData.provincialHealthTaxCA}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-                    {/* Payroll Summary (same as manual payroll) */}
-                    {suggestion.totalTrips > 0 && (() => {
-                      const tripsEarnings = suggestion.baseSalary || 0;
-                      const manualBonus = parseFloat(suggestion.bonus || '0'); // Bonus is separate from additions
-                      // Recalculate totals from edited additions/deductions
-                      const totalAdditions = suggestion.additions && Array.isArray(suggestion.additions)
-                        ? suggestion.additions.reduce((sum: number, a: any) => sum + (parseFloat(a.calculatedAmount || a.amount || 0)), 0)
-                        : (suggestion.totalAdditions || 0);
-                      const totalDeductions = suggestion.deductionsDetails && Array.isArray(suggestion.deductionsDetails)
-                        ? suggestion.deductionsDetails.reduce((sum: number, d: any) => sum + (parseFloat(d.calculatedAmount || d.amount || 0)), 0)
-                        : (suggestion.totalDeductions || suggestion.deductions || 0);
+              {formData.country === 'USA' && (
+                <div className="space-y-4">
+                  <h6 className="text-sm font-semibold text-primary mb-3">United States Taxes</h6>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">
+                        Federal Income Tax ($)
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
+                        <input
+                          type="number"
+                          name="federalIncomeTaxUS"
+                          value={formData.federalIncomeTaxUS}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">
+                        State Income Tax ($)
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
+                        <input
+                          type="number"
+                          name="stateIncomeTaxUS"
+                          value={formData.stateIncomeTaxUS}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">
+                        Social Security Tax (FICA) ($)
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
+                        <input
+                          type="number"
+                          name="socialSecurityTax"
+                          value={formData.socialSecurityTax}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">
+                        Medicare Tax ($)
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
+                        <input
+                          type="number"
+                          name="medicareTax"
+                          value={formData.medicareTax}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">
+                        State Disability Insurance (SDI) ($)
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
+                        <input
+                          type="number"
+                          name="stateDisabilityInsurance"
+                          value={formData.stateDisabilityInsurance}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">
+                        Local Tax ($)
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
+                        <input
+                          type="number"
+                          name="localTax"
+                          value={formData.localTax}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-                      // Gross Earnings = Trip Earnings + Manual Bonus + Calculated Additions
-                      const grossEarnings = tripsEarnings + manualBonus + totalAdditions;
-
-                      // Calculate taxes
+              {/* Tax Summary */}
+              {getSelectedTripsTotals().count > 0 && (
+                <div className="mt-4 p-4 bg-card rounded-lg border border-purple-300">
+                  <h6 className="text-sm font-semibold text-primary mb-2">Total Taxes</h6>
+                  <div className="text-2xl font-bold text-purple-600">
+                    ${(() => {
                       let totalTax = 0;
-                      if (suggestion.country === 'Canada') {
+                      if (formData.country === 'Canada') {
                         totalTax =
-                          parseFloat(suggestion.federalIncomeTaxCA || '0') +
-                          parseFloat(suggestion.provincialIncomeTaxCA || '0') +
-                          parseFloat(suggestion.cpp || '0') +
-                          parseFloat(suggestion.ei || '0') +
-                          parseFloat(suggestion.provincialHealthTaxCA || '0');
+                          parseFloat(formData.federalIncomeTaxCA || '0') +
+                          parseFloat(formData.provincialIncomeTaxCA || '0') +
+                          parseFloat(formData.cpp || '0') +
+                          parseFloat(formData.ei || '0') +
+                          parseFloat(formData.provincialHealthTaxCA || '0');
                       } else {
                         totalTax =
-                          parseFloat(suggestion.federalIncomeTaxUS || '0') +
-                          parseFloat(suggestion.stateIncomeTaxUS || '0') +
-                          parseFloat(suggestion.socialSecurityTax || '0') +
-                          parseFloat(suggestion.medicareTax || '0') +
-                          parseFloat(suggestion.stateDisabilityInsurance || '0') +
-                          parseFloat(suggestion.localTax || '0');
+                          parseFloat(formData.federalIncomeTaxUS || '0') +
+                          parseFloat(formData.stateIncomeTaxUS || '0') +
+                          parseFloat(formData.socialSecurityTax || '0') +
+                          parseFloat(formData.medicareTax || '0') +
+                          parseFloat(formData.stateDisabilityInsurance || '0') +
+                          parseFloat(formData.localTax || '0');
                       }
-
-                      // Net Pay = Gross Earnings - Total Deductions - Taxes
-                      const netPay = grossEarnings - totalDeductions - totalTax;
-
-                      return (
-                        <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg mt-4">
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <p className="text-sm text-green-100">Gross Earnings</p>
-                              <p className="text-lg font-semibold">
-                                ${grossEarnings.toFixed(2)}
-                              </p>
-                            </div>
-                            {(totalAdditions > 0 || manualBonus > 0) && (
-                              <div className="pl-4 text-xs text-green-200">
-                                {tripsEarnings > 0 && (
-                                  <div className="flex justify-between">
-                                    <span>Trips Earnings:</span>
-                                    <span>${tripsEarnings.toFixed(2)}</span>
-                                  </div>
-                                )}
-                                {manualBonus > 0 && (
-                                  <div className="flex justify-between">
-                                    <span>Manual Bonus:</span>
-                                    <span>+${manualBonus.toFixed(2)}</span>
-                                  </div>
-                                )}
-                                {totalAdditions > 0 && (
-                                  <div className="flex justify-between">
-                                    <span>Additions ({suggestion.additions?.length || 0}):</span>
-                                    <span>+${totalAdditions.toFixed(2)}</span>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            <div className="flex justify-between items-center text-sm">
-                              <p className="text-green-100">Deductions</p>
-                              <p className="text-red-200">-${totalDeductions.toFixed(2)}</p>
-                            </div>
-                            {totalDeductions > 0 && (
-                              <div className="pl-4 text-xs text-red-200">
-                                <div className="flex justify-between">
-                                  <span>Deductions ({suggestion.deductionsDetails?.length || 0}):</span>
-                                  <span>-${totalDeductions.toFixed(2)}</span>
-                                </div>
-                              </div>
-                            )}
-                            <div className="flex justify-between items-center text-sm">
-                              <p className="text-green-100">Taxes</p>
-                              <p className="text-red-200">-${totalTax.toFixed(2)}</p>
-                            </div>
-                            <div className="flex justify-between items-center pt-2 border-t border-green-500">
-                              <p className="text-sm font-medium text-green-100">Net Pay</p>
-                              <p className="text-xl font-bold">${netPay.toFixed(2)}</p>
-                            </div>
-                            <div className="text-xs text-green-200 mt-2">
-                              Based on {suggestion.totalTrips || 0} trips {suggestion.totalMiles ? `${suggestion.totalMiles.toFixed(2)} miles` : ''}
-                            </div>
-                          </div>
-                        </div>
-                      );
+                      return totalTax.toFixed(2);
                     })()}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+            </div>
 
-              <div className="flex justify-end gap-3 pt-4 mt-6 border-t border-theme">
-                <button
-                  onClick={() => {
-                    setShowBulkSuggestionsModal(false);
-                    setBulkPayrollSuggestions([]);
-                    setBulkGenerateResult(null);
-                  }}
-                  className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleBulkCreatePayrolls}
-                  disabled={loadingBulkAI}
-                  className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {loadingBulkAI ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Creating...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle size={18} />
-                      Create All Payrolls ({bulkPayrollSuggestions.length})
-                    </>
-                  )}
-                </button>
+            <div>
+              <label className="block text-sm font-medium text-primary mb-2">
+                Payment Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                name="payDate"
+                value={formData.payDate}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+
+            {getSelectedTripsTotals().count > 0 && (() => {
+              const { totalAdditions, totalDeductions: calculatedDeductions } = calculateAdditionsDeductions();
+              const tripsTotals = getSelectedTripsTotals();
+              const manualBonus = parseFloat(formData.bonus || '0');
+
+              // Gross Earnings = Trip Earnings + Manual Bonus + Calculated Additions
+              const grossEarnings = tripsTotals.totalEarnings + manualBonus + totalAdditions;
+
+              // Total Deductions = Only Calculated Deductions (from backend/driver deductions)
+              // No manual deductions - all deductions come from driver deductions
+              const totalDeductions = calculatedDeductions;
+
+              // Calculate taxes
+              let totalTax = 0;
+              if (formData.country === 'Canada') {
+                totalTax =
+                  parseFloat(formData.federalIncomeTaxCA || '0') +
+                  parseFloat(formData.provincialIncomeTaxCA || '0') +
+                  parseFloat(formData.cpp || '0') +
+                  parseFloat(formData.ei || '0') +
+                  parseFloat(formData.provincialHealthTaxCA || '0');
+              } else {
+                totalTax =
+                  parseFloat(formData.federalIncomeTaxUS || '0') +
+                  parseFloat(formData.stateIncomeTaxUS || '0') +
+                  parseFloat(formData.socialSecurityTax || '0') +
+                  parseFloat(formData.medicareTax || '0') +
+                  parseFloat(formData.stateDisabilityInsurance || '0') +
+                  parseFloat(formData.localTax || '0');
+              }
+
+              // Net Pay = Gross Earnings - Total Deductions - Taxes
+              const netPay = grossEarnings - totalDeductions - totalTax;
+
+              return (
+                <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <p className="text-sm text-green-100">Gross Earnings</p>
+                      <p className="text-lg font-semibold">
+                        ${grossEarnings.toFixed(2)}
+                      </p>
+                    </div>
+                    {(totalAdditions > 0 || manualBonus > 0) && (
+                      <div className="pl-4 text-xs text-green-200">
+                        {tripsTotals.totalEarnings > 0 && (
+                          <div className="flex justify-between">
+                            <span>Trips Earnings:</span>
+                            <span>${tripsTotals.totalEarnings.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {manualBonus > 0 && (
+                          <div className="flex justify-between">
+                            <span>Manual Bonus:</span>
+                            <span>+${manualBonus.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {totalAdditions > 0 && (
+                          <div className="flex justify-between">
+                            <span>Additions ({driverAdditions.length}):</span>
+                            <span>+${totalAdditions.toFixed(2)}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center text-sm">
+                      <p className="text-green-100">Deductions</p>
+                      <p className="text-red-200">-${totalDeductions.toFixed(2)}</p>
+                    </div>
+                    {calculatedDeductions > 0 && (
+                      <div className="pl-4 text-xs text-red-200">
+                        <div className="flex justify-between">
+                          <span>Deductions ({driverDeductions.length}):</span>
+                          <span>-${calculatedDeductions.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center text-sm">
+                      <p className="text-green-100">Taxes</p>
+                      <p className="text-red-200">-${totalTax.toFixed(2)}</p>
+                    </div>
+                    <div className="pt-2 border-t border-green-500 flex justify-between items-center">
+                      <p className="text-sm font-bold text-green-100">Net Pay</p>
+                      <p className="text-4xl font-bold mt-1">
+                        ${netPay.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="text-right mt-2">
+                      <p className="text-xs text-green-100">Based on</p>
+                      <p className="text-sm font-bold">{tripsTotals.count} trips</p>
+                      <p className="text-xs text-green-100">{tripsTotals.totalMiles.toLocaleString()} miles</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-theme">
+              <button
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setShowEditModal(false);
+                  setAiAnalysis(null); // Clear AI analysis when modal is closed
+                  resetForm();
+                }}
+                className="px-4 py-2 text-primary bg-card hover:bg-gray-200 rounded-lg font-medium flex items-center gap-2"
+                disabled={loading}
+              >
+                <X size={16} />
+                Cancel
+              </button>
+              <button
+                onClick={showCreateModal ? handleCreate : handleUpdate}
+                style={{
+                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                }}
+                className="px-4 py-2   !text-white rounded-lg font-medium flex items-center gap-2 disabled:opacity-50"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    {showCreateModal ? <Plus size={16} /> : <CheckCircle size={16} />}
+                    {showCreateModal ? 'Create Payroll' : 'Update Payroll'}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  {/* View Modal */ }
+  {
+    showViewModal && selectedPayroll && (
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
+        <div className="bg-card rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <Eye className="text-green-600" size={20} />
+              </div>
+              <div>
+                <h4 className="text-xl font-bold text-primary">Driver Payroll Details</h4>
+                <p className="text-sm text-secondary">{selectedPayroll.userId.name}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowViewModal(false)}
+              className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* Driver Info */}
+            <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl">
+              <h5 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Truck size={20} />
+                Driver Information
+              </h5>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm text-green-100">Driver Name</label>
+                  <div className="text-xl font-bold mt-1">{selectedPayroll.userId.name}</div>
+                </div>
+                <div>
+                  <label className="text-sm text-green-100">Total Trips</label>
+                  <div className="text-xl font-bold mt-1">{selectedPayroll.trips?.length || 0}</div>
+                </div>
+                <div>
+                  <label className="text-sm text-green-100">Pay Period</label>
+                  <div className="text-sm font-medium mt-1">
+                    {new Date(selectedPayroll.startDate).toLocaleDateString()} - {new Date(selectedPayroll.endDate).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Trip Details */}
+            {selectedPayroll.trips && selectedPayroll.trips.length > 0 && (
+              <div className="bg-card border border-theme rounded-lg overflow-hidden">
+                <div className="bg-card px-4 py-3 border-b border-theme">
+                  <h5 className="text-sm font-medium text-primary">Trip Details ({selectedPayroll.trips.length})</h5>
+                </div>
+                <div className="overflow-x-auto max-h-80">
+                  <table className="w-full">
+                    <thead className="bg-card sticky top-0">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Trip #</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Route</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Role</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Completed</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Miles</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Earnings</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-theme">
+                      {selectedPayroll.trips.map((trip) => (
+                        <tr key={trip._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                          <td className="px-3 py-2 text-sm font-medium text-primary">
+                            {trip.tripNumber || trip._id?.slice(-6).toUpperCase()}
+                          </td>
+                          <td className="px-3 py-2 text-sm text-secondary">
+                            <div className="flex items-center gap-1">
+                              <MapPin size={14} className="text-secondary" />
+                              <span>
+                                {(() => {
+                                  // Try to get location from trip, orders, or use Unknown
+                                  if (trip.startLocation?.place && trip.startLocation.place !== 'Unknown') {
+                                    return trip.startLocation.place;
+                                  }
+                                  if (trip.orders && trip.orders.length > 0) {
+                                    const firstOrder = Array.isArray(trip.orders) ? trip.orders[0] : trip.orders;
+                                    if (firstOrder?.pickupLocation?.place) {
+                                      return firstOrder.pickupLocation.place;
+                                    }
+                                    if (firstOrder?.pickupLocation?.placeId?.name) {
+                                      return firstOrder.pickupLocation.placeId.name;
+                                    }
+                                  }
+                                  return 'Unknown';
+                                })()}
+                              </span>
+                              <span className="text-secondary">→</span>
+                              <span>
+                                {(() => {
+                                  // Try to get location from trip, orders, or use Unknown
+                                  if (trip.endLocation?.place && trip.endLocation.place !== 'Unknown') {
+                                    return trip.endLocation.place;
+                                  }
+                                  if (trip.orders && trip.orders.length > 0) {
+                                    const orderArray = Array.isArray(trip.orders) ? trip.orders : [trip.orders];
+                                    const lastOrder = orderArray[orderArray.length - 1];
+                                    if (lastOrder?.deliveryLocation?.place) {
+                                      return lastOrder.deliveryLocation.place;
+                                    }
+                                    if (lastOrder?.deliveryLocation?.placeId?.name) {
+                                      return lastOrder.deliveryLocation.placeId.name;
+                                    }
+                                  }
+                                  return 'Unknown';
+                                })()}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 text-sm">
+                            {trip.driverRole === 'coDriver' ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Co-Driver
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Driver
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-sm text-secondary">
+                            {trip.actualEndDate ? new Date(trip.actualEndDate).toLocaleDateString() : '-'}
+                          </td>
+                          <td className="px-3 py-2 text-sm font-medium text-primary">
+                            {(() => {
+                              // Calculate miles from route or use stored value
+                              let miles: number = 0;
+                              if (trip.distanceInMiles) {
+                                miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : trip.distanceInMiles;
+                              } else if (trip.route && trip.route.totalDistance) {
+                                miles = parseFloat((trip.route.totalDistance * 0.621371).toFixed(2));
+                              }
+                              return miles || 0;
+                            })()} mi
+                          </td>
+                          <td className="px-3 py-2 text-sm font-bold text-green-600">
+                            {(() => {
+                              // Calculate earnings from miles and rate, or use stored value
+                              let earnings: number = 0;
+                              if (trip.earnings) {
+                                earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : trip.earnings;
+                              }
+                              if (!earnings || earnings === 0) {
+                                let miles: number = 0;
+                                if (trip.distanceInMiles) {
+                                  miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : trip.distanceInMiles;
+                                } else if (trip.route?.totalDistance) {
+                                  miles = parseFloat((trip.route.totalDistance * 0.621371).toFixed(2));
+                                }
+                                const rate = selectedPayroll.ratePerMile || 0; // This comes from payroll record
+                                if (miles && rate) {
+                                  earnings = parseFloat((miles * rate).toFixed(2));
+                                }
+                              }
+                              return `$${earnings.toFixed(2)}`;
+                            })()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Earnings Breakdown */}
+            <div className="bg-green-50 p-6 rounded-xl border border-green-200">
+              <h5 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                <DollarSign size={20} className="text-green-600" />
+                Earnings Breakdown
+              </h5>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-3 bg-card rounded-lg">
+                  <span className="text-sm font-medium text-primary">Trip Earnings ({selectedPayroll.totalMiles?.toLocaleString()} miles @ ${(selectedPayroll.ratePerMile || 0).toFixed(2)}/mi)</span>
+                  <span className="text-lg font-bold text-primary">${selectedPayroll.baseSalary.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-card rounded-lg">
+                  <span className="text-sm font-medium text-primary">Bonus</span>
+                  <span className="text-lg font-bold text-green-600">+${selectedPayroll.bonus.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-card rounded-lg">
+                  <span className="text-sm font-medium text-primary">Deductions</span>
+                  <span className="text-lg font-bold text-[#A855F7]">-${selectedPayroll.deductions.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-card rounded-lg">
+                  <span className="text-sm font-medium text-primary">Taxes</span>
+                  <span className="text-lg font-bold text-[#A855F7]">
+                    -${(() => {
+                      let totalTax = 0;
+                      const country = selectedPayroll.country || 'USA';
+                      if (country === 'Canada') {
+                        totalTax =
+                          (selectedPayroll.federalIncomeTaxCA || 0) +
+                          (selectedPayroll.provincialIncomeTaxCA || 0) +
+                          (selectedPayroll.cpp || 0) +
+                          (selectedPayroll.ei || 0) +
+                          (selectedPayroll.provincialHealthTaxCA || 0);
+                      } else {
+                        totalTax =
+                          (selectedPayroll.federalIncomeTaxUS || 0) +
+                          (selectedPayroll.stateIncomeTaxUS || 0) +
+                          (selectedPayroll.socialSecurityTax || 0) +
+                          (selectedPayroll.medicareTax || 0) +
+                          (selectedPayroll.stateDisabilityInsurance || 0) +
+                          (selectedPayroll.localTax || 0);
+                      }
+                      return totalTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    })()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-600 to-green-700 rounded-lg">
+                  <span className="text-sm font-medium text-white">Net Pay</span>
+                  <span className="text-2xl font-bold text-white">${selectedPayroll.totalSalary.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Tax Information */}
+            {(() => {
+              const country = selectedPayroll.country || 'USA';
+              const totalTaxes = country === 'Canada'
+                ? ((selectedPayroll.federalIncomeTaxCA || 0) +
+                  (selectedPayroll.provincialIncomeTaxCA || 0) +
+                  (selectedPayroll.cpp || 0) +
+                  (selectedPayroll.ei || 0) +
+                  (selectedPayroll.provincialHealthTaxCA || 0))
+                : ((selectedPayroll.federalIncomeTaxUS || 0) +
+                  (selectedPayroll.stateIncomeTaxUS || 0) +
+                  (selectedPayroll.socialSecurityTax || 0) +
+                  (selectedPayroll.medicareTax || 0) +
+                  (selectedPayroll.stateDisabilityInsurance || 0) +
+                  (selectedPayroll.localTax || 0));
+
+              if (totalTaxes > 0) {
+                return (
+                  <div className="bg-card p-6 rounded-xl border border-purple-200">
+                    <h5 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                      <DollarSign size={20} className="text-purple-600" />
+                      Tax Information ({country})
+                    </h5>
+                    {country === 'Canada' ? (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="flex justify-between p-2 bg-card rounded">
+                          <span className="text-sm text-secondary">Federal Income Tax:</span>
+                          <span className="text-sm font-medium">${(selectedPayroll.federalIncomeTaxCA || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-card rounded">
+                          <span className="text-sm text-secondary">Provincial Income Tax:</span>
+                          <span className="text-sm font-medium">${(selectedPayroll.provincialIncomeTaxCA || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-card rounded">
+                          <span className="text-sm text-secondary">CPP:</span>
+                          <span className="text-sm font-medium">${(selectedPayroll.cpp || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-card rounded">
+                          <span className="text-sm text-secondary">EI:</span>
+                          <span className="text-sm font-medium">${(selectedPayroll.ei || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-card rounded">
+                          <span className="text-sm text-secondary">Provincial Health Tax:</span>
+                          <span className="text-sm font-medium">${(selectedPayroll.provincialHealthTaxCA || 0).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="flex justify-between p-2 bg-card rounded">
+                          <span className="text-sm text-secondary">Federal Income Tax:</span>
+                          <span className="text-sm font-medium">${(selectedPayroll.federalIncomeTaxUS || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-card rounded">
+                          <span className="text-sm text-secondary">State Income Tax:</span>
+                          <span className="text-sm font-medium">${(selectedPayroll.stateIncomeTaxUS || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-card rounded">
+                          <span className="text-sm text-secondary">Social Security:</span>
+                          <span className="text-sm font-medium">${(selectedPayroll.socialSecurityTax || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-card rounded">
+                          <span className="text-sm text-secondary">Medicare:</span>
+                          <span className="text-sm font-medium">${(selectedPayroll.medicareTax || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-card rounded">
+                          <span className="text-sm text-secondary">SDI:</span>
+                          <span className="text-sm font-medium">${(selectedPayroll.stateDisabilityInsurance || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-card rounded">
+                          <span className="text-sm text-secondary">Local Tax:</span>
+                          <span className="text-sm font-medium">${(selectedPayroll.localTax || 0).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="mt-3 pt-3 border-t border-purple-300 flex justify-between items-center">
+                      <span className="text-sm font-semibold text-primary">Total Taxes:</span>
+                      <span className="text-lg font-bold text-purple-600">${totalTaxes.toFixed(2)}</span>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
+            {/* Payment Info */}
+            <div className="bg-card p-6 rounded-xl border border-theme">
+              <h5 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                <Calendar size={20} className="text-[#F59E0B]" />
+                Payment Information
+              </h5>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold text-secondary">Payment Date</label>
+                  <div className="mt-1 px-4 py-3 bg-card rounded-lg text-primary font-medium">
+                    {new Date(selectedPayroll.payDate).toLocaleDateString()}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-secondary">Pay Period</label>
+                  <div className="mt-1 px-4 py-3 bg-card rounded-lg text-primary font-medium">
+                    {new Date(selectedPayroll.startDate).toLocaleDateString()} - {new Date(selectedPayroll.endDate).toLocaleDateString()}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        )}
+
+          <div className="p-6 border-t border-theme">
+            <button
+              onClick={() => setShowViewModal(false)}
+              className="w-full px-6 py-3 bg-card hover:bg-gray-200 text-primary rounded-lg font-medium flex items-center justify-center gap-2"
+            >
+              <X size={18} />
+              Close
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    )
+  }
+
+  {/* Delete Modal */ }
+  {
+    showDeleteModal && selectedPayroll && (
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="bg-card rounded-xl shadow-xl max-w-md w-full p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+              <AlertCircle className="text-[#A855F7]" size={24} />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-primary">Delete Driver Payroll</h3>
+              <p className="text-sm text-secondary">This action cannot be undone</p>
+            </div>
+          </div>
+
+          <p className="text-primary mb-6">
+            Are you sure you want to delete the payroll record for driver <strong>{selectedPayroll.userId.name}</strong>?
+          </p>
+
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={() => {
+                setShowDeleteModal(false);
+                setSelectedPayroll(null);
+              }}
+              className="px-4 py-2 text-primary !mr-3 bg-card hover:bg-gray-200 rounded-lg font-medium"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDelete}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 !text-white rounded-lg font-medium disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  {/* Professional Paystub Modal */ }
+  {
+    showPaystubModal && selectedPaystub && (
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
+        <div className="bg-card rounded-xl shadow-xl max-w-5xl w-full max-h-[95vh] overflow-y-auto">
+          {/* Header */}
+          <div className="p-6 border-b-2 border-theme sticky top-0 bg-card z-10">
+            <div className="flex justify-between items-start mb-4">
+              <button
+                onClick={() => {
+                  setShowPaystubModal(false);
+                  setSelectedPaystub(null);
+                }}
+                className="text-secondary hover:text-secondary p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Company Header Section */}
+            <div className="border-b-2 border-theme pb-4 mb-4">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  {selectedPaystub.companyDetails?.companyLogo && (
+                    <img
+                      src={selectedPaystub.companyDetails.companyLogo}
+                      alt="Company Logo"
+                      className="h-12 mb-3"
+                    />
+                  )}
+                  <h2 className="text-2xl font-bold text-primary mb-1">
+                    {selectedPaystub.companyDetails?.companyName || 'Company Name'}
+                  </h2>
+                  {selectedPaystub.companyDetails?.companyAddress && (
+                    <p className="text-sm text-secondary mb-1">
+                      {selectedPaystub.companyDetails.companyAddress}
+                    </p>
+                  )}
+                  <div className="flex gap-4 text-sm text-secondary">
+                    {selectedPaystub.companyDetails?.companyPhone && (
+                      <span>Phone: {selectedPaystub.companyDetails.companyPhone}</span>
+                    )}
+                    {selectedPaystub.companyDetails?.companyEmail && (
+                      <span>Email: {selectedPaystub.companyDetails.companyEmail}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <h1 className="text-3xl font-bold text-primary mb-2">PAY STUB</h1>
+                  <p className="text-sm text-secondary">EARNINGS STATEMENT</p>
+                  {selectedPaystub.paystubId && (
+                    <p className="text-xs text-secondary mt-2">ID: {selectedPaystub.paystubId}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Pay Period Header */}
+            <div className="grid grid-cols-3 gap-4 bg-card p-4 rounded-lg border border-blue-200">
+              <div>
+                <label className="text-xs font-semibold text-secondary uppercase">Pay Period Start</label>
+                <div className="text-sm font-bold text-primary mt-1">
+                  {new Date(selectedPaystub.payPeriod.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-secondary uppercase">Pay Period End</label>
+                <div className="text-sm font-bold text-primary mt-1">
+                  {new Date(selectedPaystub.payPeriod.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-secondary uppercase">Pay Date</label>
+                <div className="text-sm font-bold text-primary mt-1">
+                  {new Date(selectedPaystub.payPeriod.payDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* Employee Information Section */}
+            <div className="bg-card p-5 rounded-lg border border-theme">
+              <h3 className="text-lg font-bold text-primary mb-4 border-b border-theme pb-2">Employee Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-secondary uppercase">Employee / Driver Name</label>
+                  <div className="mt-1 text-base font-semibold text-primary">
+                    {selectedPaystub.employeeName || 'Unknown'}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-secondary uppercase">Employee ID / Driver ID</label>
+                  <div className="mt-1 text-base font-semibold text-primary">
+                    {selectedPaystub.employeeId || 'N/A'}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-secondary uppercase">Role / Position</label>
+                  <div className="mt-1">
+                    <span className="px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800">
+                      {selectedPaystub.employeeRole || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-secondary uppercase">Work Type</label>
+                  <div className="mt-1 text-base font-semibold text-primary">
+                    {selectedPaystub.workType || 'Employee'}
+                  </div>
+                </div>
+                {selectedPaystub.employeeDepartment && (
+                  <div>
+                    <label className="text-xs font-semibold text-secondary uppercase">Department</label>
+                    <div className="mt-1 text-base text-primary">
+                      {selectedPaystub.employeeDepartment}
+                    </div>
+                  </div>
+                )}
+                {selectedPaystub.employeeAddress && (
+                  <div>
+                    <label className="text-xs font-semibold text-secondary uppercase">Address</label>
+                    <div className="mt-1 text-sm text-primary">
+                      {selectedPaystub.employeeAddress}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Earnings Section */}
+            <div className="bg-green-50 p-5 rounded-lg border border-green-200">
+              <h3 className="text-lg font-bold text-primary mb-4 border-b border-green-300 pb-2">Earnings</h3>
+              {selectedPaystub.earnings.earningsBreakdown && selectedPaystub.earnings.earningsBreakdown.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-green-300">
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-primary uppercase">Earning Type</th>
+                        <th className="text-center py-2 px-3 text-xs font-semibold text-primary uppercase">Units</th>
+                        <th className="text-right py-2 px-3 text-xs font-semibold text-primary uppercase">Rate</th>
+                        <th className="text-right py-2 px-3 text-xs font-semibold text-primary uppercase">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedPaystub.earnings.earningsBreakdown.map((earning: any, index: number) => (
+                        <tr key={index} className="border-b border-green-200">
+                          <td className="py-2 px-3 text-sm text-primary">{earning.type}</td>
+                          <td className="py-2 px-3 text-sm text-center text-secondary">{earning.units || '-'}</td>
+                          <td className="py-2 px-3 text-sm text-right text-secondary">
+                            {earning.rate > 0 ? `$${earning.rate.toFixed(2)}` : '-'}
+                          </td>
+                          <td className="py-2 px-3 text-sm text-right font-semibold text-primary">
+                            ${earning.amount.toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                      <tr className="bg-green-100 font-bold">
+                        <td colSpan={3} className="py-3 px-3 text-sm text-primary">Total Earnings</td>
+                        <td className="py-3 px-3 text-sm text-right text-green-700">
+                          ${selectedPaystub.earnings.totalEarnings.toFixed(2)}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center py-2 border-b border-green-200">
+                    <span className="text-sm text-primary">Basic Pay</span>
+                    <span className="text-sm font-semibold text-primary">
+                      ${selectedPaystub.earnings.baseSalary.toFixed(2)}
+                    </span>
+                  </div>
+                  {selectedPaystub.earnings.bonus > 0 && (
+                    <div className="flex justify-between items-center py-2 border-b border-green-200">
+                      <span className="text-sm text-primary">Bonus</span>
+                      <span className="text-sm font-semibold text-green-600">
+                        ${selectedPaystub.earnings.bonus.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  {selectedPaystub.earnings.mileageEarnings > 0 && (
+                    <div className="flex justify-between items-center py-2 border-b border-green-200">
+                      <span className="text-sm text-primary">Trip Pay / Mileage</span>
+                      <span className="text-sm font-semibold text-green-600">
+                        ${selectedPaystub.earnings.mileageEarnings.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center py-3 bg-green-100 rounded mt-2 px-3 font-bold">
+                    <span className="text-base text-primary">Total Earnings</span>
+                    <span className="text-base text-green-700">
+                      ${selectedPaystub.earnings.totalEarnings.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Deductions Section */}
+            <div className="bg-card p-5 rounded-lg border border-red-200">
+              <h3 className="text-lg font-bold text-primary mb-4 border-b border-red-300 pb-2">Deductions</h3>
+              {selectedPaystub.deductions.deductionsBreakdown && selectedPaystub.deductions.deductionsBreakdown.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-red-300">
+                        <th className="text-left py-2 px-3 text-xs font-semibold text-primary uppercase">Deduction Type</th>
+                        <th className="text-right py-2 px-3 text-xs font-semibold text-primary uppercase">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedPaystub.deductions.deductionsBreakdown.map((deduction: any, index: number) => (
+                        <tr key={index} className="border-b border-red-200">
+                          <td className="py-2 px-3 text-sm text-primary">{deduction.type}</td>
+                          <td className="py-2 px-3 text-sm text-right font-semibold text-[#A855F7]">
+                            ${deduction.amount.toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                      <tr className="bg-red-100 font-bold">
+                        <td className="py-3 px-3 text-sm text-primary">Total Deductions</td>
+                        <td className="py-3 px-3 text-sm text-right text-red-700">
+                          ${selectedPaystub.deductions.totalDeductions.toFixed(2)}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {selectedPaystub.deductions.otherDeductions > 0 && (
+                    <div className="flex justify-between items-center py-2 border-b border-red-200">
+                      <span className="text-sm text-primary">Other Deductions</span>
+                      <span className="text-sm font-semibold text-[#A855F7]">
+                        ${selectedPaystub.deductions.otherDeductions.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center py-2 border-b border-red-200">
+                    <span className="text-sm text-primary">Taxes</span>
+                    <span className="text-sm font-semibold text-[#A855F7]">
+                      ${selectedPaystub.summary.totalTaxes.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 bg-red-100 rounded mt-2 px-3 font-bold">
+                    <span className="text-base text-primary">Total Deductions</span>
+                    <span className="text-base text-red-700">
+                      ${selectedPaystub.deductions.totalDeductions.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Employer Contributions (if applicable) */}
+            {selectedPaystub.employerContributions && selectedPaystub?.employerContributions?.total && selectedPaystub?.employerContributions?.total > 0 && (
+              <div className="bg-card p-5 rounded-lg border border-purple-200">
+                <h3 className="text-lg font-bold text-primary mb-4 border-b border-purple-300 pb-2">Employer Contributions</h3>
+                <div className="space-y-2">
+                  {selectedPaystub?.employerContributions?.companyInsurance && selectedPaystub?.employerContributions?.companyInsurance > 0 && (
+                    <div className="flex justify-between items-center py-2 border-b border-purple-200">
+                      <span className="text-sm text-primary">Company Insurance</span>
+                      <span className="text-sm font-semibold text-purple-600">
+                        ${selectedPaystub?.employerContributions?.companyInsurance?.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  {selectedPaystub?.employerContributions?.pensionPF && selectedPaystub?.employerContributions?.pensionPF > 0 && (
+                    <div className="flex justify-between items-center py-2 border-b border-purple-200">
+                      <span className="text-sm text-primary">Pension / PF</span>
+                      <span className="text-sm font-semibold text-purple-600">
+                        ${selectedPaystub?.employerContributions?.pensionPF?.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  {selectedPaystub?.employerContributions?.benefitContributions && selectedPaystub?.employerContributions?.benefitContributions > 0 && (
+                    <div className="flex justify-between items-center py-2 border-b border-purple-200">
+                      <span className="text-sm text-primary">Benefit Contributions</span>
+                      <span className="text-sm font-semibold text-purple-600">
+                        ${selectedPaystub?.employerContributions?.benefitContributions?.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center py-3 bg-purple-100 rounded mt-2 px-3 font-bold">
+                    <span className="text-base text-primary">Total Employer Contributions</span>
+                    <span className="text-base text-purple-700">
+                      ${selectedPaystub.employerContributions.total.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Summary Section */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-lg text-white shadow-lg">
+              <h3 className="text-xl font-bold mb-4 border-b border-blue-400 pb-2">Pay Summary</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold opacity-90 uppercase">Gross Earnings</label>
+                  <div className="mt-1 text-2xl font-bold">
+                    ${selectedPaystub.summary.grossPay.toFixed(2)}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold opacity-90 uppercase">Total Deductions</label>
+                  <div className="mt-1 text-2xl font-bold">
+                    ${selectedPaystub.summary.totalDeductions.toFixed(2)}
+                  </div>
+                </div>
+                <div className="col-span-2 border-t border-blue-400 pt-4 mt-2">
+                  <div className="flex justify-between items-center">
+                    <div className="text-3xl font-bold">
+                      ${selectedPaystub.summary.netPay.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* YTD Summary */}
+            {selectedPaystub.ytd && (
+              <div className="bg-indigo-50 p-5 rounded-lg border border-indigo-200">
+                <h3 className="text-lg font-bold text-primary mb-4 border-b border-indigo-300 pb-2">Year-to-Date (YTD) Summary</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-secondary uppercase">YTD Earnings</label>
+                    <div className="mt-1 text-base font-bold text-indigo-700">
+                      ${selectedPaystub.ytd.earnings.toFixed(2)}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-secondary uppercase">YTD Deductions</label>
+                    <div className="mt-1 text-base font-bold text-[#A855F7]">
+                      ${selectedPaystub.ytd.deductions.toFixed(2)}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-secondary uppercase">YTD Net Pay</label>
+                    <div className="mt-1 text-base font-bold text-green-700">
+                      ${selectedPaystub.ytd.netPay.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Footer Section */}
+            <div className="bg-card p-5 rounded-lg border border-theme">
+              {selectedPaystub.notes && (
+                <div className="mb-4">
+                  <label className="text-xs font-semibold text-secondary uppercase">Notes / Remarks</label>
+                  <div className="mt-1 text-sm text-primary">
+                    {selectedPaystub.notes}
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-4 border-t border-theme flex justify-between items-end">
+                <div>
+                  {selectedPaystub.hrName && (
+                    <div>
+                      <label className="text-xs font-semibold text-secondary uppercase">HR Signature</label>
+                      <div className="mt-1 text-sm font-semibold text-primary">
+                        {selectedPaystub.hrName}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-secondary">
+                    Status: <span className={`font-semibold ${selectedPaystub.status === 'issued'
+                      ? 'text-green-600'
+                      : selectedPaystub.status === 'void'
+                        ? 'text-[#A855F7]'
+                        : 'text-secondary'
+                      }`}>
+                      {selectedPaystub.status.charAt(0).toUpperCase() + selectedPaystub.status.slice(1)}
+                    </span>
+                  </div>
+                  <div className="text-xs text-secondary mt-1">
+                    Generated: {new Date(selectedPaystub.createdAt).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer with Download PDF and Close Button */}
+          <div className="p-6 border-t-2 border-theme bg-card">
+            <div className="flex justify-between items-center">
+              <button
+                onClick={() => handleDownloadPaystubPDF(selectedPaystub)}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+              >
+                <Download size={18} />
+                Download PDF
+              </button>
+              <button
+                onClick={() => {
+                  setShowPaystubModal(false);
+                  setSelectedPaystub(null);
+                }}
+                className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-primary rounded-lg font-medium transition-colors flex items-center gap-2"
+              >
+                <X size={18} />
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  {/* Bulk Generate AI Payroll Modal */ }
+  {
+    showBulkGenerateModal && (
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
+        <div className="bg-card rounded-xl shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
+              <svg className="w-6 h-6 text-[#00D1FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              AI Generate Payroll for All Drivers
+            </h2>
+            <button
+              onClick={() => {
+                setShowBulkGenerateModal(false);
+                setBulkGenerateResult(null);
+              }}
+              className="text-secondary hover:text-secondary"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-card border border-blue-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-blue-800">
+                This will automatically calculate and create payroll for <strong>all drivers</strong> who have completed trips in the selected date range using AI analysis.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-primary mb-2">
+                  Start Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={bulkDateRange.startDate}
+                  onChange={(e) => setBulkDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-primary mb-2">
+                  End Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={bulkDateRange.endDate}
+                  onChange={(e) => setBulkDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-primary mb-2">
+                Pay Date
+              </label>
+              <input
+                type="date"
+                value={bulkDateRange.payDate}
+                onChange={(e) => setBulkDateRange(prev => ({ ...prev, payDate: e.target.value }))}
+                className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {loadingBulkAI && (
+              <div className="bg-card border border-blue-200 rounded-lg p-4 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <p className="text-sm text-blue-800 font-medium">Processing all drivers...</p>
+                <p className="text-xs text-[#00D1FF] mt-1">This may take a few minutes</p>
+              </div>
+            )}
+
+            {bulkGenerateResult && (
+              <div className="bg-card border border-theme rounded-lg p-4">
+                <h3 className="text-lg font-bold text-primary mb-3">Generation Results</h3>
+                <div className="grid grid-cols-4 gap-4 mb-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">{bulkGenerateResult.summary?.total || 0}</div>
+                    <div className="text-xs text-secondary">Total Drivers</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{bulkGenerateResult.summary?.successful || 0}</div>
+                    <div className="text-xs text-secondary">Successful</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-[#A855F7]">{bulkGenerateResult.summary?.failed || 0}</div>
+                    <div className="text-xs text-secondary">Failed</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-[#00FFA3]">{bulkGenerateResult.summary?.skipped || 0}</div>
+                    <div className="text-xs text-secondary">Skipped</div>
+                  </div>
+                </div>
+
+                {bulkGenerateResult.successful && bulkGenerateResult.successful.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-primary mb-2">Successfully Created ({bulkGenerateResult.successful.length})</h4>
+                    <div className="max-h-32 overflow-y-auto">
+                      {bulkGenerateResult.successful.map((item: any, idx: number) => (
+                        <div key={idx} className="text-xs text-secondary py-1 border-b border-theme">
+                          {item.driverName}: ${item.totalSalary.toFixed(2)} ({item.totalTrips} trips, {item.totalMiles.toFixed(0)} mi)
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {bulkGenerateResult.failed && bulkGenerateResult.failed.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-red-700 mb-2">Failed ({bulkGenerateResult.failed.length})</h4>
+                    <div className="max-h-32 overflow-y-auto">
+                      {bulkGenerateResult.failed.map((item: any, idx: number) => (
+                        <div key={idx} className="text-xs text-[#A855F7] py-1 border-b border-red-200">
+                          {item.driverName || item.driverId}: {item.reason}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {bulkGenerateResult.skipped && bulkGenerateResult.skipped.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-yellow-700 mb-2">Skipped ({bulkGenerateResult.skipped.length})</h4>
+                    <div className="max-h-32 overflow-y-auto">
+                      {bulkGenerateResult.skipped.map((item: any, idx: number) => (
+                        <div key={idx} className="text-xs text-[#00FFA3] py-1 border-b border-yellow-200">
+                          {item.driverName || item.driverId}: {item.reason}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-4">
+              <button
+                onClick={() => {
+                  setShowBulkGenerateModal(false);
+                  setBulkGenerateResult(null);
+                }}
+                className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
+                disabled={loadingBulkAI}
+              >
+                {bulkGenerateResult ? 'Close' : 'Cancel'}
+              </button>
+              <button
+                onClick={handleBulkAIGeneration}
+                disabled={loadingBulkAI || !bulkDateRange.startDate || !bulkDateRange.endDate}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {loadingBulkAI ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Analyze All Drivers
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  {/* Bulk AI Payroll Suggestions Modal */ }
+  {
+    showBulkSuggestionsModal && bulkPayrollSuggestions.length > 0 && (
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
+        <div className="bg-card rounded-xl shadow-xl p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
+                <svg className="w-6 h-6 text-[#00D1FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Review AI Payroll Suggestions
+              </h2>
+              <p className="text-sm text-secondary mt-1">
+                {bulkPayrollSuggestions.length} drivers found. Review and edit before creating payrolls.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setShowBulkSuggestionsModal(false);
+                setBulkPayrollSuggestions([]);
+                setBulkGenerateResult(null);
+              }}
+              className="text-secondary hover:text-secondary"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="space-y-4 max-h-[calc(90vh-200px)] overflow-y-auto">
+            {bulkPayrollSuggestions.map((suggestion: any, index: number) => (
+              <div key={index} className="border border-theme rounded-lg p-4 bg-card">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-primary">{suggestion.driverName}</h3>
+                    <p className="text-sm text-secondary">{suggestion.driverEmail || ''} • {suggestion.totalTrips} trips • {suggestion.totalMiles?.toFixed(0) || 0} miles</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-secondary">Total Salary</div>
+                    <div className="text-xl font-bold text-green-600">${(suggestion.totalSalary || 0).toFixed(2)}</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <label className="block text-xs font-medium text-primary mb-1">Base Salary ($)</label>
+                    <input
+                      type="number"
+                      value={suggestion.baseSalary || 0}
+                      onChange={(e) => updateBulkSuggestion(index, 'baseSalary', e.target.value)}
+                      step="0.01"
+                      className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-primary mb-1">Bonus ($)</label>
+                    <input
+                      type="number"
+                      value={suggestion.bonus || 0}
+                      onChange={(e) => updateBulkSuggestion(index, 'bonus', e.target.value)}
+                      step="0.01"
+                      className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-primary mb-1">Deductions ($)</label>
+                    <input
+                      type="number"
+                      value={suggestion.deductions || 0}
+                      onChange={(e) => updateBulkSuggestion(index, 'deductions', e.target.value)}
+                      step="0.01"
+                      className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-primary mb-1">Country</label>
+                  <select
+                    value={suggestion.country || 'USA'}
+                    onChange={(e) => updateBulkSuggestion(index, 'country', e.target.value)}
+                    className="w-full px-2 py-1 text-sm border border-theme rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="USA">United States</option>
+                    <option value="Canada">Canada</option>
+                  </select>
+                </div>
+
+                {suggestion.country === 'Canada' ? (
+                  <div className="grid grid-cols-5 gap-2">
+                    <div>
+                      <label className="block text-xs font-medium text-primary mb-1">Federal Tax ($)</label>
+                      <input
+                        type="number"
+                        value={suggestion.federalIncomeTaxCA || 0}
+                        onChange={(e) => updateBulkSuggestion(index, 'federalIncomeTaxCA', e.target.value)}
+                        step="0.01"
+                        className="w-full px-2 py-1 text-xs border border-theme rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-primary mb-1">Provincial Tax ($)</label>
+                      <input
+                        type="number"
+                        value={suggestion.provincialIncomeTaxCA || 0}
+                        onChange={(e) => updateBulkSuggestion(index, 'provincialIncomeTaxCA', e.target.value)}
+                        step="0.01"
+                        className="w-full px-2 py-1 text-xs border border-theme rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-primary mb-1">CPP ($)</label>
+                      <input
+                        type="number"
+                        value={suggestion.cpp || 0}
+                        onChange={(e) => updateBulkSuggestion(index, 'cpp', e.target.value)}
+                        step="0.01"
+                        className="w-full px-2 py-1 text-xs border border-theme rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-primary mb-1">EI ($)</label>
+                      <input
+                        type="number"
+                        value={suggestion.ei || 0}
+                        onChange={(e) => updateBulkSuggestion(index, 'ei', e.target.value)}
+                        step="0.01"
+                        className="w-full px-2 py-1 text-xs border border-theme rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-primary mb-1">Health Tax ($)</label>
+                      <input
+                        type="number"
+                        value={suggestion.provincialHealthTaxCA || 0}
+                        onChange={(e) => updateBulkSuggestion(index, 'provincialHealthTaxCA', e.target.value)}
+                        step="0.01"
+                        className="w-full px-2 py-1 text-xs border border-theme rounded"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-6 gap-2">
+                    <div>
+                      <label className="block text-xs font-medium text-primary mb-1">Federal Tax ($)</label>
+                      <input
+                        type="number"
+                        value={suggestion.federalIncomeTaxUS || 0}
+                        onChange={(e) => updateBulkSuggestion(index, 'federalIncomeTaxUS', e.target.value)}
+                        step="0.01"
+                        className="w-full px-2 py-1 text-xs border border-theme rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-primary mb-1">State Tax ($)</label>
+                      <input
+                        type="number"
+                        value={suggestion.stateIncomeTaxUS || 0}
+                        onChange={(e) => updateBulkSuggestion(index, 'stateIncomeTaxUS', e.target.value)}
+                        step="0.01"
+                        className="w-full px-2 py-1 text-xs border border-theme rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-primary mb-1">Social Security ($)</label>
+                      <input
+                        type="number"
+                        value={suggestion.socialSecurityTax || 0}
+                        onChange={(e) => updateBulkSuggestion(index, 'socialSecurityTax', e.target.value)}
+                        step="0.01"
+                        className="w-full px-2 py-1 text-xs border border-theme rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-primary mb-1">Medicare ($)</label>
+                      <input
+                        type="number"
+                        value={suggestion.medicareTax || 0}
+                        onChange={(e) => updateBulkSuggestion(index, 'medicareTax', e.target.value)}
+                        step="0.01"
+                        className="w-full px-2 py-1 text-xs border border-theme rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-primary mb-1">SDI ($)</label>
+                      <input
+                        type="number"
+                        value={suggestion.stateDisabilityInsurance || 0}
+                        onChange={(e) => updateBulkSuggestion(index, 'stateDisabilityInsurance', e.target.value)}
+                        step="0.01"
+                        className="w-full px-2 py-1 text-xs border border-theme rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-primary mb-1">Local Tax ($)</label>
+                      <input
+                        type="number"
+                        value={suggestion.localTax || 0}
+                        onChange={(e) => updateBulkSuggestion(index, 'localTax', e.target.value)}
+                        step="0.01"
+                        className="w-full px-2 py-1 text-xs border border-theme rounded"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Display Additions and Deductions (same as manual payroll) */}
+                {(suggestion.additions && suggestion.additions.length > 0) || (suggestion.deductionsDetails && suggestion.deductionsDetails.length > 0) ? (
+                  <div className="bg-card border border-theme rounded-lg overflow-hidden mt-4">
+                    <div className="bg-card px-4 py-3 border-b border-theme">
+                      <h5 className="text-sm font-medium text-primary">Driver Additions & Deductions</h5>
+                      <p className="text-xs text-secondary mt-1">These are automatically included in the payroll calculation</p>
+                    </div>
+                    <div className="p-4 space-y-4">
+                      {suggestion.additions && suggestion.additions.length > 0 && (
+                        <div>
+                          <h6 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
+                            <TrendingUp size={16} />
+                            Additions ({suggestion.additions.length})
+                          </h6>
+                          <div className="space-y-2">
+                            {suggestion.additions.map((addition: any) => (
+                              <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
+                                <div className="flex justify-between items-start gap-4">
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium text-primary">{addition.name || addition.description || 'Addition'}</p>
+                                    <p className="text-xs text-secondary mt-1">
+                                      {addition.recurrence} • Base: ${addition.amount?.toFixed(2) || '0.00'}
+                                      {addition.startDate && (
+                                        <span> • From {new Date(addition.startDate).toLocaleDateString()}</span>
+                                      )}
+                                      {addition.endDate && (
+                                        <span> • Until {new Date(addition.endDate).toLocaleDateString()}</span>
+                                      )}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-secondary">Amount:</span>
+                                    <input
+                                      type="number"
+                                      value={addition.calculatedAmount || addition.amount || 0}
+                                      onChange={(e) => updateBulkSuggestionAddition(index, addition._id, e.target.value)}
+                                      step="0.01"
+                                      min="0"
+                                      className="w-24 px-2 py-1 text-sm border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-card"
+                                    />
+                                    <span className="text-sm font-semibold text-green-700">+${(addition.calculatedAmount || addition.amount || 0).toFixed(2)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {suggestion.deductionsDetails && suggestion.deductionsDetails.length > 0 && (
+                        <div>
+                          <h6 className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-2">
+                            <TrendingUp size={16} className="rotate-180" />
+                            Deductions ({suggestion.deductionsDetails.length})
+                          </h6>
+                          <div className="space-y-2">
+                            {suggestion.deductionsDetails.map((deduction: any) => (
+                              <div key={deduction._id} className="bg-card p-3 rounded-lg border border-red-200">
+                                <div className="flex justify-between items-start gap-4">
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium text-primary">{deduction.name || deduction.description || 'Deduction'}</p>
+                                    <p className="text-xs text-secondary mt-1">
+                                      {deduction.recurrence} • Base: ${deduction.amount?.toFixed(2) || '0.00'}
+                                      {deduction.startDate && (
+                                        <span> • From {new Date(deduction.startDate).toLocaleDateString()}</span>
+                                      )}
+                                      {deduction.endDate && (
+                                        <span> • Until {new Date(deduction.endDate).toLocaleDateString()}</span>
+                                      )}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-secondary">Amount:</span>
+                                    <input
+                                      type="number"
+                                      value={deduction.calculatedAmount || deduction.amount || 0}
+                                      onChange={(e) => updateBulkSuggestionDeduction(index, deduction._id, e.target.value)}
+                                      step="0.01"
+                                      min="0"
+                                      className="w-24 px-2 py-1 text-sm border border-red-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500 bg-card"
+                                    />
+                                    <span className="text-sm font-semibold text-red-700">-${(deduction.calculatedAmount || deduction.amount || 0).toFixed(2)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Display Trips */}
+                {suggestion.trips && suggestion.trips.length > 0 && (
+                  <div className="bg-card border border-theme rounded-lg overflow-hidden mt-4">
+                    <div className="bg-card px-4 py-3 border-b border-theme">
+                      <h5 className="text-sm font-medium text-primary">Completed Trips ({suggestion.trips.length})</h5>
+                    </div>
+                    <div className="overflow-x-auto max-h-96">
+                      <table className="w-full">
+                        <thead className="bg-card sticky top-0">
+                          <tr>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Trip #</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Route</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Role</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Completed</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Truck</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Miles</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Rate</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Earnings</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-theme">
+                          {suggestion.trips.map((trip: any) => (
+                            <tr key={trip._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                              <td className="px-3 py-2 text-sm font-medium text-primary">
+                                {trip.tripNumber || trip.orderNumber || trip._id?.slice(-6).toUpperCase()}
+                              </td>
+                              <td className="px-3 py-2 text-sm text-secondary">
+                                <div className="flex items-center gap-1">
+                                  <MapPin size={14} className="text-secondary" />
+                                  <span>
+                                    {(() => {
+                                      if (trip.startLocation?.place && trip.startLocation.place !== 'Unknown') {
+                                        return trip.startLocation.place;
+                                      }
+                                      if (trip.pickupLocation?.place) {
+                                        return trip.pickupLocation.place;
+                                      }
+                                      return 'Unknown';
+                                    })()}
+                                  </span>
+                                  <span className="text-secondary">→</span>
+                                  <span>
+                                    {(() => {
+                                      if (trip.endLocation?.place && trip.endLocation.place !== 'Unknown') {
+                                        return trip.endLocation.place;
+                                      }
+                                      if (trip.deliveryLocation?.place) {
+                                        return trip.deliveryLocation.place;
+                                      }
+                                      return 'Unknown';
+                                    })()}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-3 py-2 text-sm">
+                                {trip.driverRole === 'coDriver' ? (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    Co-Driver
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Driver
+                                  </span>
+                                )}
+                                {trip.coDriver && trip.driverRole === 'driver' && (
+                                  <div className="text-xs text-secondary mt-1">
+                                    Co: {trip.coDriver.name}
+                                  </div>
+                                )}
+                                {trip.driver && trip.driverRole === 'coDriver' && (
+                                  <div className="text-xs text-secondary mt-1">
+                                    Driver: {trip.driver.name}
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-3 py-2 text-sm text-secondary">
+                                {trip.actualEndDate ? new Date(trip.actualEndDate).toLocaleDateString() : (trip.deliveryDate ? new Date(trip.deliveryDate).toLocaleDateString() : (trip.completedDate ? new Date(trip.completedDate).toLocaleDateString() : '-'))}
+                              </td>
+                              <td className="px-3 py-2 text-sm text-secondary">
+                                {trip.truck?.plateNumber || trip.truck?.licensePlate || trip.truck?.internalId || 'N/A'}
+                              </td>
+                              <td className="px-3 py-2 text-sm font-medium text-primary">
+                                {(() => {
+                                  const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
+                                  return miles || 0;
+                                })()}
+                              </td>
+                              <td className="px-3 py-2 text-sm text-secondary">
+                                <div className="flex items-center gap-2">
+                                  <span>${trip.baseRate || 0}/mi</span>
+                                  {trip.rateType && (
+                                    <span className={`px-2 py-0.5 text-xs font-medium rounded ${trip.rateType === 'TEAM'
+                                      ? 'bg-blue-100 text-blue-800'
+                                      : trip.rateType === 'EMPTY'
+                                        ? 'bg-yellow-100 text-yellow-800'
+                                        : trip.rateType === 'EMPTY-TEAM'
+                                          ? 'bg-orange-100 text-orange-800'
+                                          : 'bg-card text-primary'
+                                      }`}>
+                                      {trip.rateTypeLabel || trip.rateType}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-3 py-2 text-sm font-bold text-green-600">
+                                ${(() => {
+                                  const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
+                                  return earnings.toFixed(2);
+                                })()}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot className="bg-green-50 sticky bottom-0">
+                          <tr>
+                            <td colSpan={5} className="px-3 py-3 text-sm font-medium text-primary text-right">
+                              Selected Totals:
+                            </td>
+                            <td className="px-3 py-3 text-sm font-bold text-primary">
+                              {(() => {
+                                const totalMiles = suggestion.trips?.reduce((sum: number, trip: any) => {
+                                  const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
+                                  return sum + miles;
+                                }, 0) || 0;
+                                return totalMiles.toLocaleString();
+                              })()} mi
+                            </td>
+                            <td className="px-3 py-3 text-sm text-secondary">-</td>
+                            <td className="px-3 py-3 text-sm font-bold text-green-600">
+                              ${(() => {
+                                const totalEarnings = suggestion.trips?.reduce((sum: number, trip: any) => {
+                                  const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
+                                  return sum + earnings;
+                                }, 0) || 0;
+                                return totalEarnings.toFixed(2);
+                              })()}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Payroll Summary (same as manual payroll) */}
+                {suggestion.totalTrips > 0 && (() => {
+                  const tripsEarnings = suggestion.baseSalary || 0;
+                  const manualBonus = parseFloat(suggestion.bonus || '0'); // Bonus is separate from additions
+                  // Recalculate totals from edited additions/deductions
+                  const totalAdditions = suggestion.additions && Array.isArray(suggestion.additions)
+                    ? suggestion.additions.reduce((sum: number, a: any) => sum + (parseFloat(a.calculatedAmount || a.amount || 0)), 0)
+                    : (suggestion.totalAdditions || 0);
+                  const totalDeductions = suggestion.deductionsDetails && Array.isArray(suggestion.deductionsDetails)
+                    ? suggestion.deductionsDetails.reduce((sum: number, d: any) => sum + (parseFloat(d.calculatedAmount || d.amount || 0)), 0)
+                    : (suggestion.totalDeductions || suggestion.deductions || 0);
+
+                  // Gross Earnings = Trip Earnings + Manual Bonus + Calculated Additions
+                  const grossEarnings = tripsEarnings + manualBonus + totalAdditions;
+
+                  // Calculate taxes
+                  let totalTax = 0;
+                  if (suggestion.country === 'Canada') {
+                    totalTax =
+                      parseFloat(suggestion.federalIncomeTaxCA || '0') +
+                      parseFloat(suggestion.provincialIncomeTaxCA || '0') +
+                      parseFloat(suggestion.cpp || '0') +
+                      parseFloat(suggestion.ei || '0') +
+                      parseFloat(suggestion.provincialHealthTaxCA || '0');
+                  } else {
+                    totalTax =
+                      parseFloat(suggestion.federalIncomeTaxUS || '0') +
+                      parseFloat(suggestion.stateIncomeTaxUS || '0') +
+                      parseFloat(suggestion.socialSecurityTax || '0') +
+                      parseFloat(suggestion.medicareTax || '0') +
+                      parseFloat(suggestion.stateDisabilityInsurance || '0') +
+                      parseFloat(suggestion.localTax || '0');
+                  }
+
+                  // Net Pay = Gross Earnings - Total Deductions - Taxes
+                  const netPay = grossEarnings - totalDeductions - totalTax;
+
+                  return (
+                    <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg mt-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <p className="text-sm text-green-100">Gross Earnings</p>
+                          <p className="text-lg font-semibold">
+                            ${grossEarnings.toFixed(2)}
+                          </p>
+                        </div>
+                        {(totalAdditions > 0 || manualBonus > 0) && (
+                          <div className="pl-4 text-xs text-green-200">
+                            {tripsEarnings > 0 && (
+                              <div className="flex justify-between">
+                                <span>Trips Earnings:</span>
+                                <span>${tripsEarnings.toFixed(2)}</span>
+                              </div>
+                            )}
+                            {manualBonus > 0 && (
+                              <div className="flex justify-between">
+                                <span>Manual Bonus:</span>
+                                <span>+${manualBonus.toFixed(2)}</span>
+                              </div>
+                            )}
+                            {totalAdditions > 0 && (
+                              <div className="flex justify-between">
+                                <span>Additions ({suggestion.additions?.length || 0}):</span>
+                                <span>+${totalAdditions.toFixed(2)}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center text-sm">
+                          <p className="text-green-100">Deductions</p>
+                          <p className="text-red-200">-${totalDeductions.toFixed(2)}</p>
+                        </div>
+                        {totalDeductions > 0 && (
+                          <div className="pl-4 text-xs text-red-200">
+                            <div className="flex justify-between">
+                              <span>Deductions ({suggestion.deductionsDetails?.length || 0}):</span>
+                              <span>-${totalDeductions.toFixed(2)}</span>
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center text-sm">
+                          <p className="text-green-100">Taxes</p>
+                          <p className="text-red-200">-${totalTax.toFixed(2)}</p>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-green-500">
+                          <p className="text-sm font-medium text-green-100">Net Pay</p>
+                          <p className="text-xl font-bold">${netPay.toFixed(2)}</p>
+                        </div>
+                        <div className="text-xs text-green-200 mt-2">
+                          Based on {suggestion.totalTrips || 0} trips {suggestion.totalMiles ? `${suggestion.totalMiles.toFixed(2)} miles` : ''}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 mt-6 border-t border-theme">
+            <button
+              onClick={() => {
+                setShowBulkSuggestionsModal(false);
+                setBulkPayrollSuggestions([]);
+                setBulkGenerateResult(null);
+              }}
+              className="px-4 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleBulkCreatePayrolls}
+              disabled={loadingBulkAI}
+              className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {loadingBulkAI ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <CheckCircle size={18} />
+                  Create All Payrolls ({bulkPayrollSuggestions.length})
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+      </div >
+    </div >
   );
 };
 

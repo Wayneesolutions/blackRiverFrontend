@@ -719,8 +719,8 @@ const VehicleEldMonitor = () => {
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key as any)}
                             className={`pb-3 px-2 text-sm font-bold border-b-2 transition-colors ${activeTab === tab.key
-                                    ? 'border-blue-500 text-[#00D1FF]'
-                                    : 'border-transparent text-secondary hover:text-secondary'
+                                ? 'border-blue-500 text-[#00D1FF]'
+                                : 'border-transparent text-secondary hover:text-secondary'
                                 }`}
                         >
                             {tab.label}
@@ -822,7 +822,7 @@ const VehicleEldMonitor = () => {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${log.status === 'compliant' ? 'bg-green-100 text-green-700' :
-                                                            log.status === 'violation' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                                                        log.status === 'violation' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
                                                         }`}>
                                                         {log.status}
                                                     </span>
@@ -880,7 +880,7 @@ const VehicleEldMonitor = () => {
                                             <div>
                                                 <p className="text-xs text-secondary font-medium uppercase">Status</p>
                                                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase ${selectedHosLog.status === 'compliant' ? 'bg-green-100 text-green-700' :
-                                                        selectedHosLog.status === 'violation' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                                                    selectedHosLog.status === 'violation' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
                                                     }`}>
                                                     {selectedHosLog.status}
                                                 </span>
@@ -925,8 +925,8 @@ const VehicleEldMonitor = () => {
                                                                 <tr key={idx} className="hover:bg-[rgba(255,255,255,0.03)]">
                                                                     <td className="px-4 py-2">
                                                                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${entry.status === 'Driving' ? 'bg-blue-100 text-blue-700' :
-                                                                                entry.status === 'OnDuty' ? 'bg-amber-100 text-amber-700' :
-                                                                                    'bg-card text-primary'
+                                                                            entry.status === 'OnDuty' ? 'bg-amber-100 text-amber-700' :
+                                                                                'bg-card text-primary'
                                                                             }`}>
                                                                             {entry.status || '—'}
                                                                         </span>
@@ -1634,8 +1634,8 @@ const VehicleEldMonitor = () => {
                                                                             }
                                                                         }}
                                                                         className={`flex items-center gap-2 flex-1 text-left transition-colors ${hasUrl
-                                                                                ? 'text-[#00D1FF] hover:text-blue-800 cursor-pointer hover:underline'
-                                                                                : 'text-secondary cursor-not-allowed'
+                                                                            ? 'text-[#00D1FF] hover:text-blue-800 cursor-pointer hover:underline'
+                                                                            : 'text-secondary cursor-not-allowed'
                                                                             }`}
                                                                         disabled={!hasUrl}
                                                                         title={hasUrl ? `Click to open ${d.name}` : `File "${d.name}" is not available`}
@@ -1701,384 +1701,385 @@ const VehicleEldMonitor = () => {
                                                 <button
                                                     type="button"
                                                     onClick={downloadHosFormPdf}
-                                                    style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+                                                    style={{
+                                                        background: 'var(--accent-navyblue)}};
                                                     className="px-4 py-2 text-sm font-semibold !text-white rounded-lg hover:opacity-90"
-                                                >
-                                                    <Download size={16} className="inline-block mr-1 align-middle" /> Download PDF
+                                                        >
+                                                        <Download size={16} className="inline-block mr-1 align-middle" /> Download PDF
                                                 </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={closeDownloadForm}
-                                                    className="p-2 text-secondary hover:text-primary hover:bg-gray-200 rounded-lg"
-                                                    aria-label="Close"
-                                                >
-                                                    <X size={20} />
-                                                </button>
-                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={closeDownloadForm}
+                                                className="p-2 text-secondary hover:text-primary hover:bg-gray-200 rounded-lg"
+                                                aria-label="Close"
+                                            >
+                                                <X size={20} />
+                                            </button>
                                         </div>
-                                        <div ref={hosFormPrintRef} className="p-6 space-y-6 text-sm print:block">
-                                            {/* Form title */}
-                                            <h2 className="text-center text-lg font-bold text-primary border-b border-theme pb-2">
-                                                HOS PROGRESSIVE DISCIPLINARY ACTION FORM
-                                            </h2>
+                                    </div>
+                                    <div ref={hosFormPrintRef} className="p-6 space-y-6 text-sm print:block">
+                                        {/* Form title */}
+                                        <h2 className="text-center text-lg font-bold text-primary border-b border-theme pb-2">
+                                            HOS PROGRESSIVE DISCIPLINARY ACTION FORM
+                                        </h2>
 
-                                            {/* Employee Information (from API) */}
-                                            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-                                                <div><span className="font-semibold text-secondary">Employee Name:</span> {downloadFormRow.driverName}</div>
-                                                <div><span className="font-semibold text-secondary">Driver ID:</span> {downloadFormRow.driverId || '—'}</div>
-                                                <div><span className="font-semibold text-secondary">Reporting to:</span> {downloadFormRow.reportingTo || '—'}</div>
-                                                <div><span className="font-semibold text-secondary">Date:</span> {downloadFormRow.auditDate ? new Date(downloadFormRow.auditDate).toLocaleDateString() : '—'}</div>
+                                        {/* Employee Information (from API) */}
+                                        <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+                                            <div><span className="font-semibold text-secondary">Employee Name:</span> {downloadFormRow.driverName}</div>
+                                            <div><span className="font-semibold text-secondary">Driver ID:</span> {downloadFormRow.driverId || '—'}</div>
+                                            <div><span className="font-semibold text-secondary">Reporting to:</span> {downloadFormRow.reportingTo || '—'}</div>
+                                            <div><span className="font-semibold text-secondary">Date:</span> {downloadFormRow.auditDate ? new Date(downloadFormRow.auditDate).toLocaleDateString() : '—'}</div>
+                                        </div>
+
+                                        {/* Incident Information (from API) */}
+                                        <div>
+                                            <h4 className="font-bold text-primary mb-2">Incident Information</h4>
+                                            <div className="grid grid-cols-2 gap-2 mb-2">
+                                                <div><span className="font-semibold text-secondary">Date:</span> {downloadFormRow.incidentDate && downloadFormRow.incidentDate !== '—' ? new Date(downloadFormRow.incidentDate).toLocaleDateString() : '—'}</div>
+                                                <div><span className="font-semibold text-secondary">Time:</span> {downloadFormRow.incidentTime || '—'}</div>
+                                                <div><span className="font-semibold text-secondary">Location:</span> {downloadFormRow.incidentLocation || '—'}</div>
                                             </div>
-
-                                            {/* Incident Information (from API) */}
                                             <div>
-                                                <h4 className="font-bold text-primary mb-2">Incident Information</h4>
-                                                <div className="grid grid-cols-2 gap-2 mb-2">
-                                                    <div><span className="font-semibold text-secondary">Date:</span> {downloadFormRow.incidentDate && downloadFormRow.incidentDate !== '—' ? new Date(downloadFormRow.incidentDate).toLocaleDateString() : '—'}</div>
-                                                    <div><span className="font-semibold text-secondary">Time:</span> {downloadFormRow.incidentTime || '—'}</div>
-                                                    <div><span className="font-semibold text-secondary">Location:</span> {downloadFormRow.incidentLocation || '—'}</div>
-                                                </div>
-                                                <div>
-                                                    <span className="font-semibold text-secondary">Incident type:</span>
-                                                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
-                                                        {DISCIPLINARY_INCIDENT_TYPES.map((opt) => {
-                                                            const checked = (downloadFormRow.incidentTypes || []).some(t =>
-                                                                opt.toLowerCase().includes(t.toLowerCase()) || t.toLowerCase().includes(opt.toLowerCase().split(' ')[0])
-                                                            );
-                                                            return (
-                                                                <label key={opt} className="flex items-center gap-1">
-                                                                    <input type="checkbox" readOnly checked={checked} className="rounded border-gray-400" />
-                                                                    <span>{opt}</span>
-                                                                </label>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Incident details (from API) */}
-                                            <div>
-                                                <h4 className="font-bold text-primary mb-1">Incident details (has the employee been counselled before on this or a similar HOS occurrence?)</h4>
-                                                <div className="flex items-center gap-4 mb-2">
-                                                    <label className="flex items-center gap-2">
-                                                        <input type="checkbox" readOnly checked={(downloadFormRow.priorCounseling || '').toString().toLowerCase() === 'yes'} className="rounded border-gray-400" />
-                                                        <span>Yes</span>
-                                                    </label>
-                                                    <label className="flex items-center gap-2">
-                                                        <input type="checkbox" readOnly checked={(downloadFormRow.priorCounseling || '').toString().toLowerCase() === 'no' || !downloadFormRow.priorCounseling || downloadFormRow.priorCounseling === '—'} className="rounded border-gray-400" />
-                                                        <span>No</span>
-                                                    </label>
-                                                </div>
-                                                <div className="border border-theme rounded p-3 bg-card text-primary min-h-[80px]">
-                                                    {downloadFormRow.notes || '—'}
-                                                </div>
-                                            </div>
-
-                                            {/* Corrective action (from API) */}
-                                            <div>
-                                                <h4 className="font-bold text-primary mb-2">Corrective action taken</h4>
-                                                <div className="flex flex-wrap gap-x-4 gap-y-1 mb-2">
-                                                    {DISCIPLINARY_CORRECTIVE_ACTIONS.map((opt) => {
-                                                        const key = opt.split(' ')[0].toLowerCase();
-                                                        const checked = downloadFormRow.correctiveActionType && downloadFormRow.correctiveActionType.toLowerCase().includes(key);
+                                                <span className="font-semibold text-secondary">Incident type:</span>
+                                                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                                                    {DISCIPLINARY_INCIDENT_TYPES.map((opt) => {
+                                                        const checked = (downloadFormRow.incidentTypes || []).some(t =>
+                                                            opt.toLowerCase().includes(t.toLowerCase()) || t.toLowerCase().includes(opt.toLowerCase().split(' ')[0])
+                                                        );
                                                         return (
                                                             <label key={opt} className="flex items-center gap-1">
-                                                                <input type="checkbox" readOnly checked={!!checked} className="rounded border-gray-400" />
+                                                                <input type="checkbox" readOnly checked={checked} className="rounded border-gray-400" />
                                                                 <span>{opt}</span>
                                                             </label>
                                                         );
                                                     })}
                                                 </div>
-                                                <p className="text-secondary"><span className="font-semibold">Comments:</span> {downloadFormRow.correctiveActionType || '—'}</p>
                                             </div>
+                                        </div>
 
-                                            {/* Manager's Signature (editable) */}
-                                            <div className="border-t border-theme pt-4">
-                                                <label className="block font-bold text-primary mb-1">Manager's Signature</label>
-                                                <div className="flex flex-wrap items-center gap-4">
-                                                    <input
-                                                        type="text"
-                                                        value={editableFormState.managerSignature}
-                                                        onChange={(e) => setEditableFormState(prev => ({ ...prev, managerSignature: e.target.value }))}
-                                                        placeholder="Manager name or signature"
-                                                        className="flex-1 min-w-[200px] px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    />
-                                                    <label className="flex items-center gap-2">
-                                                        <span className="font-semibold text-secondary">Date:</span>
-                                                        <input
-                                                            type="date"
-                                                            value={editableFormState.managerDate}
-                                                            onChange={(e) => setEditableFormState(prev => ({ ...prev, managerDate: e.target.value }))}
-                                                            className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        />
-                                                    </label>
-                                                </div>
+                                        {/* Incident details (from API) */}
+                                        <div>
+                                            <h4 className="font-bold text-primary mb-1">Incident details (has the employee been counselled before on this or a similar HOS occurrence?)</h4>
+                                            <div className="flex items-center gap-4 mb-2">
+                                                <label className="flex items-center gap-2">
+                                                    <input type="checkbox" readOnly checked={(downloadFormRow.priorCounseling || '').toString().toLowerCase() === 'yes'} className="rounded border-gray-400" />
+                                                    <span>Yes</span>
+                                                </label>
+                                                <label className="flex items-center gap-2">
+                                                    <input type="checkbox" readOnly checked={(downloadFormRow.priorCounseling || '').toString().toLowerCase() === 'no' || !downloadFormRow.priorCounseling || downloadFormRow.priorCounseling === '—'} className="rounded border-gray-400" />
+                                                    <span>No</span>
+                                                </label>
                                             </div>
+                                            <div className="border border-theme rounded p-3 bg-card text-primary min-h-[80px]">
+                                                {downloadFormRow.notes || '—'}
+                                            </div>
+                                        </div>
 
-                                            {/* Notice to employee (editable) */}
-                                            <div className="border-t border-theme pt-4">
-                                                <label className="block font-bold text-primary mb-1">Notice to employee</label>
-                                                <textarea
-                                                    value={editableFormState.noticeToEmployee}
-                                                    onChange={(e) => setEditableFormState(prev => ({ ...prev, noticeToEmployee: e.target.value }))}
-                                                    rows={4}
-                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
+                                        {/* Corrective action (from API) */}
+                                        <div>
+                                            <h4 className="font-bold text-primary mb-2">Corrective action taken</h4>
+                                            <div className="flex flex-wrap gap-x-4 gap-y-1 mb-2">
+                                                {DISCIPLINARY_CORRECTIVE_ACTIONS.map((opt) => {
+                                                    const key = opt.split(' ')[0].toLowerCase();
+                                                    const checked = downloadFormRow.correctiveActionType && downloadFormRow.correctiveActionType.toLowerCase().includes(key);
+                                                    return (
+                                                        <label key={opt} className="flex items-center gap-1">
+                                                            <input type="checkbox" readOnly checked={!!checked} className="rounded border-gray-400" />
+                                                            <span>{opt}</span>
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
+                                            <p className="text-secondary"><span className="font-semibold">Comments:</span> {downloadFormRow.correctiveActionType || '—'}</p>
+                                        </div>
+
+                                        {/* Manager's Signature (editable) */}
+                                        <div className="border-t border-theme pt-4">
+                                            <label className="block font-bold text-primary mb-1">Manager's Signature</label>
+                                            <div className="flex flex-wrap items-center gap-4">
+                                                <input
+                                                    type="text"
+                                                    value={editableFormState.managerSignature}
+                                                    onChange={(e) => setEditableFormState(prev => ({ ...prev, managerSignature: e.target.value }))}
+                                                    placeholder="Manager name or signature"
+                                                    className="flex-1 min-w-[200px] px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                 />
-                                            </div>
-
-                                            {/* Employee's comments (editable) */}
-                                            <div className="border-t border-theme pt-4">
-                                                <label className="block font-bold text-primary mb-1">Employee's comments</label>
-                                                <textarea
-                                                    value={editableFormState.employeeComments}
-                                                    onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeComments: e.target.value }))}
-                                                    rows={4}
-                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
-                                                />
-                                            </div>
-
-                                            {/* Employee's Signature (editable) */}
-                                            <div className="border-t border-theme pt-4">
-                                                <label className="block font-bold text-primary mb-1">Employee's Signature</label>
-                                                <div className="flex flex-wrap items-center gap-4">
+                                                <label className="flex items-center gap-2">
+                                                    <span className="font-semibold text-secondary">Date:</span>
                                                     <input
-                                                        type="text"
-                                                        value={editableFormState.employeeSignature}
-                                                        onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeSignature: e.target.value }))}
-                                                        placeholder="Employee name or signature"
-                                                        className="flex-1 min-w-[200px] px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        type="date"
+                                                        value={editableFormState.managerDate}
+                                                        onChange={(e) => setEditableFormState(prev => ({ ...prev, managerDate: e.target.value }))}
+                                                        className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     />
-                                                    <label className="flex items-center gap-2">
-                                                        <span className="font-semibold text-secondary">Date:</span>
-                                                        <input
-                                                            type="date"
-                                                            value={editableFormState.employeeDate}
-                                                            onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeDate: e.target.value }))}
-                                                            className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        />
-                                                    </label>
-                                                </div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {/* Notice to employee (editable) */}
+                                        <div className="border-t border-theme pt-4">
+                                            <label className="block font-bold text-primary mb-1">Notice to employee</label>
+                                            <textarea
+                                                value={editableFormState.noticeToEmployee}
+                                                onChange={(e) => setEditableFormState(prev => ({ ...prev, noticeToEmployee: e.target.value }))}
+                                                rows={4}
+                                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
+                                            />
+                                        </div>
+
+                                        {/* Employee's comments (editable) */}
+                                        <div className="border-t border-theme pt-4">
+                                            <label className="block font-bold text-primary mb-1">Employee's comments</label>
+                                            <textarea
+                                                value={editableFormState.employeeComments}
+                                                onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeComments: e.target.value }))}
+                                                rows={4}
+                                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
+                                            />
+                                        </div>
+
+                                        {/* Employee's Signature (editable) */}
+                                        <div className="border-t border-theme pt-4">
+                                            <label className="block font-bold text-primary mb-1">Employee's Signature</label>
+                                            <div className="flex flex-wrap items-center gap-4">
+                                                <input
+                                                    type="text"
+                                                    value={editableFormState.employeeSignature}
+                                                    onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeSignature: e.target.value }))}
+                                                    placeholder="Employee name or signature"
+                                                    className="flex-1 min-w-[200px] px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                />
+                                                <label className="flex items-center gap-2">
+                                                    <span className="font-semibold text-secondary">Date:</span>
+                                                    <input
+                                                        type="date"
+                                                        value={editableFormState.employeeDate}
+                                                        onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeDate: e.target.value }))}
+                                                        className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                </label>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </>
-                        )}
-                    </div>
+                            </div>
+                    </>
+                )}
+            </div>
                 )}
 
-                {/* E-Logs Tab */}
-                {activeTab === 'e-logs' && (
-                    <div className="space-y-6">
-                        {/* Upload Section */}
-                        <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
-                            <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
-                                <Upload size={24} className="text-[#00D1FF]" />
-                                Upload E-Log File
-                            </h2>
+            {/* E-Logs Tab */}
+            {activeTab === 'e-logs' && (
+                <div className="space-y-6">
+                    {/* Upload Section */}
+                    <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
+                        <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+                            <Upload size={24} className="text-[#00D1FF]" />
+                            Upload E-Log File
+                        </h2>
 
-                            <div className="space-y-4">
-                                {/* Driver Selection (Optional) */}
-                                <div>
-                                    <label className="block text-sm font-medium text-primary mb-2">
-                                        Driver (Optional)
+                        <div className="space-y-4">
+                            {/* Driver Selection (Optional) */}
+                            <div>
+                                <label className="block text-sm font-medium text-primary mb-2">
+                                    Driver (Optional)
+                                </label>
+                                <select
+                                    value={selectedDriverForLog}
+                                    onChange={(e) => setSelectedDriverForLog(e.target.value)}
+                                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">All Drivers</option>
+                                    {drivers.map((driver) => (
+                                        <option key={driver._id} value={driver._id}>
+                                            {driver.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* File Upload */}
+                            <div>
+                                <label className="block text-sm font-medium text-primary mb-2">
+                                    Select E-Log File <span className="text-red-500">*</span>
+                                </label>
+                                <div className="flex items-center gap-4">
+                                    <label className="flex-1 cursor-pointer">
+                                        <input
+                                            type="file"
+                                            accept=".pdf,.txt,.csv,.xlsx,.xls"
+                                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                            className="hidden"
+                                        />
+                                        <div className="px-4 py-3 border border-theme rounded-lg border-dashed hover:bg-[rgba(255,255,255,0.03)] text-center">
+                                            {selectedFile ? (
+                                                <div className="flex items-center justify-center gap-2 text-[#00D1FF]">
+                                                    <FileText size={20} />
+                                                    <span className="font-medium">{selectedFile.name}</span>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedFile(null);
+                                                        }}
+                                                        className="ml-2 text-red-500 hover:text-red-700"
+                                                    >
+                                                        <X size={18} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="text-secondary">
+                                                    <Upload size={24} className="mx-auto mb-2" />
+                                                    <span>Click to select file or drag and drop</span>
+                                                    <p className="text-xs mt-1">PDF, TXT, CSV, XLSX (Max 20MB)</p>
+                                                </div>
+                                            )}
+                                        </div>
                                     </label>
-                                    <select
-                                        value={selectedDriverForLog}
-                                        onChange={(e) => setSelectedDriverForLog(e.target.value)}
-                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value="">All Drivers</option>
-                                        {drivers.map((driver) => (
-                                            <option key={driver._id} value={driver._id}>
-                                                {driver.name}
-                                            </option>
-                                        ))}
-                                    </select>
                                 </div>
+                            </div>
 
-                                {/* File Upload */}
-                                <div>
-                                    <label className="block text-sm font-medium text-primary mb-2">
-                                        Select E-Log File <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="flex items-center gap-4">
-                                        <label className="flex-1 cursor-pointer">
-                                            <input
-                                                type="file"
-                                                accept=".pdf,.txt,.csv,.xlsx,.xls"
-                                                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                                                className="hidden"
-                                            />
-                                            <div className="px-4 py-3 border border-theme rounded-lg border-dashed hover:bg-[rgba(255,255,255,0.03)] text-center">
-                                                {selectedFile ? (
-                                                    <div className="flex items-center justify-center gap-2 text-[#00D1FF]">
-                                                        <FileText size={20} />
-                                                        <span className="font-medium">{selectedFile.name}</span>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSelectedFile(null);
-                                                            }}
-                                                            className="ml-2 text-red-500 hover:text-red-700"
-                                                        >
-                                                            <X size={18} />
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <div className="text-secondary">
-                                                        <Upload size={24} className="mx-auto mb-2" />
-                                                        <span>Click to select file or drag and drop</span>
-                                                        <p className="text-xs mt-1">PDF, TXT, CSV, XLSX (Max 20MB)</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                {/* Upload Button */}
-                                <div className="flex justify-end">
-                                    <button
-                                        onClick={handleFileUpload}
-                                        disabled={!selectedFile || uploadingFile}
-                                        style={{
-                                            background: (!selectedFile || uploadingFile) ? '#9CA3AF' : 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
-                                        }}
-                                        className="px-6 py-2 !text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                                    >
-                                        {uploadingFile ? (
-                                            <>
-                                                <RefreshCw size={16} className="animate-spin" />
-                                                Uploading...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Upload size={16} />
-                                                Upload File
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
+                            {/* Upload Button */}
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={handleFileUpload}
+                                    disabled={!selectedFile || uploadingFile}
+                                    style={{
+                                        background: (!selectedFile || uploadingFile) ? '#9CA3AF' : 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                                    }}
+                                    className="px-6 py-2 !text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                >
+                                    {uploadingFile ? (
+                                        <>
+                                            <RefreshCw size={16} className="animate-spin" />
+                                            Uploading...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Upload size={16} />
+                                            Upload File
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         </div>
+                    </div>
 
-                        {/* E-Logs List */}
-                        <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
-                            <div className="px-6 py-4 border-b bg-card">
-                                <h3 className="font-bold text-primary flex items-center gap-2">
-                                    <FileText size={20} className="text-[#00D1FF]" />
-                                    Uploaded E-Logs
-                                </h3>
+                    {/* E-Logs List */}
+                    <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
+                        <div className="px-6 py-4 border-b bg-card">
+                            <h3 className="font-bold text-primary flex items-center gap-2">
+                                <FileText size={20} className="text-[#00D1FF]" />
+                                Uploaded E-Logs
+                            </h3>
+                        </div>
+
+                        {eLogsLoading ? (
+                            <div className="px-6 py-8 text-center">
+                                <RefreshCw className="animate-spin h-5 w-5 mx-auto text-secondary" />
                             </div>
-
-                            {eLogsLoading ? (
-                                <div className="px-6 py-8 text-center">
-                                    <RefreshCw className="animate-spin h-5 w-5 mx-auto text-secondary" />
-                                </div>
-                            ) : eLogs.length === 0 ? (
-                                <div className="px-6 py-8 text-center text-secondary">
-                                    No E-Log files uploaded yet.
-                                </div>
-                            ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-sm text-left">
-                                        <thead className="bg-card text-secondary uppercase text-[11px] font-bold">
-                                            <tr>
-                                                <th className="px-6 py-4">File Name</th>
-                                                <th className="px-6 py-4">Driver</th>
-                                                <th className="px-6 py-4">File Size</th>
-                                                <th className="px-6 py-4">Uploaded Date</th>
-                                                <th className="px-6 py-4">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-gray-100">
-                                            {eLogs.map((log) => (
-                                                <tr key={log._id} className="hover:bg-blue-50/30">
-                                                    <td className="px-6 py-4 font-medium text-primary">
-                                                        {editingELogId === log._id ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <input
-                                                                    type="text"
-                                                                    value={editingELogValue}
-                                                                    onChange={(e) => setEditingELogValue(e.target.value)}
-                                                                    onKeyDown={(e) => {
-                                                                        if (e.key === 'Enter') saveRenameELog(log._id);
-                                                                        if (e.key === 'Escape') cancelRenameELog();
-                                                                    }}
-                                                                    className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                    autoFocus
-                                                                />
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => saveRenameELog(log._id)}
-                                                                    className="p-1.5 text-green-600 hover:bg-green-50 rounded"
-                                                                    title="Save"
-                                                                >
-                                                                    <Check size={16} />
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={cancelRenameELog}
-                                                                    className="p-1.5 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded"
-                                                                    title="Cancel"
-                                                                >
-                                                                    <X size={16} />
-                                                                </button>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="flex items-center gap-2">
-                                                                <FileText size={16} className="text-blue-500 flex-shrink-0" />
-                                                                <span className="min-w-0 truncate">{getELogDisplayName(log)}</span>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => startRenameELog(log)}
-                                                                    className="p-1 text-secondary hover:text-[#00D1FF] hover:bg-blue-50 rounded flex-shrink-0"
-                                                                    title="Rename"
-                                                                >
-                                                                    <Pencil size={14} />
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-secondary">
-                                                        {typeof log.driverId === 'object' && log.driverId?.name
-                                                            ? log.driverId.name
-                                                            : log.driverName || 'N/A'}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-secondary">
-                                                        {(log.fileSize / 1024 / 1024).toFixed(2)} MB
-                                                    </td>
-                                                    <td className="px-6 py-4 text-secondary">
-                                                        {new Date(log.uploadedAt).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="px-6 py-4">
+                        ) : eLogs.length === 0 ? (
+                            <div className="px-6 py-8 text-center text-secondary">
+                                No E-Log files uploaded yet.
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-card text-secondary uppercase text-[11px] font-bold">
+                                        <tr>
+                                            <th className="px-6 py-4">File Name</th>
+                                            <th className="px-6 py-4">Driver</th>
+                                            <th className="px-6 py-4">File Size</th>
+                                            <th className="px-6 py-4">Uploaded Date</th>
+                                            <th className="px-6 py-4">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {eLogs.map((log) => (
+                                            <tr key={log._id} className="hover:bg-blue-50/30">
+                                                <td className="px-6 py-4 font-medium text-primary">
+                                                    {editingELogId === log._id ? (
                                                         <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="text"
+                                                                value={editingELogValue}
+                                                                onChange={(e) => setEditingELogValue(e.target.value)}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter') saveRenameELog(log._id);
+                                                                    if (e.key === 'Escape') cancelRenameELog();
+                                                                }}
+                                                                className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                autoFocus
+                                                            />
                                                             <button
-                                                                onClick={() => handleDownloadELog(log._id, log.fileName)}
-                                                                className="text-[#00D1FF] hover:text-blue-800 font-medium"
+                                                                type="button"
+                                                                onClick={() => saveRenameELog(log._id)}
+                                                                className="p-1.5 text-green-600 hover:bg-green-50 rounded"
+                                                                title="Save"
                                                             >
-                                                                <Download size={16} />
+                                                                <Check size={16} />
                                                             </button>
                                                             <button
-                                                                onClick={() => handleDeleteELog(log._id)}
-                                                                className="text-[#A855F7] hover:text-red-800 font-medium"
+                                                                type="button"
+                                                                onClick={cancelRenameELog}
+                                                                className="p-1.5 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded"
+                                                                title="Cancel"
                                                             >
                                                                 <X size={16} />
                                                             </button>
                                                         </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-2">
+                                                            <FileText size={16} className="text-blue-500 flex-shrink-0" />
+                                                            <span className="min-w-0 truncate">{getELogDisplayName(log)}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => startRenameELog(log)}
+                                                                className="p-1 text-secondary hover:text-[#00D1FF] hover:bg-blue-50 rounded flex-shrink-0"
+                                                                title="Rename"
+                                                            >
+                                                                <Pencil size={14} />
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 text-secondary">
+                                                    {typeof log.driverId === 'object' && log.driverId?.name
+                                                        ? log.driverId.name
+                                                        : log.driverName || 'N/A'}
+                                                </td>
+                                                <td className="px-6 py-4 text-secondary">
+                                                    {(log.fileSize / 1024 / 1024).toFixed(2)} MB
+                                                </td>
+                                                <td className="px-6 py-4 text-secondary">
+                                                    {new Date(log.uploadedAt).toLocaleDateString()}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => handleDownloadELog(log._id, log.fileName)}
+                                                            className="text-[#00D1FF] hover:text-blue-800 font-medium"
+                                                        >
+                                                            <Download size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteELog(log._id)}
+                                                            className="text-[#A855F7] hover:text-red-800 font-medium"
+                                                        >
+                                                            <X size={16} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
+        </div >
     );
 };
 

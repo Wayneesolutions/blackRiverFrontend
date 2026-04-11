@@ -1460,7 +1460,7 @@ export default function SettlementSystem() {
                         setSubmitting(false);
                       }
                     }}
-                    style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+                    style={{ background: 'var(--accent-navyblue)' }}
                     className="flex-1 px-4 py-2  !text-white rounded-lg  disabled:opacity-50"
                     disabled={submitting}
                   >
@@ -1473,272 +1473,276 @@ export default function SettlementSystem() {
         )
       }
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40">
-          <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
-            <div className="flex items-center gap-3 mb-4 text-[#A855F7]">
-              <Trash2 className="w-6 h-6" />
-              <h3 className="text-lg font-bold">Confirm Deletion</h3>
-            </div>
-            <p className="text-secondary mb-6">
-              Are you sure you want to delete this item? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-                style={{
-                  boxShadow: '0 4px 6px -1px rgba(220, 38, 38, 0.3)'
-                }}
-              >
-                Delete
-              </button>
+      {
+        showDeleteModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40">
+            <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
+              <div className="flex items-center gap-3 mb-4 text-[#A855F7]">
+                <Trash2 className="w-6 h-6" />
+                <h3 className="text-lg font-bold">Confirm Deletion</h3>
+              </div>
+              <p className="text-secondary mb-6">
+                Are you sure you want to delete this item? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                  style={{
+                    boxShadow: '0 4px 6px -1px rgba(220, 38, 38, 0.3)'
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Detail View Modal */}
-      {showDetailModal && selectedItem && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-card rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 text-[var(--accent-navyblue)] p-6 flex justify-between items-center rounded-t-xl ">
-              <div className="flex items-center gap-3">
-                {selectedItem.type === 'settlement' && <DollarSign className="w-7 h-7 text-[var(--accent-navyblue)]" />}
-                {selectedItem.type === 'deduction' && (selectedItem.type === 'Addition' ? <TrendingUp className="w-7 h-7 text-[var(--accent-navyblue)]" /> : <TrendingDown className="w-7 h-7 text-[var(--accent-navyblue)]" />)}
-                {selectedItem.type === 'miles' && <MapPin className="w-7 h-7 text-[var(--accent-navyblue)]" />}
-                <div>
-                  <h3 className="text-2xl font-bold text-[var(--accent-navyblue)]">
-                    {selectedItem.type === 'settlement' && 'Settlement Details'}
-                    {selectedItem.type === 'deduction' && 'Deduction/Addition Details'}
-                    {selectedItem.type === 'miles' && 'Miles Tracking Details'}
-                  </h3>
-                  <p className="text-white/80 text-sm mt-1">
-                    {selectedItem.type === 'settlement' && `ID: ${selectedItem.settlementId}`}
-                    {selectedItem.type === 'deduction' && selectedItem.name}
-                    {selectedItem.type === 'miles' && `Date: ${new Date(selectedItem.date).toLocaleDateString()}`}
-                  </p>
+      {
+        showDetailModal && selectedItem && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <div className="bg-card rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 text-[var(--accent-navyblue)] p-6 flex justify-between items-center rounded-t-xl ">
+                <div className="flex items-center gap-3">
+                  {selectedItem.type === 'settlement' && <DollarSign className="w-7 h-7 text-[var(--accent-navyblue)]" />}
+                  {selectedItem.type === 'deduction' && (selectedItem.type === 'Addition' ? <TrendingUp className="w-7 h-7 text-[var(--accent-navyblue)]" /> : <TrendingDown className="w-7 h-7 text-[var(--accent-navyblue)]" />)}
+                  {selectedItem.type === 'miles' && <MapPin className="w-7 h-7 text-[var(--accent-navyblue)]" />}
+                  <div>
+                    <h3 className="text-2xl font-bold text-[var(--accent-navyblue)]">
+                      {selectedItem.type === 'settlement' && 'Settlement Details'}
+                      {selectedItem.type === 'deduction' && 'Deduction/Addition Details'}
+                      {selectedItem.type === 'miles' && 'Miles Tracking Details'}
+                    </h3>
+                    <p className="text-white/80 text-sm mt-1">
+                      {selectedItem.type === 'settlement' && `ID: ${selectedItem.settlementId}`}
+                      {selectedItem.type === 'deduction' && selectedItem.name}
+                      {selectedItem.type === 'miles' && `Date: ${new Date(selectedItem.date).toLocaleDateString()}`}
+                    </p>
+                  </div>
                 </div>
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="text-white hover:bg-card/20 rounded-lg p-2 transition-colors"
+                >
+                  <X size={24} />
+                </button>
               </div>
-              <button
-                onClick={() => setShowDetailModal(false)}
-                className="text-white hover:bg-card/20 rounded-lg p-2 transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
 
-            <div className="p-6 space-y-6">
-              {/* Settlement Details */}
-              {selectedItem.type === 'settlement' && (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-card rounded-lg p-4 border-2 border-theme">
-                      <label className="text-xs font-semibold text-headings uppercase tracking-wide mb-2 block">Driver/Payee</label>
-                      <p className="text-lg font-bold text-secondary">{selectedItem.driver?.name || 'Unknown'}</p>
-                      {selectedItem.driver?.email && (
-                        <p className="text-sm text-secondary mt-1">{selectedItem.driver.email}</p>
-                      )}
-                      {selectedItem.driver?.phone && (
-                        <p className="text-sm text-secondary">{selectedItem.driver.phone}</p>
-                      )}
-                      {selectedItem.driver?.internalId && (
-                        <p className="text-xs text-[#00D1FF] mt-2">ID: {selectedItem.driver.internalId}</p>
-                      )}
-                    </div>
-
-                    <div className="bg-card rounded-lg p-4 border-2 border-theme">
-                      <label className="text-xs font-semibold text-[var(--accent-purple)] uppercase tracking-wide mb-2 block">Pay Period</label>
-                      <p className="text-lg font-bold text-secondary">
-                        {formatPayPeriod(selectedItem.payPeriod.startDate, selectedItem.payPeriod.endDate)}
-                      </p>
-                      <div className="mt-2 space-y-1">
-                        <p className="text-sm text-secondary">Start: {new Date(selectedItem.payPeriod.startDate).toLocaleDateString()}</p>
-                        <p className="text-sm text-secondary">End: {new Date(selectedItem.payPeriod.endDate).toLocaleDateString()}</p>
+              <div className="p-6 space-y-6">
+                {/* Settlement Details */}
+                {selectedItem.type === 'settlement' && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-card rounded-lg p-4 border-2 border-theme">
+                        <label className="text-xs font-semibold text-headings uppercase tracking-wide mb-2 block">Driver/Payee</label>
+                        <p className="text-lg font-bold text-secondary">{selectedItem.driver?.name || 'Unknown'}</p>
+                        {selectedItem.driver?.email && (
+                          <p className="text-sm text-secondary mt-1">{selectedItem.driver.email}</p>
+                        )}
+                        {selectedItem.driver?.phone && (
+                          <p className="text-sm text-secondary">{selectedItem.driver.phone}</p>
+                        )}
+                        {selectedItem.driver?.internalId && (
+                          <p className="text-xs text-[#00D1FF] mt-2">ID: {selectedItem.driver.internalId}</p>
+                        )}
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-card rounded-lg p-4 border-2 border-theme">
-                      <label className="text-xs font-semibold text-[var(--accent-green)] uppercase tracking-wide mb-1 block">Gross Pay</label>
-                      <p className="text-3xl font-bold text-secondary">${selectedItem.grossPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                    </div>
-
-                    <div className="bg-card rounded-lg p-4 border-2 border-theme">
-                      <label className="text-xs font-semibold text-[var(--accent-orange)] uppercase tracking-wide mb-1 block">Status</label>
-                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${selectedItem.status === 'Paid' ? 'bg-green-500 text-white' :
-                        selectedItem.status === 'Pending' ? 'bg-yellow-500 text-white' :
-                          selectedItem.status === 'Processing' ? 'bg-blue-500 text-white' :
-                            'bg-gray-500 text-white'
-                        }`}>
-                        {selectedItem.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="bg-card rounded-lg p-4 border border-theme">
-                    <h4 className="text-sm font-bold text-headings mb-3 uppercase tracking-wide">Payment Breakdown</h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center py-2 border-b border-theme">
-                        <span className="text-primary font-medium">Gross Pay</span>
-                        <span className="text-lg font-bold text-green-600">${selectedItem.grossPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b border-theme">
-                        <span className="text-primary font-medium">Deductions</span>
-                        <span className="text-lg font-bold text-[#A855F7]">-${selectedItem.deductions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b border-theme">
-                        <span className="text-primary font-medium">Additions</span>
-                        <span className="text-lg font-bold text-[#00D1FF]">+${selectedItem.additions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-3 bg-gradient-to-r from-purple-100 to-purple-200 rounded-lg px-3 mt-3">
-                        <span className="text-purple-900 font-bold text-lg">Net Pay</span>
-                        <span className="text-2xl font-bold text-purple-900">${selectedItem.netPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* Deduction/Addition Details */}
-              {selectedItem.type === 'deduction' && (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                      <label className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-2 block">Name</label>
-                      <p className="text-xl font-bold text-blue-900">{selectedItem.name}</p>
-                    </div>
-
-                    <div className={`rounded-lg p-4 border ${selectedItem.type === 'Addition'
-                      ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
-                      : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200'
-                      }`}>
-                      <label className={`text-xs font-semibold uppercase tracking-wide mb-2 block flex items-center gap-2 ${selectedItem.type === 'Addition' ? 'text-green-900' : 'text-red-900'
-                        }`}>
-                        {selectedItem.type === 'Addition' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                        Type
-                      </label>
-                      <p className={`text-xl font-bold ${selectedItem.type === 'Addition' ? 'text-green-900' : 'text-red-900'}`}>
-                        {selectedItem.type}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-                      <label className="text-xs font-semibold text-purple-900 uppercase tracking-wide mb-1 block">Amount</label>
-                      <p className="text-3xl font-bold text-purple-700">${selectedItem.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
-                      <label className="text-xs font-semibold text-orange-900 uppercase tracking-wide mb-1 block">Recurrence</label>
-                      <p className="text-xl font-bold text-orange-900">{selectedItem.recurrence}</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-4 border border-cyan-200">
-                    <label className="text-xs font-semibold text-cyan-900 uppercase tracking-wide mb-2 block">Assigned To</label>
-                    <p className="text-lg font-bold text-cyan-900">{selectedItem.assignedTo?.name || 'Unknown'}</p>
-                    {selectedItem.assignedTo?.email && (
-                      <p className="text-sm text-cyan-700 mt-1">{selectedItem.assignedTo.email}</p>
-                    )}
-                    {selectedItem.assignedTo?.phone && (
-                      <p className="text-sm text-cyan-700">{selectedItem.assignedTo.phone}</p>
-                    )}
-                    {selectedItem.assignedTo?.internalId && (
-                      <p className="text-xs text-cyan-600 mt-2">ID: {selectedItem.assignedTo.internalId}</p>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {/* Miles Tracking Details */}
-              {selectedItem.type === 'miles' && (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                      <label className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-2 block">Date</label>
-                      <p className="text-lg font-bold text-blue-900">{new Date(selectedItem.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-                      <label className="text-xs font-semibold text-purple-900 uppercase tracking-wide mb-2 block">State/Province</label>
-                      <span className="inline-block px-4 py-2 bg-purple-500 text-white rounded-full text-xl font-bold">
-                        {selectedItem.state}
-                      </span>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                      <label className="text-xs font-semibold text-green-900 uppercase tracking-wide mb-1 block">Total Miles</label>
-                      <p className="text-3xl font-bold text-green-700">{selectedItem.totalMiles.toLocaleString()}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-4 border border-cyan-200">
-                      <label className="text-xs font-semibold text-cyan-900 uppercase tracking-wide mb-2 block">Vehicle</label>
-                      <p className="text-lg font-bold text-cyan-900">
-                        {selectedItem.vehicle?.plateNumber || selectedItem.vehicle?.internalId || 'N/A'}
-                      </p>
-                      {selectedItem.vehicle?.make && selectedItem.vehicle?.model && (
-                        <p className="text-sm text-cyan-700 mt-1">
-                          {selectedItem.vehicle.make} {selectedItem.vehicle.model}
+                      <div className="bg-card rounded-lg p-4 border-2 border-theme">
+                        <label className="text-xs font-semibold text-[var(--accent-purple)] uppercase tracking-wide mb-2 block">Pay Period</label>
+                        <p className="text-lg font-bold text-secondary">
+                          {formatPayPeriod(selectedItem.payPeriod.startDate, selectedItem.payPeriod.endDate)}
                         </p>
+                        <div className="mt-2 space-y-1">
+                          <p className="text-sm text-secondary">Start: {new Date(selectedItem.payPeriod.startDate).toLocaleDateString()}</p>
+                          <p className="text-sm text-secondary">End: {new Date(selectedItem.payPeriod.endDate).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-card rounded-lg p-4 border-2 border-theme">
+                        <label className="text-xs font-semibold text-[var(--accent-green)] uppercase tracking-wide mb-1 block">Gross Pay</label>
+                        <p className="text-3xl font-bold text-secondary">${selectedItem.grossPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      </div>
+
+                      <div className="bg-card rounded-lg p-4 border-2 border-theme">
+                        <label className="text-xs font-semibold text-[var(--accent-orange)] uppercase tracking-wide mb-1 block">Status</label>
+                        <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${selectedItem.status === 'Paid' ? 'bg-green-500 text-white' :
+                          selectedItem.status === 'Pending' ? 'bg-yellow-500 text-white' :
+                            selectedItem.status === 'Processing' ? 'bg-blue-500 text-white' :
+                              'bg-gray-500 text-white'
+                          }`}>
+                          {selectedItem.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="bg-card rounded-lg p-4 border border-theme">
+                      <h4 className="text-sm font-bold text-headings mb-3 uppercase tracking-wide">Payment Breakdown</h4>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center py-2 border-b border-theme">
+                          <span className="text-primary font-medium">Gross Pay</span>
+                          <span className="text-lg font-bold text-green-600">${selectedItem.grossPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-theme">
+                          <span className="text-primary font-medium">Deductions</span>
+                          <span className="text-lg font-bold text-[#A855F7]">-${selectedItem.deductions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-theme">
+                          <span className="text-primary font-medium">Additions</span>
+                          <span className="text-lg font-bold text-[#00D1FF]">+${selectedItem.additions.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-3 bg-gradient-to-r from-purple-100 to-purple-200 rounded-lg px-3 mt-3">
+                          <span className="text-purple-900 font-bold text-lg">Net Pay</span>
+                          <span className="text-2xl font-bold text-purple-900">${selectedItem.netPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Deduction/Addition Details */}
+                {selectedItem.type === 'deduction' && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                        <label className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-2 block">Name</label>
+                        <p className="text-xl font-bold text-blue-900">{selectedItem.name}</p>
+                      </div>
+
+                      <div className={`rounded-lg p-4 border ${selectedItem.type === 'Addition'
+                        ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
+                        : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200'
+                        }`}>
+                        <label className={`text-xs font-semibold uppercase tracking-wide mb-2 block flex items-center gap-2 ${selectedItem.type === 'Addition' ? 'text-green-900' : 'text-red-900'
+                          }`}>
+                          {selectedItem.type === 'Addition' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                          Type
+                        </label>
+                        <p className={`text-xl font-bold ${selectedItem.type === 'Addition' ? 'text-green-900' : 'text-red-900'}`}>
+                          {selectedItem.type}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                        <label className="text-xs font-semibold text-purple-900 uppercase tracking-wide mb-1 block">Amount</label>
+                        <p className="text-3xl font-bold text-purple-700">${selectedItem.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+                        <label className="text-xs font-semibold text-orange-900 uppercase tracking-wide mb-1 block">Recurrence</label>
+                        <p className="text-xl font-bold text-orange-900">{selectedItem.recurrence}</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-4 border border-cyan-200">
+                      <label className="text-xs font-semibold text-cyan-900 uppercase tracking-wide mb-2 block">Assigned To</label>
+                      <p className="text-lg font-bold text-cyan-900">{selectedItem.assignedTo?.name || 'Unknown'}</p>
+                      {selectedItem.assignedTo?.email && (
+                        <p className="text-sm text-cyan-700 mt-1">{selectedItem.assignedTo.email}</p>
+                      )}
+                      {selectedItem.assignedTo?.phone && (
+                        <p className="text-sm text-cyan-700">{selectedItem.assignedTo.phone}</p>
+                      )}
+                      {selectedItem.assignedTo?.internalId && (
+                        <p className="text-xs text-cyan-600 mt-2">ID: {selectedItem.assignedTo.internalId}</p>
                       )}
                     </div>
+                  </>
+                )}
 
-                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
-                      <label className="text-xs font-semibold text-orange-900 uppercase tracking-wide mb-2 block">Driver</label>
-                      <p className="text-lg font-bold text-orange-900">{selectedItem.driver?.name || 'Unknown'}</p>
-                      {selectedItem.driver?.email && (
-                        <p className="text-sm text-orange-700 mt-1">{selectedItem.driver.email}</p>
-                      )}
-                    </div>
-                  </div>
+                {/* Miles Tracking Details */}
+                {selectedItem.type === 'miles' && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                        <label className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-2 block">Date</label>
+                        <p className="text-lg font-bold text-blue-900">{new Date(selectedItem.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                      </div>
 
-                  <div className="bg-card rounded-lg p-4 border border-theme">
-                    <h4 className="text-sm font-bold text-primary mb-3 uppercase tracking-wide">Miles Breakdown</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-card rounded-lg p-3 border border-theme">
-                        <label className="text-xs text-secondary mb-1 block">Total Miles</label>
-                        <p className="text-2xl font-bold text-primary">{selectedItem.totalMiles.toLocaleString()}</p>
+                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                        <label className="text-xs font-semibold text-purple-900 uppercase tracking-wide mb-2 block">State/Province</label>
+                        <span className="inline-block px-4 py-2 bg-purple-500 text-white rounded-full text-xl font-bold">
+                          {selectedItem.state}
+                        </span>
                       </div>
-                      <div className="bg-card rounded-lg p-3 border border-theme">
-                        <label className="text-xs text-secondary mb-1 block">Loaded Miles</label>
-                        <p className="text-2xl font-bold text-green-600">{selectedItem.loadedMiles.toLocaleString()}</p>
-                      </div>
-                      <div className="bg-card rounded-lg p-3 border border-theme">
-                        <label className="text-xs text-secondary mb-1 block">Empty Miles</label>
-                        <p className="text-2xl font-bold text-[#F59E0B]">{selectedItem.emptyMiles.toLocaleString()}</p>
-                      </div>
-                      <div className="bg-card rounded-lg p-3 border border-blue-300 bg-card">
-                        <label className="text-xs text-[#00D1FF] mb-1 block font-semibold">IFTA Miles</label>
-                        <p className="text-2xl font-bold text-blue-700">{selectedItem.iftaMiles.toLocaleString()}</p>
+
+                      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                        <label className="text-xs font-semibold text-green-900 uppercase tracking-wide mb-1 block">Total Miles</label>
+                        <p className="text-3xl font-bold text-green-700">{selectedItem.totalMiles.toLocaleString()}</p>
                       </div>
                     </div>
-                  </div>
-                </>
-              )}
-            </div>
 
-            <div className="sticky bottom-0 bg-card p-4 border-t border-theme rounded-b-xl flex justify-end">
-              <button
-                onClick={() => setShowDetailModal(false)}
-                className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transform transition-all duration-200"
-              >
-                Close
-              </button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-4 border border-cyan-200">
+                        <label className="text-xs font-semibold text-cyan-900 uppercase tracking-wide mb-2 block">Vehicle</label>
+                        <p className="text-lg font-bold text-cyan-900">
+                          {selectedItem.vehicle?.plateNumber || selectedItem.vehicle?.internalId || 'N/A'}
+                        </p>
+                        {selectedItem.vehicle?.make && selectedItem.vehicle?.model && (
+                          <p className="text-sm text-cyan-700 mt-1">
+                            {selectedItem.vehicle.make} {selectedItem.vehicle.model}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+                        <label className="text-xs font-semibold text-orange-900 uppercase tracking-wide mb-2 block">Driver</label>
+                        <p className="text-lg font-bold text-orange-900">{selectedItem.driver?.name || 'Unknown'}</p>
+                        {selectedItem.driver?.email && (
+                          <p className="text-sm text-orange-700 mt-1">{selectedItem.driver.email}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="bg-card rounded-lg p-4 border border-theme">
+                      <h4 className="text-sm font-bold text-primary mb-3 uppercase tracking-wide">Miles Breakdown</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-card rounded-lg p-3 border border-theme">
+                          <label className="text-xs text-secondary mb-1 block">Total Miles</label>
+                          <p className="text-2xl font-bold text-primary">{selectedItem.totalMiles.toLocaleString()}</p>
+                        </div>
+                        <div className="bg-card rounded-lg p-3 border border-theme">
+                          <label className="text-xs text-secondary mb-1 block">Loaded Miles</label>
+                          <p className="text-2xl font-bold text-green-600">{selectedItem.loadedMiles.toLocaleString()}</p>
+                        </div>
+                        <div className="bg-card rounded-lg p-3 border border-theme">
+                          <label className="text-xs text-secondary mb-1 block">Empty Miles</label>
+                          <p className="text-2xl font-bold text-[#F59E0B]">{selectedItem.emptyMiles.toLocaleString()}</p>
+                        </div>
+                        <div className="bg-card rounded-lg p-3 border border-blue-300 bg-card">
+                          <label className="text-xs text-[#00D1FF] mb-1 block font-semibold">IFTA Miles</label>
+                          <p className="text-2xl font-bold text-blue-700">{selectedItem.iftaMiles.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="sticky bottom-0 bg-card p-4 border-t border-theme rounded-b-xl flex justify-end">
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transform transition-all duration-200"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
     </div >
   );
 }

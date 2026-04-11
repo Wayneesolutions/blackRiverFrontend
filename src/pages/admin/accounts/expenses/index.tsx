@@ -1032,7 +1032,7 @@ const ExpensesPage = () => {
                 setActiveTab('create');
               }}
               className="!text-white px-4 py-2 rounded-lg hover:shadow-lg flex items-center gap-2 transition-all transform hover:scale-105"
-              style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+              style={{ background: 'var(--accent-navyblue)' }}
             >
               <Plus size={20} />
               Add Expense
@@ -1187,7 +1187,7 @@ const ExpensesPage = () => {
               <button
                 onClick={() => handleOpenCategoryModal()}
                 className="px-4 py-2.5 text-sm font-medium !text-white rounded-lg transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg"
-                style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+                style={{ background: 'var(--accent-navyblue)' }}
                 title="Manage Categories"
               >
                 <Settings size={16} />
@@ -1579,7 +1579,7 @@ const ExpensesPage = () => {
                       type="submit"
                       disabled={loading}
                       className="!text-white px-6 py-2 rounded-lg hover:shadow-lg flex items-center gap-2 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+                      style={{ background: 'var(--accent-navyblue)' }}
                     >
                       <Plus size={16} />
                       {loading ? 'Saving...' : editingExpense ? 'Update Expense' : 'Add Expense'}
@@ -1596,275 +1596,277 @@ const ExpensesPage = () => {
                 </form>
               </div>
             )}
-          </div>
-        </div>
-      </div>
+          </div >
+        </div >
+      </div >
 
       {/* View Expense Modal */}
-      {showViewModal && viewingExpense && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-primary">Expense Details</h2>
-              <button
-                onClick={() => {
-                  setShowViewModal(false);
-                  setViewingExpense(null);
-                  setReceiptSignedUrl(null);
-                }}
-                className="text-secondary hover:text-primary transition-colors"
-              >
-                <span className="text-2xl">&times;</span>
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Expense Type and Amount */}
-              <div className="flex items-center justify-between pb-4 border-b border-theme">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <div className="text-4xl">{getTypeIcon(getTypeName(viewingExpense))}</div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
-                      {getCategoryName(viewingExpense)}
-                    </span>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTypeColor(getTypeName(viewingExpense))}`}>
-                      {getTypeName(viewingExpense)}
-                    </span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-secondary">Amount</p>
-                  <p className="text-3xl font-bold text-primary">
-                    ${(viewingExpense.amount || 0).toLocaleString()}
-                  </p>
-                </div>
+      {
+        showViewModal && viewingExpense && (
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-primary">Expense Details</h2>
+                <button
+                  onClick={() => {
+                    setShowViewModal(false);
+                    setViewingExpense(null);
+                    setReceiptSignedUrl(null);
+                  }}
+                  className="text-secondary hover:text-primary transition-colors"
+                >
+                  <span className="text-2xl">&times;</span>
+                </button>
               </div>
 
-              {/* Employee Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-card p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User size={18} className="text-secondary" />
-                    <p className="text-sm font-medium text-secondary">Employee</p>
+              <div className="p-6 space-y-6">
+                {/* Expense Type and Amount */}
+                <div className="flex items-center justify-between pb-4 border-b border-theme">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="text-4xl">{getTypeIcon(getTypeName(viewingExpense))}</div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                        {getCategoryName(viewingExpense)}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTypeColor(getTypeName(viewingExpense))}`}>
+                        {getTypeName(viewingExpense)}
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-lg font-semibold text-primary">
-                    {getEmployeeName(viewingExpense.userId)}
-                  </p>
-                  {getEmployeeRole(viewingExpense.userId) && (
-                    <p className="text-sm text-secondary mt-1">{getEmployeeRole(viewingExpense.userId)}</p>
-                  )}
+                  <div className="text-right">
+                    <p className="text-sm text-secondary">Amount</p>
+                    <p className="text-3xl font-bold text-primary">
+                      ${(viewingExpense.amount || 0).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="bg-card p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Calendar size={18} className="text-secondary" />
-                    <p className="text-sm font-medium text-secondary">Date</p>
-                  </div>
-                  <p className="text-lg font-semibold text-primary">
-                    {viewingExpense.date
-                      ? new Date(viewingExpense.date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })
-                      : 'No date'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Vehicle and Trailer Information */}
-              {(viewingExpense.vehicle || viewingExpense.trailer || (viewingExpense as any).truckId || (viewingExpense as any).trailerId) && (
+                {/* Employee Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {viewingExpense.vehicle && (
-                    <div className="bg-card p-4 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Truck size={18} className="text-secondary" />
-                        <p className="text-sm font-medium text-secondary">Vehicle</p>
-                      </div>
-                      <p className="text-lg font-semibold text-primary">
-                        {typeof viewingExpense.vehicle === 'object' && viewingExpense.vehicle !== null
-                          ? (viewingExpense.vehicle as any).unitNo || (viewingExpense.vehicle as any).unitNumber || (viewingExpense.vehicle as any).internalId || (viewingExpense.vehicle as any).licensePlate || (viewingExpense.vehicle as any).plateNumber || 'Vehicle'
-                          : 'Vehicle'}
-                      </p>
-                      {typeof viewingExpense.vehicle === 'object' && viewingExpense.vehicle !== null && (
-                        <p className="text-sm text-secondary mt-1">
-                          {[(viewingExpense.vehicle as any).make, (viewingExpense.vehicle as any).model].filter(Boolean).join(' ') || 'No details'}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  {viewingExpense.trailer && (
-                    <div className="bg-card p-4 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Package size={18} className="text-secondary" />
-                        <p className="text-sm font-medium text-secondary">Trailer</p>
-                      </div>
-                      <p className="text-lg font-semibold text-primary">
-                        {typeof viewingExpense.trailer === 'object' && viewingExpense.trailer !== null
-                          ? (viewingExpense.trailer as any).unitNo || (viewingExpense.trailer as any).unitNumber || (viewingExpense.trailer as any).internalId || (viewingExpense.trailer as any).licensePlate || (viewingExpense.trailer as any).plateNumber || 'Trailer'
-                          : 'Trailer'}
-                      </p>
-                      {typeof viewingExpense.trailer === 'object' && viewingExpense.trailer !== null && (
-                        <p className="text-sm text-secondary mt-1">
-                          {[(viewingExpense.trailer as any).make, (viewingExpense.trailer as any).model].filter(Boolean).join(' ') || 'No details'}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Description */}
-              {viewingExpense.description && (
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <FileText size={18} className="text-secondary" />
-                    <p className="text-sm font-medium text-secondary">Description</p>
-                  </div>
-                  <p className="text-primary bg-card p-4 rounded-lg">
-                    {viewingExpense.description}
-                  </p>
-                </div>
-              )}
-
-              {/* Receipt */}
-              {viewingExpense.receiptUrl && (
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Receipt size={18} className="text-secondary" />
-                    <p className="text-sm font-medium text-secondary">Receipt</p>
-                  </div>
                   <div className="bg-card p-4 rounded-lg">
-                    {loadingReceiptUrl ? (
-                      <div className="text-center py-4">
-                        <p className="text-secondary">Loading receipt...</p>
-                      </div>
-                    ) : receiptSignedUrl ? (
-                      <>
-                        <div className="flex items-center gap-4">
-                          <div className="flex-1">
-                            <p className="text-sm text-secondary mb-1">Receipt Available</p>
-                            <a
-                              href={receiptSignedUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[#00D1FF] hover:text-blue-800 underline text-sm"
-                            >
-                              View Receipt
-                            </a>
-                          </div>
-                          <button
-                            onClick={() => window.open(receiptSignedUrl, '_blank')}
-                            style={{
-                              background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
-                            }}
-                            className=" !text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
-                          >
-                            <Eye size={16} />
-                            Open Receipt
-                          </button>
+                    <div className="flex items-center gap-2 mb-2">
+                      <User size={18} className="text-secondary" />
+                      <p className="text-sm font-medium text-secondary">Employee</p>
+                    </div>
+                    <p className="text-lg font-semibold text-primary">
+                      {getEmployeeName(viewingExpense.userId)}
+                    </p>
+                    {getEmployeeRole(viewingExpense.userId) && (
+                      <p className="text-sm text-secondary mt-1">{getEmployeeRole(viewingExpense.userId)}</p>
+                    )}
+                  </div>
+
+                  <div className="bg-card p-4 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar size={18} className="text-secondary" />
+                      <p className="text-sm font-medium text-secondary">Date</p>
+                    </div>
+                    <p className="text-lg font-semibold text-primary">
+                      {viewingExpense.date
+                        ? new Date(viewingExpense.date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })
+                        : 'No date'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Vehicle and Trailer Information */}
+                {(viewingExpense.vehicle || viewingExpense.trailer || (viewingExpense as any).truckId || (viewingExpense as any).trailerId) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {viewingExpense.vehicle && (
+                      <div className="bg-card p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Truck size={18} className="text-secondary" />
+                          <p className="text-sm font-medium text-secondary">Vehicle</p>
                         </div>
-                        {receiptSignedUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) && (
-                          <div className="mt-4">
-                            <img
-                              src={receiptSignedUrl}
-                              alt="Receipt"
-                              className="max-w-full h-auto rounded-lg border border-theme"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
-                            />
-                          </div>
+                        <p className="text-lg font-semibold text-primary">
+                          {typeof viewingExpense.vehicle === 'object' && viewingExpense.vehicle !== null
+                            ? (viewingExpense.vehicle as any).unitNo || (viewingExpense.vehicle as any).unitNumber || (viewingExpense.vehicle as any).internalId || (viewingExpense.vehicle as any).licensePlate || (viewingExpense.vehicle as any).plateNumber || 'Vehicle'
+                            : 'Vehicle'}
+                        </p>
+                        {typeof viewingExpense.vehicle === 'object' && viewingExpense.vehicle !== null && (
+                          <p className="text-sm text-secondary mt-1">
+                            {[(viewingExpense.vehicle as any).make, (viewingExpense.vehicle as any).model].filter(Boolean).join(' ') || 'No details'}
+                          </p>
                         )}
-                      </>
-                    ) : (
-                      <div className="text-center py-4">
-                        <p className="text-secondary">Failed to load receipt URL</p>
+                      </div>
+                    )}
+                    {viewingExpense.trailer && (
+                      <div className="bg-card p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Package size={18} className="text-secondary" />
+                          <p className="text-sm font-medium text-secondary">Trailer</p>
+                        </div>
+                        <p className="text-lg font-semibold text-primary">
+                          {typeof viewingExpense.trailer === 'object' && viewingExpense.trailer !== null
+                            ? (viewingExpense.trailer as any).unitNo || (viewingExpense.trailer as any).unitNumber || (viewingExpense.trailer as any).internalId || (viewingExpense.trailer as any).licensePlate || (viewingExpense.trailer as any).plateNumber || 'Trailer'
+                            : 'Trailer'}
+                        </p>
+                        {typeof viewingExpense.trailer === 'object' && viewingExpense.trailer !== null && (
+                          <p className="text-sm text-secondary mt-1">
+                            {[(viewingExpense.trailer as any).make, (viewingExpense.trailer as any).model].filter(Boolean).join(' ') || 'No details'}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Timestamps */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-theme">
-                <div>
-                  <p className="text-xs text-secondary mb-1">Created At</p>
-                  <p className="text-sm text-primary">
-                    {(() => {
-                      const createdAt = viewingExpense.createdAt || (viewingExpense as any).createdAt;
-                      if (!createdAt) return 'N/A';
-                      try {
-                        return new Date(createdAt).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        });
-                      } catch (e) {
-                        return 'Invalid Date';
-                      }
-                    })()}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-secondary mb-1">Last Updated</p>
-                  <p className="text-sm text-primary">
-                    {(() => {
-                      const updatedAt = viewingExpense.updatedAt || (viewingExpense as any).updatedAt;
-                      const createdAt = viewingExpense.createdAt || (viewingExpense as any).createdAt;
-                      // If no updatedAt, show createdAt as fallback
-                      const dateToShow = updatedAt || createdAt;
-                      if (!dateToShow) return 'N/A';
-                      try {
-                        return new Date(dateToShow).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        });
-                      } catch (e) {
-                        return 'Invalid Date';
-                      }
-                    })()}
-                  </p>
+                {/* Description */}
+                {viewingExpense.description && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText size={18} className="text-secondary" />
+                      <p className="text-sm font-medium text-secondary">Description</p>
+                    </div>
+                    <p className="text-primary bg-card p-4 rounded-lg">
+                      {viewingExpense.description}
+                    </p>
+                  </div>
+                )}
+
+                {/* Receipt */}
+                {viewingExpense.receiptUrl && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Receipt size={18} className="text-secondary" />
+                      <p className="text-sm font-medium text-secondary">Receipt</p>
+                    </div>
+                    <div className="bg-card p-4 rounded-lg">
+                      {loadingReceiptUrl ? (
+                        <div className="text-center py-4">
+                          <p className="text-secondary">Loading receipt...</p>
+                        </div>
+                      ) : receiptSignedUrl ? (
+                        <>
+                          <div className="flex items-center gap-4">
+                            <div className="flex-1">
+                              <p className="text-sm text-secondary mb-1">Receipt Available</p>
+                              <a
+                                href={receiptSignedUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[#00D1FF] hover:text-blue-800 underline text-sm"
+                              >
+                                View Receipt
+                              </a>
+                            </div>
+                            <button
+                              onClick={() => window.open(receiptSignedUrl, '_blank')}
+                              style={{
+                                background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                              }}
+                              className=" !text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
+                            >
+                              <Eye size={16} />
+                              Open Receipt
+                            </button>
+                          </div>
+                          {receiptSignedUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) && (
+                            <div className="mt-4">
+                              <img
+                                src={receiptSignedUrl}
+                                alt="Receipt"
+                                className="max-w-full h-auto rounded-lg border border-theme"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="text-center py-4">
+                          <p className="text-secondary">Failed to load receipt URL</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Timestamps */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-theme">
+                  <div>
+                    <p className="text-xs text-secondary mb-1">Created At</p>
+                    <p className="text-sm text-primary">
+                      {(() => {
+                        const createdAt = viewingExpense.createdAt || (viewingExpense as any).createdAt;
+                        if (!createdAt) return 'N/A';
+                        try {
+                          return new Date(createdAt).toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          });
+                        } catch (e) {
+                          return 'Invalid Date';
+                        }
+                      })()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-secondary mb-1">Last Updated</p>
+                    <p className="text-sm text-primary">
+                      {(() => {
+                        const updatedAt = viewingExpense.updatedAt || (viewingExpense as any).updatedAt;
+                        const createdAt = viewingExpense.createdAt || (viewingExpense as any).createdAt;
+                        // If no updatedAt, show createdAt as fallback
+                        const dateToShow = updatedAt || createdAt;
+                        if (!dateToShow) return 'N/A';
+                        try {
+                          return new Date(dateToShow).toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          });
+                        } catch (e) {
+                          return 'Invalid Date';
+                        }
+                      })()}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 flex items-center justify-end gap-3">
-              <button
-                onClick={() => {
-                  handleEdit(viewingExpense);
-                  setShowViewModal(false);
-                  setViewingExpense(null);
-                  setReceiptSignedUrl(null);
-                }}
-                style={{
-                  background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
-                }}
-                className=" !text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
-              >
-                <Edit size={16} />
-                Edit Expense
-              </button>
-              <button
-                onClick={() => {
-                  setShowViewModal(false);
-                  setViewingExpense(null);
-                  setReceiptSignedUrl(null);
-                }}
-                className="text-secondary hover:text-primary px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
-              >
-                Close
-              </button>
+              {/* Modal Footer */}
+              <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 flex items-center justify-end gap-3">
+                <button
+                  onClick={() => {
+                    handleEdit(viewingExpense);
+                    setShowViewModal(false);
+                    setViewingExpense(null);
+                    setReceiptSignedUrl(null);
+                  }}
+                  style={{
+                    background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)'
+                  }}
+                  className=" !text-white px-4 py-2 rounded-lg  flex items-center gap-2 transition-colors"
+                >
+                  <Edit size={16} />
+                  Edit Expense
+                </button>
+                <button
+                  onClick={() => {
+                    setShowViewModal(false);
+                    setViewingExpense(null);
+                    setReceiptSignedUrl(null);
+                  }}
+                  className="text-secondary hover:text-primary px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Notifications Container */}
       <div className="fixed top-4 right-4 z-[200] space-y-3 max-w-md">
@@ -1890,327 +1892,335 @@ const ExpensesPage = () => {
       />
 
       {/* Category Management Modal */}
-      {showCategoryModal && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
-            {/* Header */}
-            <div className="sticky top-0 bg-card border-b border-theme px-6 py-5 rounded-t-2xl flex items-center justify-between z-10">
-              <div>
-                <h2 className="text-2xl font-bold text-primary">
-                  {editingCategory ? 'Edit Category' : 'Add New Category'}
-                </h2>
-                <p className="text-sm text-secondary mt-1">
-                  {editingCategory ? 'Update category details' : 'Create a new expense category'}
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setShowCategoryModal(false);
-                  setEditingCategory(null);
-                  setCategoryFormData({ name: '', status: 'active' });
-                }}
-                className="p-2 text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-6">
-                {/* Form Section */}
-                <div className="bg-card rounded-xl p-5 space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-primary mb-2">
-                      Category Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={categoryFormData.name}
-                      onChange={(e) => setCategoryFormData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="e.g., Office Expenses, Vehicle Expenses, Rental Expenses"
-                      className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                      autoFocus
-                    />
-                  </div>
-
-
-                </div>
-
-                {/* Categories List */}
+      {
+        showCategoryModal && (
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+              {/* Header */}
+              <div className="sticky top-0 bg-card border-b border-theme px-6 py-5 rounded-t-2xl flex items-center justify-between z-10">
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-primary">Existing Categories</h3>
-                    <span className="text-sm text-secondary">{categories.length} {categories.length === 1 ? 'category' : 'categories'}</span>
-                  </div>
-                  <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-                    {categories.map((category) => (
-                      <div
-                        key={category._id}
-                        className="flex items-center justify-between p-4 bg-card border border-theme rounded-lg hover:border-theme hover:shadow-sm transition-all"
-                      >
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-primary">{category.name}</p>
-                          <div className="flex items-center gap-2 mt-1">
-
-                            <span className="text-xs text-secondary">
-                              {expenses.filter(e => e.categoryId === category._id || e.category?._id === category._id).length} expenses
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleOpenCategoryModal(category)}
-                            className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Edit Category"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          <button
-                            onClick={() => setDeleteCategoryConfirm({ show: true, category })}
-                            className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete Category"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    {categories.length === 0 && (
-                      <div className="text-center py-8 bg-card rounded-lg border-2 border-dashed border-theme">
-                        <FileText className="mx-auto mb-2 text-secondary" size={32} />
-                        <p className="text-sm text-secondary">No categories yet</p>
-                        <p className="text-xs text-secondary mt-1">Create your first category above</p>
-                      </div>
-                    )}
-                  </div>
+                  <h2 className="text-2xl font-bold text-primary">
+                    {editingCategory ? 'Edit Category' : 'Add New Category'}
+                  </h2>
+                  <p className="text-sm text-secondary mt-1">
+                    {editingCategory ? 'Update category details' : 'Create a new expense category'}
+                  </p>
                 </div>
+                <button
+                  onClick={() => {
+                    setShowCategoryModal(false);
+                    setEditingCategory(null);
+                    setCategoryFormData({ name: '', status: 'active' });
+                  }}
+                  className="p-2 text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
               </div>
-            </div>
 
-            {/* Footer */}
-            <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowCategoryModal(false);
-                  setEditingCategory(null);
-                  setCategoryFormData({ name: '', status: 'active' });
-                }}
-                className="px-5 py-2.5 text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
-                disabled={savingCategory}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveCategory}
-                disabled={savingCategory || !categoryFormData.name.trim()}
-                className="px-5 py-2.5 !text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md hover:shadow-lg"
-                style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
-              >
-                {savingCategory ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-6">
+                  {/* Form Section */}
+                  <div className="bg-card rounded-xl p-5 space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-primary mb-2">
+                        Category Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={categoryFormData.name}
+                        onChange={(e) => setCategoryFormData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="e.g., Office Expenses, Vehicle Expenses, Rental Expenses"
+                        className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        autoFocus
+                      />
+                    </div>
 
-      {/* Expense Type Management Modal */}
-      {showTypeModal && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
-            {/* Header */}
-            <div className="sticky top-0 bg-card border-b border-theme px-6 py-5 rounded-t-2xl flex items-center justify-between z-10">
-              <div>
-                <h2 className="text-2xl font-bold text-primary">
-                  {editingType ? 'Edit Expense Type' : 'Add New Expense Type'}
-                </h2>
-                <p className="text-sm text-secondary mt-1">
-                  {editingType ? 'Update expense type details' : 'Create a new expense type under a category'}
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setShowTypeModal(false);
-                  setEditingType(null);
-                  setTypeFormData({ name: '', categoryId: '', status: 'active' });
-                }}
-                className="p-2 text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-6">
-                {/* Form Section */}
-                <div className="bg-card rounded-xl p-5 space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-primary mb-2">
-                      Category <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={typeFormData.categoryId}
-                      onChange={async (e) => {
-                        const categoryId = e.target.value;
-                        setTypeFormData(prev => ({ ...prev, categoryId }));
-                        // Fetch types when category is selected
-                        if (categoryId) {
-                          await fetchExpenseTypes(categoryId);
-                        } else {
-                          setExpenseTypes([]);
-                        }
-                      }}
-                      className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                      required
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map(category => (
-                        <option key={category._id} value={category._id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-                    {!typeFormData.categoryId && (
-                      <p className="text-xs text-secondary mt-1.5">Please select a category first to see existing types</p>
-                    )}
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-primary mb-2">
-                      Expense Type Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={typeFormData.name}
-                      onChange={(e) => setTypeFormData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="e.g., Office Rent, Electricity, Fuel, Maintenance"
-                      className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                      autoFocus
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-primary mb-2">
-                      Status
-                    </label>
-                    <select
-                      value={typeFormData.status}
-                      onChange={(e) => setTypeFormData(prev => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
-                      className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Types List for Selected Category */}
-                {typeFormData.categoryId && (
+                  {/* Categories List */}
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-primary">
-                        Types in {categories.find(c => {
-                          const catId = c._id?.toString() || c._id || '';
-                          const formCatId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
-                          return catId === formCatId;
-                        })?.name || 'Selected Category'}
-                      </h3>
-                      <span className="text-sm text-secondary">
+                      <h3 className="text-lg font-semibold text-primary">Existing Categories</h3>
+                      <span className="text-sm text-secondary">{categories.length} {categories.length === 1 ? 'category' : 'categories'}</span>
+                    </div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                      {categories.map((category) => (
+                        <div
+                          key={category._id}
+                          className="flex items-center justify-between p-4 bg-card border border-theme rounded-lg hover:border-theme hover:shadow-sm transition-all"
+                        >
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-primary">{category.name}</p>
+                            <div className="flex items-center gap-2 mt-1">
+
+                              <span className="text-xs text-secondary">
+                                {expenses.filter(e => e.categoryId === category._id || e.category?._id === category._id).length} expenses
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleOpenCategoryModal(category)}
+                              className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Edit Category"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button
+                              onClick={() => setDeleteCategoryConfirm({ show: true, category })}
+                              className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete Category"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      {categories.length === 0 && (
+                        <div className="text-center py-8 bg-card rounded-lg border-2 border-dashed border-theme">
+                          <FileText className="mx-auto mb-2 text-secondary" size={32} />
+                          <p className="text-sm text-secondary">No categories yet</p>
+                          <p className="text-xs text-secondary mt-1">Create your first category above</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowCategoryModal(false);
+                    setEditingCategory(null);
+                    setCategoryFormData({ name: '', status: 'active' });
+                  }}
+                  className="px-5 py-2.5 text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                  disabled={savingCategory}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveCategory}
+                  disabled={savingCategory || !categoryFormData.name.trim()}
+                  className="px-5 py-2.5 !text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md hover:shadow-lg"
+                  style={{
+                    background: 'var(--accent-navyblue)'
+                  }}
+                >
+                  {savingCategory ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
+                </button>
+              </div>
+            </div>
+          </div >
+        )
+      }
+
+      {/* Expense Type Management Modal */}
+      {
+        showTypeModal && (
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+              {/* Header */}
+              <div className="sticky top-0 bg-card border-b border-theme px-6 py-5 rounded-t-2xl flex items-center justify-between z-10">
+                <div>
+                  <h2 className="text-2xl font-bold text-primary">
+                    {editingType ? 'Edit Expense Type' : 'Add New Expense Type'}
+                  </h2>
+                  <p className="text-sm text-secondary mt-1">
+                    {editingType ? 'Update expense type details' : 'Create a new expense type under a category'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowTypeModal(false);
+                    setEditingType(null);
+                    setTypeFormData({ name: '', categoryId: '', status: 'active' });
+                  }}
+                  className="p-2 text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-6">
+                  {/* Form Section */}
+                  <div className="bg-card rounded-xl p-5 space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-primary mb-2">
+                        Category <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={typeFormData.categoryId}
+                        onChange={async (e) => {
+                          const categoryId = e.target.value;
+                          setTypeFormData(prev => ({ ...prev, categoryId }));
+                          // Fetch types when category is selected
+                          if (categoryId) {
+                            await fetchExpenseTypes(categoryId);
+                          } else {
+                            setExpenseTypes([]);
+                          }
+                        }}
+                        className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        required
+                      >
+                        <option value="">Select Category</option>
+                        {categories.map(category => (
+                          <option key={category._id} value={category._id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                      {!typeFormData.categoryId && (
+                        <p className="text-xs text-secondary mt-1.5">Please select a category first to see existing types</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-primary mb-2">
+                        Expense Type Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={typeFormData.name}
+                        onChange={(e) => setTypeFormData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="e.g., Office Rent, Electricity, Fuel, Maintenance"
+                        className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        autoFocus
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-primary mb-2">
+                        Status
+                      </label>
+                      <select
+                        value={typeFormData.status}
+                        onChange={(e) => setTypeFormData(prev => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
+                        className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Types List for Selected Category */}
+                  {typeFormData.categoryId && (
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-primary">
+                          Types in {categories.find(c => {
+                            const catId = c._id?.toString() || c._id || '';
+                            const formCatId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
+                            return catId === formCatId;
+                          })?.name || 'Selected Category'}
+                        </h3>
+                        <span className="text-sm text-secondary">
+                          {expenseTypes.filter(type => {
+                            const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
+                            const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
+                            return typeCategoryId === formCategoryId;
+                          }).length} {expenseTypes.filter(type => {
+                            const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
+                            const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
+                            return typeCategoryId === formCategoryId;
+                          }).length === 1 ? 'type' : 'types'}
+                        </span>
+                      </div>
+                      <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                        {expenseTypes
+                          .filter(type => {
+                            const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
+                            const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
+                            return typeCategoryId === formCategoryId;
+                          })
+                          .map((type) => (
+                            <div
+                              key={type._id}
+                              className="flex items-center justify-between p-4 bg-card border border-theme rounded-lg hover:border-theme hover:shadow-sm transition-all"
+                            >
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-semibold text-primary">{type.name}</p>
+                                  <span className={`px-2 py-0.5 text-xs rounded-full ${type.status === 'active'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-card text-secondary'
+                                    }`}>
+                                    {type.status === 'active' ? 'Active' : 'Inactive'}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleOpenTypeModal(type)}
+                                  className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
+                                  title="Edit Type"
+                                >
+                                  <Edit size={18} />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteTypeConfirm({ show: true, type })}
+                                  className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
+                                  title="Delete Type"
+                                >
+                                  <Trash2 size={18} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                         {expenseTypes.filter(type => {
                           const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
                           const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
                           return typeCategoryId === formCategoryId;
-                        }).length} {expenseTypes.filter(type => {
-                          const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
-                          const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
-                          return typeCategoryId === formCategoryId;
-                        }).length === 1 ? 'type' : 'types'}
-                      </span>
-                    </div>
-                    <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-                      {expenseTypes
-                        .filter(type => {
-                          const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
-                          const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
-                          return typeCategoryId === formCategoryId;
-                        })
-                        .map((type) => (
-                          <div
-                            key={type._id}
-                            className="flex items-center justify-between p-4 bg-card border border-theme rounded-lg hover:border-theme hover:shadow-sm transition-all"
-                          >
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-semibold text-primary">{type.name}</p>
-                                <span className={`px-2 py-0.5 text-xs rounded-full ${type.status === 'active'
-                                  ? 'bg-green-100 text-green-700'
-                                  : 'bg-card text-secondary'
-                                  }`}>
-                                  {type.status === 'active' ? 'Active' : 'Inactive'}
-                                </span>
-                              </div>
+                        }).length === 0 && (
+                            <div className="text-center py-8 bg-card rounded-lg border-2 border-dashed border-theme">
+                              <FileText className="mx-auto mb-2 text-secondary" size={32} />
+                              <p className="text-sm text-secondary">No types in this category yet</p>
+                              <p className="text-xs text-secondary mt-1">Create your first type above</p>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleOpenTypeModal(type)}
-                                className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
-                                title="Edit Type"
-                              >
-                                <Edit size={18} />
-                              </button>
-                              <button
-                                onClick={() => setDeleteTypeConfirm({ show: true, type })}
-                                className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
-                                title="Delete Type"
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      {expenseTypes.filter(type => {
-                        const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
-                        const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
-                        return typeCategoryId === formCategoryId;
-                      }).length === 0 && (
-                          <div className="text-center py-8 bg-card rounded-lg border-2 border-dashed border-theme">
-                            <FileText className="mx-auto mb-2 text-secondary" size={32} />
-                            <p className="text-sm text-secondary">No types in this category yet</p>
-                            <p className="text-xs text-secondary mt-1">Create your first type above</p>
-                          </div>
-                        )}
+                          )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowTypeModal(false);
+                    setEditingType(null);
+                    setTypeFormData({ name: '', categoryId: '', status: 'active' });
+                  }}
+                  className="px-5 py-2.5 text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                  disabled={savingType}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveType}
+                  disabled={savingType || !typeFormData.name.trim() || !typeFormData.categoryId}
+                  className="px-5 py-2.5 !text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md hover:shadow-lg"
+                  style={{
+                    background: 'var(--accent-navyblue)'
+                  }}
+                >
+                  {savingType ? 'Saving...' : editingType ? 'Update Type' : 'Create Type'}
+                </button>
               </div>
             </div>
-
-            {/* Footer */}
-            <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowTypeModal(false);
-                  setEditingType(null);
-                  setTypeFormData({ name: '', categoryId: '', status: 'active' });
-                }}
-                className="px-5 py-2.5 text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
-                disabled={savingType}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveType}
-                disabled={savingType || !typeFormData.name.trim() || !typeFormData.categoryId}
-                className="px-5 py-2.5 !text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md hover:shadow-lg"
-                style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
-              >
-                {savingType ? 'Saving...' : editingType ? 'Update Type' : 'Create Type'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </div >
+        )
+      }
 
       {/* Delete Category Confirmation */}
       <ConfirmationModal
@@ -2235,7 +2245,7 @@ const ExpensesPage = () => {
         cancelText="Cancel"
         type="danger"
       />
-    </div>
+    </div >
   );
 };
 

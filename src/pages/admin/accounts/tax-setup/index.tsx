@@ -703,8 +703,8 @@ export default function TaxConfigurationPage() {
         <div className="bg-card rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}>
-                <Settings className="w-6 h-6 text-white" />
+              <div className="p-3 rounded-lg" style={{ background: 'var(--accent-navyblue)' }}>
+                < Settings className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Tax Configuration Management</h1>
@@ -760,18 +760,20 @@ export default function TaxConfigurationPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <button onClick={handleAddNew} className="flex items-center gap-2 !text-white px-4 py-2 rounded-lg hover:shadow-lg hover:scale-105 transform duration-200 transition-all" style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}>
-                <Plus className="w-4 h-4" />
-                Add New
+              <button onClick={handleAddNew} className="flex items-center gap-2 !text-white px-4 py-2 rounded-lg hover:shadow-lg hover:scale-105 transform duration-200 transition-all" style={{
+                background: 'var(--accent-navyblue)}};>
+                  < Plus className="w-4 h-4" />
+                  Add New
               </button>
-            </div>
           </div>
-
-          {renderTable()}
         </div>
 
-        {/* Add/Edit Modal */}
-        {showAddModal && (
+        {renderTable()}
+      </div>
+
+      {/* Add/Edit Modal */}
+      {
+        showAddModal && (
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="bg-card rounded-lg shadow-xl p-6 w-full max-w-md">
               <div className="flex items-center justify-between mb-4">
@@ -963,183 +965,188 @@ export default function TaxConfigurationPage() {
               </form>
             </div>
           </div>
-        )}
+        )
+      }
 
+    </div >
+
+    {/* Delete Confirmation Modal */ }
+  {
+    showDeleteModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
+          <div className="flex items-center gap-3 mb-4 text-[#A855F7]">
+            <Trash2 className="w-6 h-6" />
+            <h3 className="text-lg font-bold">Confirm Deletion</h3>
+          </div>
+          <p className="text-secondary mb-6">
+            Are you sure you want to delete this item? This action cannot be undone.
+          </p>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => setShowDeleteModal(false)}
+              className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmDelete}
+              className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+              style={{
+                boxShadow: '0 4px 6px -1px rgba(220, 38, 38, 0.3)'
+              }}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
       </div>
+    )
+  }
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
-            <div className="flex items-center gap-3 mb-4 text-[#A855F7]">
-              <Trash2 className="w-6 h-6" />
-              <h3 className="text-lg font-bold">Confirm Deletion</h3>
-            </div>
-            <p className="text-secondary mb-6">
-              Are you sure you want to delete this item? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-                style={{
-                  boxShadow: '0 4px 6px -1px rgba(220, 38, 38, 0.3)'
-                }}
-              >
-                Delete
-              </button>
-            </div>
+  {/* Detail View Modal */ }
+  {
+    showDetailModal && selectedItem && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="bg-card rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-primary">
+              {selectedItemType === 'ifta' && 'IFTA Rate Details'}
+              {selectedItemType === 'sales' && 'Sales Tax Rule Details'}
+              {selectedItemType === 'payroll' && 'Payroll Tax Formula Details'}
+              {selectedItemType === 'vendor' && 'Vendor Tax Details'}
+            </h2>
+            <button
+              onClick={() => {
+                setShowDetailModal(false);
+                setSelectedItem(null);
+                setSelectedItemType(null);
+              }}
+              className="text-secondary hover:text-secondary transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
-        </div>
-      )}
 
-      {/* Detail View Modal */}
-      {showDetailModal && selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-card rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-primary">
-                {selectedItemType === 'ifta' && 'IFTA Rate Details'}
-                {selectedItemType === 'sales' && 'Sales Tax Rule Details'}
-                {selectedItemType === 'payroll' && 'Payroll Tax Formula Details'}
-                {selectedItemType === 'vendor' && 'Vendor Tax Details'}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setSelectedItem(null);
-                  setSelectedItemType(null);
-                }}
-                className="text-secondary hover:text-secondary transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <div className="p-6">
-              {/* IFTA Rate Details */}
-              {selectedItemType === 'ifta' && (
-                <div className="space-y-6">
-                  <div className="bg-card p-4 rounded-lg border border-blue-200">
-                    <label className="text-sm font-medium text-blue-900 mb-1 block">Jurisdiction (State/Province)</label>
-                    <p className="text-2xl font-semibold text-blue-700">{(selectedItem as IftaRate).jurisdiction}</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <label className="text-sm font-medium text-green-900 mb-1 block">Fuel Tax Rate</label>
-                      <p className="text-3xl font-bold text-green-700">${(selectedItem as IftaRate).rate}/gal</p>
-                    </div>
-                    <div className="bg-card p-4 rounded-lg border border-purple-200">
-                      <label className="text-sm font-medium text-purple-900 mb-1 block">Effective Date</label>
-                      <p className="text-xl font-semibold text-purple-700">{(selectedItem as IftaRate).effectiveDate}</p>
-                    </div>
-                  </div>
+          <div className="p-6">
+            {/* IFTA Rate Details */}
+            {selectedItemType === 'ifta' && (
+              <div className="space-y-6">
+                <div className="bg-card p-4 rounded-lg border border-blue-200">
+                  <label className="text-sm font-medium text-blue-900 mb-1 block">Jurisdiction (State/Province)</label>
+                  <p className="text-2xl font-semibold text-blue-700">{(selectedItem as IftaRate).jurisdiction}</p>
                 </div>
-              )}
 
-              {/* Sales Tax Rule Details */}
-              {selectedItemType === 'sales' && (
-                <div className="space-y-6">
-                  <div className="bg-card p-4 rounded-lg border border-blue-200">
-                    <label className="text-sm font-medium text-blue-900 mb-1 block">Rule Name</label>
-                    <p className="text-2xl font-semibold text-blue-700">{(selectedItem as SalesTaxRule).name}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <label className="text-sm font-medium text-green-900 mb-1 block">Fuel Tax Rate</label>
+                    <p className="text-3xl font-bold text-green-700">${(selectedItem as IftaRate).rate}/gal</p>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-card p-4 rounded-lg border border-purple-200">
-                      <label className="text-sm font-medium text-purple-900 mb-2 block">Tax Type</label>
-                      <span className="inline-block px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold border-2 border-purple-300">
-                        {(selectedItem as SalesTaxRule).type}
-                      </span>
-                    </div>
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <label className="text-sm font-medium text-green-900 mb-2 block">QuickBooks Sync</label>
-                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as SalesTaxRule).qbSync
-                          ? 'bg-green-100 text-green-800 border-green-300'
-                          : 'bg-red-100 text-red-800 border-red-300'
-                        }`}>
-                        {(selectedItem as SalesTaxRule).qbSync ? 'Enabled' : 'Disabled'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Payroll Tax Formula Details */}
-              {selectedItemType === 'payroll' && (
-                <div className="space-y-6">
-                  <div className="bg-card p-4 rounded-lg border border-blue-200">
-                    <label className="text-sm font-medium text-blue-900 mb-1 block">Income Tax Bracket</label>
-                    <p className="text-2xl font-semibold text-blue-700">{(selectedItem as PayrollTaxFormula).bracket}</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <label className="text-sm font-medium text-green-900 mb-1 block">Tax Rate</label>
-                      <p className="text-3xl font-bold text-green-700">{(selectedItem as PayrollTaxFormula).rate}%</p>
-                    </div>
-                    <div className="bg-card p-4 rounded-lg border border-purple-200">
-                      <label className="text-sm font-medium text-purple-900 mb-2 block">Classification</label>
-                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as PayrollTaxFormula).classification === 'Employee'
-                          ? 'bg-blue-100 text-blue-800 border-blue-300'
-                          : 'bg-purple-100 text-purple-800 border-purple-300'
-                        }`}>
-                        {(selectedItem as PayrollTaxFormula).classification}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Vendor Tax Details */}
-              {selectedItemType === 'vendor' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-card p-4 rounded-lg border border-blue-200">
-                      <label className="text-sm font-medium text-blue-900 mb-1 block">Tax Rate Name</label>
-                      <p className="text-xl font-semibold text-blue-700">{(selectedItem as VendorTax).taxName}</p>
-                    </div>
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <label className="text-sm font-medium text-green-900 mb-1 block">Rate</label>
-                      <p className="text-2xl font-bold text-green-700">{(selectedItem as VendorTax).rate}%</p>
-                    </div>
-                  </div>
-
                   <div className="bg-card p-4 rounded-lg border border-purple-200">
-                    <label className="text-sm font-medium text-purple-900 mb-1 block">Tax Payable Account</label>
-                    <p className="text-lg font-semibold text-purple-700">{(selectedItem as VendorTax).payableAccount}</p>
-                  </div>
-
-                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                    <label className="text-sm font-medium text-indigo-900 mb-1 block">Tax Expense Account</label>
-                    <p className="text-lg font-semibold text-indigo-700">{(selectedItem as VendorTax).expenseAccount}</p>
+                    <label className="text-sm font-medium text-purple-900 mb-1 block">Effective Date</label>
+                    <p className="text-xl font-semibold text-purple-700">{(selectedItem as IftaRate).effectiveDate}</p>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4">
-              <button
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setSelectedItem(null);
-                  setSelectedItemType(null);
-                }}
-                className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
-              >
-                Close
-              </button>
-            </div>
+            {/* Sales Tax Rule Details */}
+            {selectedItemType === 'sales' && (
+              <div className="space-y-6">
+                <div className="bg-card p-4 rounded-lg border border-blue-200">
+                  <label className="text-sm font-medium text-blue-900 mb-1 block">Rule Name</label>
+                  <p className="text-2xl font-semibold text-blue-700">{(selectedItem as SalesTaxRule).name}</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-card p-4 rounded-lg border border-purple-200">
+                    <label className="text-sm font-medium text-purple-900 mb-2 block">Tax Type</label>
+                    <span className="inline-block px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold border-2 border-purple-300">
+                      {(selectedItem as SalesTaxRule).type}
+                    </span>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <label className="text-sm font-medium text-green-900 mb-2 block">QuickBooks Sync</label>
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as SalesTaxRule).qbSync
+                      ? 'bg-green-100 text-green-800 border-green-300'
+                      : 'bg-red-100 text-red-800 border-red-300'
+                      }`}>
+                      {(selectedItem as SalesTaxRule).qbSync ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Payroll Tax Formula Details */}
+            {selectedItemType === 'payroll' && (
+              <div className="space-y-6">
+                <div className="bg-card p-4 rounded-lg border border-blue-200">
+                  <label className="text-sm font-medium text-blue-900 mb-1 block">Income Tax Bracket</label>
+                  <p className="text-2xl font-semibold text-blue-700">{(selectedItem as PayrollTaxFormula).bracket}</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <label className="text-sm font-medium text-green-900 mb-1 block">Tax Rate</label>
+                    <p className="text-3xl font-bold text-green-700">{(selectedItem as PayrollTaxFormula).rate}%</p>
+                  </div>
+                  <div className="bg-card p-4 rounded-lg border border-purple-200">
+                    <label className="text-sm font-medium text-purple-900 mb-2 block">Classification</label>
+                    <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as PayrollTaxFormula).classification === 'Employee'
+                      ? 'bg-blue-100 text-blue-800 border-blue-300'
+                      : 'bg-purple-100 text-purple-800 border-purple-300'
+                      }`}>
+                      {(selectedItem as PayrollTaxFormula).classification}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Vendor Tax Details */}
+            {selectedItemType === 'vendor' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-card p-4 rounded-lg border border-blue-200">
+                    <label className="text-sm font-medium text-blue-900 mb-1 block">Tax Rate Name</label>
+                    <p className="text-xl font-semibold text-blue-700">{(selectedItem as VendorTax).taxName}</p>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <label className="text-sm font-medium text-green-900 mb-1 block">Rate</label>
+                    <p className="text-2xl font-bold text-green-700">{(selectedItem as VendorTax).rate}%</p>
+                  </div>
+                </div>
+
+                <div className="bg-card p-4 rounded-lg border border-purple-200">
+                  <label className="text-sm font-medium text-purple-900 mb-1 block">Tax Payable Account</label>
+                  <p className="text-lg font-semibold text-purple-700">{(selectedItem as VendorTax).payableAccount}</p>
+                </div>
+
+                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                  <label className="text-sm font-medium text-indigo-900 mb-1 block">Tax Expense Account</label>
+                  <p className="text-lg font-semibold text-indigo-700">{(selectedItem as VendorTax).expenseAccount}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4">
+            <button
+              onClick={() => {
+                setShowDetailModal(false);
+                setSelectedItem(null);
+                setSelectedItemType(null);
+              }}
+              className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
+            >
+              Close
+            </button>
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    )
+  }
+    </div >
   );
 }

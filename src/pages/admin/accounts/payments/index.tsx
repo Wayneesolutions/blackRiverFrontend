@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import { Search, Plus, Filter, Download, DollarSign, CreditCard, Calendar, CheckCircle, Clock, AlertCircle, MoreHorizontal } from 'lucide-react';
 
 export default function PaymentsPage() {
@@ -72,7 +72,7 @@ export default function PaymentsPage() {
             </div>
             <button
               className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 text-white rounded-lg transition-all flex items-center gap-2"
-              style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+              style={{background:'var(--accent-navyblue)}};
             >
               <Plus className="w-4 h-4" />
               Record Payment
@@ -211,6 +211,6 @@ export default function PaymentsPage() {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }

@@ -2471,7 +2471,9 @@ const InvoiceManagement: React.FC = () => {
                                 <button
                                     onClick={() => setActiveTab('create')}
                                     className="px-4 py-2 rounded-lg transition-all flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white"
-                                    style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+                                    style={{
+                                        background: 'var(--accent-navyblue)'
+                                    }}
                                 >
                                     <Plus className="h-4 w-4" />
                                     New Invoice
@@ -2483,7 +2485,7 @@ const InvoiceManagement: React.FC = () => {
 
                 {renderContent()}
             </div>
-        </div>
+        </div >
     );
 };
 

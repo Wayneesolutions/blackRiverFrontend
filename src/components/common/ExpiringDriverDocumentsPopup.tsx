@@ -173,8 +173,8 @@ const ExpiringDriverDocumentsPopup: React.FC<ExpiringDriverDocumentsPopupProps> 
                           {getUrgencyIcon(daysUntilExpiry)}
                           <h3 className="font-semibold text-primary text-sm">{doc.documentType}</h3>
                           <span className={`text-xs px-2 py-1 rounded-full font-medium ${daysUntilExpiry <= 7 ? 'bg-red-100 text-red-700' :
-                              daysUntilExpiry <= 14 ? 'bg-orange-100 text-orange-700' :
-                                'bg-yellow-100 text-yellow-700'
+                            daysUntilExpiry <= 14 ? 'bg-orange-100 text-orange-700' :
+                              'bg-yellow-100 text-yellow-700'
                             }`}>
                             {daysUntilExpiry} day{daysUntilExpiry !== 1 ? 's' : ''} left
                           </span>
@@ -226,7 +226,7 @@ const ExpiringDriverDocumentsPopup: React.FC<ExpiringDriverDocumentsPopupProps> 
                   onViewDocuments();
                   handleClose();
                 }}
-                style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+                style={{ background: 'var(--accent-navyblue)' }}
                 className="flex items-center gap-1 px-3 py-1  text-white rounded-lg  transition-colors text-xs font-medium"
               >
                 <ExternalLink className="w-3 h-3" />
@@ -236,7 +236,7 @@ const ExpiringDriverDocumentsPopup: React.FC<ExpiringDriverDocumentsPopupProps> 
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

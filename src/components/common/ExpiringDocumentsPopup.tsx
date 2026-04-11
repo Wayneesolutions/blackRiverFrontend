@@ -155,7 +155,7 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
   if (!isOpen) {
     return null;
   }
-  
+
   // If showOnlyOnce is enabled and already shown, don't show again
   if (showOnlyOnce && hasShown) {
     console.log('⏸️ Popup: Not showing - already shown today (showOnlyOnce=true)');
@@ -167,7 +167,7 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
     console.log('⏸️ Popup: Not showing - no expiring documents found');
     return null;
   }
-  
+
   console.log('✅ Popup: Rendering popup', {
     isOpen,
     loading,
@@ -228,8 +228,8 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
                           {getUrgencyIcon(daysUntilExpiry)}
                           <h3 className="font-semibold text-primary text-sm">{doc.documentType}</h3>
                           <span className={`text-xs px-2 py-1 rounded-full font-medium ${daysUntilExpiry <= 7 ? 'bg-red-100 text-red-700' :
-                              daysUntilExpiry <= 14 ? 'bg-orange-100 text-orange-700' :
-                                'bg-yellow-100 text-yellow-700'
+                            daysUntilExpiry <= 14 ? 'bg-orange-100 text-orange-700' :
+                              'bg-yellow-100 text-yellow-700'
                             }`}>
                             {daysUntilExpiry} day{daysUntilExpiry !== 1 ? 's' : ''} left
                           </span>
@@ -283,7 +283,9 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
                 navigate('/Management/documents');
                 handleClose();
               }}
-              style={{ background: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)' }}
+              style={{
+                background: 'var(--accent-navyblue)'
+              }}
               className="flex items-center gap-1 px-3 py-2  rounded-lg  transition-colors text-xs font-medium text-white"
             >
               <ExternalLink className="w-3 h-3 text-white stroke-white" />
@@ -292,7 +294,7 @@ const ExpiringDocumentsPopup: React.FC<ExpiringDocumentsPopupProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
