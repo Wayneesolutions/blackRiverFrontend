@@ -35,7 +35,7 @@ const statusBadge = (status: string) => {
     "in-progress": "bg-blue-100 text-blue-800",
     pending: "bg-amber-100 text-amber-800",
   };
-  const style = styles[s] || "bg-card text-primary";
+  const style = styles[s] || "bg-card text-headings";
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${style}`}>
       {status || "—"}
@@ -49,9 +49,9 @@ const priorityBadge = (priority: string) => {
     urgent: "bg-red-100 text-red-800",
     high: "bg-orange-100 text-orange-800",
     medium: "bg-yellow-100 text-yellow-800",
-    low: "bg-card text-primary",
+    low: "bg-card text-headings",
   };
-  const style = styles[p] || "bg-card text-primary";
+  const style = styles[p] || "bg-card text-headings";
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${style}`}>
       {priority || "—"}
@@ -369,15 +369,15 @@ const Services: React.FC = () => {
   return (
     <div className="p-6 bg-main min-h-screen">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-primary">Assigned Services</h1>
+        <h1 className="text-xl font-bold text-headings">Assigned Services</h1>
         <p className="text-sm text-secondary mt-1">Services assigned to you</p>
       </div>
 
       {notification && (
         <div
           className={`mb-4 rounded-lg border px-4 py-3 ${notification.type === "success"
-              ? "border-green-200 bg-green-50 text-green-800"
-              : "border-red-200 bg-card text-red-800"
+            ? "border-green-200 bg-green-50 text-green-800"
+            : "border-red-200 bg-card text-red-800"
             }`}
         >
           {notification.message}
@@ -396,10 +396,10 @@ const Services: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-secondary uppercase tracking-wide">Total</p>
-              <p className="text-2xl font-bold text-primary mt-1">{stats.total}</p>
+              <p className="text-2xl font-bold text-headings mt-1">{stats.total}</p>
             </div>
-            <div className="p-3 rounded-lg bg-blue-100">
-              <FileText className="text-[#00D1FF]" size={24} />
+            <div className="p-3 rounded-lg ">
+              <FileText className="text-[var(--accent-navyblue)]" size={24} />
             </div>
           </div>
         </div>
@@ -409,8 +409,8 @@ const Services: React.FC = () => {
               <p className="text-xs font-medium text-secondary uppercase tracking-wide">Pending</p>
               <p className="text-2xl font-bold text-amber-600 mt-1">{stats.pending}</p>
             </div>
-            <div className="p-3 rounded-lg bg-amber-100">
-              <Clock className="text-amber-600" size={24} />
+            <div className="p-3 rounded-lg ">
+              <Clock className="text-[var(--accent-amber)]" size={24} />
             </div>
           </div>
         </div>
@@ -420,8 +420,8 @@ const Services: React.FC = () => {
               <p className="text-xs font-medium text-secondary uppercase tracking-wide">In Progress</p>
               <p className="text-2xl font-bold text-[#00D1FF] mt-1">{stats.inProgress}</p>
             </div>
-            <div className="p-3 rounded-lg bg-blue-100">
-              <Play className="text-[#00D1FF]" size={24} />
+            <div className="p-3 rounded-lg ">
+              <Play className="text-[var(--accent-blue)]" size={24} />
             </div>
           </div>
         </div>
@@ -431,8 +431,8 @@ const Services: React.FC = () => {
               <p className="text-xs font-medium text-secondary uppercase tracking-wide">Completed</p>
               <p className="text-2xl font-bold text-green-600 mt-1">{stats.completed}</p>
             </div>
-            <div className="p-3 rounded-lg bg-green-100">
-              <CheckCircle className="text-green-600" size={24} />
+            <div className="p-3 rounded-lg ">
+              <CheckCircle className="text-[var(--accent-green)]" size={24} />
             </div>
           </div>
         </div>
@@ -442,7 +442,7 @@ const Services: React.FC = () => {
       <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden mb-6">
         <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-sm font-bold text-primary">Services</h2>
+            <h2 className="text-sm font-bold text-headings">Services</h2>
             <p className="text-xs text-secondary mt-0.5">
               {pagination.totalCount} service{pagination.totalCount !== 1 ? "s" : ""} found
               {pagination.totalPages > 1 && ` • Page ${pagination.page} of ${pagination.totalPages}`}
@@ -493,36 +493,36 @@ const Services: React.FC = () => {
           <table className="min-w-full divide-y divide-theme">
             <thead className="bg-card">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Service Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Unit Number
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Unit Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Make/Model
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Service Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Description
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Priority
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-theme">
+            <tbody className="bg-card divide-y divide-theme divide-white/5">
               {services.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-6 py-12 text-center text-secondary">
@@ -532,10 +532,10 @@ const Services: React.FC = () => {
               ) : (
                 services.map((service) => (
                   <tr key={service._id} className="hover:bg-[rgba(255,255,255,0.03)]">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                       {formatDate(service.serviceDate)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-secondary">
                       {service.unitNumber || "—"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
@@ -578,7 +578,7 @@ const Services: React.FC = () => {
                               handleUpdateStatus(service._id, "completed");
                             }}
                             disabled={updatingStatus === service._id}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-card border border-green-200 rounded-lg hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-[var(--accent-teal)]"
                           >
                             <CheckCircle size={14} />
                             Complete
@@ -589,7 +589,7 @@ const Services: React.FC = () => {
                             e.stopPropagation();
                             setSelectedService(service);
                           }}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-secondary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                         >
                           <FileText size={14} />
                           View
@@ -614,7 +614,7 @@ const Services: React.FC = () => {
                 type="button"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={pagination.page <= 1 || loading}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-headings bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={16} />
                 Previous
@@ -626,7 +626,7 @@ const Services: React.FC = () => {
                 type="button"
                 onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                 disabled={pagination.page >= pagination.totalPages || loading}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-headings bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
                 <ChevronRight size={16} />
@@ -646,7 +646,7 @@ const Services: React.FC = () => {
                   <Wrench className="text-[var(--accent-blue)]" size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-primary">Service Details</h3>
+                  <h3 className="text-lg font-bold text-headings">Service Details</h3>
                   <p className="text-xs text-secondary mt-0.5">
                     Unit {selectedService.unitNumber || "—"} • {formatDate(selectedService.serviceDate)}
                   </p>
@@ -672,62 +672,62 @@ const Services: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-card border border-theme">
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Unit Number</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{selectedService.unitNumber || "—"}</p>
+                  <p className="text-sm font-semibold text-headings mt-0.5">{selectedService.unitNumber || "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Unit Type</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{selectedService.unitType || "—"}</p>
+                  <p className="text-sm font-semibold text-headings mt-0.5">{selectedService.unitType || "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Make/Model</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{selectedService.makeModel || "—"}</p>
+                  <p className="text-sm font-semibold text-headings mt-0.5">{selectedService.makeModel || "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Service Type</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{selectedService.serviceType || "—"}</p>
+                  <p className="text-sm font-semibold text-headings mt-0.5">{selectedService.serviceType || "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Service Date</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{formatDate(selectedService.serviceDate)}</p>
+                  <p className="text-sm font-semibold text-headings mt-0.5">{formatDate(selectedService.serviceDate)}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Due Date</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">{formatDate(selectedService.dueDate)}</p>
+                  <p className="text-sm font-semibold text-headings mt-0.5">{formatDate(selectedService.dueDate)}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Odometer</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">
+                  <p className="text-sm font-semibold text-headings mt-0.5">
                     {selectedService.odometer != null ? selectedService.odometer.toLocaleString() : "—"}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-secondary uppercase tracking-wide">Due Mileage</p>
-                  <p className="text-sm font-semibold text-primary mt-0.5">
+                  <p className="text-sm font-semibold text-headings mt-0.5">
                     {selectedService.dueMileage != null ? selectedService.dueMileage.toLocaleString() : "—"}
                   </p>
                 </div>
                 {selectedService.description && (
                   <div className="col-span-2">
                     <p className="text-xs font-medium text-secondary uppercase tracking-wide">Description</p>
-                    <p className="text-sm text-primary mt-0.5">{selectedService.description}</p>
+                    <p className="text-sm text-headings mt-0.5">{selectedService.description}</p>
                   </div>
                 )}
                 {selectedService.notes && (
                   <div className="col-span-2">
                     <p className="text-xs font-medium text-secondary uppercase tracking-wide">Notes</p>
-                    <p className="text-sm text-primary mt-0.5">{selectedService.notes}</p>
+                    <p className="text-sm text-headings mt-0.5">{selectedService.notes}</p>
                   </div>
                 )}
                 {selectedService.invoiceNumber && (
                   <div>
                     <p className="text-xs font-medium text-secondary uppercase tracking-wide">Invoice Number</p>
-                    <p className="text-sm font-semibold text-primary mt-0.5">{selectedService.invoiceNumber}</p>
+                    <p className="text-sm font-semibold text-headings mt-0.5">{selectedService.invoiceNumber}</p>
                   </div>
                 )}
                 {selectedService.amount != null && (
                   <div>
                     <p className="text-xs font-medium text-secondary uppercase tracking-wide">Amount</p>
-                    <p className="text-sm font-semibold text-primary mt-0.5">
+                    <p className="text-sm font-semibold text-headings mt-0.5">
                       ${selectedService.amount.toFixed(2)}
                     </p>
                   </div>
@@ -740,7 +740,7 @@ const Services: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedService(null)}
-                  className="px-4 py-2 text-sm font-medium text-primary bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
+                  className="px-4 py-2 text-sm font-medium text-headings bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
                 >
                   Close
                 </button>
@@ -756,11 +756,11 @@ const Services: React.FC = () => {
           <div className="bg-card rounded-xl shadow-2xl w-full max-w-3xl my-8 max-h-[90vh] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-gradient-to-r from-[var(--accent-blue)]/5 to-transparent flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-green-100">
-                  <CheckCircle className="text-green-600" size={24} />
+                <div className="p-2 rounded-lg ">
+                  <CheckCircle className="text-[var(--accent-navyblue)]" size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-primary">Complete Service</h3>
+                  <h3 className="text-lg font-bold text-headings">Complete Service</h3>
                   <p className="text-xs text-secondary mt-0.5">
                     Unit {completeModal.unitNumber || "—"} • {completeModal.serviceType || "—"}
                   </p>
@@ -781,7 +781,7 @@ const Services: React.FC = () => {
             <div className="p-6 overflow-y-auto flex-1 space-y-5">
               {/* Add Parts Section */}
               <div className="border border-theme rounded-lg p-4">
-                <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+                <h4 className="text-sm font-semibold text-headings mb-3 flex items-center gap-2">
                   <Package size={18} />
                   Add Parts Used
                 </h4>
@@ -789,13 +789,25 @@ const Services: React.FC = () => {
                   <select
                     value={selectedPartId}
                     onChange={(e) => setSelectedPartId(e.target.value)}
-                    className="flex-1 px-3 py-2 text-sm border border-theme rounded-lg focus:border-[var(--accent-blue)] focus:ring-2 focus:ring-[var(--accent-blue)]/20"
                     disabled={sparePartsLoading}
+                    className="flex-1 px-3 py-2 text-sm border border-theme rounded-lg 
+  bg-[var(--bg-primary)] text-[var(--text-primary)]
+  focus:border-[var(--accent-blue)] 
+  focus:ring-2 focus:ring-[var(--accent-blue)]/20
+  outline-none"
                   >
-                    <option value="">Select a part...</option>
+                    <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="">
+                      Select a part...
+                    </option>
+
                     {spareParts.map((part) => (
-                      <option key={part._id} value={part._id}>
-                        {part.partNumber} - {part.partName} {part.stockQty !== undefined ? `(Stock: ${part.stockQty})` : ""}
+                      <option
+                        key={part._id}
+                        value={part._id}
+                        className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]"
+                      >
+                        {part.partNumber} - {part.partName}{" "}
+                        {part.stockQty !== undefined ? `(Stock: ${part.stockQty})` : ""}
                       </option>
                     ))}
                   </select>
@@ -821,7 +833,7 @@ const Services: React.FC = () => {
                     </div>
                     {completeForm.parts.map((part) => (
                       <div key={part.id} className="grid grid-cols-12 gap-2 items-center py-2 border-b border-theme">
-                        <div className="col-span-4 text-sm text-primary">{part.partName}</div>
+                        <div className="col-span-4 text-sm text-headings">{part.partName}</div>
                         <div className="col-span-2 text-sm text-secondary">{part.partNumber}</div>
                         <div className="col-span-2">
                           <input
@@ -842,7 +854,7 @@ const Services: React.FC = () => {
                             className="w-full px-2 py-1 text-sm border border-theme rounded focus:border-[var(--accent-blue)] focus:ring-1 focus:ring-[var(--accent-blue)]/20"
                           />
                         </div>
-                        <div className="col-span-1 text-sm font-semibold text-primary">
+                        <div className="col-span-1 text-sm font-semibold text-headings">
                           ${((part.quantity || 0) * (part.cost || 0)).toFixed(2)}
                         </div>
                         <div className="col-span-1">
@@ -857,7 +869,7 @@ const Services: React.FC = () => {
                       </div>
                     ))}
                     <div className="pt-2 flex justify-end">
-                      <div className="text-sm font-semibold text-primary">
+                      <div className="text-sm font-semibold text-headings">
                         Parts Total: <span className="text-lg">${partsTotal.toFixed(2)}</span>
                       </div>
                     </div>
@@ -866,7 +878,7 @@ const Services: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-theme bg-gray-50/30 flex-shrink-0">
+            <div className="px-6 py-4 border-t border-theme flex-shrink-0">
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
@@ -882,7 +894,7 @@ const Services: React.FC = () => {
                   type="button"
                   onClick={handleCompleteService}
                   disabled={updatingStatus === completeModal._id}
-                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium text-primary bg-[var(--accent-navyblue)] rounded-lg hover:bg-[var(--accent-green)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {updatingStatus === completeModal._id ? "Completing..." : "Complete Service"}
                 </button>
