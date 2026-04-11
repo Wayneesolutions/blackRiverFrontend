@@ -321,7 +321,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
 
       {/* Count cards - hidden on Completed Orders page */}
       {!isCompletedOnly && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 ">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6  ">
           <div
             onClick={() => { setStatusFilter("all"); setPage(1); }}
             className={`p-4 rounded-lg border-2 cursor-pointer transition ${statusFilter === "all"
@@ -366,12 +366,12 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
 
       {/* Completed count badge - shown only on Completed Orders page */}
       {isCompletedOnly && (
-        <div className="mb-6 p-4 rounded-lg border-2 border-green-500 bg-green-50">
+        <div className="mb-6 p-4 rounded-lg border-2 border-green-500 bg-card">
           <div className="flex items-center gap-2">
             <CheckCircle className="text-green-600" size={20} />
-            <span className="text-sm font-medium text-headings">Completed Orders</span>
+            <span className="text-sm font-medium text-[var(--accent-green)]">Completed Orders</span>
           </div>
-          <p className="text-2xl font-bold text-headings mt-1">{pagination.completedCount}</p>
+          <p className="text-2xl font-bold text-primary mt-1">{pagination.completedCount}</p>
         </div>
       )}
 
