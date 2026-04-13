@@ -874,25 +874,25 @@ const FinanceReport = () => {
                   Consolidated Financial Summary
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                  <div className="p-4 bg-card rounded-lg border-2 border-[var(--accent-green)]">
-                    <div className="text-sm text-secondary mb-1">Accounts Revenue</div>
-                    <div className="text-2xl font-bold text-green-600">{formatCurrency(totalRevenue)}</div>
-                    <div className="text-xs text-secondary mt-1">From invoices</div>
+                  <div className="p-4  rounded-lg border border-theme bg-[var(--accent-green)]/20">
+                    <div className="text-sm text-primary mb-1">Accounts Revenue</div>
+                    <div className="text-2xl font-bold text-primary">{formatCurrency(totalRevenue)}</div>
+                    <div className="text-xs text-primary mt-1">From invoices</div>
                   </div>
-                  <div className="p-4 bg-card rounded-lg border-2 border-[var(--accent-red)]">
-                    <div className="text-sm text-secondary mb-1">Total Expenses</div>
-                    <div className="text-2xl font-bold text-[#A855F7]">{formatCurrency(totalExpenses)}</div>
-                    <div className="text-xs text-secondary mt-1">Operating costs</div>
+                  <div className="p-4  rounded-lg border border-theme bg-[var(--accent-red)]/20">
+                    <div className="text-sm text-primary mb-1">Total Expenses</div>
+                    <div className="text-2xl font-bold text-primary">{formatCurrency(totalExpenses)}</div>
+                    <div className="text-xs text-primary mt-1">Operating costs</div>
                   </div>
-                  <div className="p-4 bg-card rounded-lg border-2 border-[var(--accent-blue)]">
-                    <div className="text-sm text-secondary mb-1">Payroll Costs</div>
-                    <div className="text-2xl font-bold text-[#00D1FF]">{formatCurrency(totalPayroll)}</div>
-                    <div className="text-xs text-secondary mt-1">Employee & driver</div>
+                  <div className="p-4  rounded-lg border border-theme bg-[var(--accent-blue)]/20">
+                    <div className="text-sm text-primary mb-1">Payroll Costs</div>
+                    <div className="text-2xl font-bold text-primary">{formatCurrency(totalPayroll)}</div>
+                    <div className="text-xs text-primary mt-1">Employee & driver</div>
                   </div>
-                  <div className="p-4 bg-card rounded-lg border-2 border-[var(--accent-purple)]">
-                    <div className="text-sm text-secondary mb-1">Net Profit</div>
-                    <div className="text-2xl font-bold text-purple-600">{formatCurrency(totalNetProfit)}</div>
-                    <div className="text-xs text-secondary mt-1">After all costs</div>
+                  <div className="p-4  rounded-lg border border-theme bg-[var(--accent-purple)]/20">
+                    <div className="text-sm text-primary mb-1">Net Profit</div>
+                    <div className="text-2xl font-bold text-primary">{formatCurrency(totalNetProfit)}</div>
+                    <div className="text-xs text-primary mt-1">After all costs</div>
                   </div>
                 </div>
 
@@ -980,14 +980,14 @@ const FinanceReport = () => {
                       <div className="space-y-4">
                         {/* Revenue row */}
                         <div>
-                          <div className="flex justify-between items-center mb-1.5">
+                          <div className="flex justify-between items-center mb-1.5 border border-theme">
                             <div className="flex items-center gap-2">
                               <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
                               <span className="text-xs font-medium text-secondary">Revenue (Baseline)</span>
                             </div>
                             <span className="text-xs font-bold text-green-600">{formatCurrency(totalRevenue)}</span>
                           </div>
-                          <div className="h-7 bg-gray-200 rounded-lg overflow-hidden">
+                          <div className="h-7 bg-[var(--accent-navyblue)]/20 rounded-lg overflow-hidden border border-theme">
                             <div className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-lg flex items-center px-3 transition-all"
                               style={{ width: `${revWidth}%`, minWidth: totalRevenue > 0 ? '30px' : '0' }}>
                               <span className="text-xs font-bold text-headings drop-shadow">100%</span>
@@ -1001,14 +1001,14 @@ const FinanceReport = () => {
                               <div className={`w-2.5 h-2.5 rounded-full ${isOverBudget ? 'bg-red-600' : 'bg-red-400'}`}></div>
                               <span className="text-xs font-medium text-secondary">Total Costs <span className="text-secondary">(Expenses + Payroll)</span></span>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 border border-theme">
                               <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isOverBudget ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
                                 {costPct.toFixed(1)}% of revenue
                               </span>
                               <span className="text-xs font-bold text-[#A855F7]">{formatCurrency(totalCosts)}</span>
                             </div>
                           </div>
-                          <div className="h-7 bg-gray-200 rounded-lg overflow-hidden relative">
+                          <div className="h-7 bg-gray-200 rounded-lg overflow-hidden relative border border-theme">
                             {/* Revenue limit marker */}
                             {isOverBudget && totalRevenue > 0 && (
                               <div className="absolute inset-y-0 border-r-2 border-dashed border-green-600 z-10"
@@ -1016,14 +1016,8 @@ const FinanceReport = () => {
                                 <span className="absolute -top-5 -translate-x-1/2 text-[9px] font-bold text-green-700 whitespace-nowrap">Revenue limit</span>
                               </div>
                             )}
-                            <div className="h-full rounded-lg flex items-center px-3 transition-all"
-                              style={{
-                                width: `${costWidth}%`,
-                                minWidth: totalCosts > 0 ? '30px' : '0',
-                                background: isOverBudget
-                                  ? 'linear-gradient(to right, #f87171, #dc2626)'
-                                  : 'linear-gradient(to right, #fca5a5, #ef4444)'
-                              }}>
+                            <div className="h-full rounded-lg flex items-center px-3 transition-all bg-[var(--accent-red)]/80"
+                            >
                               <span className="text-xs font-bold text-headings drop-shadow">{costPct.toFixed(1)}%</span>
                             </div>
                           </div>
@@ -1082,16 +1076,16 @@ const FinanceReport = () => {
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3  rounded-lg">
-                      <span className="text-sm font-medium text-[var(--accent-green)]">Paid Invoices</span>
-                      <span className="text-lg font-bold text-[var(--accent-green)]">{formatCurrency(invoiceSummary.paidInvoices)}</span>
+                      <span className="text-sm font-medium text-primary">Paid Invoices</span>
+                      <span className="text-lg font-bold text-primary">{formatCurrency(invoiceSummary.paidInvoices)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-card rounded-lg">
-                      <span className="text-sm font-medium text-[var(--accent-green)]">Pending Invoices</span>
-                      <span className="text-lg font-bold text-[var(--accent-green)]">{formatCurrency(invoiceSummary.pendingInvoices)}</span>
+                      <span className="text-sm font-medium text-primary">Pending Invoices</span>
+                      <span className="text-lg font-bold text-primary">{formatCurrency(invoiceSummary.pendingInvoices)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-card rounded-lg">
-                      <span className="text-sm font-medium text-[var(--accent-purple)]">Overdue Invoices</span>
-                      <span className="text-lg font-bold text-[var(--accent-purple)]">{formatCurrency(invoiceSummary.overdueInvoices)}</span>
+                      <span className="text-sm font-medium text-primary">Overdue Invoices</span>
+                      <span className="text-lg font-bold text-primary">{formatCurrency(invoiceSummary.overdueInvoices)}</span>
                     </div>
                   </div>
                   {dataLoaded && invoiceSummary.paidInvoices === 0 && invoiceSummary.pendingInvoices === 0 && invoiceSummary.overdueInvoices === 0 && (
@@ -1106,16 +1100,16 @@ const FinanceReport = () => {
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-card rounded-lg">
-                      <span className="text-sm font-medium text-[var(--accent-blue)]">Fuel Costs</span>
-                      <span className="text-lg font-bold text-[var(--accent-blue)]">{formatCurrency(expenseBreakdown.fuelCosts)}</span>
+                      <span className="text-sm font-medium text-primary">Fuel Costs</span>
+                      <span className="text-lg font-bold text-primary">{formatCurrency(expenseBreakdown.fuelCosts)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-card rounded-lg">
-                      <span className="text-sm font-medium text-[var(--accent-amber)]">Fleet Invoices</span>
-                      <span className="text-lg font-bold text-[var(--accent-amber)]">{formatCurrency(expenseBreakdown.fleetInvoices)}</span>
+                      <span className="text-sm font-medium text-primary">Fleet Invoices</span>
+                      <span className="text-lg font-bold text-primary">{formatCurrency(expenseBreakdown.fleetInvoices)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-card rounded-lg">
-                      <span className="text-sm font-medium text-[var(--accent-purple)]">Other Expenses</span>
-                      <span className="text-lg font-bold text-[var(--accent-purple)]">{formatCurrency(expenseBreakdown.otherExpenses)}</span>
+                      <span className="text-sm font-medium text-primary">Other Expenses</span>
+                      <span className="text-lg font-bold text-primary">{formatCurrency(expenseBreakdown.otherExpenses)}</span>
                     </div>
                   </div>
                   {dataLoaded && expenseBreakdown.fuelCosts === 0 && expenseBreakdown.fleetInvoices === 0 && expenseBreakdown.otherExpenses === 0 && (
@@ -1314,7 +1308,7 @@ const FinanceReport = () => {
               <div className="bg-card rounded-xl shadow-sm border border-theme">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
                   <h2 className="text-base font-bold text-headings flex items-center gap-2">
-                    <Truck size={18} className="text-[var(--accent-blue)]" />
+                    <Truck size={18} className="text-[var(--accent-navyblue)]" />
                     Truck-wise Financial Performance
                   </h2>
                   <button className="px-3 py-1.5 bg-card hover:bg-gray-200 text-headings rounded-lg text-xs font-medium transition-all flex items-center gap-2">
@@ -1325,7 +1319,7 @@ const FinanceReport = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full" style={{ minWidth: '1100px' }}>
                     <thead>
-                      <tr style={{ backgroundColor: '#42AEEC' }}>
+                      <tr >
                         <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Truck ID</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Truck #</th>
                         <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Revenue</th>
@@ -1342,7 +1336,7 @@ const FinanceReport = () => {
                         <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Fleet Invoice</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-theme divide-white/5">
                       {truckFinancialData.map((truck, idx) => {
                         const profitMargin = truck.revenue > 0 ? (truck.netProfit / truck.revenue) * 100 : 0;
                         const totalCost = truck.expenses + truck.payroll;
@@ -1353,7 +1347,7 @@ const FinanceReport = () => {
                         const shortId = truck.id ? truck.id.slice(-6).toUpperCase() : '—';
                         const dash = <span className="text-gray-300 font-light">—</span>;
                         return (
-                          <tr key={truck.id} className={`hover:bg-blue-50/40 transition-colors ${idx % 2 === 0 ? 'bg-card' : 'bg-gray-50/30'}`}>
+                          <tr key={truck.id} className={`transition-colors ${idx % 2 === 0 ? 'bg-card' : 'bg-[var(--accent-navyblue)]/20'}`}>
                             <td className="px-4 py-3 whitespace-nowrap">
                               <span className="text-xs font-mono bg-card text-[#00D1FF] border border-blue-200 px-2 py-0.5 rounded">#{shortId}</span>
                             </td>
@@ -1662,7 +1656,7 @@ const FinanceReport = () => {
                       marginBottom: '8px',
                       paddingTop: '8px',
                       scrollbarWidth: 'thin',
-                      scrollbarColor: 'var(--accent-blue) #f7fafc' /* Firefox */
+                      /* Firefox */
                     }}
                   >
                     <div className="top-scroll-content" style={{ height: '1px', minWidth: '100%' }}></div>
@@ -1674,7 +1668,7 @@ const FinanceReport = () => {
                   >
                     <table className="w-full" style={{ minWidth: '1400px' }}>
                       <thead>
-                        <tr style={{ backgroundColor: '#42AEEC' }}>
+                        <tr >
                           <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Trip ID</th>
                           <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Trip #</th>
                           <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Truck</th>
@@ -1695,7 +1689,7 @@ const FinanceReport = () => {
                           <th className="px-4 py-3 text-center text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
+                      <tbody className="divide-y divide-theme divide-white/5">
                         {tripFinancialData.map((trip, idx) => {
                           const revenue = Number(trip.revenue) || 0;
                           const fuelCost = Number(trip.fuelCost) || 0;
@@ -1719,20 +1713,20 @@ const FinanceReport = () => {
                             ? `${trip.origin} → ${trip.destination}`
                             : trip.origin !== 'N/A' ? trip.origin : trip.destination !== 'N/A' ? trip.destination : '—';
                           return (
-                            <tr key={trip.id} className={`hover:bg-blue-50/40 transition-colors ${idx % 2 === 0 ? 'bg-card' : 'bg-gray-50/30'}`}>
+                            <tr key={trip.id} className={`hover:bg-[var(--accent-blue)]/20 transition-colors ${idx % 2 === 0 ? 'bg-card' : 'bg-[var(--accent-navyblue)]/20'}`}>
                               <td className="px-4 py-3 whitespace-nowrap">
                                 <span className="text-xs font-mono bg-card text-purple-600 border border-purple-200 px-2 py-0.5 rounded">#{shortId}</span>
                               </td>
-                              <td className="px-4 py-3 text-sm font-bold text-headings whitespace-nowrap">{trip.tripNumber || '—'}</td>
-                              <td className="px-4 py-3 text-sm font-semibold text-headings whitespace-nowrap">{trip.truckNumber || '—'}</td>
-                              <td className="px-4 py-3 text-sm text-headings whitespace-nowrap">{trip.driverName || <span className="text-gray-300">—</span>}</td>
+                              <td className="px-4 py-3 text-sm font-bold text-secondary whitespace-nowrap">{trip.tripNumber || '—'}</td>
+                              <td className="px-4 py-3 text-sm font-semibold text-secondary whitespace-nowrap">{trip.truckNumber || '—'}</td>
+                              <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{trip.driverName || <span className="text-gray-300">—</span>}</td>
                               <td className="px-4 py-3 text-sm text-secondary">
                                 <div className="relative group inline-flex items-center gap-1 min-w-0 cursor-default">
-                                  <span className="text-headings font-medium truncate" style={{ maxWidth: '80px' }}>{trip.origin && trip.origin !== 'N/A' ? trip.origin : <span className="text-gray-300">—</span>}</span>
+                                  <span className="text-secondary font-medium truncate" style={{ maxWidth: '80px' }}>{trip.origin && trip.origin !== 'N/A' ? trip.origin : <span className="text-gray-300">—</span>}</span>
                                   <ArrowUpRight size={12} className="text-[var(--accent-blue)] flex-shrink-0" />
-                                  <span className="text-headings font-medium truncate" style={{ maxWidth: '80px' }}>{trip.destination && trip.destination !== 'N/A' ? trip.destination : <span className="text-gray-300">—</span>}</span>
+                                  <span className="text-secondary font-medium truncate" style={{ maxWidth: '80px' }}>{trip.destination && trip.destination !== 'N/A' ? trip.destination : <span className="text-gray-300">—</span>}</span>
                                   {routeText !== '—' && (
-                                    <div className="absolute z-50 bottom-full left-0 mb-1.5 px-2.5 py-1.5 bg-gray-900 text-headings text-xs rounded-lg whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150">
+                                    <div className="absolute z-50 bottom-full left-0 mb-1.5 px-2.5 py-1.5 bg-gray-900 text-secondary text-xs rounded-lg whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150">
                                       {trip.origin && trip.origin !== 'N/A' ? trip.origin : '—'}
                                       <span className="mx-1.5 text-[var(--accent-blue)]">→</span>
                                       {trip.destination && trip.destination !== 'N/A' ? trip.destination : '—'}
@@ -1740,7 +1734,7 @@ const FinanceReport = () => {
                                   )}
                                 </div>
                               </td>
-                              <td className="px-4 py-3 text-sm text-right text-headings whitespace-nowrap">{hasMiles ? miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-secondary whitespace-nowrap">{hasMiles ? miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
                               <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{formattedStartDate}</td>
                               <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{formattedEndDate}</td>
                               <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 whitespace-nowrap">{formatCurrency(revenue)}</td>
@@ -1792,9 +1786,9 @@ const FinanceReport = () => {
                           const dash = <span className="text-gray-300 font-light">—</span>;
                           return (
                             <tr className="font-bold border-t-2 border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/5">
-                              <td colSpan={4} className="px-4 py-3 text-sm text-headings font-bold whitespace-nowrap">All Trips Total</td>
+                              <td colSpan={4} className="px-4 py-3 text-sm text-secondary font-bold whitespace-nowrap">All Trips Total</td>
                               <td className="px-4 py-3 whitespace-nowrap"></td>
-                              <td className="px-4 py-3 text-sm text-right text-headings font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-secondary font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
                               <td colSpan={2} className="px-4 py-3 whitespace-nowrap"></td>
                               <td className="px-4 py-3 text-sm text-right text-green-700 font-bold whitespace-nowrap">{formatCurrency(totRev)}</td>
                               <td className="px-4 py-3 text-sm text-right text-orange-500 font-bold whitespace-nowrap">{totFuelCost > 0 ? formatCurrency(totFuelCost) : dash}</td>
@@ -1804,7 +1798,7 @@ const FinanceReport = () => {
                               <td className="px-4 py-3 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totRev / totMiles).toFixed(2)}` : dash}</td>
                               <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totCost / totMiles).toFixed(2)}` : dash}</td>
                               <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>{hasTotMiles ? `$${(totProfit / totMiles).toFixed(2)}` : dash}</td>
-                              <td className="px-4 py-3 text-sm text-center font-bold text-headings whitespace-nowrap">{totMargin.toFixed(1)}%</td>
+                              <td className="px-4 py-3 text-sm text-center font-bold text-secondary whitespace-nowrap">{totMargin.toFixed(1)}%</td>
                               <td className="px-4 py-3 whitespace-nowrap"></td>
                             </tr>
                           );
