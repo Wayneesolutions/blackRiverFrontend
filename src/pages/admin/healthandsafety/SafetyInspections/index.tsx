@@ -973,23 +973,23 @@ const SafetyInspections: React.FC = () => {
           <div className="text-2xl font-bold text-blue-900">{stats.scheduled}</div>
         </div>
         <div className="bg-card p-4 rounded-xl shadow-sm border border-yellow-200">
-          <div className="text-sm text-[#00FFA3] mb-1">In Progress</div>
+          <div className="text-sm text-yellow-900 mb-1">In Progress</div>
           <div className="text-2xl font-bold text-yellow-900">{stats.inProgress}</div>
         </div>
-        <div className="bg-green-50 p-4 rounded-xl shadow-sm border border-green-200">
+        <div className="bg-card p-4 rounded-xl shadow-sm border border-green-200">
           <div className="text-sm text-green-600 mb-1">Completed</div>
           <div className="text-2xl font-bold text-green-900">{stats.completed}</div>
         </div>
         <div className="bg-card p-4 rounded-xl shadow-sm border border-red-200">
-          <div className="text-sm text-[#A855F7] mb-1">Overdue</div>
+          <div className="text-sm text-red-900 mb-1">Overdue</div>
           <div className="text-2xl font-bold text-red-900">{stats.overdue}</div>
         </div>
         <div className="bg-card p-4 rounded-xl shadow-sm border border-orange-200">
           <div className="text-sm text-[#F59E0B] mb-1">Action Required</div>
-          <div className="text-2xl font-bold text-orange-900">{stats.actionRequired}</div>
+          <div className="text-2xl font-bold text-[#F59E0B]">{stats.actionRequired}</div>
         </div>
         <div className="bg-card p-4 rounded-xl shadow-sm border border-purple-200">
-          <div className="text-sm text-purple-600 mb-1">Compliant</div>
+          <div className="text-sm text-purple-900 mb-1">Compliant</div>
           <div className="text-2xl font-bold text-purple-900">{stats.compliant}</div>
         </div>
       </div>
