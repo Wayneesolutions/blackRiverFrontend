@@ -578,7 +578,7 @@ const HazardControl = () => {
         <div className="space-y-4">
             {/* Stats Grid - Compact */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <div className="bg-card p-3 rounded-xl shadow-sm border border-theme flex items-center justify-between">
+                <div className="bg-[var(--accent-purple)]/20 p-3 rounded-xl shadow-sm border border-theme flex items-center justify-between">
                     <div>
                         <p className="text-[10px] text-secondary font-semibold uppercase tracking-wider">Critical Risks</p>
                         <h3 className="text-xl font-bold text-primary">
@@ -595,7 +595,7 @@ const HazardControl = () => {
                     </div>
                 </div>
 
-                <div className="bg-card p-3 rounded-xl shadow-sm border border-theme flex items-center justify-between">
+                <div className="bg-[var(--accent-green)]/20 p-3 rounded-xl shadow-sm border border-theme flex items-center justify-between">
                     <div>
                         <p className="text-[10px] text-secondary font-semibold uppercase tracking-wider">Assessment Pending</p>
                         <h3 className="text-xl font-bold text-primary">
@@ -610,7 +610,7 @@ const HazardControl = () => {
                     </div>
                 </div>
 
-                <div className="bg-card p-3 rounded-xl shadow-sm border border-theme flex items-center justify-between">
+                <div className="bg-[var(--accent-amber)]/20 p-3 rounded-xl shadow-sm border border-theme flex items-center justify-between">
                     <div>
                         <p className="text-[10px] text-secondary font-semibold uppercase tracking-wider">In Progress</p>
                         <h3 className="text-xl font-bold text-primary">
@@ -625,7 +625,7 @@ const HazardControl = () => {
                     </div>
                 </div>
 
-                <div className="bg-card p-3 rounded-xl shadow-sm border border-theme flex items-center justify-between">
+                <div className="bg-[var(--accent-green)]/20 p-3 rounded-xl shadow-sm border border-theme flex items-center justify-between">
                     <div>
                         <p className="text-[10px] text-secondary font-semibold uppercase tracking-wider">Resolved</p>
                         <h3 className="text-xl font-bold text-primary">
@@ -635,7 +635,7 @@ const HazardControl = () => {
                             }).length}
                         </h3>
                     </div>
-                    <div className="bg-green-50 p-2 rounded-lg text-green-600">
+                    <div className=" p-2 rounded-lg text-green-600">
                         <FaCheckCircle size={16} />
                     </div>
                 </div>
@@ -728,16 +728,16 @@ const HazardControl = () => {
                     <table className="w-full">
                         <thead className="bg-card border-b border-theme">
                             <tr>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Hazard ID</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Type & Description</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Location</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Risk Matrix</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Corrective Action</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Status</th>
-                                <th className="px-4 py-3 text-center text-[10px] font-bold text-secondary uppercase tracking-wider">Actions</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Hazard ID</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Type & Description</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Location</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Risk Matrix</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Corrective Action</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Status</th>
+                                <th className="px-4 py-3 text-center text-[10px] font-bold text-headings uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-theme ">
                             {loading ? (
                                 <tr>
                                     <td colSpan={7} className="px-6 py-8 text-center text-xs text-secondary">Loading...</td>
@@ -748,7 +748,7 @@ const HazardControl = () => {
                                 </tr>
                             ) : (
                                 filteredHazards.map((hazard) => (
-                                    <tr key={hazard._id} onClick={() => setSelectedHazard(hazard)} className="hover:bg-blue-50/30 transition-colors group cursor-pointer">
+                                    <tr key={hazard._id} onClick={() => setSelectedHazard(hazard)} className="hover:bg-[var(--accent-navyblue)]/20 transition-colors group cursor-pointer">
                                         <td className="px-4 py-3 whitespace-nowrap">
                                             <div className="text-xs font-bold text-primary group-hover:text-[#00D1FF] transition-colors">{hazard.hazardId}</div>
                                             <div className="text-[10px] text-secondary">{hazard.dateReported ? new Date(hazard.dateReported).toLocaleDateString() : 'N/A'}</div>
@@ -799,7 +799,7 @@ const HazardControl = () => {
                                         <td className="px-4 py-3 whitespace-nowrap text-center">
                                             <div className="flex items-center justify-center gap-1">
                                                 <button
-                                                    className="p-1.5 hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-100"
+                                                    className="p-1.5 hover:bg-[var(--accent-navyblue)]/20 rounded-lg transition border border-transparent "
                                                     style={{ color: CUSTOM_COLORS.primary }}
                                                     title="View Details"
                                                     onClick={(e) => {
@@ -810,7 +810,7 @@ const HazardControl = () => {
                                                     <FaEye size={12} />
                                                 </button>
                                                 <button
-                                                    className="p-1.5 hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-100"
+                                                    className="p-1.5 hover:bg-[var(--accent-navyblue)]/20 rounded-lg transition border border-transparent "
                                                     style={{ color: CUSTOM_COLORS.primary }}
                                                     title="Edit"
                                                     onClick={(e) => {
@@ -823,14 +823,14 @@ const HazardControl = () => {
                                                     <FaEdit size={12} />
                                                 </button>
                                                 <button
-                                                    className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded-lg transition border border-transparent hover:border-red-100"
+                                                    className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/20 rounded-lg transition border border-transparent "
                                                     title="Delete"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleDeleteHazard(hazard._id);
                                                     }}
                                                 >
-                                                    <FaTrash size={12} />
+                                                    <FaTrash size={12} className='text-[var(--accent-red)]' />
                                                 </button>
                                             </div>
                                         </td>
@@ -885,7 +885,7 @@ const HazardControl = () => {
                                 </tr>
                             ) : (
                                 observations.map((observation) => (
-                                    <tr key={observation._id} onClick={() => setSelectedHazard(observation as any)} className="hover:bg-blue-50/30 transition-colors group cursor-pointer">
+                                    <tr key={observation._id} onClick={() => setSelectedHazard(observation as any)} className="hover:bg-[var(--accent-navyblue)]/20/30 transition-colors group cursor-pointer">
                                         <td className="px-4 py-3 whitespace-nowrap">
                                             <div className="text-xs font-bold text-primary group-hover:text-[#00D1FF] transition-colors">{observation.observationId}</div>
                                             <div className="text-[10px] text-secondary">{new Date(observation.date).toLocaleDateString()}</div>
@@ -909,7 +909,7 @@ const HazardControl = () => {
                                         <td className="px-4 py-3 whitespace-nowrap text-center">
                                             <div className="flex items-center justify-center gap-1">
                                                 <button
-                                                    className="p-1.5 hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-100"
+                                                    className="p-1.5 hover:bg-[var(--accent-navyblue)]/20 rounded-lg transition border border-transparent hover:border-blue-100"
                                                     style={{ color: CUSTOM_COLORS.primary }}
                                                     title="View Details"
                                                     onClick={(e) => {
@@ -920,7 +920,7 @@ const HazardControl = () => {
                                                     <FaEye size={12} />
                                                 </button>
                                                 <button
-                                                    className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded-lg transition border border-transparent hover:border-red-100"
+                                                    className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/20rounded-lg transition border border-transparent hover:border-red-100"
                                                     title="Delete"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -966,14 +966,14 @@ const HazardControl = () => {
                     <table className="w-full">
                         <thead className="bg-card border-b border-theme">
                             <tr>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Hazard ID</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Type</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Description</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Location</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Severity</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Assigned To</th>
-                                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Status</th>
-                                <th className="px-4 py-3 text-center text-[10px] font-bold text-secondary uppercase tracking-wider">Actions</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Hazard ID</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Type</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Description</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Location</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Severity</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Assigned To</th>
+                                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Status</th>
+                                <th className="px-4 py-3 text-center text-[10px] font-bold text-headings uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -987,7 +987,7 @@ const HazardControl = () => {
                                 </tr>
                             ) : (
                                 filteredTruckingHazards.map((hazard) => (
-                                    <tr key={hazard._id} onClick={() => setSelectedHazard(hazard as any)} className="hover:bg-blue-50/30 transition-colors group cursor-pointer">
+                                    <tr key={hazard._id} onClick={() => setSelectedHazard(hazard as any)} className="hover:bg-[var(--accent-navyblue)]/20/30 transition-colors group cursor-pointer">
                                         <td className="px-4 py-3 whitespace-nowrap">
                                             <div className="text-xs font-bold text-primary group-hover:text-[#00D1FF] transition-colors">{hazard.hazardId}</div>
                                             <div className="text-[10px] text-secondary">{new Date(hazard.dateReported).toLocaleDateString()}</div>
@@ -1013,7 +1013,7 @@ const HazardControl = () => {
                                         <td className="px-4 py-3 whitespace-nowrap text-center">
                                             <div className="flex items-center justify-center gap-1">
                                                 <button
-                                                    className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition border border-transparent hover:border-blue-100"
+                                                    className="p-1.5 text-[#00D1FF] hover:bg-[var(--accent-navyblue)]/20 rounded-lg transition border border-transparent hover:border-blue-100"
                                                     title="Edit"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -1026,7 +1026,7 @@ const HazardControl = () => {
                                                     <FaEdit size={12} />
                                                 </button>
                                                 <button
-                                                    className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded-lg transition border border-transparent hover:border-red-100"
+                                                    className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/20rounded-lg transition border border-transparent hover:border-red-100"
                                                     title="Delete"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -1777,7 +1777,7 @@ const HazardControl = () => {
             <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div className="bg-card rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                     <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex justify-between items-center">
-                        <h2 className="text-2xl font-bold text-primary">Hazard Details: {selectedHazard.hazardId}</h2>
+                        <h2 className="text-2xl font-bold text-headings">Hazard Details: {selectedHazard.hazardId}</h2>
                         <button
                             onClick={() => setSelectedHazard(null)}
                             className="p-2 text-secondary hover:text-secondary rounded-lg transition"
@@ -1861,16 +1861,16 @@ const HazardControl = () => {
     };
 
     return (
-        <div className="min-h-screen pb-10 flex flex-col relative" style={{ backgroundColor: CUSTOM_COLORS.background }}>
+        <div className="min-h-screen pb-10 flex flex-col relative bg-main" >
 
 
             <div className="flex-1 w-full mx-auto px-4 pt-6 relative z-10">
                 <div className="mb-6 flex justify-between items-end">
                     <div>
-                        <h1 className="text-2xl font-bold text-black mb-1">
+                        <h1 className="text-2xl font-bold text-primary mb-1">
                             Inspections & Hazards
                         </h1>
-                        <p className="text-black text-xs font-medium opacity-90">Manage safety inspections, hazard reporting, and driver observations</p>
+                        <p className="text-secondary text-xs font-medium opacity-90">Manage safety inspections, hazard reporting, and driver observations</p>
                     </div>
                     <button
                         onClick={handleExportReport}
