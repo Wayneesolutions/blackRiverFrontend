@@ -327,6 +327,7 @@ export default function ReceiptsFinancialNotes() {
       change: `+${receiptStats.thisWeekCount} this week`,
       icon: Receipt,
       color: 'blue',
+      textColor: 'var(--accent-blue)',
       // bgColor: '#E3F2FD',
       // borderColor: '#BBDEFB',
       // textColor: '#016ab2',
@@ -338,6 +339,7 @@ export default function ReceiptsFinancialNotes() {
       change: 'Last 7 days',
       icon: DollarSign,
       color: 'green',
+      textColor: 'var(--accent-green)',
       // bgColor: '#E8F5E9',
       // borderColor: '#C8E6C9',
       // textColor: '#016ab2',
@@ -349,6 +351,7 @@ export default function ReceiptsFinancialNotes() {
       change: `${noteStats.recentCount} recent`,
       icon: FileText,
       color: 'purple',
+      textColor: 'var(--accent-purple)',
       // bgColor: '#F3E5F5',
       // borderColor: '#E1BEE7',
       // textColor: '#016ab2',
@@ -360,6 +363,7 @@ export default function ReceiptsFinancialNotes() {
       change: 'Needs attention',
       icon: Eye,
       color: 'orange',
+      textColor: 'var(--accent-orange)',
       // bgColor: '#FFF3E0',
       // borderColor: '#FFE0B2',
       // textColor: '#016ab2',
@@ -650,23 +654,23 @@ export default function ReceiptsFinancialNotes() {
           {summaryCards.map((card, index) => {
             const Icon = card.icon;
             return (
-              <div key={index} className={`rounded-lg shadow-sm p-6 border ${card.color === 'blue' ? 'bg-[#E3F2FD] border-blue-100' :
-                card.color === 'green' ? 'bg-[#E8F5E9] border-green-100' :
-                  card.color === 'purple' ? 'bg-[#F3E5F5] border-purple-100' :
-                    'bg-[#FFF3E0] border-orange-100'
+              <div key={index} className={`rounded-lg shadow-sm p-6 border ${card.color === 'blue' ? 'bg-[var(--accent-blue)]/20 border-[var(--accent-blue)]/20' :
+                card.color === 'green' ? 'bg-[var(--accent-green)]/20 border-[var(--accent-green)]/20' :
+                  card.color === 'purple' ? 'bg-[var(--accent-purple)]/20 border-[var(--accent-purple)]/20' :
+                    'bg-[var(--accent-orange)]/20 border-[var(--accent-orange)]/20'
                 }`}>
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-card`}>
+                  <div className={`p-3 rounded-lg `}>
                     <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[var(--accent-blue)]' :
-                      card.color === 'green' ? 'text-[rgba(0,209,255,0.15)]' :
-                        card.color === 'purple' ? 'text-[var(--accent-blue)]' :
-                          'text-orange-500' // Keeping orange logic or similar
+                      card.color === 'green' ? 'text-[var(--accent-green)]' :
+                        card.color === 'purple' ? 'text-[var(--accent-purple)]' :
+                          'text-[var(--accent-orange)]' // Keeping orange logic or similar
                       }`} />
                   </div>
-                  <span className="text-sm text-[#063f6f] font-medium">{card.change}</span>
+                  <span className={`text-sm font-medium text-[${card.textColor}]`}>{card.change}</span>
                 </div>
-                <h3 className="text-[#063f6f] text-sm font-medium mb-1">{card.title}</h3>
-                <p className="text-2xl font-bold text-[#016ab2]">{card.value}</p>
+                <h3 className={`text-sm font-medium mb-1 text-[${card.textColor}]`}>{card.title}</h3>
+                <p className={`text-2xl font-bold text-[${card.textColor}]`}>{card.value}</p>
               </div>
             );
           })}
@@ -692,10 +696,20 @@ export default function ReceiptsFinancialNotes() {
                   <select
                     value={selectedExpenseType}
                     onChange={(e) => setSelectedExpenseType(e.target.value)}
-                    className="px-4 py-2 border border-theme rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-4 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
                   >
-                    {expenseTypes.map(type => (
-                      <option key={type} value={type}>{type}</option>
+                    {expenseTypes.map((type) => (
+                      <option
+                        key={type}
+                        value={type}
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        {type}
+                      </option>
                     ))}
                   </select>
                 )}
@@ -732,7 +746,7 @@ export default function ReceiptsFinancialNotes() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-theme">
+                  <tbody className="bg-card divide-y divide-theme divide-white/5">
                     {filteredReceipts.map(receipt => (
                       <tr
                         key={receipt._id}
@@ -837,15 +851,15 @@ export default function ReceiptsFinancialNotes() {
                 <table className="w-full">
                   <thead className="bg-card border-b border-theme">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Date & Time</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">User</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Note Title</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Note Content</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Linked Transaction</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Date & Time</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">User</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Note Title</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Note Content</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Linked Transaction</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-theme">
+                  <tbody className="bg-card divide-y divide-theme divide-white/5">
                     {filteredNotes.map(note => (
                       <tr
                         key={note._id}
@@ -864,7 +878,7 @@ export default function ReceiptsFinancialNotes() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                           <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-[#00D1FF]" />
+                            <User className="w-4 h-4 text-headings" />
                             {note.user}
                           </div>
                         </td>
@@ -900,14 +914,14 @@ export default function ReceiptsFinancialNotes() {
                               className="p-1 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded"
                               title="Edit"
                             >
-                              <Edit className="w-4 h-4" />
+                              <Edit className="w-4 h-4 text-headings" />
                             </button>
                             <button
                               onClick={() => handleDeleteNote(note._id)}
-                              className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                              className="p-1 hover:bg-[var(--accent-red)]/20 rounded"
                               title="Delete"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4 text-[var(--accent-red)]" />
                             </button>
                           </div>
                         </td>
@@ -923,12 +937,12 @@ export default function ReceiptsFinancialNotes() {
         {/* Info Box */}
         <div className="mt-6 bg-card border border-blue-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <ImageIcon className="w-5 h-5 text-[#00D1FF] flex-shrink-0 mt-0.5" />
+            <ImageIcon className="w-5 h-5 text-headings flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <h4 className="text-sm font-semibold text-blue-900 mb-1">
+              <h4 className="text-sm font-semibold text-headings mb-1">
                 {activeTab === 'receipts-archive' ? 'Receipt Management' : 'Financial Notes'}
               </h4>
-              <p className="text-sm text-blue-800">
+              <p className="text-sm text-headings">
                 {activeTab === 'receipts-archive'
                   ? 'Store digital receipts for fuel, repair, permit fees, and scales. All files are securely stored and can be previewed with thumbnail images. Supported formats: PNG, JPG, PDF.'
                   : 'Log internal finance comments and link them to specific transactions like invoices or settlements. Use notes to track adjustments, reviews, and important financial decisions.'
@@ -1047,14 +1061,14 @@ export default function ReceiptsFinancialNotes() {
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="bg-card rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">{editingNote ? 'Edit Note' : 'New Note'}</h2>
-                <button onClick={() => setShowNoteModal(false)} className="text-secondary hover:text-primary">
+                <h2 className="text-xl font-bold text-headings">{editingNote ? 'Edit Note' : 'New Note'}</h2>
+                <button onClick={() => setShowNoteModal(false)} className="text-secondary hover:text-headings">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <form onSubmit={handleSubmitNote} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-1">Note Title *</label>
+                  <label className="block text-sm font-medium text-headings mb-1">Note Title *</label>
                   <input
                     type="text"
                     value={noteFormData.noteTitle}
@@ -1064,7 +1078,7 @@ export default function ReceiptsFinancialNotes() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-1">Note Content *</label>
+                  <label className="block text-sm font-medium text-headings mb-1">Note Content *</label>
                   <textarea
                     value={noteFormData.noteContent}
                     onChange={(e) => setNoteFormData({ ...noteFormData, noteContent: e.target.value })}
@@ -1074,7 +1088,7 @@ export default function ReceiptsFinancialNotes() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-1">Linked Transaction</label>
+                  <label className="block text-sm font-medium text-headings mb-1">Linked Transaction</label>
                   <input
                     type="text"
                     value={noteFormData.linkedTransaction}
@@ -1084,7 +1098,7 @@ export default function ReceiptsFinancialNotes() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-1">Transaction ID</label>
+                  <label className="block text-sm font-medium text-headings mb-1">Transaction ID</label>
                   <input
                     type="text"
                     value={noteFormData.linkedTransactionId}
@@ -1097,316 +1111,317 @@ export default function ReceiptsFinancialNotes() {
                   <button
                     type="submit"
                     style={{
-                      background: 'var(--accent-navyblue)}};
-                  className="px-4 py-2  !text-white rounded-lg"
-                      >
-                      { editingNote? 'Update': 'Create' }
-                </button>
+                      background: 'var(--accent-navyblue)'
+                    }}
+                    className="px-4 py-2  !text-white rounded-lg"
+                  >
+                    {editingNote ? 'Update' : 'Create'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowNoteModal(false)}
+                    className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div >
+          </div >
+        )
+      }
+
+      {/* View Modal */}
+      {
+        showViewModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-card rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">
+                  {viewingReceipt ? 'Receipt Details' : 'Note Details'}
+                </h2>
                 <button
-                  type="button"
-                  onClick={() => setShowNoteModal(false)}
-                  className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                  onClick={() => {
+                    setShowViewModal(false);
+                    setViewingReceipt(null);
+                    setViewingNote(null);
+                    setReceiptViewUrl(null);
+                  }}
+                  className="text-secondary hover:text-primary"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              {viewingReceipt && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Date</label>
+                    <p>{viewingReceipt.date}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Amount</label>
+                    <p>${viewingReceipt.amount.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Payee/Vendor</label>
+                    <p>{viewingReceipt.payeeVendor}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Expense Type</label>
+                    <p>{viewingReceipt.expenseType}</p>
+                  </div>
+                  {viewingReceipt && (
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-1">Receipt</label>
+                      {loadingReceiptUrl ? (
+                        <div className="w-full h-96 border border-theme rounded-lg flex items-center justify-center bg-card">
+                          <p className="text-secondary">Loading receipt...</p>
+                        </div>
+                      ) : receiptViewUrl ? (
+                        <div className="w-full border border-theme rounded-lg overflow-hidden">
+                          {receiptViewUrl.toLowerCase().endsWith('.pdf') || viewingReceipt.fileType === 'PDF' ? (
+                            <iframe
+                              src={receiptViewUrl}
+                              className="w-full h-96"
+                              title="Receipt Preview"
+                            />
+                          ) : (
+                            <img
+                              src={receiptViewUrl}
+                              alt="Receipt"
+                              className="w-full h-auto max-h-96 object-contain"
+                              onError={(e) => {
+                                // If image fails to load, try as iframe
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const iframe = document.createElement('iframe');
+                                iframe.src = receiptViewUrl;
+                                iframe.className = 'w-full h-96';
+                                iframe.title = 'Receipt Preview';
+                                target.parentElement?.appendChild(iframe);
+                              }}
+                            />
+                          )}
+                        </div>
+                      ) : (
+                        <div className="w-full h-96 border border-theme rounded-lg flex items-center justify-center bg-card">
+                          <p className="text-secondary">Receipt file not available</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              {viewingNote && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Date & Time</label>
+                    <p>{viewingNote.date}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">User</label>
+                    <p>{viewingNote.user}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Note Title</label>
+                    <p>{viewingNote.noteTitle}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Note Content</label>
+                    <p className="whitespace-pre-wrap">{viewingNote.noteContent}</p>
+                  </div>
+                  {viewingNote.linkedTransaction && (
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-1">Linked Transaction</label>
+                      <p>{viewingNote.linkedTransaction}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      }
+
+      {/* Delete Confirmation Modal */}
+      {
+        showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
+              <div className="flex items-center gap-3 mb-4 text-[#A855F7]">
+                <Trash2 className="w-6 h-6 text-[var(--accent-red)]" />
+                <h3 className="text-lg font-bold">Confirm Deletion</h3>
+              </div>
+              <p className="text-secondary mb-6">
+                Are you sure you want to delete this item? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-          </form>
-          </div >
-        </div >
-      )
-}
+          </div>
+        )
+      }
 
-{/* View Modal */ }
-{
-  showViewModal && (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-card rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">
-            {viewingReceipt ? 'Receipt Details' : 'Note Details'}
-          </h2>
-          <button
-            onClick={() => {
-              setShowViewModal(false);
-              setViewingReceipt(null);
-              setViewingNote(null);
-              setReceiptViewUrl(null);
-            }}
-            className="text-secondary hover:text-primary"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        {viewingReceipt && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Date</label>
-              <p>{viewingReceipt.date}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Amount</label>
-              <p>${viewingReceipt.amount.toFixed(2)}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Payee/Vendor</label>
-              <p>{viewingReceipt.payeeVendor}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Expense Type</label>
-              <p>{viewingReceipt.expenseType}</p>
-            </div>
-            {viewingReceipt && (
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1">Receipt</label>
-                {loadingReceiptUrl ? (
-                  <div className="w-full h-96 border border-theme rounded-lg flex items-center justify-center bg-card">
-                    <p className="text-secondary">Loading receipt...</p>
-                  </div>
-                ) : receiptViewUrl ? (
-                  <div className="w-full border border-theme rounded-lg overflow-hidden">
-                    {receiptViewUrl.toLowerCase().endsWith('.pdf') || viewingReceipt.fileType === 'PDF' ? (
-                      <iframe
-                        src={receiptViewUrl}
-                        className="w-full h-96"
-                        title="Receipt Preview"
-                      />
-                    ) : (
-                      <img
-                        src={receiptViewUrl}
-                        alt="Receipt"
-                        className="w-full h-auto max-h-96 object-contain"
-                        onError={(e) => {
-                          // If image fails to load, try as iframe
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const iframe = document.createElement('iframe');
-                          iframe.src = receiptViewUrl;
-                          iframe.className = 'w-full h-96';
-                          iframe.title = 'Receipt Preview';
-                          target.parentElement?.appendChild(iframe);
-                        }}
-                      />
+      {/* Row Detail Modal */}
+      {
+        showRowDetailModal && selectedRowItem && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-card rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-primary">
+                  {selectedRowType === 'receipt' && 'Receipt Details'}
+                  {selectedRowType === 'note' && 'Financial Note Details'}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowRowDetailModal(false);
+                    setSelectedRowItem(null);
+                    setSelectedRowType(null);
+                  }}
+                  className="text-secondary hover:text-secondary transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-6">
+                {/* Receipt Details */}
+                {selectedRowType === 'receipt' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-card p-4 rounded-lg border border-blue-200">
+                        <label className="text-sm font-medium text-blue-900 mb-1 block">Date</label>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-[#00D1FF]" />
+                          <p className="text-lg font-semibold text-blue-700">{(selectedRowItem as ReceiptData).date}</p>
+                        </div>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <label className="text-sm font-medium text-green-900 mb-1 block">Amount</label>
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="w-5 h-5 text-green-600" />
+                          <p className="text-2xl font-bold text-green-700">${(selectedRowItem as ReceiptData).amount.toFixed(2)}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <label className="text-sm font-medium text-primary mb-1 block">Payee/Vendor</label>
+                      <div className="flex items-center gap-2">
+                        <User className="w-5 h-5 text-secondary" />
+                        <p className="text-lg font-semibold text-primary">{(selectedRowItem as ReceiptData).payeeVendor}</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-purple-200">
+                      <label className="text-sm font-medium text-purple-900 mb-2 block">Expense Type</label>
+                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedRowItem as ReceiptData).expenseType === 'Fuel' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                        (selectedRowItem as ReceiptData).expenseType === 'Repair' ? 'bg-orange-100 text-orange-800 border-orange-300' :
+                          (selectedRowItem as ReceiptData).expenseType === 'Permit Fees' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                            (selectedRowItem as ReceiptData).expenseType === 'Scales' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                              'bg-green-100 text-green-800 border-green-300'
+                        }`}>
+                        {(selectedRowItem as ReceiptData).expenseType}
+                      </span>
+                    </div>
+
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                      <label className="text-sm font-medium text-indigo-900 mb-2 block">File Information</label>
+                      <div className="flex items-center gap-3">
+                        <Paperclip className="w-5 h-5 text-indigo-600" />
+                        <div>
+                          <p className="text-sm font-medium text-indigo-900">{(selectedRowItem as ReceiptData).fileName || 'receipt'}</p>
+                          {(selectedRowItem as ReceiptData).fileType && (
+                            <span className="inline-block mt-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-medium">
+                              {(selectedRowItem as ReceiptData).fileType}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {(selectedRowItem as ReceiptData).uploadedBy && (
+                      <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                        <label className="text-sm font-medium text-amber-900 mb-1 block">Uploaded By</label>
+                        <p className="text-primary">{(selectedRowItem as ReceiptData).uploadedBy?.name || (selectedRowItem as ReceiptData).uploadedBy?.email}</p>
+                      </div>
                     )}
                   </div>
-                ) : (
-                  <div className="w-full h-96 border border-theme rounded-lg flex items-center justify-center bg-card">
-                    <p className="text-secondary">Receipt file not available</p>
+                )}
+
+                {/* Financial Note Details */}
+                {selectedRowType === 'note' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-card p-4 rounded-lg border border-blue-200">
+                        <label className="text-sm font-medium text-blue-900 mb-1 block">Date & Time</label>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-[#00D1FF]" />
+                          <p className="text-sm font-semibold text-blue-700">{(selectedRowItem as FinancialNoteData).date}</p>
+                        </div>
+                      </div>
+                      <div className="bg-card p-4 rounded-lg border border-purple-200">
+                        <label className="text-sm font-medium text-purple-900 mb-1 block">Created By</label>
+                        <div className="flex items-center gap-2">
+                          <User className="w-5 h-5 text-purple-600" />
+                          <p className="text-lg font-semibold text-purple-700">{(selectedRowItem as FinancialNoteData).user}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <label className="text-sm font-medium text-green-900 mb-1 block">Note Title</label>
+                      <p className="text-xl font-semibold text-green-700">{(selectedRowItem as FinancialNoteData).noteTitle}</p>
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <label className="text-sm font-medium text-primary mb-2 block">Note Content</label>
+                      <p className="text-primary whitespace-pre-wrap leading-relaxed">{(selectedRowItem as FinancialNoteData).noteContent}</p>
+                    </div>
+
+                    {(selectedRowItem as FinancialNoteData).linkedTransaction && (
+                      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                        <label className="text-sm font-medium text-indigo-900 mb-2 block">Linked Transaction</label>
+                        <div className="flex items-center gap-3">
+                          <Tag className="w-5 h-5 text-indigo-600" />
+                          <span className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-full text-sm font-semibold border-2 border-indigo-300">
+                            {(selectedRowItem as FinancialNoteData).linkedTransaction}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
+
+              <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4">
+                <button
+                  onClick={() => {
+                    setShowRowDetailModal(false);
+                    setSelectedRowItem(null);
+                    setSelectedRowType(null);
+                  }}
+                  className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
-        )}
-        {viewingNote && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Date & Time</label>
-              <p>{viewingNote.date}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">User</label>
-              <p>{viewingNote.user}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Note Title</label>
-              <p>{viewingNote.noteTitle}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Note Content</label>
-              <p className="whitespace-pre-wrap">{viewingNote.noteContent}</p>
-            </div>
-            {viewingNote.linkedTransaction && (
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1">Linked Transaction</label>
-                <p>{viewingNote.linkedTransaction}</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-{/* Delete Confirmation Modal */ }
-{
-  showDeleteModal && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
-        <div className="flex items-center gap-3 mb-4 text-[#A855F7]">
-          <Trash2 className="w-6 h-6" />
-          <h3 className="text-lg font-bold">Confirm Deletion</h3>
-        </div>
-        <p className="text-secondary mb-6">
-          Are you sure you want to delete this item? This action cannot be undone.
-        </p>
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={() => setShowDeleteModal(false)}
-            className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={confirmDelete}
-            className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-{/* Row Detail Modal */ }
-{
-  showRowDetailModal && selectedRowItem && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-card rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-primary">
-            {selectedRowType === 'receipt' && 'Receipt Details'}
-            {selectedRowType === 'note' && 'Financial Note Details'}
-          </h2>
-          <button
-            onClick={() => {
-              setShowRowDetailModal(false);
-              setSelectedRowItem(null);
-              setSelectedRowType(null);
-            }}
-            className="text-secondary hover:text-secondary transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        <div className="p-6">
-          {/* Receipt Details */}
-          {selectedRowType === 'receipt' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-card p-4 rounded-lg border border-blue-200">
-                  <label className="text-sm font-medium text-blue-900 mb-1 block">Date</label>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-[#00D1FF]" />
-                    <p className="text-lg font-semibold text-blue-700">{(selectedRowItem as ReceiptData).date}</p>
-                  </div>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <label className="text-sm font-medium text-green-900 mb-1 block">Amount</label>
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-green-600" />
-                    <p className="text-2xl font-bold text-green-700">${(selectedRowItem as ReceiptData).amount.toFixed(2)}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-card p-4 rounded-lg border border-theme">
-                <label className="text-sm font-medium text-primary mb-1 block">Payee/Vendor</label>
-                <div className="flex items-center gap-2">
-                  <User className="w-5 h-5 text-secondary" />
-                  <p className="text-lg font-semibold text-primary">{(selectedRowItem as ReceiptData).payeeVendor}</p>
-                </div>
-              </div>
-
-              <div className="bg-card p-4 rounded-lg border border-purple-200">
-                <label className="text-sm font-medium text-purple-900 mb-2 block">Expense Type</label>
-                <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedRowItem as ReceiptData).expenseType === 'Fuel' ? 'bg-blue-100 text-blue-800 border-blue-300' :
-                  (selectedRowItem as ReceiptData).expenseType === 'Repair' ? 'bg-orange-100 text-orange-800 border-orange-300' :
-                    (selectedRowItem as ReceiptData).expenseType === 'Permit Fees' ? 'bg-purple-100 text-purple-800 border-purple-300' :
-                      (selectedRowItem as ReceiptData).expenseType === 'Scales' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
-                        'bg-green-100 text-green-800 border-green-300'
-                  }`}>
-                  {(selectedRowItem as ReceiptData).expenseType}
-                </span>
-              </div>
-
-              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                <label className="text-sm font-medium text-indigo-900 mb-2 block">File Information</label>
-                <div className="flex items-center gap-3">
-                  <Paperclip className="w-5 h-5 text-indigo-600" />
-                  <div>
-                    <p className="text-sm font-medium text-indigo-900">{(selectedRowItem as ReceiptData).fileName || 'receipt'}</p>
-                    {(selectedRowItem as ReceiptData).fileType && (
-                      <span className="inline-block mt-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-medium">
-                        {(selectedRowItem as ReceiptData).fileType}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {(selectedRowItem as ReceiptData).uploadedBy && (
-                <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-                  <label className="text-sm font-medium text-amber-900 mb-1 block">Uploaded By</label>
-                  <p className="text-primary">{(selectedRowItem as ReceiptData).uploadedBy?.name || (selectedRowItem as ReceiptData).uploadedBy?.email}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Financial Note Details */}
-          {selectedRowType === 'note' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-card p-4 rounded-lg border border-blue-200">
-                  <label className="text-sm font-medium text-blue-900 mb-1 block">Date & Time</label>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-[#00D1FF]" />
-                    <p className="text-sm font-semibold text-blue-700">{(selectedRowItem as FinancialNoteData).date}</p>
-                  </div>
-                </div>
-                <div className="bg-card p-4 rounded-lg border border-purple-200">
-                  <label className="text-sm font-medium text-purple-900 mb-1 block">Created By</label>
-                  <div className="flex items-center gap-2">
-                    <User className="w-5 h-5 text-purple-600" />
-                    <p className="text-lg font-semibold text-purple-700">{(selectedRowItem as FinancialNoteData).user}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                <label className="text-sm font-medium text-green-900 mb-1 block">Note Title</label>
-                <p className="text-xl font-semibold text-green-700">{(selectedRowItem as FinancialNoteData).noteTitle}</p>
-              </div>
-
-              <div className="bg-card p-4 rounded-lg border border-theme">
-                <label className="text-sm font-medium text-primary mb-2 block">Note Content</label>
-                <p className="text-primary whitespace-pre-wrap leading-relaxed">{(selectedRowItem as FinancialNoteData).noteContent}</p>
-              </div>
-
-              {(selectedRowItem as FinancialNoteData).linkedTransaction && (
-                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                  <label className="text-sm font-medium text-indigo-900 mb-2 block">Linked Transaction</label>
-                  <div className="flex items-center gap-3">
-                    <Tag className="w-5 h-5 text-indigo-600" />
-                    <span className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-full text-sm font-semibold border-2 border-indigo-300">
-                      {(selectedRowItem as FinancialNoteData).linkedTransaction}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4">
-          <button
-            onClick={() => {
-              setShowRowDetailModal(false);
-              setSelectedRowItem(null);
-              setSelectedRowType(null);
-            }}
-            className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+        )
+      }
     </div >
   );
 }
