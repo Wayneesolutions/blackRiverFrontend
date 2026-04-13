@@ -113,8 +113,8 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                         <button
                             onClick={fetchInsights}
                             disabled={loading}
-                            className="px-4 py-2 rounded-lg font-medium flex items-center gap-2 disabled:opacity-50 transition-colors"
-                            style={primaryButtonStyle}
+                            className="bg-[var(--accent-navyblue)] px-4 py-2 rounded-lg font-medium flex items-center gap-2 disabled:opacity-50 transition-colors "
+
                         >
                             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                             {loading ? 'Loading...' : 'Refresh Insights'}
@@ -132,14 +132,35 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                         setPeriod(Number(e.target.value));
                                         setCustomDateRange({});
                                     }}
-                                    className="border border-theme rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="border border-theme rounded-md px-3 py-2 text-sm
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                                 >
-                                    <option value={30}>Last 30 Days</option>
-                                    <option value={60}>Last 60 Days</option>
-                                    <option value={90}>Last 90 Days</option>
-                                    <option value={180}>Last 6 Months</option>
-                                    <option value={365}>Last Year</option>
-                                    <option value={0}>Custom Range</option>
+                                    <option value={30} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                                        Last 30 Days
+                                    </option>
+
+                                    <option value={60} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                                        Last 60 Days
+                                    </option>
+
+                                    <option value={90} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                                        Last 90 Days
+                                    </option>
+
+                                    <option value={180} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                                        Last 6 Months
+                                    </option>
+
+                                    <option value={365} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                                        Last Year
+                                    </option>
+
+                                    <option value={0} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                                        Custom Range
+                                    </option>
                                 </select>
                             </div>
                             {period === 0 && (
@@ -199,37 +220,37 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                     <div className="space-y-6">
                         {/* AI Summary Card */}
                         {insightsData.aiInsights && (
-                            <div className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200 rounded-xl p-6 shadow-lg">
+                            <div className="bg-card border-2 border-theme rounded-xl p-6 shadow-lg">
                                 <div className="flex items-center gap-3 mb-4">
-                                    <div className="p-2 bg-purple-100 rounded-lg">
-                                        <Sparkles className="h-6 w-6 text-purple-600" />
+                                    <div className="p-2  rounded-lg">
+                                        <Sparkles className="h-6 w-6 text-[var(--accent-purple)]" />
                                     </div>
                                     <div>
-                                        <h2 className="text-xl font-bold text-primary">AI Analysis Summary</h2>
+                                        <h2 className="text-xl font-bold text-[var(--accent-purple)]">AI Analysis Summary</h2>
                                         <p className="text-sm text-secondary">Powered by o3-mini</p>
                                     </div>
                                 </div>
 
                                 {/* Cash Flow Status */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                                    <div className="bg-[#E3F2FD] rounded-lg p-4 border-2 border-blue-100">
-                                        <div className="text-sm text-secondary mb-1">Current Cash Position</div>
-                                        <div className={`text-2xl font-bold ${insightsData.aiInsights.summary.currentCashPosition >= 0 ? 'text-green-600' : 'text-[#A855F7]'}`}>
+                                    <div className="bg-[var(--accent-blue)]/20 rounded-lg p-4 border-2 border-theme">
+                                        <div className="text-sm text-[var(--accent-blue)] mb-1">Current Cash Position</div>
+                                        <div className={`text-2xl font-bold ${insightsData.aiInsights.summary.currentCashPosition >= 0 ? 'text-green-600' : 'text-[var(--accent-blue)]'}`}>
                                             {formatCurrency(insightsData.aiInsights.summary.currentCashPosition)}
                                         </div>
                                     </div>
-                                    <div className="bg-[#E0F7FA] rounded-lg p-4 border-2 border-cyan-100">
-                                        <div className="text-sm text-secondary mb-1">Cash Flow Status</div>
+                                    <div className="bg-[var(--accent-green)]/20 rounded-lg p-4 border-2 border-theme">
+                                        <div className="text-sm text-[var(--accent-green)] mb-1">Cash Flow Status</div>
                                         <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(insightsData.aiInsights.summary.cashFlowStatus)}`}>
                                             {insightsData.aiInsights.summary.cashFlowStatus.charAt(0).toUpperCase() + insightsData.aiInsights.summary.cashFlowStatus.slice(1)}
                                         </div>
-                                        <div className="text-xs text-secondary mt-2">
+                                        <div className="text-xs text-[var(--accent-green)] mt-2">
                                             {insightsData.aiInsights.summary.daysCashOnHand} days cash on hand
                                         </div>
                                     </div>
-                                    <div className="bg-[#FFEBEE] rounded-lg p-4 border-2 border-red-100">
-                                        <div className="text-sm text-secondary mb-1">Total Obligations</div>
-                                        <div className="text-2xl font-bold text-[#A855F7]">
+                                    <div className="bg-[var(--accent-red)]/20 rounded-lg p-4 border-2 border-theme">
+                                        <div className="text-sm text-[var(--accent-red)] mb-1">Total Obligations</div>
+                                        <div className="text-2xl font-bold text-[var(--accent-red)]">
                                             {formatCurrency(insightsData.aiInsights.summary.totalObligations)}
                                         </div>
                                     </div>
@@ -265,48 +286,48 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
 
                         {/* Financial Overview */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="bg-[#E8F5E9] rounded-lg p-6 border border-green-100 shadow-sm">
+                            <div className="bg-[var(--accent-green)]/20 rounded-lg p-6 border border-theme shadow-sm">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium text-secondary">Total Revenue</span>
+                                    <span className="text-sm font-medium text-[var(--accent-green)]">Total Revenue</span>
                                     <TrendingUp className="h-5 w-5 text-green-500" />
                                 </div>
-                                <div className="text-2xl font-bold text-primary">{formatCurrency(insightsData.totalRevenue)}</div>
-                                <div className="text-xs text-secondary mt-1">{insightsData.paidInvoices.count} paid invoices</div>
+                                <div className="text-2xl font-bold text-[var(--accent-green)]">{formatCurrency(insightsData.totalRevenue)}</div>
+                                <div className="text-xs text-[var(--accent-green)] mt-1">{insightsData.paidInvoices.count} paid invoices</div>
                             </div>
 
-                            <div className="bg-[#FFF8E1] rounded-lg p-6 border border-yellow-100 shadow-sm">
+                            <div className="bg-[var(--accent-amber)]/20 rounded-lg p-6 border border-theme shadow-sm">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium text-secondary">Pending Invoices</span>
-                                    <DollarSign className="h-5 w-5 text-yellow-500" />
+                                    <span className="text-sm font-medium text-[var(--accent-amber)]">Pending Invoices</span>
+                                    <DollarSign className="h-5 w-5 text-amber-500" />
                                 </div>
-                                <div className="text-2xl font-bold text-[#00FFA3]">{formatCurrency(insightsData.pendingInvoices.totalAmount)}</div>
-                                <div className="text-xs text-secondary mt-1">{insightsData.pendingInvoices.count} outstanding</div>
+                                <div className="text-2xl font-bold text-[var(--accent-amber)]">{formatCurrency(insightsData.pendingInvoices.totalAmount)}</div>
+                                <div className="text-xs text-[var(--accent-amber)] mt-1">{insightsData.pendingInvoices.count} outstanding</div>
                             </div>
 
-                            <div className="bg-[#FFEBEE] rounded-lg p-6 border border-red-100 shadow-sm">
+                            <div className="bg-[var(--accent-red)]/20 rounded-lg p-6 border border-theme shadow-sm">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium text-secondary">Total Expenses</span>
+                                    <span className="text-sm font-medium text-[var(--accent-red)]">Total Expenses</span>
                                     <TrendingDown className="h-5 w-5 text-red-500" />
                                 </div>
-                                <div className="text-2xl font-bold text-[#A855F7]">{formatCurrency(insightsData.totalExpenses)}</div>
-                                <div className="text-xs text-secondary mt-1">Expense management</div>
+                                <div className="text-2xl font-bold text-[var(--accent-red)]">{formatCurrency(insightsData.totalExpenses)}</div>
+                                <div className="text-xs text-[var(--accent-red)] mt-1">Expense management</div>
                             </div>
 
-                            <div className="bg-[#E3F2FD] rounded-lg p-6 border border-blue-100 shadow-sm">
+                            <div className="bg-[var(--accent-blue)]/20 rounded-lg p-6 border border-theme shadow-sm">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium text-secondary">Total Payroll</span>
+                                    <span className="text-sm font-medium text-[var(--accent-blue)]">Total Payroll</span>
                                     <DollarSign className="h-5 w-5 text-blue-500" />
                                 </div>
-                                <div className="text-2xl font-bold text-[#00D1FF]">{formatCurrency(insightsData.totalPayroll)}</div>
-                                <div className="text-xs text-secondary mt-1">Employee costs</div>
+                                <div className="text-2xl font-bold text-[var(--accent-blue)]">{formatCurrency(insightsData.totalPayroll)}</div>
+                                <div className="text-xs text-[var(--accent-blue)] mt-1">Employee costs</div>
                             </div>
                         </div>
 
                         {/* Predictions */}
                         {insightsData.aiInsights?.predictions && (
                             <div className="bg-card rounded-lg p-6 border border-theme shadow-sm">
-                                <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                                    <Target className="h-5 w-5 text-[#00D1FF]" />
+                                <h3 className="text-lg font-bold text-headings mb-4 flex items-center gap-2">
+                                    <Target className="h-5 w-5 text-headings" />
                                     Cash Flow Predictions
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -315,7 +336,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                         if (!prediction) return null;
 
                                         return (
-                                            <div key={periodKey} className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
+                                            <div key={periodKey} className="bg-card rounded-lg p-4 border-2 border-theme">
                                                 <div className="text-sm font-medium text-primary mb-3">
                                                     {periodKey === 'next30Days' ? 'Next 30 Days' : periodKey === 'next60Days' ? 'Next 60 Days' : 'Next 90 Days'}
                                                 </div>
@@ -352,8 +373,8 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                             {/* Risks */}
                             {insightsData.aiInsights?.risks && insightsData.aiInsights.risks.length > 0 && (
                                 <div className="bg-card rounded-lg p-6 border border-theme shadow-sm">
-                                    <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                                        <AlertTriangle className="h-5 w-5 text-[#A855F7]" />
+                                    <h3 className="text-lg font-bold text-[var(--accent-red)] mb-4 flex items-center gap-2">
+                                        <AlertTriangle className="h-5 w-5 text-[var(--accent-red)]" />
                                         Risk Alerts
                                     </h3>
                                     <div className="space-y-3">
@@ -364,7 +385,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                                     <span className="text-xs font-medium">{risk.category}</span>
                                                 </div>
                                                 <p className="text-sm font-medium mb-1">{risk.description}</p>
-                                                <p className="text-xs text-primary mb-2">{risk.impact}</p>
+                                                <p className="text-xs text-[var(--accent-red)] mb-2">{risk.impact}</p>
                                                 <p className="text-xs font-medium">Recommended: {risk.recommendedAction}</p>
                                             </div>
                                         ))}
@@ -375,8 +396,8 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                             {/* Recommendations */}
                             {insightsData.aiInsights?.recommendations && insightsData.aiInsights.recommendations.length > 0 && (
                                 <div className="bg-card rounded-lg p-6 border border-theme shadow-sm">
-                                    <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                                        <CheckCircle className="h-5 w-5 text-green-600" />
+                                    <h3 className="text-lg font-bold text-[var(--accent-green)] mb-4 flex items-center gap-2">
+                                        <CheckCircle className="h-5 w-5 text-[var(--accent-green)]" />
                                         Recommendations
                                     </h3>
                                     <div className="space-y-3">
@@ -387,7 +408,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                                     <span className="text-xs font-medium">{rec.category}</span>
                                                 </div>
                                                 <p className="text-sm font-medium mb-1">{rec.recommendation}</p>
-                                                <p className="text-xs text-primary mb-2">{rec.rationale}</p>
+                                                <p className="text-xs text-[var(--accent-green)] mb-2">{rec.rationale}</p>
                                                 <p className="text-xs font-medium">Expected Impact: {rec.expectedImpact}</p>
                                             </div>
                                         ))}
@@ -419,7 +440,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                         {/* Key Metrics */}
                         {insightsData.aiInsights?.keyMetrics && (
                             <div className="bg-card rounded-lg p-6 border border-theme shadow-sm">
-                                <h3 className="text-lg font-bold text-primary mb-4">Key Financial Metrics</h3>
+                                <h3 className="text-lg font-bold text-headings mb-4">Key Financial Metrics</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                                     <div className="text-center p-3 bg-card rounded-lg">
                                         <div className="text-xs text-secondary mb-1">Collection Rate</div>
@@ -460,22 +481,22 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                         {/* Monthly Breakdown */}
                         {insightsData.monthlyBreakdown && insightsData.monthlyBreakdown.length > 0 && (
                             <div className="bg-card rounded-lg p-6 border border-theme shadow-sm">
-                                <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                                    <Calendar className="h-5 w-5 text-[#00D1FF]" />
+                                <h3 className="text-lg font-bold text-headings mb-4 flex items-center gap-2">
+                                    <Calendar className="h-5 w-5 text-headings" />
                                     Monthly Cash Flow Breakdown
                                 </h3>
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
                                         <thead className="bg-card">
                                             <tr>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Month</th>
-                                                <th className="px-4 py-3 text-right text-xs font-medium text-secondary uppercase">Revenue</th>
-                                                <th className="px-4 py-3 text-right text-xs font-medium text-secondary uppercase">Expenses</th>
-                                                <th className="px-4 py-3 text-right text-xs font-medium text-secondary uppercase">Payroll</th>
-                                                <th className="px-4 py-3 text-right text-xs font-medium text-secondary uppercase">Net Cash Flow</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">Month</th>
+                                                <th className="px-4 py-3 text-right text-xs font-medium text-headings uppercase">Revenue</th>
+                                                <th className="px-4 py-3 text-right text-xs font-medium text-headings uppercase">Expenses</th>
+                                                <th className="px-4 py-3 text-right text-xs font-medium text-headings uppercase">Payroll</th>
+                                                <th className="px-4 py-3 text-right text-xs font-medium text-headings uppercase">Net Cash Flow</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-theme">
+                                        <tbody className="divide-y divide-theme divide-white/5">
                                             {insightsData.monthlyBreakdown.map((month, index) => (
                                                 <tr key={index} className="hover:bg-[rgba(255,255,255,0.03)]">
                                                     <td className="px-4 py-3 text-sm font-medium text-primary">{month.monthName}</td>
@@ -496,11 +517,11 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                         {/* Pending Invoices Aging */}
                         {insightsData.pendingInvoices && insightsData.pendingInvoices.totalAmount > 0 && (
                             <div className="bg-card rounded-lg p-6 border border-theme shadow-sm">
-                                <h3 className="text-lg font-bold text-primary mb-4">Pending Invoices Aging Analysis</h3>
+                                <h3 className="text-lg font-bold text-headings mb-4">Pending Invoices Aging Analysis</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     {Object.entries(insightsData.pendingInvoices.agingBreakdown).map(([bucket, data]) => (
                                         <div key={bucket} className="bg-card rounded-lg p-4 border border-theme">
-                                            <div className="text-sm font-medium text-primary mb-1">{bucket} Days</div>
+                                            <div className="text-sm font-medium text-secondary mb-1">{bucket} Days</div>
                                             <div className="text-lg font-bold text-primary">{formatCurrency(data.amount)}</div>
                                             <div className="text-xs text-secondary mt-1">{data.count} invoices</div>
                                         </div>
