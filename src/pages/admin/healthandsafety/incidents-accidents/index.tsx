@@ -593,17 +593,17 @@ const IncidentManagement: React.FC = () => {
   const renderIncidentList = () => (
     <>
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-        <div className="bg-card rounded-xl p-3 shadow-sm border border-theme flex items-center justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4 ">
+        <div className=" bg-[var(--accent-blue)]/20 rounded-xl p-3 shadow-sm border border-theme flex items-center justify-between ">
           <div>
             <p className="text-[10px] text-secondary font-semibold uppercase tracking-wider">Total Incidents</p>
             <h3 className="text-xl font-bold text-primary">{incidents.length}</h3>
           </div>
-          <div className="bg-card p-2 rounded-lg text-[#00D1FF]">
+          <div className=" p-2 rounded-lg text-[#00D1FF]">
             <FaClipboardList size={16} />
           </div>
         </div>
-        <div className="bg-card rounded-xl p-3 shadow-sm border border-theme flex items-center justify-between">
+        <div className="bg-[var(--accent-green)]/20 rounded-xl p-3 shadow-sm border border-theme flex items-center justify-between">
           <div>
             <p className="text-[10px] text-secondary font-semibold uppercase tracking-wider">Open Cases</p>
             <h3 className="text-xl font-bold text-primary">{incidents.filter(i => i.status === 'open').length}</h3>
@@ -612,7 +612,7 @@ const IncidentManagement: React.FC = () => {
             <FaExclamationTriangle size={16} />
           </div>
         </div>
-        <div className="bg-card rounded-xl p-3 shadow-sm border border-theme flex items-center justify-between">
+        <div className="bg-[var(--accent-purple)]/20 rounded-xl p-3 shadow-sm border border-theme flex items-center justify-between">
           <div>
             <p className="text-[10px] text-secondary font-semibold uppercase tracking-wider">Injuries</p>
             <h3 className="text-xl font-bold text-primary">{incidents.filter(i => i.hasInjury).length}</h3>
@@ -621,12 +621,12 @@ const IncidentManagement: React.FC = () => {
             <FaUserInjured size={16} />
           </div>
         </div>
-        <div className="bg-card rounded-xl p-3 shadow-sm border border-theme flex items-center justify-between">
+        <div className="bg-[var(--accent-green)]/20 rounded-xl p-3 shadow-sm border border-theme flex items-center justify-between">
           <div>
             <p className="text-[10px] text-secondary font-semibold uppercase tracking-wider">Resolved</p>
             <h3 className="text-xl font-bold text-primary">{incidents.filter(i => i.status === 'resolved' || i.status === 'closed').length}</h3>
           </div>
-          <div className="bg-green-50 p-2 rounded-lg text-green-600">
+          <div className=" p-2 rounded-lg text-green-600">
             <FaCheckCircle size={16} />
           </div>
         </div>
@@ -700,26 +700,26 @@ const IncidentManagement: React.FC = () => {
           <table className="w-full">
             <thead>
               <tr className="bg-card border-b border-theme">
-                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">
                   Incident #
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">
                   Date/Time
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Type</th>
-                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Type</th>
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">
                   Location
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">
                   Severity
                 </th>
-                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">CAPA</th>
-                <th className="px-4 py-3 text-center text-[10px] font-bold text-secondary uppercase tracking-wider">Injury?</th>
-                <th className="px-4 py-3 text-center text-[10px] font-bold text-secondary uppercase tracking-wider">Actions</th>
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">CAPA</th>
+                <th className="px-4 py-3 text-center text-[10px] font-bold text-headings uppercase tracking-wider">Injury?</th>
+                <th className="px-4 py-3 text-center text-[10px] font-bold text-headings uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y  divide-theme divide-white/5">
               {loading || filteredIncidents.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-6 py-12 text-center">
@@ -747,7 +747,7 @@ const IncidentManagement: React.FC = () => {
                     <tr
                       key={incident._id}
                       onClick={() => setSelectedIncidentForDetail(incident)}
-                      className="hover:bg-blue-50/30 transition-colors group cursor-pointer"
+                      className="hover:bg-[var(--accent-navyblue)]/20 transition-colors group cursor-pointer"
                     >
                       <td className="px-4 py-3">
                         <span className="text-xs font-bold text-primary group-hover:text-[#00D1FF] transition-colors">
@@ -829,20 +829,20 @@ const IncidentManagement: React.FC = () => {
                               e.stopPropagation();
                               setSelectedIncidentForDetail(incident);
                             }}
-                            className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-1.5 text-[#00D1FF] hover:bg-[var(--accent-navyblue)]/50 rounded-lg transition-colors"
                             title="View Details"
                           >
-                            <FaEye size={12} />
+                            <FaEye size={12} className='text-[var(--accent-blue)]' />
                           </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteIncident(incident._id);
                             }}
-                            className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded-lg transition"
+                            className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)]/20 rounded-lg transition"
                             title="Delete"
                           >
-                            <FaTrash size={12} />
+                            <FaTrash size={12} className='text-[var(--accent-red)]' />
                           </button>
                         </div>
                       </td>
@@ -1137,25 +1137,25 @@ const IncidentManagement: React.FC = () => {
               <table className="w-full">
                 <thead>
                   <tr className="bg-card border-b border-theme">
-                    <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">
                       Incident #
                     </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">
                       Date
                     </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">
                       Injured Worker
                     </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">
                       Injury Type
                     </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">
                       WCB Claim #
                     </th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-headings uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-4 py-3 text-center text-[10px] font-bold text-secondary uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-[10px] font-bold text-headings uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -1817,16 +1817,16 @@ const IncidentManagement: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-10 flex flex-col relative" >
+    <div className="min-h-screen pb-10 flex flex-col relative bg-main" >
 
 
       <div className="flex-1 w-full  mx-auto px-4 pt-6 relative z-10">
         <div className="mb-6 flex justify-between items-end">
           <div>
-            <h1 className="text-2xl font-bold text-black mb-1">
+            <h1 className="text-2xl font-bold text-headings mb-1">
               Incident Management
             </h1>
-            <p className="text-black text-xs font-medium opacity-90">Report, investigate, and track safety events</p>
+            <p className="text-secondary text-xs font-medium opacity-90">Report, investigate, and track safety events</p>
           </div>
 
           <div className="relative">
@@ -2160,7 +2160,7 @@ const IncidentManagement: React.FC = () => {
           <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black/50 backdrop-blur-md">
             <div className="bg-card rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6">
               <div className="flex justify-between items-center border-b pb-3 mb-4">
-                <h3 className="text-xl font-bold">Incident Detail: {selectedIncidentForDetail.incidentNumber}</h3>
+                <h3 className="text-xl font-bold text-headings">Incident Detail: {selectedIncidentForDetail.incidentNumber}</h3>
                 <button onClick={() => setSelectedIncidentForDetail(null)} className="text-secondary hover:text-primary">
                   <FaTimes />
                 </button>
