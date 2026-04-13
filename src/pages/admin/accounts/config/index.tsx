@@ -428,7 +428,7 @@ export default function AccountsSetup() {
         <div className="bg-card rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-primary">
+              <h3 className="text-xl font-bold text-headings">
                 {editingItem ? 'Edit' : 'Add New'} {activeTab.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
               </h3>
               <button onClick={() => setShowModal(false)} className="text-secondary hover:text-secondary">
@@ -491,7 +491,7 @@ export default function AccountsSetup() {
               {modalType === 'tax-codes' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Tax Code</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Tax Code</label>
                     <input
                       type="text"
                       value={formData.code || ''}
@@ -501,7 +501,7 @@ export default function AccountsSetup() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Description</label>
                     <input
                       type="text"
                       value={formData.description || ''}
@@ -511,7 +511,7 @@ export default function AccountsSetup() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Rate (%)</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Rate (%)</label>
                     <input
                       type="number"
                       step="0.001"
@@ -522,17 +522,40 @@ export default function AccountsSetup() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Category</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Category</label>
                     <select
                       value={formData.category || ''}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value as 'Sales Tax' | 'IFTA' | 'Payroll' })}
-                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          category: e.target.value as 'Sales Tax' | 'IFTA' | 'Payroll',
+                        })
+                      }
                       required
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                     >
-                      <option value="">Select Category</option>
-                      <option value="Sales Tax">Sales Tax</option>
-                      <option value="IFTA">IFTA</option>
-                      <option value="Payroll">Payroll</option>
+                      <option
+                        value=""
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Select Category
+                      </option>
+
+                      <option value="Sales Tax" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Sales Tax
+                      </option>
+
+                      <option value="IFTA" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        IFTA
+                      </option>
+
+                      <option value="Payroll" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Payroll
+                      </option>
                     </select>
                   </div>
                 </>
@@ -715,11 +738,11 @@ export default function AccountsSetup() {
               <table className="w-full">
                 <thead className="bg-card border-b border-theme">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Account Number</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Account Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Account Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Balance</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Account Number</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Account Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Account Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Balance</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-card divide-y divide-theme">
@@ -779,11 +802,11 @@ export default function AccountsSetup() {
               <table className="w-full">
                 <thead className="bg-card border-b border-theme">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Tax Code</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Rate (%)</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Category</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Tax Code</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Description</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Rate (%)</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-card divide-y divide-theme">
