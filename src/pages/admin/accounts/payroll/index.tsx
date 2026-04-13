@@ -2153,8 +2153,8 @@ const PayrollManagement = () => {
                             <div className="bg-card rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
                                 <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${showCreateModal ? 'bg-blue-100' : 'bg-green-100'}`}>
-                                            {showCreateModal ? <Plus className="text-[#00D1FF]" size={20} /> : <Edit2 className="text-green-600" size={20} />}
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${showCreateModal ? '' : ''}`}>
+                                            {showCreateModal ? <Plus className="text-[#00D1FF]" size={20} /> : <Edit2 className="text-[var(--accent-navyblue)]" size={20} />}
                                         </div>
                                         <div>
                                             <h4 className="text-xl font-bold text-headings">
@@ -2187,11 +2187,25 @@ const PayrollManagement = () => {
                                             name="userId"
                                             value={formData.userId}
                                             onChange={handleInputChange}
-                                            className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            className="w-full px-4 py-3 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
                                         >
-                                            <option value="">Select Employee</option>
+                                            <option
+                                                value=""
+                                                className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                                            >
+                                                Select Employee
+                                            </option>
+
                                             {employees.map((emp) => (
-                                                <option key={emp._id} value={emp._id}>
+                                                <option
+                                                    key={emp._id}
+                                                    value={emp._id}
+                                                    className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                                                >
                                                     {emp.name} - {emp.role}
                                                 </option>
                                             ))}
@@ -2824,7 +2838,7 @@ const PayrollManagement = () => {
                                         {formData.baseSalary && (
                                             <div className="mt-4 p-4 bg-card rounded-lg border border-purple-300">
                                                 <h6 className="text-sm font-semibold text-headings mb-2">Total Taxes</h6>
-                                                <div className="text-2xl font-bold text-purple-600">
+                                                <div className="text-2xl font-bold text-primary">
                                                     ${(() => {
                                                         let totalTax = 0;
                                                         if (formData.country === 'Canada') {

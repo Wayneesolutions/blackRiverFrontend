@@ -1432,14 +1432,14 @@ const PaystubsList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-main px-6 py-8">
+    <div className="min-h-screen bg-main px-6 py-8 border-2 border-red-700">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
-                <FileText className="text-[#00D1FF]" size={28} />
+              <h1 className="text-2xl font-bold text-headings flex items-center gap-2">
+                <FileText className="text-[var(--accent-navyblue)]" size={28} />
                 Gross Payroll
               </h1>
               <p className="text-sm text-secondary mt-1">View and download paystubs for employees, drivers, and owner operators</p>
@@ -1451,8 +1451,8 @@ const PaystubsList = () => {
             <button
               onClick={() => setActiveTab('all')}
               className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'all'
-                  ? 'border-blue-600 !text-[#00D1FF]'
-                  : 'border-transparent text-secondary hover:text-primary'
+                ? 'border-blue-600 !text-[var(--accent-navyblue)]'
+                : 'border-transparent text-secondary hover:text-primary'
                 }`}
             >
               All Paystubs
@@ -1463,8 +1463,8 @@ const PaystubsList = () => {
             <button
               onClick={() => setActiveTab('employees')}
               className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'employees'
-                  ? 'border-blue-600 !text-[#00D1FF]'
-                  : 'border-transparent text-secondary hover:text-primary'
+                ? 'border-blue-600 !text-[#00D1FF]'
+                : 'border-transparent text-secondary hover:text-primary'
                 }`}
             >
               <Users size={18} />
@@ -1479,8 +1479,8 @@ const PaystubsList = () => {
             <button
               onClick={() => setActiveTab('drivers')}
               className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'drivers'
-                  ? 'border-blue-600 text-[#00D1FF]'
-                  : 'border-transparent text-secondary hover:text-primary'
+                ? 'border-blue-600 text-[#00D1FF]'
+                : 'border-transparent text-secondary hover:text-primary'
                 }`}
             >
               <Users size={18} />
@@ -1498,8 +1498,8 @@ const PaystubsList = () => {
             <button
               onClick={() => setActiveTab('ownerOperators')}
               className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'ownerOperators'
-                  ? 'border-blue-600 text-[#00D1FF]'
-                  : 'border-transparent text-secondary hover:text-primary'
+                ? 'border-blue-600 text-[#00D1FF]'
+                : 'border-transparent text-secondary hover:text-primary'
                 }`}
             >
               <Users size={18} />
@@ -1548,7 +1548,7 @@ const PaystubsList = () => {
               <button
                 onClick={handleBulkDownload}
                 disabled={downloadingBulk}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 !text-white rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                className="px-4 py-2 bg-[var(--accent-navyblue)] hover:bg-blue-700 !text-white rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 {downloadingBulk ? (
                   <>
@@ -1628,24 +1628,24 @@ const PaystubsList = () => {
               <table className="w-full">
                 <thead className="bg-card border-b border-theme">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Employee / Driver</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Employee / Driver</th>
                     {activeTab !== 'employees' && (
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Employee Code</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Employee Code</th>
                     )}
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Pay Period</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Pay Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Net Pay</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Role</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Pay Period</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Pay Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Net Pay</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-headings uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-theme">
+                <tbody className="bg-card divide-y divide-theme divide-white/5">
                   {filteredPaystubs.map((paystub) => (
                     <tr key={paystub._id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium bg-blue-500">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center text-primary font-medium bg-blue-500">
                             {paystub.employeeName?.charAt(0) || 'N'}
                           </div>
                           <div className="ml-3">
@@ -1666,8 +1666,8 @@ const PaystubsList = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${paystub.employeeRole?.toLowerCase() === 'driver'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-blue-100 text-blue-800'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-blue-100 text-blue-800'
                             }`}>
                             {paystub.employeeRole || paystub.userId?.role || 'N/A'}
                           </span>
@@ -1711,10 +1711,10 @@ const PaystubsList = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${paystub.status === 'issued'
-                            ? 'bg-green-100 text-green-800'
-                            : paystub.status === 'void'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-card text-primary'
+                          ? 'bg-green-100 text-green-800'
+                          : paystub.status === 'void'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-card text-primary'
                           }`}>
                           {paystub.status.charAt(0).toUpperCase() + paystub.status.slice(1)}
                         </span>
@@ -1725,7 +1725,7 @@ const PaystubsList = () => {
                           className="text-[#00D1FF] hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center gap-1"
                           title="Download PDF"
                         >
-                          <Download size={18} />
+                          <Download size={18} className='text-[var(--accent-navyblue)]' />
                           <span className="hidden md:inline">Download</span>
                         </button>
                       </td>

@@ -2252,7 +2252,7 @@ const DriverPayrollManagement = () => {
       <div className="py-8 w-full mx-auto">
         {notification && (
           <div className={`fixed top-4 right-4 z-[10000] flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-            } text-white`}>
+            } text-primary`}>
             {notification.type === 'success' ? (
               <CheckCircle size={20} />
             ) : (
@@ -2276,7 +2276,7 @@ const DriverPayrollManagement = () => {
           <div className="flex gap-2">
             <button
               onClick={() => setShowBulkGenerateModal(true)}
-              className="px-4 py-2 !text-white rounded-lg transition-all font-medium flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
+              className="px-4 py-2 !text-primary rounded-lg transition-all font-medium flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
               style={{ background: 'var(--accent-navyblue)' }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2286,7 +2286,7 @@ const DriverPayrollManagement = () => {
             </button>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 !text-white rounded-lg transition-all font-medium flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
+              className="px-4 py-2 !text-primary rounded-lg transition-all font-medium flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200"
               style={{ background: 'var(--accent-navyblue)' }}
             >
               <Plus size={16} />
@@ -2295,7 +2295,7 @@ const DriverPayrollManagement = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 ">
           <div className="bg-[var(--accent-blue)]/20 p-6 rounded-xl border-blue-100 shadow-sm border border-theme">
             <div className="flex items-center justify-between">
               <div>
@@ -2320,26 +2320,26 @@ const DriverPayrollManagement = () => {
             </div>
           </div>
 
-          <div className="bg-[#E8F5E9] p-6 rounded-xl border-green-100 shadow-sm border">
+          <div className="bg-[var(--accent-green)]/20 p-6 rounded-xl border border-theme shadow-sm border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[#063f6f]">Total Miles</p>
-                <p className="text-2xl font-bold text-[#016ab2] mt-1">{totalMiles.toLocaleString()}</p>
+                <p className="text-sm font-medium text-[var(--accent-green)]">Total Miles</p>
+                <p className="text-2xl font-bold text-[var(--accent-green)] mt-1">{totalMiles.toLocaleString()}</p>
               </div>
               <div className="p-3 rounded-full bg-card">
-                <TrendingUp className="text-[var(--accent-blue)]" size={24} />
+                <TrendingUp className="text-[var(--accent-green)]" size={24} />
               </div>
             </div>
           </div>
 
-          <div className="bg-[#F3E5F5] p-6 rounded-xl border-purple-100 shadow-sm border">
+          <div className="bg-[var(--accent-purple)]/20 p-6 rounded-xl border border-theme shadow-sm border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[#063f6f]">Avg per Mile</p>
-                <p className="text-2xl font-bold text-[#016ab2] mt-1">${avgPerMile.toFixed(2)}</p>
+                <p className="text-sm font-medium text-[var(--accent-purple)]">Avg per Mile</p>
+                <p className="text-2xl font-bold text-[var(--accent-purple)] mt-1">${avgPerMile.toFixed(2)}</p>
               </div>
               <div className="p-3 rounded-full bg-card">
-                <Package className="text-[var(--accent-blue)]" size={24} />
+                <Package className="text-[var(--accent-purple)]" size={24} />
               </div>
             </div>
           </div>
@@ -2392,7 +2392,7 @@ const DriverPayrollManagement = () => {
 
         <div className="bg-card border-theme rounded-xl shadow-sm border">
           <div className="p-6 border-b border-theme">
-            <h2 className="text-xl font-bold text-primary">
+            <h2 className="text-xl font-bold text-headings">
               {driverTypeTab === 'ownerOperator' ? 'Company Driver' : 'Owner Operator'} Payroll Records
             </h2>
           </div>
@@ -2454,7 +2454,7 @@ const DriverPayrollManagement = () => {
                   marginBottom: '8px',
                   paddingTop: '8px',
                   scrollbarWidth: 'thin',
-                  scrollbarColor: '#10b981 #f7fafc'
+                  // scrollbarColor: '#10b981 #f7fafc'
                 }}
               >
                 <div className="top-scroll-content" style={{ height: '1px', minWidth: '100%' }}></div>
@@ -2467,19 +2467,19 @@ const DriverPayrollManagement = () => {
                 <table className="w-full">
                   <thead className="bg-card">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Driver</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Trips</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Total Miles</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Rate/Mile</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Trip Earnings</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Bonus</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Deductions</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Total Pay</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Pay Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Driver</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Trips</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Total Miles</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Rate/Mile</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Trip Earnings</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Bonus</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Deductions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Total Pay</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Pay Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-theme">
+                  <tbody className="bg-card divide-y divide-theme divide-white/5">
                     {filteredPayrolls.map((payroll) => (
                       <tr
                         key={payroll._id}
@@ -2488,21 +2488,21 @@ const DriverPayrollManagement = () => {
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium bg-green-500">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-primary font-medium bg-green-500">
                               {payroll.userId.name.charAt(0)}
                             </div>
                             <div className="ml-3">
-                              <div className="text-sm font-medium text-primary">{payroll.userId.name}</div>
+                              <div className="text-sm font-medium text-secondary">{payroll.userId.name}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-secondary">
                           {payroll.trips?.length || 0}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-secondary">
                           {payroll.totalMiles?.toLocaleString() || 0} mi
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                           ${(payroll.ratePerMile || 0).toFixed(2)}/mi
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
@@ -2514,24 +2514,24 @@ const DriverPayrollManagement = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-[#A855F7]">
                           -${payroll.deductions.toLocaleString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-secondary">
                           ${payroll.totalSalary.toLocaleString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                           {new Date(payroll.payDate).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => openViewModal(payroll)}
-                              className="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded-lg"
+                              className="text-green-600 hover:text-green-900 p-2 hover:bg-[var(--accent-green)]/20 rounded-lg"
                               title="View Details"
                             >
                               <Eye size={18} />
                             </button>
                             <button
                               onClick={() => openPaystubModal(payroll)}
-                              className="text-purple-600 hover:text-purple-900 p-2 hover:bg-purple-50 rounded-lg disabled:opacity-50"
+                              className="text-purple-600 hover:text-purple-900 p-2 hover:bg-[var(--accent-purple)]/20 rounded-lg disabled:opacity-50"
                               title="View Paystub"
                               disabled={loadingPaystub}
                             >
@@ -2543,14 +2543,14 @@ const DriverPayrollManagement = () => {
                             </button>
                             <button
                               onClick={() => openEditModal(payroll)}
-                              className="text-[#00D1FF] hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg"
+                              className="text-blue-600 hover:text-blue-900 p-2 hover:bg-[var(--accent-blue)]/20 rounded-lg"
                               title="Edit"
                             >
                               <Edit2 size={18} />
                             </button>
                             <button
                               onClick={() => openDeleteModal(payroll)}
-                              className="text-[#A855F7] hover:text-red-900 p-2 hover:bg-red-50 rounded-lg"
+                              className="text-red-600 hover:text-red-900 p-2 hover:bg-[var(--accent-red)]/20 rounded-lg"
                               title="Delete"
                             >
                               <Trash2 size={18} />
@@ -2655,7 +2655,7 @@ const DriverPayrollManagement = () => {
 
                       {/* Trip Summary */}
                       {driverPayrollSummary && (
-                        <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg">
+                        <div className="bg-gradient-to-r from-green-500 to-green-600 text-primary p-6 rounded-lg">
                           <div className="flex justify-between items-start mb-4">
                             <div>
                               <h5 className="text-lg font-bold flex items-center gap-2">
@@ -3079,7 +3079,7 @@ const DriverPayrollManagement = () => {
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-2">
                           <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                             </svg>
                           </div>
@@ -3304,9 +3304,9 @@ const DriverPayrollManagement = () => {
                   </div>
 
                   {/* Tax Section */}
-                  <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border border-purple-200">
-                    <h5 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                      <DollarSign size={20} className="text-purple-600" />
+                  <div className="bg-card  p-6 rounded-lg border border-theme">
+                    <h5 className="text-lg font-semibold text-[var(--accent-navyblue)] mb-4 flex items-center gap-2">
+                      <DollarSign size={20} className="text-[var(--accent-navyblue)]" />
                       Tax Information
                     </h5>
 
@@ -3333,7 +3333,7 @@ const DriverPayrollManagement = () => {
                             <label className="block text-sm font-medium text-primary mb-2">
                               Federal Income Tax ($)
                             </label>
-                            <div className="relative">
+                            <div className="relative text-secondary">
                               <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                               <input
                                 type="number"
@@ -3343,7 +3343,7 @@ const DriverPayrollManagement = () => {
                                 min="0"
                                 step="0.01"
                                 placeholder="0.00"
-                                className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
+                                className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card "
                               />
                             </div>
                           </div>
@@ -3617,7 +3617,7 @@ const DriverPayrollManagement = () => {
                     const netPay = grossEarnings - totalDeductions - totalTax;
 
                     return (
-                      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg">
+                      <div className="bg-gradient-to-r from-green-600 to-green-700 text-primary p-6 rounded-lg">
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
                             <p className="text-sm text-green-100">Gross Earnings</p>
@@ -3698,7 +3698,7 @@ const DriverPayrollManagement = () => {
                       style={{
                         background: 'var(--accent-navyblue)'
                       }}
-                      className="px-4 py-2   !text-white rounded-lg font-medium flex items-center gap-2 disabled:opacity-50"
+                      className="px-4 py-2   !text-primary rounded-lg font-medium flex items-center gap-2 disabled:opacity-50"
                       disabled={loading}
                     >
                       {loading ? (
@@ -3727,11 +3727,11 @@ const DriverPayrollManagement = () => {
               <div className="bg-card rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <Eye className="text-green-600" size={20} />
+                    <div className="w-10 h-10 bg-[var(--accent-navyblue)] rounded-lg flex items-center justify-center">
+                      <Eye className="text-primary" size={20} />
                     </div>
                     <div>
-                      <h4 className="text-xl font-bold text-primary">Driver Payroll Details</h4>
+                      <h4 className="text-xl font-bold text-headings">Driver Payroll Details</h4>
                       <p className="text-sm text-secondary">{selectedPayroll.userId.name}</p>
                     </div>
                   </div>
@@ -3745,7 +3745,7 @@ const DriverPayrollManagement = () => {
 
                 <div className="p-6 space-y-6">
                   {/* Driver Info */}
-                  <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl">
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 text-primary p-6 rounded-xl">
                     <h5 className="text-lg font-bold mb-4 flex items-center gap-2">
                       <Truck size={20} />
                       Driver Information
@@ -3778,18 +3778,18 @@ const DriverPayrollManagement = () => {
                         <table className="w-full">
                           <thead className="bg-card sticky top-0">
                             <tr>
-                              <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Trip #</th>
-                              <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Route</th>
-                              <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Role</th>
-                              <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Completed</th>
-                              <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Miles</th>
-                              <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Earnings</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-headings uppercase">Trip #</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-headings uppercase">Route</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-headings uppercase">Role</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-headings uppercase">Completed</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-headings uppercase">Miles</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-headings uppercase">Earnings</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-theme">
+                          <tbody className="divide-y divide-theme divide-white/5">
                             {selectedPayroll.trips.map((trip) => (
                               <tr key={trip._id} className="hover:bg-[rgba(255,255,255,0.03)]">
-                                <td className="px-3 py-2 text-sm font-medium text-primary">
+                                <td className="px-3 py-2 text-sm font-medium text-secondary">
                                   {trip.tripNumber || trip._id?.slice(-6).toUpperCase()}
                                 </td>
                                 <td className="px-3 py-2 text-sm text-secondary">
@@ -3849,7 +3849,7 @@ const DriverPayrollManagement = () => {
                                 <td className="px-3 py-2 text-sm text-secondary">
                                   {trip.actualEndDate ? new Date(trip.actualEndDate).toLocaleDateString() : '-'}
                                 </td>
-                                <td className="px-3 py-2 text-sm font-medium text-primary">
+                                <td className="px-3 py-2 text-sm font-medium text-secondary">
                                   {(() => {
                                     // Calculate miles from route or use stored value
                                     let miles: number = 0;
@@ -3892,9 +3892,9 @@ const DriverPayrollManagement = () => {
                   )}
 
                   {/* Earnings Breakdown */}
-                  <div className="bg-green-50 p-6 rounded-xl border border-green-200">
-                    <h5 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                      <DollarSign size={20} className="text-green-600" />
+                  <div className="bg-card p-6 rounded-xl border border-theme ">
+                    <h5 className="text-lg font-bold text-headings mb-4 flex items-center gap-2">
+                      <DollarSign size={20} className="text-[var(--accent-navyblue)]" />
                       Earnings Breakdown
                     </h5>
                     <div className="space-y-3">
@@ -3937,8 +3937,8 @@ const DriverPayrollManagement = () => {
                         </span>
                       </div>
                       <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-600 to-green-700 rounded-lg">
-                        <span className="text-sm font-medium text-white">Net Pay</span>
-                        <span className="text-2xl font-bold text-white">${selectedPayroll.totalSalary.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span className="text-sm font-medium text-primary">Net Pay</span>
+                        <span className="text-2xl font-bold text-primary">${selectedPayroll.totalSalary.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
                     </div>
                   </div>
@@ -3962,8 +3962,8 @@ const DriverPayrollManagement = () => {
                     if (totalTaxes > 0) {
                       return (
                         <div className="bg-card p-6 rounded-xl border border-purple-200">
-                          <h5 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                            <DollarSign size={20} className="text-purple-600" />
+                          <h5 className="text-lg font-bold text-[var(--accent-purple)] mb-4 flex items-center gap-2">
+                            <DollarSign size={20} className="text-[var(--accent-purple)]" />
                             Tax Information ({country})
                           </h5>
                           {country === 'Canada' ? (
@@ -4029,8 +4029,8 @@ const DriverPayrollManagement = () => {
 
                   {/* Payment Info */}
                   <div className="bg-card p-6 rounded-xl border border-theme">
-                    <h5 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                      <Calendar size={20} className="text-[#F59E0B]" />
+                    <h5 className="text-lg font-bold text-[var(--accent-amber)] mb-4 flex items-center gap-2">
+                      <Calendar size={20} className="text-[var(--accent-amber)]" />
                       Payment Information
                     </h5>
                     <div className="grid grid-cols-2 gap-4">
@@ -4096,7 +4096,7 @@ const DriverPayrollManagement = () => {
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 !text-white rounded-lg font-medium disabled:opacity-50"
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 !text-primary rounded-lg font-medium disabled:opacity-50"
                     disabled={loading}
                   >
                     {loading ? 'Deleting...' : 'Delete'}
@@ -4127,8 +4127,8 @@ const DriverPayrollManagement = () => {
                   </div>
 
                   {/* Company Header Section */}
-                  <div className="border-b-2 border-theme pb-4 mb-4">
-                    <div className="flex justify-between items-start">
+                  <div className="border-b-2 border-theme pb-4 mb-4 ">
+                    <div className="flex justify-between items-start ">
                       <div className="flex-1">
                         {selectedPaystub.companyDetails?.companyLogo && (
                           <img
@@ -4137,7 +4137,7 @@ const DriverPayrollManagement = () => {
                             className="h-12 mb-3"
                           />
                         )}
-                        <h2 className="text-2xl font-bold text-primary mb-1">
+                        <h2 className="text-2xl font-bold text-headings mb-1 ">
                           {selectedPaystub.companyDetails?.companyName || 'Company Name'}
                         </h2>
                         {selectedPaystub.companyDetails?.companyAddress && (
@@ -4155,7 +4155,7 @@ const DriverPayrollManagement = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <h1 className="text-3xl font-bold text-primary mb-2">PAY STUB</h1>
+                        <h1 className="text-3xl font-bold text-headings mb-2">PAY STUB</h1>
                         <p className="text-sm text-secondary">EARNINGS STATEMENT</p>
                         {selectedPaystub.paystubId && (
                           <p className="text-xs text-secondary mt-2">ID: {selectedPaystub.paystubId}</p>
@@ -4165,7 +4165,7 @@ const DriverPayrollManagement = () => {
                   </div>
 
                   {/* Pay Period Header */}
-                  <div className="grid grid-cols-3 gap-4 bg-card p-4 rounded-lg border border-blue-200">
+                  <div className="grid grid-cols-3 gap-4 bg-card p-4 rounded-lg border border-theme">
                     <div>
                       <label className="text-xs font-semibold text-secondary uppercase">Pay Period Start</label>
                       <div className="text-sm font-bold text-primary mt-1">
@@ -4190,7 +4190,7 @@ const DriverPayrollManagement = () => {
                 <div className="p-6 space-y-6">
                   {/* Employee Information Section */}
                   <div className="bg-card p-5 rounded-lg border border-theme">
-                    <h3 className="text-lg font-bold text-primary mb-4 border-b border-theme pb-2">Employee Information</h3>
+                    <h3 className="text-lg font-bold text-headings mb-4 border-b border-theme pb-2">Employee Information</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-xs font-semibold text-secondary uppercase">Employee / Driver Name</label>
@@ -4238,20 +4238,20 @@ const DriverPayrollManagement = () => {
                   </div>
 
                   {/* Earnings Section */}
-                  <div className="bg-green-50 p-5 rounded-lg border border-green-200">
-                    <h3 className="text-lg font-bold text-primary mb-4 border-b border-green-300 pb-2">Earnings</h3>
+                  <div className="bg-card p-5 rounded-lg border border-theme">
+                    <h3 className="text-lg font-bold text-headings mb-4 border-b border-theme pb-2">Earnings</h3>
                     {selectedPaystub.earnings.earningsBreakdown && selectedPaystub.earnings.earningsBreakdown.length > 0 ? (
                       <div className="overflow-x-auto">
                         <table className="w-full">
                           <thead>
                             <tr className="border-b border-green-300">
-                              <th className="text-left py-2 px-3 text-xs font-semibold text-primary uppercase">Earning Type</th>
-                              <th className="text-center py-2 px-3 text-xs font-semibold text-primary uppercase">Units</th>
-                              <th className="text-right py-2 px-3 text-xs font-semibold text-primary uppercase">Rate</th>
-                              <th className="text-right py-2 px-3 text-xs font-semibold text-primary uppercase">Amount</th>
+                              <th className="text-left py-2 px-3 text-xs font-semibold text-headings uppercase">Earning Type</th>
+                              <th className="text-center py-2 px-3 text-xs font-semibold text-headings uppercase">Units</th>
+                              <th className="text-right py-2 px-3 text-xs font-semibold text-headings uppercase">Rate</th>
+                              <th className="text-right py-2 px-3 text-xs font-semibold text-headings uppercase">Amount</th>
                             </tr>
                           </thead>
-                          <tbody>
+                          <tbody className=''>
                             {selectedPaystub.earnings.earningsBreakdown.map((earning: any, index: number) => (
                               <tr key={index} className="border-b border-green-200">
                                 <td className="py-2 px-3 text-sm text-primary">{earning.type}</td>
@@ -4264,7 +4264,7 @@ const DriverPayrollManagement = () => {
                                 </td>
                               </tr>
                             ))}
-                            <tr className="bg-green-100 font-bold">
+                            <tr className=" font-bold">
                               <td colSpan={3} className="py-3 px-3 text-sm text-primary">Total Earnings</td>
                               <td className="py-3 px-3 text-sm text-right text-green-700">
                                 ${selectedPaystub.earnings.totalEarnings.toFixed(2)}
@@ -4309,7 +4309,7 @@ const DriverPayrollManagement = () => {
 
                   {/* Deductions Section */}
                   <div className="bg-card p-5 rounded-lg border border-red-200">
-                    <h3 className="text-lg font-bold text-primary mb-4 border-b border-red-300 pb-2">Deductions</h3>
+                    <h3 className="text-lg font-bold text-headings mb-4 border-b border-red-300 pb-2">Deductions</h3>
                     {selectedPaystub.deductions.deductionsBreakdown && selectedPaystub.deductions.deductionsBreakdown.length > 0 ? (
                       <div className="overflow-x-auto">
                         <table className="w-full">
@@ -4319,7 +4319,7 @@ const DriverPayrollManagement = () => {
                               <th className="text-right py-2 px-3 text-xs font-semibold text-primary uppercase">Amount</th>
                             </tr>
                           </thead>
-                          <tbody>
+                          <tbody className=''>
                             {selectedPaystub.deductions.deductionsBreakdown.map((deduction: any, index: number) => (
                               <tr key={index} className="border-b border-red-200">
                                 <td className="py-2 px-3 text-sm text-primary">{deduction.type}</td>
@@ -4328,7 +4328,7 @@ const DriverPayrollManagement = () => {
                                 </td>
                               </tr>
                             ))}
-                            <tr className="bg-red-100 font-bold">
+                            <tr className=" font-bold">
                               <td className="py-3 px-3 text-sm text-primary">Total Deductions</td>
                               <td className="py-3 px-3 text-sm text-right text-red-700">
                                 ${selectedPaystub.deductions.totalDeductions.toFixed(2)}
@@ -4403,7 +4403,7 @@ const DriverPayrollManagement = () => {
                   )}
 
                   {/* Summary Section */}
-                  <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-lg text-white shadow-lg">
+                  <div className="bg-[var(--accent-navyblue)]/20 p-6 rounded-lg text-primary shadow-lg">
                     <h3 className="text-xl font-bold mb-4 border-b border-blue-400 pb-2">Pay Summary</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -4430,23 +4430,23 @@ const DriverPayrollManagement = () => {
 
                   {/* YTD Summary */}
                   {selectedPaystub.ytd && (
-                    <div className="bg-indigo-50 p-5 rounded-lg border border-indigo-200">
-                      <h3 className="text-lg font-bold text-primary mb-4 border-b border-indigo-300 pb-2">Year-to-Date (YTD) Summary</h3>
+                    <div className="bg-[var(--accent-navyblue)]/20 p-5 rounded-lg border border-theme">
+                      <h3 className="text-lg font-bold text-primary mb-4 border-b border-theme pb-2">Year-to-Date (YTD) Summary</h3>
                       <div className="grid grid-cols-3 gap-4">
                         <div>
-                          <label className="text-xs font-semibold text-secondary uppercase">YTD Earnings</label>
+                          <label className="text-xs font-semibold text-primary uppercase">YTD Earnings</label>
                           <div className="mt-1 text-base font-bold text-indigo-700">
                             ${selectedPaystub.ytd.earnings.toFixed(2)}
                           </div>
                         </div>
                         <div>
-                          <label className="text-xs font-semibold text-secondary uppercase">YTD Deductions</label>
+                          <label className="text-xs font-semibold text-primary uppercase">YTD Deductions</label>
                           <div className="mt-1 text-base font-bold text-[#A855F7]">
                             ${selectedPaystub.ytd.deductions.toFixed(2)}
                           </div>
                         </div>
                         <div>
-                          <label className="text-xs font-semibold text-secondary uppercase">YTD Net Pay</label>
+                          <label className="text-xs font-semibold text-primary uppercase">YTD Net Pay</label>
                           <div className="mt-1 text-base font-bold text-green-700">
                             ${selectedPaystub.ytd.netPay.toFixed(2)}
                           </div>
@@ -4470,7 +4470,7 @@ const DriverPayrollManagement = () => {
                       <div>
                         {selectedPaystub.hrName && (
                           <div>
-                            <label className="text-xs font-semibold text-secondary uppercase">HR Signature</label>
+                            <label className="text-xs font-semibold text-headings uppercase">HR Signature</label>
                             <div className="mt-1 text-sm font-semibold text-primary">
                               {selectedPaystub.hrName}
                             </div>
@@ -4501,7 +4501,7 @@ const DriverPayrollManagement = () => {
                   <div className="flex justify-between items-center">
                     <button
                       onClick={() => handleDownloadPaystubPDF(selectedPaystub)}
-                      className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                      className="px-6 py-3 bg-[var(--accent-navyblue)] text-primary rounded-lg font-medium transition-colors flex items-center gap-2"
                     >
                       <Download size={18} />
                       Download PDF
@@ -4511,7 +4511,7 @@ const DriverPayrollManagement = () => {
                         setShowPaystubModal(false);
                         setSelectedPaystub(null);
                       }}
-                      className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-primary rounded-lg font-medium transition-colors flex items-center gap-2"
+                      className="px-6 py-3 border border-theme text-primary rounded-lg font-medium transition-colors flex items-center gap-2"
                     >
                       <X size={18} />
                       Close
@@ -4675,7 +4675,7 @@ const DriverPayrollManagement = () => {
                     <button
                       onClick={handleBulkAIGeneration}
                       disabled={loadingBulkAI || !bulkDateRange.startDate || !bulkDateRange.endDate}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-primary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                       {loadingBulkAI ? (
                         <>
@@ -5016,7 +5016,7 @@ const DriverPayrollManagement = () => {
                                   <th className="px-3 py-2 text-left text-xs font-medium text-secondary uppercase">Earnings</th>
                                 </tr>
                               </thead>
-                              <tbody className="divide-y divide-theme">
+                              <tbody className="divide-y divide-theme  divide-white/5">
                                 {suggestion.trips.map((trip: any) => (
                                   <tr key={trip._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                     <td className="px-3 py-2 text-sm font-medium text-primary">
@@ -5178,7 +5178,7 @@ const DriverPayrollManagement = () => {
                         const netPay = grossEarnings - totalDeductions - totalTax;
 
                         return (
-                          <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg mt-4">
+                          <div className="bg-gradient-to-r from-green-600 to-green-700 text-primary p-6 rounded-lg mt-4">
                             <div className="space-y-2">
                               <div className="flex justify-between items-center">
                                 <p className="text-sm text-green-100">Gross Earnings</p>
@@ -5253,7 +5253,7 @@ const DriverPayrollManagement = () => {
                   <button
                     onClick={handleBulkCreatePayrolls}
                     disabled={loadingBulkAI}
-                    className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="px-6 py-2 bg-green-600 hover:bg-green-700 text-primary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     {loadingBulkAI ? (
                       <>
