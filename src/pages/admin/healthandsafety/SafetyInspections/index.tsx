@@ -784,7 +784,7 @@ const SafetyInspections: React.FC = () => {
                   {selectedInspection.status.toUpperCase()}
                 </span>
               </div>
-              <div className="bg-green-50 p-4 rounded-lg">
+              <div className="bg-card p-4 rounded-lg">
                 <div className="text-sm text-secondary mb-1">Scheduled</div>
                 <div className="font-semibold">
                   {selectedInspection.scheduledDate
@@ -884,8 +884,8 @@ const SafetyInspections: React.FC = () => {
             )}
 
             {/* Audit Trail */}
-            <div className="mb-6">
-              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <div className="mb-6 ">
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-headings">
                 <FaHistory /> Audit Trail
               </h3>
               <div className="space-y-2">
@@ -941,7 +941,7 @@ const SafetyInspections: React.FC = () => {
                 setShowDetailModal(false);
                 setSelectedInspection(null);
               }}
-              className="px-6 py-3 bg-gray-200 text-primary rounded-lg font-semibold hover:bg-gray-300 transition"
+              className="px-6 py-3 border border-theme text-primary rounded-lg font-semibold hover:bg-[var(--accent-navyblue)]/20 transition"
             >
               Close
             </button>
@@ -952,10 +952,10 @@ const SafetyInspections: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
+    <div className="min-h-screen p-6 bg-main" >
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3" style={{ color: CUSTOM_COLORS.dark }}>
+        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3 text-headings" >
           <FaClipboardCheck className="text-indigo-600" />
           Safety Inspections & Audits
         </h1>
@@ -1043,8 +1043,8 @@ const SafetyInspections: React.FC = () => {
               setEditingInspection(null);
               setShowNewInspectionModal(true);
             }}
-            className="px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center gap-2 whitespace-nowrap"
-            style={{ background: CUSTOM_COLORS.gradient }}
+            className="px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center gap-2 whitespace-nowrap bg-[var(--accent-navyblue)]"
+
           >
             <FaPlus /> New Inspection
           </button>
@@ -1074,17 +1074,17 @@ const SafetyInspections: React.FC = () => {
           <table className="w-full">
             <thead className="bg-card border-b border-theme">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase">Inspection #</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase">Type</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase">Location</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase">Inspector</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase">Date</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase">Status</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase">Findings</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Inspection #</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Type</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Location</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Inspector</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Date</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Status</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Findings</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-headings uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-theme">
+            <tbody className="divide-y divide-theme divide-white/5">
               {loading ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-8 text-center text-secondary">Loading...</td>
