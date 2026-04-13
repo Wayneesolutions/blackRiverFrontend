@@ -1021,7 +1021,7 @@ const FuelReports = () => {
     bgColor: string;
     iconColor: string;
   }) => (
-    <div className="bg-card rounded-lg p-3 shadow-sm border border-transparent hover:border-blue-100 transition-all">
+    <div className={` rounded-lg p-3 shadow-sm border border-transparent hover:border-blue-100 transition-all border-2 border-red-700 bg-${iconColor}`}>
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
           <h3 className="text-sm font-bold text-primary mb-1">{title}</h3>
@@ -1050,7 +1050,7 @@ const FuelReports = () => {
 
   if (emptyStateMessage) {
     return (
-      <div className="min-h-screen bg-card flex flex-col items-center justify-center text-center space-y-4 px-6">
+      <div className="min-h-screen bg-card flex flex-col items-center justify-center text-center space-y-4 px-6 border-2 border-red-700">
         <div className="text-5xl text-gray-300">⛽</div>
         <div className="space-y-2 max-w-md">
           <h2 className="text-2xl font-semibold text-primary">
@@ -1063,15 +1063,15 @@ const FuelReports = () => {
   }
 
   return (
-    <div className="min-h-screen pb-10" >
+    <div className="min-h-screen pb-10 border-red-700" >
       <div className="relative w-full mx-auto p-2">
 
         <div className="relative z-10 px-4 pt-3 pb-6">
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-black">Fuel Reports</h1>
-                <div className="flex items-center gap-2 text-black/90">
+                <h1 className="text-2xl font-bold text-headings">Fuel Reports</h1>
+                <div className="flex items-center gap-2 text-secondary">
                   <span className="text-xs">Manage fuel consumption</span>
                 </div>
               </div>
@@ -1088,7 +1088,7 @@ const FuelReports = () => {
 
           {/* Analytics Dashboard */}
           <div className="space-y-4 mb-6">
-            <h2 className="text-lg font-semibold text-primary">Fuel Analytics</h2>
+            <h2 className="text-lg font-semibold text-headings">Fuel Analytics</h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="bg-card rounded-xl p-4 shadow-sm border border-theme">
                 <h3 className="text-sm font-semibold text-secondary mb-2">YTD Consumption</h3>
@@ -1104,12 +1104,53 @@ const FuelReports = () => {
                 <h3 className="text-sm font-semibold text-secondary mb-3">Spend Trend</h3>
                 <div className="h-32">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={spendTrendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-                      <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                      <Tooltip formatter={(v) => [`$${(v as number).toLocaleString()}`, "Spend"]} />
-                      <Line type="monotone" dataKey="spend" stroke={FLEET_COLORS.primary} strokeWidth={2} dot={{ r: 3 }} />
+                    <LineChart
+                      data={spendTrendData}
+                      style={{ backgroundColor: 'transparent' }} // ✅ remove light bg
+                    >
+                      <CartesianGrid
+                        stroke="var(--border-color)"
+                        strokeDasharray="3 3"
+                      />
+
+                      <XAxis
+                        dataKey="month"
+                        stroke="var(--text-secondary)"
+                        tick={{ fontSize: 10 }}
+                      />
+
+                      <YAxis
+                        stroke="var(--text-secondary)"
+                        tick={{ fontSize: 10 }}
+                        tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                      />
+
+                      <Tooltip
+                        cursor={{ stroke: 'transparent', fill: 'transparent' }} // ✅ remove hover bg
+                        wrapperStyle={{
+                          background: 'transparent',
+                          outline: 'none'
+                        }}
+                        contentStyle={{
+                          backgroundColor: 'var(--bg-card)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '10px',
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                          color: 'var(--text-primary)'
+                        }}
+                        itemStyle={{ color: 'var(--text-primary)' }}
+                        labelStyle={{ color: 'var(--text-secondary)' }}
+                        formatter={(v) => [`$${(v as number).toLocaleString()}`, "Spend"]}
+                      />
+
+                      <Line
+                        type="monotone"
+                        dataKey="spend"
+                        stroke={FLEET_COLORS.primary}
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                        activeDot={{ r: 5 }} // ✅ better hover UX
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -1132,15 +1173,15 @@ const FuelReports = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 -mt-2 mb-4">
-            <StatCard title="Total Reports" value={filteredReports.length} subtitle="Filtered" icon={FaClipboardList} bgColor="bg-card" iconColor="text-[#00D1FF]" />
-            <StatCard title="Total Fuel Cost" value={`$${filteredReports.reduce((a, r) => a + (r.transactionAmount ?? Number(r.cost) ?? 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} subtitle="Filtered" icon={FaFileInvoiceDollar} bgColor="bg-green-50" iconColor="text-green-600" />
+            <StatCard title="Total Reports" value={filteredReports.length} subtitle="Filtered" icon={FaClipboardList} bgColor="bg-card" iconColor="text-[var(--accent-blue)] bg-[var(--accent-blue)]/20" />
+            <StatCard title="Total Fuel Cost" value={`$${filteredReports.reduce((a, r) => a + (r.transactionAmount ?? Number(r.cost) ?? 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} subtitle="Filtered" icon={FaFileInvoiceDollar} bgColor="bg-card" iconColor="text-[var(--accent-green)] bg-[var(--accent-green)]/20" />
             <StatCard
               title="Total Volume"
               value={`${filteredReports.reduce((a, r) => a + (r.fuelAmount ?? r.fuelAmounts?.[0] ?? parseFloat(r.volume || "0")), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${fuelReports[0]?.measurementUnit || "L"}`}
               subtitle="Filtered"
               icon={FaGasPump}
               bgColor="bg-card"
-              iconColor="text-[#F59E0B]"
+              iconColor="text-[var(--accent-orange)] bg-[var(--accent-orange)]/20"
             />
           </div>
 
@@ -1153,6 +1194,7 @@ const FuelReports = () => {
                   value={startDateFilter}
                   onChange={(e) => setStartDateFilter(e.target.value)}
                   className="px-3 py-2 border border-theme rounded-lg text-xs"
+                  style={{ colorScheme: "dark" }}
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -1162,6 +1204,7 @@ const FuelReports = () => {
                   value={endDateFilter}
                   onChange={(e) => setEndDateFilter(e.target.value)}
                   className="px-3 py-2 border border-theme rounded-lg text-xs"
+                  style={{ colorScheme: "dark" }}
                 />
               </div>
               <div className="relative flex-1 max-w-xl">
@@ -1183,13 +1226,30 @@ const FuelReports = () => {
                     setStatusFilter(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="px-4 py-2 border border-theme rounded-lg text-xs focus:ring-2 focus:border-transparent"
-                  style={{ '--tw-ring-color': FLEET_COLORS.primary } as React.CSSProperties & { '--tw-ring-color': string }}
+                  className="px-4 py-2 text-xs border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                 >
-                  <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
+                  <option
+                    value="all"
+                    className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                  >
+                    All Status
+                  </option>
+
+                  <option value="pending" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Pending
+                  </option>
+
+                  <option value="approved" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Approved
+                  </option>
+
+                  <option value="rejected" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Rejected
+                  </option>
                 </select>
               </div>
             </div>
@@ -1218,48 +1278,48 @@ const FuelReports = () => {
             <table className="w-full">
               <thead className="bg-card">
                 <tr>
-                  <th className="px-6 py-2 text-xs font-semibold text-secondary uppercase tracking-wider text-left">
+                  <th className="px-6 py-2 text-xs font-semibold text-headings uppercase tracking-wider text-left">
                     Date
                   </th>
-                  <th className="px-6 py-2 text-xs font-semibold text-secondary uppercase tracking-wider text-left">
+                  <th className="px-6 py-2 text-xs font-semibold text-headings uppercase tracking-wider text-left">
                     Transaction #
                   </th>
-                  <th className="px-6 py-2 text-xs font-semibold text-secondary uppercase tracking-wider text-left">
+                  <th className="px-6 py-2 text-xs font-semibold text-headings uppercase tracking-wider text-left">
                     Unit
                   </th>
-                  <th className="px-6 py-2 text-xs font-semibold text-secondary uppercase tracking-wider text-left">
+                  <th className="px-6 py-2 text-xs font-semibold text-headings uppercase tracking-wider text-left">
                     Product
                   </th>
-                  <th className="px-6 py-2 text-xs font-semibold text-secondary uppercase tracking-wider text-left">
+                  <th className="px-6 py-2 text-xs font-semibold text-headings uppercase tracking-wider text-left">
                     City
                   </th>
-                  <th className="px-6 py-2 text-xs font-semibold text-secondary uppercase tracking-wider text-left">
+                  <th className="px-6 py-2 text-xs font-semibold text-headings uppercase tracking-wider text-left">
                     State
                   </th>
-                  <th className="px-6 py-2 text-xs font-semibold text-secondary uppercase tracking-wider text-left">
+                  <th className="px-6 py-2 text-xs font-semibold text-headings uppercase tracking-wider text-left">
                     Fuel Amount
                   </th>
-                  <th className="px-6 py-2 text-xs font-semibold text-secondary uppercase tracking-wider text-left">
+                  <th className="px-6 py-2 text-xs font-semibold text-headings uppercase tracking-wider text-left">
                     Amount
                   </th>
-                  <th className="px-6 py-2 text-xs font-semibold text-secondary uppercase tracking-wider text-left">
+                  <th className="px-6 py-2 text-xs font-semibold text-headings uppercase tracking-wider text-left">
                     Units
                   </th>
-                  <th className="px-6 py-2 text-xs font-semibold text-secondary uppercase tracking-wider text-left">
+                  <th className="px-6 py-2 text-xs font-semibold text-headings uppercase tracking-wider text-left">
                     Currency
                   </th>
-                  <th className="px-6 py-2 text-xs font-semibold text-secondary uppercase tracking-wider text-left">
+                  <th className="px-6 py-2 text-xs font-semibold text-headings uppercase tracking-wider text-left">
                     Payment Notes
                   </th>
-                  <th className="px-6 py-2 text-xs font-semibold text-secondary uppercase tracking-wider text-left">
+                  <th className="px-6 py-2 text-xs font-semibold text-headings uppercase tracking-wider text-left">
                     Status
                   </th>
-                  <th className="px-6 py-2 text-xs font-semibold text-secondary uppercase tracking-wider text-left">
+                  <th className="px-6 py-2 text-xs font-semibold text-headings uppercase tracking-wider text-left">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-theme">
+              <tbody className="divide-y divide-theme divide-white/5">
                 {filteredReports.length === 0 ? (
                   <tr>
                     <td
@@ -1363,17 +1423,17 @@ const FuelReports = () => {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => openEditModal(report)}
-                              className="inline-flex items-center justify-center rounded-full bg-card text-[#00D1FF] hover:bg-blue-100 transition-colors h-7 w-7 shadow-sm border border-blue-100"
+                              className="inline-flex items-center justify-center rounded-full hover:bg-[var(--accent-blue)]/20  transition-colors h-7 w-7 shadow-sm"
                               title="Edit fuel report"
                             >
-                              <Edit className="w-3 h-3" />
+                              <Edit className="w-3 h-3 text-[var(--accent-blue)]" />
                             </button>
                             <button
                               onClick={() => openDeleteModal(report)}
-                              className="inline-flex items-center justify-center rounded-full bg-card text-[#A855F7] hover:bg-red-100 transition-colors h-7 w-7 shadow-sm border border-red-100"
+                              className="inline-flex items-center justify-center rounded-full hover:bg-[var(--accent-red)]/20  transition-colors h-7 w-7 shadow-sm "
                               title="Delete fuel report"
                             >
-                              <Trash2 className="w-3 h-3" />
+                              <Trash2 className="w-3 h-3 text-[var(--accent-red)]" />
                             </button>
                           </div>
                         </td>
@@ -1484,10 +1544,10 @@ const FuelReports = () => {
         <>
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={closeEditModal} />
           <div className="fixed right-0 top-0 h-full w-full sm:w-[600px] bg-card border-l border-theme shadow-lg z-[101] flex flex-col">
-            <div className="p-4 border-b border-theme flex-shrink-0" style={{ background: FLEET_COLORS.gradient }}>
+            <div className="p-4 border-b border-theme flex-shrink-0" >
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-white">Edit Fuel Report</h2>
-                <button onClick={closeEditModal} className="text-white/80 hover:text-white">
+                <h2 className="text-lg font-semibold text-headings">Edit Fuel Report</h2>
+                <button onClick={closeEditModal} className="text-headings/80 hover:text-headings">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -1530,7 +1590,7 @@ const FuelReports = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">State</label>
+                    <label className="block text-sm font-medium text-secondary mb-1">State</label>
                     <input
                       type="text"
                       value={editForm.state}
@@ -1542,7 +1602,7 @@ const FuelReports = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">City</label>
+                    <label className="block text-sm font-medium text-headings mb-1">City</label>
                     <input
                       type="text"
                       value={editForm.city}
@@ -1554,7 +1614,7 @@ const FuelReports = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Transaction #</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Transaction #</label>
                     <input
                       type="text"
                       value={editForm.transactionNumber}
@@ -1566,19 +1626,35 @@ const FuelReports = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Unit <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Unit <span className="text-red-500">*</span></label>
                     <select
                       value={editForm.unit}
                       onChange={(e) => handleEditFieldChange("unit", e.target.value)}
-                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-md
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                       style={focusRingStyle}
                     >
-                      <option value="">Select Unit</option>
+                      <option
+                        value=""
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Select Unit
+                      </option>
+
                       {unitsLoading ? (
-                        <option>Loading units...</option>
+                        <option className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                          Loading units...
+                        </option>
                       ) : (
-                        units?.map(unit => (
-                          <option key={unit.id} value={unit.id}>
+                        units?.map((unit) => (
+                          <option
+                            key={unit.id}
+                            value={unit.id}
+                            className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                          >
                             {formatUnitLabel(unit)}
                           </option>
                         ))
@@ -1587,7 +1663,7 @@ const FuelReports = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Product <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Product <span className="text-red-500">*</span></label>
                     <div className="flex gap-2">
                       <select
                         value={editForm.product || editForm.type}
@@ -1596,16 +1672,43 @@ const FuelReports = () => {
                           handleEditFieldChange("product", v);
                           handleEditFieldChange("type", v);
                         }}
-                        className="flex-1 px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
+                        className="flex-1 px-3 py-2 text-sm border border-theme rounded-md
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                         style={focusRingStyle}
                       >
-                        <option value="">Select Product</option>
-                        <option value="Truck Diesel">Truck Diesel</option>
-                        <option value="Reefer Diesel">Reefer Diesel</option>
-                        <option value="DEF">DEF</option>
-                        {editFuelTypes.filter(ft => !['Truck Diesel', 'Reefer Diesel', 'DEF'].includes(ft.name)).map((ft) => (
-                          <option key={ft._id} value={ft.name}>{ft.name}</option>
-                        ))}
+                        <option
+                          value=""
+                          className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                        >
+                          Select Product
+                        </option>
+
+                        <option value="Truck Diesel" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                          Truck Diesel
+                        </option>
+
+                        <option value="Reefer Diesel" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                          Reefer Diesel
+                        </option>
+
+                        <option value="DEF" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                          DEF
+                        </option>
+
+                        {editFuelTypes
+                          .filter((ft) => !['Truck Diesel', 'Reefer Diesel', 'DEF'].includes(ft.name))
+                          .map((ft) => (
+                            <option
+                              key={ft._id}
+                              value={ft.name}
+                              className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                            >
+                              {ft.name}
+                            </option>
+                          ))}
                       </select>
                       <button
                         type="button"
@@ -1613,16 +1716,16 @@ const FuelReports = () => {
                           setShowEditAddTypeModal(true);
                           setNewEditTypeName('');
                         }}
-                        className="px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors whitespace-nowrap"
+                        className="px-3 py-2 bg-card border border-theme text-green-600 rounded-md hover:bg-green-100 transition-colors whitespace-nowrap"
                         title="Add new fuel type"
                       >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-4 h-4 text-headings" />
                       </button>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Transaction Amount</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Transaction Amount</label>
                     <input
                       type="number"
                       step="0.01"
@@ -1635,7 +1738,7 @@ const FuelReports = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Current Odometer</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Current Odometer</label>
                     <input
                       type="text"
                       value={editForm.currentOdometer}
@@ -1647,20 +1750,43 @@ const FuelReports = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Unit</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Unit</label>
                     <div className="flex gap-2">
                       <select
                         value={editForm.measurementUnit}
-                        onChange={(e) => handleEditFieldChange("measurementUnit", e.target.value)}
-                        className="flex-1 px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
+                        onChange={(e) =>
+                          handleEditFieldChange("measurementUnit", e.target.value)
+                        }
+                        className="flex-1 px-3 py-2 text-sm border border-theme rounded-md
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all
+  disabled:opacity-60 disabled:cursor-not-allowed"
                         style={focusRingStyle}
+                        disabled={loadingEditMeasurementUnits}
                       >
-                        <option value="">Select Unit</option>
+                        <option
+                          value=""
+                          className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                        >
+                          Select Unit
+                        </option>
+
                         {loadingEditMeasurementUnits ? (
-                          <option disabled>Loading...</option>
+                          <option
+                            disabled
+                            className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                          >
+                            Loading...
+                          </option>
                         ) : (
                           editMeasurementUnits.map((u) => (
-                            <option key={u._id} value={u.name}>
+                            <option
+                              key={u._id}
+                              value={u.name}
+                              className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                            >
                               {u.name}
                             </option>
                           ))
@@ -1672,40 +1798,62 @@ const FuelReports = () => {
                           setShowEditAddUnitModal(true);
                           setNewEditUnitName('');
                         }}
-                        className="px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors whitespace-nowrap"
+                        className="px-3 py-2 bg-card border border-theme text-green-600 rounded-md hover:bg-green-100 transition-colors whitespace-nowrap"
                         title="Add new unit"
                       >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-4 h-4 text-headings" />
                       </button>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Currency</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Currency</label>
                     <select
                       value={editForm.currency}
                       onChange={(e) => handleEditFieldChange("currency", e.target.value)}
-                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
-                      style={focusRingStyle}
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-md
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
+                      style={{
+                        ...focusRingStyle,
+                        colorScheme: "dark"
+                      }}
                     >
-                      <option value="USA">USA</option>
-                      <option value="CAD">CAD</option>
+                      <option
+                        value="USA"
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        USA
+                      </option>
+
+                      <option
+                        value="CAD"
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        CAD
+                      </option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Date</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Date</label>
                     <input
                       type="date"
                       value={editForm.date}
                       onChange={(e) => handleEditFieldChange("date", e.target.value)}
                       className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
-                      style={focusRingStyle}
+                      style={{
+                        ...(focusRingStyle || {}),
+                        colorScheme: "dark"
+                      }}
+
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Fuel Vendor</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Fuel Vendor</label>
                     <div className="flex gap-2">
                       <select
                         value={editForm.fuelVendor}
@@ -1730,16 +1878,16 @@ const FuelReports = () => {
                           setShowEditAddVendorModal(true);
                           setNewEditVendorName('');
                         }}
-                        className="px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors whitespace-nowrap"
+                        className="px-3 py-2 bg-card border border-theme text-green-600 rounded-md hover:bg-green-100 transition-colors whitespace-nowrap"
                         title="Add new fuel vendor"
                       >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-4 h-4 text-headings" />
                       </button>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Fuel Amount</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Fuel Amount</label>
                     <input
                       type="number"
                       step="0.01"
@@ -1752,7 +1900,7 @@ const FuelReports = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Payment Notes</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Payment Notes</label>
                     <textarea
                       value={editForm.paymentNotes}
                       onChange={(e) => handleEditFieldChange("paymentNotes", e.target.value)}
@@ -1764,16 +1912,40 @@ const FuelReports = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-secondary mb-1">Status</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Status</label>
                     <select
                       value={editForm.status}
                       onChange={(e) => handleEditFieldChange("status", e.target.value)}
-                      className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
-                      style={focusRingStyle}
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-md
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
+                      style={{
+                        ...focusRingStyle,
+                        colorScheme: "dark"
+                      }}
                     >
-                      <option value="pending">Pending</option>
-                      <option value="approved">Approved</option>
-                      <option value="rejected">Rejected</option>
+                      <option
+                        value="pending"
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Pending
+                      </option>
+
+                      <option
+                        value="approved"
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Approved
+                      </option>
+
+                      <option
+                        value="rejected"
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Rejected
+                      </option>
                     </select>
                   </div>
                 </div>
@@ -1784,15 +1956,15 @@ const FuelReports = () => {
               <button
                 onClick={closeEditModal}
                 disabled={editSubmitting}
-                className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
+                className="px-6 py-2 border border-theme rounded-lg text-headings hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-60"
               >
                 Cancel
               </button>
               <button
                 onClick={handleUpdateSubmit}
                 disabled={editSubmitting}
-                className="px-6 py-2 rounded-lg !text-white font-semibold transition-colors disabled:opacity-60"
-                style={{ background: FLEET_COLORS.gradient }}
+                className="px-6 py-2 rounded-lg !text-white font-semibold transition-colors disabled:opacity-60 bg-[var(--accent-navyblue)]"
+
               >
                 {editSubmitting ? 'Saving...' : 'Save Changes'}
               </button>
