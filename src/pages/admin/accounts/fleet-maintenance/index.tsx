@@ -740,26 +740,26 @@ export default function FleetMaintenanceFinance() {
           {summaryCards.map((card, index) => {
             const Icon = card.icon;
             return (
-              <div key={index} className={`rounded-xl shadow-sm border p-6 ${card.color === 'blue' ? 'bg-[#E3F2FD] border-blue-100' :
-                card.color === 'green' ? 'bg-[#E8F5E9] border-green-100' :
-                  card.color === 'purple' ? 'bg-[#F3E5F5] border-purple-100' :
-                    'bg-[#FFF3E0] border-orange-100'
+              <div key={index} className={`rounded-xl shadow-sm border p-6 ${card.color === 'blue' ? 'bg-[var(--accent-blue)]/20 border-theme' :
+                card.color === 'green' ? 'bg-[var(--accent-green)]/20 border-theme' :
+                  card.color === 'purple' ? 'bg-[var(--accent-purple)]/20 border-theme' :
+                    'bg-[var(--accent-orange)]/20 border-theme'
                 }`}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 rounded-full bg-card">
                     <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[var(--accent-blue)]' :
-                      card.color === 'green' ? 'text-[rgba(0,209,255,0.15)]' :
-                        card.color === 'purple' ? 'text-[var(--accent-blue)]' :
-                          'text-[var(--accent-blue)]'
+                      card.color === 'green' ? 'text-[var(--accent-green)]' :
+                        card.color === 'purple' ? 'text-[var(--accent-purple)]' :
+                          'text-[var(--accent-orange)]'
                       }`} />
                   </div>
-                  <span className={`text-sm font-medium ${card.color === 'blue' ? 'text-[#063f6f]' :
-                    card.color === 'green' ? 'text-[#063f6f]' :
-                      'text-[#063f6f]'
+                  <span className={`text-sm font-medium ${card.color === 'blue' ? 'text-[var(--accent-blue)]' :
+                    card.color === 'green' ? 'text-[var(--accent-green)]' :
+                      'text-[var(--accent-orange)]'
                     }`}>{card.change}</span>
                 </div>
-                <h3 className="text-[#063f6f] text-sm font-medium mb-1">{card.title}</h3>
-                <p className="text-2xl font-bold text-[#016ab2]">{card.value}</p>
+                <h3 className="text-secondary text-sm font-medium mb-1">{card.title}</h3>
+                <p className="text-2xl font-bold text-secondary">{card.value}</p>
               </div>
             );
           })}
@@ -790,873 +790,874 @@ export default function FleetMaintenanceFinance() {
                 Export Report
               </button>
               <button className="px-4 py-2 text-sm !text-white rounded-lg transition-all flex items-center gap-2 hover:shadow-lg hover:scale-105 transform duration-200" style={{
-                background: 'var(--accent-navyblue)}};>
-                  < FileText className="w-4 h-4" />
-                  Generate Report
+                background: 'var(--accent-navyblue)'
+              }}>
+                < FileText className="w-4 h-4" />
+                Generate Report
               </button>
+            </div>
           </div>
-        </div>
 
-        {
-          loading && (
-            <div className="p-8 text-center text-secondary">Loading...</div>
-          )
-        }
+          {
+            loading && (
+              <div className="p-8 text-center text-secondary">Loading...</div>
+            )
+          }
 
-        {/* Maintenance Expense Summary */}
-        {
-          activeTab === 'expense-summary' && !loading && (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-card border-b border-theme">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Vehicle</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Total Maintenance Expense</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Cost per Mile/KM</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Breakdown by Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Top 5 Expense Types</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-card divide-y divide-theme">
-                  {expenseSummary.length === 0 ? (
+          {/* Maintenance Expense Summary */}
+          {
+            activeTab === 'expense-summary' && !loading && (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-card border-b border-theme">
                     <tr>
-                      <td colSpan={6} className="px-6 py-4 text-center text-secondary">No data available</td>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Vehicle</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Total Maintenance Expense</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Cost per Mile/KM</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Breakdown by Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Top 5 Expense Types</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Actions</th>
                     </tr>
-                  ) : (
-                    expenseSummary.map((expense, idx) => (
-                      <tr
-                        key={idx}
-                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
-                        onClick={() => {
-                          setSelectedItem(expense);
-                          setSelectedItemType('expense');
-                          setShowDetailModal(true);
-                        }}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#00D1FF]">{expense.vehicle}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">${expense.totalExpense.toLocaleString()}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">${expense.costPerMile.toFixed(2)}/mi</td>
-                        <td className="px-6 py-4 text-sm text-secondary max-w-xs">{expense.breakdown}</td>
-                        <td className="px-6 py-4 text-sm">
-                          <div className="flex flex-wrap gap-1">
-                            {expense.topExpenses.map((type, idx) => (
-                              <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
-                                {type}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center gap-2">
-                            <button className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded" title="View Details">
-                              <FileText className="w-4 h-4" />
-                            </button>
-                            <button className="p-1 text-green-600 hover:bg-green-50 rounded" title="Download Report">
-                              <Download className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
+                  </thead>
+                  <tbody className="bg-card divide-y divide-theme">
+                    {expenseSummary.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-4 text-center text-secondary">No data available</td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
-        }
+                    ) : (
+                      expenseSummary.map((expense, idx) => (
+                        <tr
+                          key={idx}
+                          className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
+                          onClick={() => {
+                            setSelectedItem(expense);
+                            setSelectedItemType('expense');
+                            setShowDetailModal(true);
+                          }}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#00D1FF]">{expense.vehicle}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">${expense.totalExpense.toLocaleString()}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">${expense.costPerMile.toFixed(2)}/mi</td>
+                          <td className="px-6 py-4 text-sm text-secondary max-w-xs">{expense.breakdown}</td>
+                          <td className="px-6 py-4 text-sm">
+                            <div className="flex flex-wrap gap-1">
+                              {expense.topExpenses.map((type, idx) => (
+                                <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                                  {type}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2">
+                              <button className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded" title="View Details">
+                                <FileText className="w-4 h-4" />
+                              </button>
+                              <button className="p-1 text-green-600 hover:bg-green-50 rounded" title="Download Report">
+                                <Download className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )
+          }
 
-        {/* Parts Cost Log */}
-        {
-          activeTab === 'parts-cost-log' && !loading && (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-card border-b border-theme">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Part Number</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Unit Cost</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Quantity</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Total Cost</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Date of Use</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Vehicle Assigned To</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-card divide-y divide-theme">
-                  {partsCostLog.length === 0 ? (
+          {/* Parts Cost Log */}
+          {
+            activeTab === 'parts-cost-log' && !loading && (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-card border-b border-theme">
                     <tr>
-                      <td colSpan={8} className="px-6 py-4 text-center text-secondary">No parts cost log entries</td>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Part Number</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Description</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Unit Cost</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Quantity</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Total Cost</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Date of Use</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Vehicle Assigned To</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                     </tr>
-                  ) : (
-                    partsCostLog.map((part) => (
-                      <tr
-                        key={part._id || part.id}
-                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
-                        onClick={() => {
-                          setSelectedItem(part);
-                          setSelectedItemType('parts');
-                          setShowDetailModal(true);
-                        }}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#00D1FF]">{part.partNumber}</td>
-                        <td className="px-6 py-4 text-sm text-primary">{part.description}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">${part.unitCost.toFixed(2)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">{part.quantity}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">${(part.totalCost || (part.unitCost * part.quantity)).toFixed(2)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">{part.dateOfUse}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                            {part.vehicle}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center gap-2">
-                            <button onClick={() => handleEditParts(part)} className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded">
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => handleDeleteParts(part._id!)} className="p-1 text-[#A855F7] hover:bg-red-50 rounded">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
+                  </thead>
+                  <tbody className="bg-card divide-y divide-theme">
+                    {partsCostLog.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-6 py-4 text-center text-secondary">No parts cost log entries</td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
-        }
-
-        {/* Shop Labor Rate Setup */}
-        {
-          activeTab === 'labor-rates' && !loading && (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-card border-b border-theme">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Rate Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Rate (per hour)</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-card divide-y divide-theme">
-                  {laborRates.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-secondary">No labor rates configured</td>
-                    </tr>
-                  ) : (
-                    laborRates.map((rate) => (
-                      <tr
-                        key={rate._id || rate.id}
-                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
-                        onClick={() => {
-                          setSelectedItem(rate);
-                          setSelectedItemType('labor');
-                          setShowDetailModal(true);
-                        }}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">{rate.rateType}</td>
-                        <td className="px-6 py-4 text-sm text-secondary">{rate.description}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">${rate.rate.toFixed(2)}/hr</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${rate.isActive ? 'bg-green-100 text-green-800' : 'bg-card text-primary'
-                            }`}>
-                            {rate.isActive ? 'Active' : 'Inactive'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center gap-2">
-                            <button onClick={() => handleEditLabor(rate)} className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded">
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => handleDeleteLabor(rate._id!)} className="p-1 text-[#A855F7] hover:bg-red-50 rounded">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
-        }
-
-        {/* Maintenance Plan Financials */}
-        {
-          activeTab === 'plan-financials' && !loading && (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-card border-b border-theme">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Plan Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Vehicle</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Planned Cost</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actual Cost</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Variance</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-card divide-y divide-theme">
-                  {maintenancePlans.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-4 text-center text-secondary">No maintenance plans</td>
-                    </tr>
-                  ) : (
-                    maintenancePlans.map((plan) => (
-                      <tr
-                        key={plan._id || plan.id}
-                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
-                        onClick={() => {
-                          setSelectedItem(plan);
-                          setSelectedItemType('plan');
-                          setShowDetailModal(true);
-                        }}
-                      >
-                        <td className="px-6 py-4 text-sm font-medium text-primary">{plan.planName}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#00D1FF] font-medium">{plan.vehicle}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">${plan.plannedCost.toLocaleString()}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">
-                          {plan.actualCost > 0 ? `$${plan.actualCost.toLocaleString()}` : '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {plan.variance !== 0 ? (
-                            <span className={`font-semibold ${plan.variance > 0 ? 'text-[#A855F7]' : 'text-green-600'}`}>
-                              {plan.variance > 0 ? '+' : ''}${plan.variance.toLocaleString()}
+                    ) : (
+                      partsCostLog.map((part) => (
+                        <tr
+                          key={part._id || part.id}
+                          className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
+                          onClick={() => {
+                            setSelectedItem(part);
+                            setSelectedItemType('parts');
+                            setShowDetailModal(true);
+                          }}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#00D1FF]">{part.partNumber}</td>
+                          <td className="px-6 py-4 text-sm text-primary">{part.description}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">${part.unitCost.toFixed(2)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">{part.quantity}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">${(part.totalCost || (part.unitCost * part.quantity)).toFixed(2)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">{part.dateOfUse}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                              {part.vehicle}
                             </span>
-                          ) : (
-                            <span className="text-secondary">-</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${plan.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                            plan.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                              'bg-yellow-100 text-yellow-800'
-                            }`}>
-                            {plan.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center gap-2">
-                            <button className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded" title="View Report">
-                              <FileText className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => handleEditPlan(plan)} className="p-1 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded" title="Edit">
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => handleDeletePlan(plan._id!)} className="p-1 text-[#A855F7] hover:bg-red-50 rounded" title="Delete">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => handleEditParts(part)} className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded">
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => handleDeleteParts(part._id!)} className="p-1 text-[#A855F7] hover:bg-red-50 rounded">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )
+          }
+
+          {/* Shop Labor Rate Setup */}
+          {
+            activeTab === 'labor-rates' && !loading && (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-card border-b border-theme">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Rate Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Description</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Rate (per hour)</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-card divide-y divide-theme">
+                    {laborRates.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-4 text-center text-secondary">No labor rates configured</td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
-        }
+                    ) : (
+                      laborRates.map((rate) => (
+                        <tr
+                          key={rate._id || rate.id}
+                          className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
+                          onClick={() => {
+                            setSelectedItem(rate);
+                            setSelectedItemType('labor');
+                            setShowDetailModal(true);
+                          }}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">{rate.rateType}</td>
+                          <td className="px-6 py-4 text-sm text-secondary">{rate.description}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">${rate.rate.toFixed(2)}/hr</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${rate.isActive ? 'bg-green-100 text-green-800' : 'bg-card text-primary'
+                              }`}>
+                              {rate.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => handleEditLabor(rate)} className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded">
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => handleDeleteLabor(rate._id!)} className="p-1 text-[#A855F7] hover:bg-red-50 rounded">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )
+          }
+
+          {/* Maintenance Plan Financials */}
+          {
+            activeTab === 'plan-financials' && !loading && (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-card border-b border-theme">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Plan Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Vehicle</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Planned Cost</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actual Cost</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Variance</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-card divide-y divide-theme">
+                    {maintenancePlans.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-6 py-4 text-center text-secondary">No maintenance plans</td>
+                      </tr>
+                    ) : (
+                      maintenancePlans.map((plan) => (
+                        <tr
+                          key={plan._id || plan.id}
+                          className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
+                          onClick={() => {
+                            setSelectedItem(plan);
+                            setSelectedItemType('plan');
+                            setShowDetailModal(true);
+                          }}
+                        >
+                          <td className="px-6 py-4 text-sm font-medium text-primary">{plan.planName}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[#00D1FF] font-medium">{plan.vehicle}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">${plan.plannedCost.toLocaleString()}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">
+                            {plan.actualCost > 0 ? `$${plan.actualCost.toLocaleString()}` : '-'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            {plan.variance !== 0 ? (
+                              <span className={`font-semibold ${plan.variance > 0 ? 'text-[#A855F7]' : 'text-green-600'}`}>
+                                {plan.variance > 0 ? '+' : ''}${plan.variance.toLocaleString()}
+                              </span>
+                            ) : (
+                              <span className="text-secondary">-</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${plan.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                              plan.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                                'bg-yellow-100 text-yellow-800'
+                              }`}>
+                              {plan.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2">
+                              <button className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded" title="View Report">
+                                <FileText className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => handleEditPlan(plan)} className="p-1 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded" title="Edit">
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => handleDeletePlan(plan._id!)} className="p-1 text-[#A855F7] hover:bg-red-50 rounded" title="Delete">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )
+          }
+        </div >
       </div >
-    </div >
 
-    {/* Parts Cost Log Modal */ }
-  {
-    showPartsModal && (
-      <div className="fixed inset-0 flex items-center justify-center z-50">
-        <div className="bg-card rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-primary">
-              {editingParts ? 'Edit Parts Cost Log Entry' : 'New Parts Cost Log Entry'}
-            </h2>
-            <button onClick={() => {
-              setShowPartsModal(false);
-              resetPartsForm();
-            }} className="text-secondary hover:text-secondary">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Part Number</label>
-              <input
-                type="text"
-                value={partsFormData.partNumber}
-                onChange={(e) => setPartsFormData({ ...partsFormData, partNumber: e.target.value })}
-                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Description</label>
-              <input
-                type="text"
-                value={partsFormData.description}
-                onChange={(e) => setPartsFormData({ ...partsFormData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1">Unit Cost</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={partsFormData.unitCost}
-                  onChange={(e) => setPartsFormData({ ...partsFormData, unitCost: e.target.value })}
-                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1">Quantity</label>
-                <input
-                  type="number"
-                  value={partsFormData.quantity}
-                  onChange={(e) => setPartsFormData({ ...partsFormData, quantity: e.target.value })}
-                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Date of Use</label>
-              <input
-                type="date"
-                value={partsFormData.dateOfUse}
-                onChange={(e) => setPartsFormData({ ...partsFormData, dateOfUse: e.target.value })}
-                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Vehicle Assigned To</label>
-              <select
-                value={partsFormData.vehicleId || ''}
-                onChange={(e) => {
-                  const selectedId = e.target.value;
-                  // Find unit by _id
-                  const selected = fleetUnits.find(u => u._id === selectedId);
-
-                  if (selected) {
-                    // Use the actual unit identifier (internalId or unitNo) for display
-                    const displayValue = selected.internalId || selected.unitNo || selected._id;
-
-                    setPartsFormData({
-                      ...partsFormData,
-                      vehicle: displayValue,
-                      vehicleId: selected._id
-                    });
-                  }
-                }}
-                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">Select Vehicle</option>
-                {fleetUnits.map(unit => {
-                  const displayName = unit.internalId || unit.unitNo || unit._id;
-                  const displayText = `${displayName}${unit.makeModel ? ` - ${unit.makeModel}` : ''}`;
-                  return (
-                    <option key={unit._id} value={unit._id}>
-                      {displayText}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                onClick={() => {
+      {/* Parts Cost Log Modal */}
+      {
+        showPartsModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-card rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-primary">
+                  {editingParts ? 'Edit Parts Cost Log Entry' : 'New Parts Cost Log Entry'}
+                </h2>
+                <button onClick={() => {
                   setShowPartsModal(false);
                   resetPartsForm();
-                }}
-                className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateParts}
-                style={{
-                  background: 'var(--accent-navyblue)'
-                }}
-                className="px-4 py-2  !text-white rounded-lg transition-colors"
-              >
-                {editingParts ? 'Update' : 'Create'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+                }} className="text-secondary hover:text-secondary">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Part Number</label>
+                  <input
+                    type="text"
+                    value={partsFormData.partNumber}
+                    onChange={(e) => setPartsFormData({ ...partsFormData, partNumber: e.target.value })}
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                  <input
+                    type="text"
+                    value={partsFormData.description}
+                    onChange={(e) => setPartsFormData({ ...partsFormData, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Unit Cost</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={partsFormData.unitCost}
+                      onChange={(e) => setPartsFormData({ ...partsFormData, unitCost: e.target.value })}
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Quantity</label>
+                    <input
+                      type="number"
+                      value={partsFormData.quantity}
+                      onChange={(e) => setPartsFormData({ ...partsFormData, quantity: e.target.value })}
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Date of Use</label>
+                  <input
+                    type="date"
+                    value={partsFormData.dateOfUse}
+                    onChange={(e) => setPartsFormData({ ...partsFormData, dateOfUse: e.target.value })}
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Vehicle Assigned To</label>
+                  <select
+                    value={partsFormData.vehicleId || ''}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      // Find unit by _id
+                      const selected = fleetUnits.find(u => u._id === selectedId);
 
-  {/* Labor Rate Modal */ }
-  {
-    showLaborModal && (
-      <div className="fixed inset-0 flex items-center justify-center z-50">
-        <div className="bg-card rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-primary">
-              {editingLabor ? 'Edit Labor Rate' : 'New Labor Rate'}
-            </h2>
-            <button onClick={() => {
-              setShowLaborModal(false);
-              resetLaborForm();
-            }} className="text-secondary hover:text-secondary">
-              <X className="w-5 h-5" />
-            </button>
+                      if (selected) {
+                        // Use the actual unit identifier (internalId or unitNo) for display
+                        const displayValue = selected.internalId || selected.unitNo || selected._id;
+
+                        setPartsFormData({
+                          ...partsFormData,
+                          vehicle: displayValue,
+                          vehicleId: selected._id
+                        });
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">Select Vehicle</option>
+                    {fleetUnits.map(unit => {
+                      const displayName = unit.internalId || unit.unitNo || unit._id;
+                      const displayText = `${displayName}${unit.makeModel ? ` - ${unit.makeModel}` : ''}`;
+                      return (
+                        <option key={unit._id} value={unit._id}>
+                          {displayText}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    onClick={() => {
+                      setShowPartsModal(false);
+                      resetPartsForm();
+                    }}
+                    className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateParts}
+                    style={{
+                      background: 'var(--accent-navyblue)'
+                    }}
+                    className="px-4 py-2  !text-white rounded-lg transition-colors"
+                  >
+                    {editingParts ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Rate Type</label>
-              <input
-                type="text"
-                value={laborFormData.rateType}
-                onChange={(e) => setLaborFormData({ ...laborFormData, rateType: e.target.value })}
-                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Description</label>
-              <textarea
-                value={laborFormData.description}
-                onChange={(e) => setLaborFormData({ ...laborFormData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows={3}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Rate (per hour)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={laborFormData.rate}
-                onChange={(e) => setLaborFormData({ ...laborFormData, rate: e.target.value })}
-                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={laborFormData.isActive}
-                  onChange={(e) => setLaborFormData({ ...laborFormData, isActive: e.target.checked })}
-                  className="rounded border-theme"
-                />
-                <span className="text-sm font-medium text-primary">Active</span>
-              </label>
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                onClick={() => {
+        )
+      }
+
+      {/* Labor Rate Modal */}
+      {
+        showLaborModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-card rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-primary">
+                  {editingLabor ? 'Edit Labor Rate' : 'New Labor Rate'}
+                </h2>
+                <button onClick={() => {
                   setShowLaborModal(false);
                   resetLaborForm();
-                }}
-                className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateLabor}
-                style={{
-                  background: 'var(--accent-navyblue)'
-                }}
-                className="px-4 py-2  !text-white rounded-lg  transition-colors"
-              >
-                {editingLabor ? 'Update' : 'Create'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  {/* Maintenance Plan Modal */ }
-  {
-    showPlanModal && (
-      <div className="fixed inset-0 flex items-center justify-center z-50">
-        <div className="bg-card rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-primary">
-              {editingPlan ? 'Edit Maintenance Plan' : 'New Maintenance Plan'}
-            </h2>
-            <button onClick={() => {
-              setShowPlanModal(false);
-              resetPlanForm();
-            }} className="text-secondary hover:text-secondary">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Plan Name</label>
-              <input
-                type="text"
-                value={planFormData.planName}
-                onChange={(e) => setPlanFormData({ ...planFormData, planName: e.target.value })}
-                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Vehicle</label>
-              <select
-                value={planFormData.vehicleId || ''}
-                onChange={(e) => {
-                  const selectedId = e.target.value;
-                  // Find unit by _id
-                  const selected = fleetUnits.find(u => u._id === selectedId);
-
-                  if (selected) {
-                    // Use the actual unit identifier (internalId or unitNo) for display
-                    const displayValue = selected.internalId || selected.unitNo || selected._id;
-
-                    setPlanFormData({
-                      ...planFormData,
-                      vehicle: displayValue,
-                      vehicleId: selected._id
-                    });
-                  }
-                }}
-                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">Select Vehicle</option>
-                {fleetUnits.map(unit => {
-                  const displayName = unit.internalId || unit.unitNo || unit._id;
-                  const displayText = `${displayName}${unit.makeModel ? ` - ${unit.makeModel}` : ''}`;
-                  return (
-                    <option key={unit._id} value={unit._id}>
-                      {displayText}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1">Planned Cost</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={planFormData.plannedCost}
-                  onChange={(e) => setPlanFormData({ ...planFormData, plannedCost: e.target.value })}
-                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
+                }} className="text-secondary hover:text-secondary">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-primary mb-1">Actual Cost</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={planFormData.actualCost}
-                  onChange={(e) => setPlanFormData({ ...planFormData, actualCost: e.target.value })}
-                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Rate Type</label>
+                  <input
+                    type="text"
+                    value={laborFormData.rateType}
+                    onChange={(e) => setLaborFormData({ ...laborFormData, rateType: e.target.value })}
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                  <textarea
+                    value={laborFormData.description}
+                    onChange={(e) => setLaborFormData({ ...laborFormData, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Rate (per hour)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={laborFormData.rate}
+                    onChange={(e) => setLaborFormData({ ...laborFormData, rate: e.target.value })}
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={laborFormData.isActive}
+                      onChange={(e) => setLaborFormData({ ...laborFormData, isActive: e.target.checked })}
+                      className="rounded border-theme"
+                    />
+                    <span className="text-sm font-medium text-primary">Active</span>
+                  </label>
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    onClick={() => {
+                      setShowLaborModal(false);
+                      resetLaborForm();
+                    }}
+                    className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateLabor}
+                    style={{
+                      background: 'var(--accent-navyblue)'
+                    }}
+                    className="px-4 py-2  !text-white rounded-lg  transition-colors"
+                  >
+                    {editingLabor ? 'Update' : 'Create'}
+                  </button>
+                </div>
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-primary mb-1">Status</label>
-              <select
-                value={planFormData.status}
-                onChange={(e) => setPlanFormData({ ...planFormData, status: e.target.value })}
-                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Scheduled">Scheduled</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                onClick={() => {
+          </div>
+        )
+      }
+
+      {/* Maintenance Plan Modal */}
+      {
+        showPlanModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-card rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-primary">
+                  {editingPlan ? 'Edit Maintenance Plan' : 'New Maintenance Plan'}
+                </h2>
+                <button onClick={() => {
                   setShowPlanModal(false);
                   resetPlanForm();
-                }}
-                className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreatePlan}
-                style={{
-                  background: 'var(--accent-navyblue)'
-                }}
-                className="px-4 py-2 !text-white rounded-lg  transition-colors"
-              >
-                {editingPlan ? 'Update' : 'Create'}
-              </button>
+                }} className="text-secondary hover:text-secondary">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Plan Name</label>
+                  <input
+                    type="text"
+                    value={planFormData.planName}
+                    onChange={(e) => setPlanFormData({ ...planFormData, planName: e.target.value })}
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Vehicle</label>
+                  <select
+                    value={planFormData.vehicleId || ''}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      // Find unit by _id
+                      const selected = fleetUnits.find(u => u._id === selectedId);
+
+                      if (selected) {
+                        // Use the actual unit identifier (internalId or unitNo) for display
+                        const displayValue = selected.internalId || selected.unitNo || selected._id;
+
+                        setPlanFormData({
+                          ...planFormData,
+                          vehicle: displayValue,
+                          vehicleId: selected._id
+                        });
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">Select Vehicle</option>
+                    {fleetUnits.map(unit => {
+                      const displayName = unit.internalId || unit.unitNo || unit._id;
+                      const displayText = `${displayName}${unit.makeModel ? ` - ${unit.makeModel}` : ''}`;
+                      return (
+                        <option key={unit._id} value={unit._id}>
+                          {displayText}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Planned Cost</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={planFormData.plannedCost}
+                      onChange={(e) => setPlanFormData({ ...planFormData, plannedCost: e.target.value })}
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary mb-1">Actual Cost</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={planFormData.actualCost}
+                      onChange={(e) => setPlanFormData({ ...planFormData, actualCost: e.target.value })}
+                      className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-primary mb-1">Status</label>
+                  <select
+                    value={planFormData.status}
+                    onChange={(e) => setPlanFormData({ ...planFormData, status: e.target.value })}
+                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    onClick={() => {
+                      setShowPlanModal(false);
+                      resetPlanForm();
+                    }}
+                    className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreatePlan}
+                    style={{
+                      background: 'var(--accent-navyblue)'
+                    }}
+                    className="px-4 py-2 !text-white rounded-lg  transition-colors"
+                  >
+                    {editingPlan ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    )
-  }
+        )
+      }
 
-  {/* Delete Confirmation Modal */ }
-  {
-    showDeleteModal && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-        <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
-          <div className="flex items-center gap-3 mb-4 text-[#A855F7]">
-            <Trash2 className="w-6 h-6" />
-            <h3 className="text-lg font-bold">Confirm Deletion</h3>
+      {/* Delete Confirmation Modal */}
+      {
+        showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
+              <div className="flex items-center gap-3 mb-4 text-[#A855F7]">
+                <Trash2 className="w-6 h-6" />
+                <h3 className="text-lg font-bold">Confirm Deletion</h3>
+              </div>
+              <p className="text-secondary mb-6">
+                Are you sure you want to delete this item? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
-          <p className="text-secondary mb-6">
-            Are you sure you want to delete this item? This action cannot be undone.
-          </p>
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={() => setShowDeleteModal(false)}
-              className="px-4 py-2 text-primary bg-card rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={confirmDelete}
-              className="px-4 py-2 !text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
+        )
+      }
 
-  {/* Detail View Modal */ }
-  {
-    showDetailModal && selectedItem && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-        <div className="bg-card rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-primary">
-              {selectedItemType === 'expense' && 'Maintenance Expense Details'}
-              {selectedItemType === 'parts' && 'Parts Cost Log Details'}
-              {selectedItemType === 'labor' && 'Labor Rate Details'}
-              {selectedItemType === 'plan' && 'Maintenance Plan Details'}
-            </h2>
-            <button
-              onClick={() => {
-                setShowDetailModal(false);
-                setSelectedItem(null);
-                setSelectedItemType(null);
-              }}
-              className="text-secondary hover:text-secondary transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
+      {/* Detail View Modal */}
+      {
+        showDetailModal && selectedItem && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-card rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-primary">
+                  {selectedItemType === 'expense' && 'Maintenance Expense Details'}
+                  {selectedItemType === 'parts' && 'Parts Cost Log Details'}
+                  {selectedItemType === 'labor' && 'Labor Rate Details'}
+                  {selectedItemType === 'plan' && 'Maintenance Plan Details'}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    setSelectedItem(null);
+                    setSelectedItemType(null);
+                  }}
+                  className="text-secondary hover:text-secondary transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
 
-          <div className="p-6">
-            {/* Expense Summary Details */}
-            {selectedItemType === 'expense' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-card p-4 rounded-lg border border-blue-200">
-                    <label className="text-sm font-medium text-blue-900 mb-1 block">Vehicle</label>
-                    <p className="text-lg font-semibold text-blue-700">{(selectedItem as ExpenseSummaryItem).vehicle}</p>
+              <div className="p-6">
+                {/* Expense Summary Details */}
+                {selectedItemType === 'expense' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-card p-4 rounded-lg border border-blue-200">
+                        <label className="text-sm font-medium text-blue-900 mb-1 block">Vehicle</label>
+                        <p className="text-lg font-semibold text-blue-700">{(selectedItem as ExpenseSummaryItem).vehicle}</p>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <label className="text-sm font-medium text-green-900 mb-1 block">Total Maintenance Expense</label>
+                        <p className="text-2xl font-bold text-green-700">${(selectedItem as ExpenseSummaryItem).totalExpense.toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <label className="text-sm font-medium text-primary mb-1 block">Cost per Mile/KM</label>
+                      <p className="text-xl font-semibold text-primary">${(selectedItem as ExpenseSummaryItem).costPerMile.toFixed(2)}/mi</p>
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-purple-200">
+                      <label className="text-sm font-medium text-purple-900 mb-2 block">Breakdown by Type</label>
+                      <p className="text-primary">{(selectedItem as ExpenseSummaryItem).breakdown}</p>
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-orange-200">
+                      <label className="text-sm font-medium text-orange-900 mb-3 block">Top 5 Expense Types</label>
+                      <div className="flex flex-wrap gap-2">
+                        {(selectedItem as ExpenseSummaryItem).topExpenses.map((type, idx) => (
+                          <span key={idx} className="px-3 py-2 bg-orange-100 text-orange-800 rounded-full text-sm font-medium border border-orange-300">
+                            {type}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <label className="text-sm font-medium text-green-900 mb-1 block">Total Maintenance Expense</label>
-                    <p className="text-2xl font-bold text-green-700">${(selectedItem as ExpenseSummaryItem).totalExpense.toLocaleString()}</p>
+                )}
+
+                {/* Parts Cost Log Details */}
+                {selectedItemType === 'parts' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-card p-4 rounded-lg border border-blue-200">
+                        <label className="text-sm font-medium text-blue-900 mb-1 block">Part Number</label>
+                        <p className="text-lg font-semibold text-blue-700">{(selectedItem as PartsCostLogItem).partNumber}</p>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <label className="text-sm font-medium text-green-900 mb-1 block">Vehicle Assigned To</label>
+                        <p className="text-lg font-semibold text-green-700">{(selectedItem as PartsCostLogItem).vehicle}</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <label className="text-sm font-medium text-primary mb-1 block">Description</label>
+                      <p className="text-primary">{(selectedItem as PartsCostLogItem).description}</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-card p-4 rounded-lg border border-purple-200">
+                        <label className="text-sm font-medium text-purple-900 mb-1 block">Unit Cost</label>
+                        <p className="text-xl font-semibold text-purple-700">${(selectedItem as PartsCostLogItem).unitCost.toFixed(2)}</p>
+                      </div>
+                      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                        <label className="text-sm font-medium text-indigo-900 mb-1 block">Quantity</label>
+                        <p className="text-xl font-semibold text-indigo-700">{(selectedItem as PartsCostLogItem).quantity}</p>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <label className="text-sm font-medium text-green-900 mb-1 block">Total Cost</label>
+                        <p className="text-xl font-bold text-green-700">
+                          ${((selectedItem as PartsCostLogItem).totalCost || ((selectedItem as PartsCostLogItem).unitCost * (selectedItem as PartsCostLogItem).quantity)).toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-blue-200">
+                      <label className="text-sm font-medium text-blue-900 mb-1 block">Date of Use</label>
+                      <p className="text-lg font-semibold text-blue-700">{(selectedItem as PartsCostLogItem).dateOfUse}</p>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                <div className="bg-card p-4 rounded-lg border border-theme">
-                  <label className="text-sm font-medium text-primary mb-1 block">Cost per Mile/KM</label>
-                  <p className="text-xl font-semibold text-primary">${(selectedItem as ExpenseSummaryItem).costPerMile.toFixed(2)}/mi</p>
-                </div>
+                {/* Labor Rate Details */}
+                {selectedItemType === 'labor' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-card p-4 rounded-lg border border-blue-200">
+                        <label className="text-sm font-medium text-blue-900 mb-1 block">Rate Type</label>
+                        <p className="text-lg font-semibold text-blue-700">{(selectedItem as LaborRateItem).rateType}</p>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <label className="text-sm font-medium text-green-900 mb-1 block">Rate (per hour)</label>
+                        <p className="text-2xl font-bold text-green-700">${(selectedItem as LaborRateItem).rate.toFixed(2)}/hr</p>
+                      </div>
+                    </div>
 
-                <div className="bg-card p-4 rounded-lg border border-purple-200">
-                  <label className="text-sm font-medium text-purple-900 mb-2 block">Breakdown by Type</label>
-                  <p className="text-primary">{(selectedItem as ExpenseSummaryItem).breakdown}</p>
-                </div>
+                    <div className="bg-card p-4 rounded-lg border border-theme">
+                      <label className="text-sm font-medium text-primary mb-1 block">Description</label>
+                      <p className="text-primary">{(selectedItem as LaborRateItem).description}</p>
+                    </div>
 
-                <div className="bg-card p-4 rounded-lg border border-orange-200">
-                  <label className="text-sm font-medium text-orange-900 mb-3 block">Top 5 Expense Types</label>
-                  <div className="flex flex-wrap gap-2">
-                    {(selectedItem as ExpenseSummaryItem).topExpenses.map((type, idx) => (
-                      <span key={idx} className="px-3 py-2 bg-orange-100 text-orange-800 rounded-full text-sm font-medium border border-orange-300">
-                        {type}
+                    <div className="bg-card p-4 rounded-lg border border-purple-200">
+                      <label className="text-sm font-medium text-purple-900 mb-2 block">Status</label>
+                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${(selectedItem as LaborRateItem).isActive
+                        ? 'bg-green-100 text-green-800 border-2 border-green-300'
+                        : 'bg-card text-primary border-2 border-theme'
+                        }`}>
+                        {(selectedItem as LaborRateItem).isActive ? 'Active' : 'Inactive'}
                       </span>
-                    ))}
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Maintenance Plan Details */}
+                {selectedItemType === 'plan' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-card p-4 rounded-lg border border-blue-200">
+                        <label className="text-sm font-medium text-blue-900 mb-1 block">Plan Name</label>
+                        <p className="text-lg font-semibold text-blue-700">{(selectedItem as MaintenancePlanItem).planName}</p>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <label className="text-sm font-medium text-green-900 mb-1 block">Vehicle</label>
+                        <p className="text-lg font-semibold text-green-700">{(selectedItem as MaintenancePlanItem).vehicle}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-card p-4 rounded-lg border border-purple-200">
+                        <label className="text-sm font-medium text-purple-900 mb-1 block">Planned Cost</label>
+                        <p className="text-xl font-semibold text-purple-700">${(selectedItem as MaintenancePlanItem).plannedCost.toLocaleString()}</p>
+                      </div>
+                      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                        <label className="text-sm font-medium text-indigo-900 mb-1 block">Actual Cost</label>
+                        <p className="text-xl font-semibold text-indigo-700">
+                          {(selectedItem as MaintenancePlanItem).actualCost > 0
+                            ? `$${(selectedItem as MaintenancePlanItem).actualCost.toLocaleString()}`
+                            : 'Not yet completed'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className={`p-4 rounded-lg border-2 ${(selectedItem as MaintenancePlanItem).variance > 0
+                      ? 'bg-card border-red-300'
+                      : (selectedItem as MaintenancePlanItem).variance < 0
+                        ? 'bg-green-50 border-green-300'
+                        : 'bg-card border-theme'
+                      }`}>
+                      <label className="text-sm font-medium text-primary mb-1 block">Variance</label>
+                      <p className={`text-2xl font-bold ${(selectedItem as MaintenancePlanItem).variance > 0
+                        ? 'text-red-700'
+                        : (selectedItem as MaintenancePlanItem).variance < 0
+                          ? 'text-green-700'
+                          : 'text-primary'
+                        }`}>
+                        {(selectedItem as MaintenancePlanItem).variance !== 0
+                          ? `${(selectedItem as MaintenancePlanItem).variance > 0 ? '+' : ''}$${(selectedItem as MaintenancePlanItem).variance.toLocaleString()}`
+                          : 'No variance'}
+                      </p>
+                      {(selectedItem as MaintenancePlanItem).variance > 0 && (
+                        <p className="text-sm text-[#A855F7] mt-1">Over budget</p>
+                      )}
+                      {(selectedItem as MaintenancePlanItem).variance < 0 && (
+                        <p className="text-sm text-green-600 mt-1">Under budget</p>
+                      )}
+                    </div>
+
+                    <div className="bg-card p-4 rounded-lg border border-orange-200">
+                      <label className="text-sm font-medium text-orange-900 mb-2 block">Status</label>
+                      <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as MaintenancePlanItem).status === 'Completed'
+                        ? 'bg-green-100 text-green-800 border-green-300'
+                        : (selectedItem as MaintenancePlanItem).status === 'In Progress'
+                          ? 'bg-blue-100 text-blue-800 border-blue-300'
+                          : 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                        }`}>
+                        {(selectedItem as MaintenancePlanItem).status}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
 
-            {/* Parts Cost Log Details */}
-            {selectedItemType === 'parts' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-card p-4 rounded-lg border border-blue-200">
-                    <label className="text-sm font-medium text-blue-900 mb-1 block">Part Number</label>
-                    <p className="text-lg font-semibold text-blue-700">{(selectedItem as PartsCostLogItem).partNumber}</p>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <label className="text-sm font-medium text-green-900 mb-1 block">Vehicle Assigned To</label>
-                    <p className="text-lg font-semibold text-green-700">{(selectedItem as PartsCostLogItem).vehicle}</p>
-                  </div>
-                </div>
-
-                <div className="bg-card p-4 rounded-lg border border-theme">
-                  <label className="text-sm font-medium text-primary mb-1 block">Description</label>
-                  <p className="text-primary">{(selectedItem as PartsCostLogItem).description}</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-card p-4 rounded-lg border border-purple-200">
-                    <label className="text-sm font-medium text-purple-900 mb-1 block">Unit Cost</label>
-                    <p className="text-xl font-semibold text-purple-700">${(selectedItem as PartsCostLogItem).unitCost.toFixed(2)}</p>
-                  </div>
-                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                    <label className="text-sm font-medium text-indigo-900 mb-1 block">Quantity</label>
-                    <p className="text-xl font-semibold text-indigo-700">{(selectedItem as PartsCostLogItem).quantity}</p>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <label className="text-sm font-medium text-green-900 mb-1 block">Total Cost</label>
-                    <p className="text-xl font-bold text-green-700">
-                      ${((selectedItem as PartsCostLogItem).totalCost || ((selectedItem as PartsCostLogItem).unitCost * (selectedItem as PartsCostLogItem).quantity)).toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-card p-4 rounded-lg border border-blue-200">
-                  <label className="text-sm font-medium text-blue-900 mb-1 block">Date of Use</label>
-                  <p className="text-lg font-semibold text-blue-700">{(selectedItem as PartsCostLogItem).dateOfUse}</p>
-                </div>
+              <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4">
+                <button
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    setSelectedItem(null);
+                    setSelectedItemType(null);
+                  }}
+                  className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
+                >
+                  Close
+                </button>
               </div>
-            )}
-
-            {/* Labor Rate Details */}
-            {selectedItemType === 'labor' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-card p-4 rounded-lg border border-blue-200">
-                    <label className="text-sm font-medium text-blue-900 mb-1 block">Rate Type</label>
-                    <p className="text-lg font-semibold text-blue-700">{(selectedItem as LaborRateItem).rateType}</p>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <label className="text-sm font-medium text-green-900 mb-1 block">Rate (per hour)</label>
-                    <p className="text-2xl font-bold text-green-700">${(selectedItem as LaborRateItem).rate.toFixed(2)}/hr</p>
-                  </div>
-                </div>
-
-                <div className="bg-card p-4 rounded-lg border border-theme">
-                  <label className="text-sm font-medium text-primary mb-1 block">Description</label>
-                  <p className="text-primary">{(selectedItem as LaborRateItem).description}</p>
-                </div>
-
-                <div className="bg-card p-4 rounded-lg border border-purple-200">
-                  <label className="text-sm font-medium text-purple-900 mb-2 block">Status</label>
-                  <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${(selectedItem as LaborRateItem).isActive
-                    ? 'bg-green-100 text-green-800 border-2 border-green-300'
-                    : 'bg-card text-primary border-2 border-theme'
-                    }`}>
-                    {(selectedItem as LaborRateItem).isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Maintenance Plan Details */}
-            {selectedItemType === 'plan' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-card p-4 rounded-lg border border-blue-200">
-                    <label className="text-sm font-medium text-blue-900 mb-1 block">Plan Name</label>
-                    <p className="text-lg font-semibold text-blue-700">{(selectedItem as MaintenancePlanItem).planName}</p>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <label className="text-sm font-medium text-green-900 mb-1 block">Vehicle</label>
-                    <p className="text-lg font-semibold text-green-700">{(selectedItem as MaintenancePlanItem).vehicle}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-card p-4 rounded-lg border border-purple-200">
-                    <label className="text-sm font-medium text-purple-900 mb-1 block">Planned Cost</label>
-                    <p className="text-xl font-semibold text-purple-700">${(selectedItem as MaintenancePlanItem).plannedCost.toLocaleString()}</p>
-                  </div>
-                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                    <label className="text-sm font-medium text-indigo-900 mb-1 block">Actual Cost</label>
-                    <p className="text-xl font-semibold text-indigo-700">
-                      {(selectedItem as MaintenancePlanItem).actualCost > 0
-                        ? `$${(selectedItem as MaintenancePlanItem).actualCost.toLocaleString()}`
-                        : 'Not yet completed'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className={`p-4 rounded-lg border-2 ${(selectedItem as MaintenancePlanItem).variance > 0
-                  ? 'bg-card border-red-300'
-                  : (selectedItem as MaintenancePlanItem).variance < 0
-                    ? 'bg-green-50 border-green-300'
-                    : 'bg-card border-theme'
-                  }`}>
-                  <label className="text-sm font-medium text-primary mb-1 block">Variance</label>
-                  <p className={`text-2xl font-bold ${(selectedItem as MaintenancePlanItem).variance > 0
-                    ? 'text-red-700'
-                    : (selectedItem as MaintenancePlanItem).variance < 0
-                      ? 'text-green-700'
-                      : 'text-primary'
-                    }`}>
-                    {(selectedItem as MaintenancePlanItem).variance !== 0
-                      ? `${(selectedItem as MaintenancePlanItem).variance > 0 ? '+' : ''}$${(selectedItem as MaintenancePlanItem).variance.toLocaleString()}`
-                      : 'No variance'}
-                  </p>
-                  {(selectedItem as MaintenancePlanItem).variance > 0 && (
-                    <p className="text-sm text-[#A855F7] mt-1">Over budget</p>
-                  )}
-                  {(selectedItem as MaintenancePlanItem).variance < 0 && (
-                    <p className="text-sm text-green-600 mt-1">Under budget</p>
-                  )}
-                </div>
-
-                <div className="bg-card p-4 rounded-lg border border-orange-200">
-                  <label className="text-sm font-medium text-orange-900 mb-2 block">Status</label>
-                  <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${(selectedItem as MaintenancePlanItem).status === 'Completed'
-                    ? 'bg-green-100 text-green-800 border-green-300'
-                    : (selectedItem as MaintenancePlanItem).status === 'In Progress'
-                      ? 'bg-blue-100 text-blue-800 border-blue-300'
-                      : 'bg-yellow-100 text-yellow-800 border-yellow-300'
-                    }`}>
-                    {(selectedItem as MaintenancePlanItem).status}
-                  </span>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
-
-          <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4">
-            <button
-              onClick={() => {
-                setShowDetailModal(false);
-                setSelectedItem(null);
-                setSelectedItemType(null);
-              }}
-              className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
+        )
+      }
     </div >
   );
 }
