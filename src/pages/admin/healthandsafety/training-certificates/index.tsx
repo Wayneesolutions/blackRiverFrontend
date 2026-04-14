@@ -319,11 +319,8 @@ const TrainingCertificates = () => {
           </div>
           <button
             onClick={() => setShowUploadModal(true)}
-            className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2"
-            style={{
-              background: CUSTOM_COLORS.gradient,
-              boxShadow: `0 4px 6px ${CUSTOM_COLORS.light}40`
-            }}
+            className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2 bg-[var(--accent-navyblue)]"
+
           >
             <FaPlus /> Upload Certificate
           </button>
@@ -336,23 +333,23 @@ const TrainingCertificates = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-theme">
+          <table className="min-w-full divide-y divide-theme divide-white/5">
             <thead className="bg-card">
               <tr>
-                <th className="sticky left-0 bg-card px-4 py-3 text-left text-xs font-medium text-primary uppercase z-10">
+                <th className="sticky left-0 bg-card px-4 py-3 text-left text-xs font-medium text-headings uppercase z-10">
                   Employee
                 </th>
                 {REQUIRED_TRAININGS.map(train => (
                   <th key={train.name} className="px-3 py-3 text-center" style={{ minWidth: '120px' }}>
                     <div className="flex flex-col items-center">
-                      <span className="text-xs font-medium text-primary text-center">{train.name}</span>
+                      <span className="text-xs font-medium text-headings text-center">{train.name}</span>
                       <span className="text-xs text-secondary">({train.renewalMonths}mo)</span>
                     </div>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-theme">
+            <tbody className="bg-card divide-y divide-theme divide-white/5">
               {employees.map(employee => {
                 const employeeData = trainingData.find(t => t.employeeName === employee);
                 return (
@@ -719,12 +716,12 @@ const TrainingCertificates = () => {
 
       {/* Renewal Reminders */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-card border-2 border-yellow-200 rounded-xl p-6">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-yellow-900">
-            <FaBell className="text-[#00FFA3]" /> Expiring Soon (60 days)
+        <div className="bg-[var(--accent-orange)]/20 border-2 border-theme rounded-xl p-6">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-[var(--accent-orange)]">
+            <FaBell className="text-[var(--accent-orange)]" /> Expiring Soon (60 days)
           </h3>
-          <div className="text-4xl font-bold text-yellow-700 mb-2">{stats.expiring}</div>
-          <p className="text-sm text-primary mb-4">Certificates expiring in next 60 days</p>
+          <div className="text-4xl font-bold text-[var(--accent-orange)] mb-2">{stats.expiring}</div>
+          <p className="text-sm text-secondary mb-4">Certificates expiring in next 60 days</p>
           <div className="space-y-2">
             {trainingData.filter(t => t.status === 'expiring').slice(0, 3).map(record => (
               <div key={record._id} className="bg-card p-3 rounded-lg text-sm">
@@ -733,16 +730,16 @@ const TrainingCertificates = () => {
               </div>
             ))}
           </div>
-          <button className="mt-4 w-full !mt-5 py-2 bg-yellow-600 !text-white rounded-lg hover:bg-yellow-700 transition text-sm font-semibold">
+          <button className="mt-4 w-full !mt-5 py-2 bg-[var(--accent-orange)] !text-white rounded-lg hover:bg-yellow-700 transition text-sm font-semibold">
             Send Reminders to All
           </button>
         </div>
 
         <div className="bg-card border-2 border-red-200 rounded-xl p-6">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-red-900">
-            <FaExclamationTriangle className="text-[#A855F7]" /> Expired Certificates
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-[var(--accent-red)]">
+            <FaExclamationTriangle className="text-[var(--accent-red)]" /> Expired Certificates
           </h3>
-          <div className="text-4xl font-bold text-red-700 mb-2">{stats.expired}</div>
+          <div className="text-4xl font-bold text-[var(--accent-red)] mb-2">{stats.expired}</div>
           <p className="text-sm text-primary mb-4">IMMEDIATE ACTION REQUIRED</p>
           <div className="space-y-2">
             {trainingData.filter(t => t.status === 'expired').map(record => (
@@ -1373,11 +1370,11 @@ const TrainingCertificates = () => {
 
   return (
 
-    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
+    <div className="min-h-screen p-6 bg-main" >
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3" style={{ color: CUSTOM_COLORS.dark }}>
-          <FaGraduationCap style={{ color: CUSTOM_COLORS.primary }} />
+        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3 text-headings" >
+          <FaGraduationCap className='text-heaidings' />
           Safety Training & Compliance
         </h1>
         <p className="text-secondary">Manage employee certifications, training modules, and compliance tracking</p>
@@ -1389,25 +1386,25 @@ const TrainingCertificates = () => {
           <div className="text-sm text-secondary mb-1">Total Records</div>
           <div className="text-2xl font-bold text-primary">{stats.totalRecords}</div>
         </div>
-        <div className="bg-green-50 p-4 rounded-xl shadow-sm border border-green-200">
-          <div className="text-sm text-green-600 mb-1">Valid</div>
-          <div className="text-2xl font-bold text-green-900">{stats.valid}</div>
+        <div className="bg-[var(--accent-green)]/20 p-4 rounded-xl shadow-sm border border-theme">
+          <div className="text-sm text-[var(--accent-green)] mb-1">Valid</div>
+          <div className="text-2xl font-bold text-[var(--accent-green)]">{stats.valid}</div>
         </div>
-        <div className="bg-card p-4 rounded-xl shadow-sm border border-yellow-200">
-          <div className="text-sm text-[#00FFA3] mb-1">Expiring Soon</div>
-          <div className="text-2xl font-bold text-yellow-900">{stats.expiring}</div>
+        <div className="bg-[var(--accent-orange)]/20 p-4 rounded-xl shadow-sm border border-theme">
+          <div className="text-sm text-[var(--accent-orange)] mb-1">Expiring Soon</div>
+          <div className="text-2xl font-bold text-[var(--accent-orange)]">{stats.expiring}</div>
         </div>
-        <div className="bg-card p-4 rounded-xl shadow-sm border border-red-200">
-          <div className="text-sm text-[#A855F7] mb-1">Expired</div>
-          <div className="text-2xl font-bold text-red-900">{stats.expired}</div>
+        <div className="bg-[var(--accent-red)]/20 p-4 rounded-xl shadow-sm border border-theme">
+          <div className="text-sm text-[var(--accent-red)] mb-1">Expired</div>
+          <div className="text-2xl font-bold text-[var(--accent-red)]">{stats.expired}</div>
         </div>
-        <div className="bg-card p-4 rounded-xl shadow-sm border border-blue-200">
-          <div className="text-sm text-[#00D1FF] mb-1">In Progress</div>
-          <div className="text-2xl font-bold text-blue-900">{stats.inProgress}</div>
+        <div className="bg-[var(--accent-blue)]/20 p-4 rounded-xl shadow-sm border border-theme">
+          <div className="text-sm text-[var(--accent-blue)] mb-1">In Progress</div>
+          <div className="text-2xl font-bold text-[var(--accent-blue)]">{stats.inProgress}</div>
         </div>
-        <div className="bg-card p-4 rounded-xl shadow-sm border border-purple-200">
-          <div className="text-sm text-purple-600 mb-1">Active Modules</div>
-          <div className="text-2xl font-bold text-purple-900">{stats.activeModules}</div>
+        <div className="bg-[var(--accent-purple)]/20 p-4 rounded-xl shadow-sm border border-theme">
+          <div className="text-sm text-[var(--accent-purple)] mb-1">Active Modules</div>
+          <div className="text-2xl font-bold text-[var(--accent-purple)]">{stats.activeModules}</div>
         </div>
       </div>
 
