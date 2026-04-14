@@ -333,7 +333,7 @@ const PolicyManagementModule = () => {
     const policyCategoriesCount = uniqueCategories.size;
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 border-2 border-red-700">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 
           <div className="bg-card p-5 rounded-xl shadow-md border-l-4 border-purple-500">
