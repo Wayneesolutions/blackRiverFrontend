@@ -295,8 +295,8 @@ const EmergencyProcedures: React.FC = () => {
     <div className="space-y-6">
       <div className="bg-card rounded-2xl p-8 shadow-lg">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
-            <FaPhone className="text-[#A855F7]" />
+          <h2 className="text-2xl font-bold text-headings flex items-center gap-3">
+            <FaPhone className="" />
             Emergency Contacts
           </h2>
           <button
@@ -314,8 +314,8 @@ const EmergencyProcedures: React.FC = () => {
               });
               setShowContactForm(true);
             }}
-            className="px-6 py-3 !text-white rounded-xl font-semibold hover:opacity-90 transition-colors flex items-center gap-2"
-            style={{ background: CUSTOM_COLORS.gradient }}
+            className="px-6 py-3 !text-white rounded-xl font-semibold hover:opacity-90 transition-colors flex items-center gap-2 bg-[var(--accent-navyblue)]"
+
           >
             <FaPlus /> Add Contact
           </button>
@@ -366,7 +366,7 @@ const EmergencyProcedures: React.FC = () => {
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-primary mb-2">Name *</label>
+                  <label className="block text-sm font-semibold text-headings mb-2">Name *</label>
                   <input
                     type="text"
                     required
@@ -377,7 +377,7 @@ const EmergencyProcedures: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-primary mb-2">Role *</label>
+                  <label className="block text-sm font-semibold text-headings mb-2">Role *</label>
                   <input
                     type="text"
                     required
@@ -388,7 +388,7 @@ const EmergencyProcedures: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-primary mb-2">Phone *</label>
+                  <label className="block text-sm font-semibold text-headings mb-2">Phone *</label>
                   <input
                     type="tel"
                     required
@@ -399,7 +399,7 @@ const EmergencyProcedures: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-primary mb-2">Alternate Phone</label>
+                  <label className="block text-sm font-semibold text-headings mb-2">Alternate Phone</label>
                   <input
                     type="tel"
                     value={newContact.alternatePhone}
@@ -409,7 +409,7 @@ const EmergencyProcedures: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-primary mb-2">Email</label>
+                  <label className="block text-sm font-semibold text-headings mb-2">Email</label>
                   <input
                     type="email"
                     value={newContact.email}
@@ -419,7 +419,7 @@ const EmergencyProcedures: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-primary mb-2">Department *</label>
+                  <label className="block text-sm font-semibold text-headings mb-2">Department *</label>
                   <input
                     type="text"
                     required
@@ -457,15 +457,15 @@ const EmergencyProcedures: React.FC = () => {
                     setShowContactForm(false);
                     setEditingContact(null);
                   }}
-                  className="px-4 py-2 bg-gray-200 text-primary rounded-xl font-semibold hover:bg-gray-300"
+                  className="px-4 py-2 bg-card text-primary border border-theme rounded-xl font-semibold hover:bg-gray-300"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 !text-white rounded-xl font-semibold hover:opacity-90 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ background: CUSTOM_COLORS.gradient }}
+                  className="px-4 py-2 !text-white rounded-xl font-semibold hover:opacity-90 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--accent-navyblue)]"
+
                 >
                   <FaSave /> {submitting ? 'Saving...' : (editingContact ? 'Update Contact' : 'Save Contact')}
                 </button>
@@ -508,7 +508,7 @@ const EmergencyProcedures: React.FC = () => {
                       });
                       setShowContactForm(true);
                     }}
-                    className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition"
+                    className="p-2 text-[#00D1FF] hover:bg-[var(--accent-navyblue)]/20 rounded-lg transition"
                     title="Edit Contact"
                   >
                     <FaEdit size={14} />
@@ -519,10 +519,10 @@ const EmergencyProcedures: React.FC = () => {
                       setDeleteItemType('contact');
                       setShowDeleteModal(true);
                     }}
-                    className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition"
+                    className="p-2 text-[#A855F7] hover:bg-[var(--accent-red)]/20 rounded-lg transition"
                     title="Delete Contact"
                   >
-                    <FaTrash size={14} />
+                    <FaTrash size={14} className='text-[var(--accent-red)]' />
                   </button>
                 </div>
               </div>
@@ -558,7 +558,7 @@ const EmergencyProcedures: React.FC = () => {
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button className="px-6 py-3 bg-blue-600 !text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2">
+          <button className="px-6 py-3 bg-[var(--accent-navyblue)] !text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2">
             <FaPrint /> Print Emergency Contact List
           </button>
         </div>
@@ -585,8 +585,8 @@ const EmergencyProcedures: React.FC = () => {
               });
               setShowProcedureForm(true);
             }}
-            className="px-6 py-3 !text-white rounded-xl font-semibold hover:opacity-90 transition-colors flex items-center gap-2"
-            style={{ background: CUSTOM_COLORS.gradient }}
+            className="px-6 py-3 !text-white rounded-xl font-semibold hover:opacity-90 transition-colors flex items-center gap-2 bg-[var(--accent-navyblue)]"
+
           >
             <FaPlus /> Add Procedure
           </button>
@@ -602,7 +602,7 @@ const EmergencyProcedures: React.FC = () => {
                 onClick={() =>
                   setExpandedProcedure(expandedProcedure === proc._id ? null : proc._id)
                 }
-                className="w-full p-5 bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 transition-colors flex items-center justify-between"
+                className="w-full p-5 bg-[var(--accent-orange)]/20 hover:bg-[var(--accent-orange)]/40 transition-colors flex items-center justify-between"
               >
                 <div className="flex items-center gap-4">
                   {getProcedureIcon(proc.type)}
@@ -626,7 +626,7 @@ const EmergencyProcedures: React.FC = () => {
                       });
                       setShowProcedureForm(true);
                     }}
-                    className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition"
+                    className="p-2 text-[#00D1FF] hover:bg-[var(--accent-navyblue)]/20 rounded-lg transition"
                     title="Edit Procedure"
                   >
                     <FaEdit size={14} />
@@ -739,7 +739,7 @@ const EmergencyProcedures: React.FC = () => {
               className="p-6 space-y-6"
             >
               <div>
-                <label className="block text-sm font-semibold text-primary mb-2">Title *</label>
+                <label className="block text-sm font-semibold text-headings mb-2">Title *</label>
                 <input
                   type="text"
                   required
@@ -751,7 +751,7 @@ const EmergencyProcedures: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-primary mb-2">Type *</label>
+                <label className="block text-sm font-semibold text-headings mb-2">Type *</label>
                 <select
                   required
                   value={newProcedure.type}
@@ -769,7 +769,7 @@ const EmergencyProcedures: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-primary mb-2">Procedure Details *</label>
+                <label className="block text-sm font-semibold text-headings mb-2">Procedure Details *</label>
                 <textarea
                   required
                   rows={8}
@@ -781,7 +781,7 @@ const EmergencyProcedures: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-primary mb-2">Quick Reference Steps</label>
+                <label className="block text-sm font-semibold text-headings mb-2">Quick Reference Steps</label>
                 {newProcedure.quickReferenceSteps.map((step, idx) => (
                   <div key={idx} className="flex gap-2 mb-2">
                     <input
@@ -812,7 +812,7 @@ const EmergencyProcedures: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setNewProcedure({ ...newProcedure, quickReferenceSteps: [...newProcedure.quickReferenceSteps, ''] })}
-                  className="mt-2 px-4 py-2 bg-gray-200 text-primary rounded-lg hover:bg-gray-300 flex items-center gap-2"
+                  className="mt-2 px-4 py-2 bg-[var(--accent-navyblue)] text-primary rounded-lg hover:bg-gray-300 flex items-center gap-2"
                 >
                   <FaPlus /> Add Step
                 </button>
@@ -825,7 +825,7 @@ const EmergencyProcedures: React.FC = () => {
                     setShowProcedureForm(false);
                     setEditingProcedure(null);
                   }}
-                  className="px-4 py-2 bg-gray-200 text-primary rounded-xl font-semibold hover:bg-gray-300"
+                  className="px-4 py-2 bg-card border border-theme text-primary rounded-xl font-semibold hover:bg-gray-300"
                   disabled={submitting}
                 >
                   Cancel
@@ -852,13 +852,13 @@ const EmergencyProcedures: React.FC = () => {
     <div className="space-y-6">
       <div className="bg-card rounded-2xl p-8 shadow-lg">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
-            <FaAmbulance className="text-[#A855F7]" />
+          <h2 className="text-2xl font-bold text-headings flex items-center gap-3">
+            <FaAmbulance className="" />
             First Aid Logs
           </h2>
           <button
             onClick={() => setShowFirstAidForm(true)}
-            className="px-6 py-3 bg-red-600 !text-white rounded-xl font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
+            className="px-6 py-3 bg-[var(--accent-navyblue)] !text-white rounded-xl font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
           >
             <FaPlus /> New First Aid Log
           </button>
@@ -868,14 +868,14 @@ const EmergencyProcedures: React.FC = () => {
           <table className="w-full">
             <thead className="bg-card">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Date / Time</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Location</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Injured Person</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Injury Description</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">First Aid Provided</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Treated By</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Follow-up</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Date / Time</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Location</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Injured Person</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Injury Description</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">First Aid Provided</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Treated By</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Follow-up</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-theme">
@@ -1028,7 +1028,7 @@ const EmergencyProcedures: React.FC = () => {
             >
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-primary mb-2">Date *</label>
+                  <label className="block text-sm font-semibold text-headings mb-2">Date *</label>
                   <input
                     type="date"
                     required
@@ -1038,7 +1038,7 @@ const EmergencyProcedures: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-primary mb-2">Time *</label>
+                  <label className="block text-sm font-semibold text-headings mb-2">Time *</label>
                   <input
                     type="time"
                     required
@@ -1050,7 +1050,7 @@ const EmergencyProcedures: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-primary mb-2">Location *</label>
+                <label className="block text-sm font-semibold text-headings mb-2">Location *</label>
                 <input
                   type="text"
                   required
@@ -1062,7 +1062,7 @@ const EmergencyProcedures: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-primary mb-2">Injured Person *</label>
+                <label className="block text-sm font-semibold text-headings mb-2">Injured Person *</label>
                 <input
                   type="text"
                   required
@@ -1074,7 +1074,7 @@ const EmergencyProcedures: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-primary mb-2">Injury Description *</label>
+                <label className="block text-sm font-semibold text-headings mb-2">Injury Description *</label>
                 <textarea
                   required
                   rows={3}
@@ -1086,7 +1086,7 @@ const EmergencyProcedures: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-primary mb-2">First Aid Provided *</label>
+                <label className="block text-sm font-semibold text-headings mb-2">First Aid Provided *</label>
                 <textarea
                   required
                   rows={3}
@@ -1098,7 +1098,7 @@ const EmergencyProcedures: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-primary mb-2">Treated By *</label>
+                <label className="block text-sm font-semibold text-headings mb-2">Treated By *</label>
                 <input
                   type="text"
                   required
@@ -1110,7 +1110,7 @@ const EmergencyProcedures: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-primary mb-2">Related Incident (Optional)</label>
+                <label className="block text-sm font-semibold text-headings mb-2">Related Incident (Optional)</label>
                 <input
                   type="text"
                   value={newFirstAidLog.relatedIncident}
@@ -1128,7 +1128,7 @@ const EmergencyProcedures: React.FC = () => {
                     onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, followUpRequired: e.target.checked })}
                     className="w-5 h-5 text-[#A855F7] focus:ring-red-500 rounded"
                   />
-                  <span className="font-medium text-primary">Follow-up Required</span>
+                  <span className="font-medium text-headings">Follow-up Required</span>
                 </label>
               </div>
 
@@ -1139,7 +1139,7 @@ const EmergencyProcedures: React.FC = () => {
                     setShowFirstAidForm(false);
                     setEditingFirstAid(null);
                   }}
-                  className="px-4 py-2 bg-gray-200 text-primary rounded-xl font-semibold hover:bg-gray-300"
+                  className="px-4 py-2 bg-card border border-theme text-primary rounded-xl font-semibold hover:bg-gray-300"
                   disabled={submitting}
                 >
                   Cancel
@@ -1147,8 +1147,8 @@ const EmergencyProcedures: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 !text-white rounded-xl font-semibold hover:opacity-90 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ background: CUSTOM_COLORS.gradient }}
+                  className="px-4 py-2 !text-white rounded-xl font-semibold hover:opacity-90 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--accent-navyblue)]"
+
                 >
                   <FaSave /> {submitting ? 'Saving...' : (editingFirstAid ? 'Update Log' : 'Save Log')}
                 </button>
@@ -1161,12 +1161,12 @@ const EmergencyProcedures: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
+    <div className="min-h-screen p-6 bg-main" >
       <div className="w-full mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
-            <FaAmbulance className="inline mr-3" style={{ color: CUSTOM_COLORS.primary }} />
+          <h1 className="text-4xl font-bold mb-2 text-headings" >
+            <FaAmbulance className="inline mr-3" />
             Emergency Procedures & Response
           </h1>
           <p className="text-lg text-secondary">
@@ -1219,7 +1219,7 @@ const EmergencyProcedures: React.FC = () => {
         {activeTab === 'firstaid' && renderFirstAidLogs()}
 
         {/* Info Panel */}
-        <div className="mt-6 bg-card border-2 border-red-200 rounded-xl p-6">
+        <div className="mt-6 bg-card border-2 border-theme rounded-xl p-6">
           <h3 className="text-lg font-bold text-red-900 mb-3 flex items-center gap-2">
             <FaExclamationTriangle /> Emergency Procedures Compliance
           </h3>
