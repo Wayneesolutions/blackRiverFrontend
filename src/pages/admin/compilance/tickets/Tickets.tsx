@@ -247,8 +247,8 @@ const Tickets: React.FC = () => {
     location: '',
     amount: 0,
     finalAmount: undefined,
-    status: 'unpaid',
-    outcome: 'unpaid',
+    status: "paid" | "unpaid" | "on-fight" | "dismissed" | "reduced",
+    outcome: "paid" | "unpaid" | "on-fight" | "dismissed" | "reduced",
     driver: '',
     vehicle: '',
     unitNumber: '',
@@ -979,7 +979,7 @@ const Tickets: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
+    <div className="min-h-screen pb-10 bg-main" >
       <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
         {notifications.map(notification => (
           <ToastNotification
@@ -998,14 +998,14 @@ const Tickets: React.FC = () => {
           <div className="mb-4 relative z-10">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-2xl font-bold text-black">Tickets (Fines & Penalties)</h1>
-                <div className="flex items-center gap-2 text-black/90">
+                <h1 className="text-2xl font-bold text-headings">Tickets (Fines & Penalties)</h1>
+                <div className="flex items-center gap-2 text-secondary">
                   <span className="text-xs">Manage traffic violations and legal disputes for USA & Canada</span>
                 </div>
               </div>
               <button
                 onClick={handleAddTicket}
-                className="flex items-center gap-2 px-4 py-2 bg-card text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
               >
                 <FaPlus /> Add Ticket
               </button>
@@ -1073,7 +1073,7 @@ const Tickets: React.FC = () => {
             <button
               onClick={() => setActiveTab('all')}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${activeTab === 'all'
-                ? 'bg-[#E0F2FE] text-[#0284C7]'
+                ? 'bg-[var(--accent-navyblue)] text-[#0284C7]'
                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
             >
@@ -1082,7 +1082,7 @@ const Tickets: React.FC = () => {
             <button
               onClick={() => setActiveTab('usa')}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${activeTab === 'usa'
-                ? 'bg-[#E0F2FE] text-[#0284C7]'
+                ? 'bg-[var(--accent-navyblue)] text-[#0284C7]'
                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
             >
@@ -1091,7 +1091,7 @@ const Tickets: React.FC = () => {
             <button
               onClick={() => setActiveTab('canada')}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${activeTab === 'canada'
-                ? 'bg-[#E0F2FE] text-[#0284C7]'
+                ? 'bg-[var(--accent-navyblue)] text-[#0284C7]'
                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
             >
@@ -1117,14 +1117,35 @@ const Tickets: React.FC = () => {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                  className="px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                 >
-                  <option value="all">All Status</option>
-                  <option value="paid">Paid</option>
-                  <option value="unpaid">Unpaid</option>
-                  <option value="fight">On Fight</option>
-                  <option value="dismissed">Dismissed</option>
-                  <option value="reduced">Reduced</option>
+                  <option value="all" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    All Status
+                  </option>
+
+                  <option value="paid" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Paid
+                  </option>
+
+                  <option value="unpaid" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Unpaid
+                  </option>
+
+                  <option value="fight" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    On Fight
+                  </option>
+
+                  <option value="dismissed" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Dismissed
+                  </option>
+
+                  <option value="reduced" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Reduced
+                  </option>
                 </select>
               </div>
             </div>
@@ -1137,12 +1158,27 @@ const Tickets: React.FC = () => {
                   setPageSize(newSize);
                   setCurrentPage(1);
                 }}
-                className="px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
               >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
+                <option value={10} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  10
+                </option>
+
+                <option value={20} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  20
+                </option>
+
+                <option value={50} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  50
+                </option>
+
+                <option value={100} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  100
+                </option>
               </select>
             </div>
           </div>
@@ -1199,8 +1235,7 @@ const Tickets: React.FC = () => {
                   style={{
                     maxHeight: '20px',
                     marginBottom: '2px',
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+
                   }}
                 >
                   <div className="top-scroll-content" style={{ height: '1px' }}></div>
@@ -1213,7 +1248,7 @@ const Tickets: React.FC = () => {
                   <table className="w-full min-w-[1400px]">
                     <thead className="bg-card">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky left-0 bg-card z-10">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider sticky left-0 bg-card z-10">
                           <button
                             onClick={() => handleSort('ticketNumber')}
                             className="flex items-center gap-2 hover:text-primary"
@@ -1222,10 +1257,10 @@ const Tickets: React.FC = () => {
                             {getSortIcon('ticketNumber')}
                           </button>
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Country
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           <button
                             onClick={() => handleSort('violationType')}
                             className="flex items-center gap-2 hover:text-primary"
@@ -1234,7 +1269,7 @@ const Tickets: React.FC = () => {
                             {getSortIcon('violationType')}
                           </button>
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           <button
                             onClick={() => handleSort('dateIssued')}
                             className="flex items-center gap-2 hover:text-primary"
@@ -1243,22 +1278,22 @@ const Tickets: React.FC = () => {
                             {getSortIcon('dateIssued')}
                           </button>
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Location
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Officer
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Driver
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Vehicle
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Unit/Trailer
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           <button
                             onClick={() => handleSort('amount')}
                             className="flex items-center gap-2 hover:text-primary"
@@ -1267,7 +1302,7 @@ const Tickets: React.FC = () => {
                             {getSortIcon('amount')}
                           </button>
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           <button
                             onClick={() => handleSort('status')}
                             className="flex items-center gap-2 hover:text-primary"
@@ -1276,16 +1311,16 @@ const Tickets: React.FC = () => {
                             {getSortIcon('status')}
                           </button>
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Outcome
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Court Date
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Due Date
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky right-0 bg-card z-10">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider sticky right-0 bg-card z-10">
                           Actions
                         </th>
                       </tr>
@@ -1344,19 +1379,19 @@ const Tickets: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-sm text-primary max-w-[150px] truncate" title={ticket.officerName || 'N/A'}>
+                            <div className="text-sm text-secondary max-w-[150px] truncate" title={ticket.officerName || 'N/A'}>
                               {ticket.officerName || 'N/A'}
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-sm text-primary max-w-[150px]">
+                            <div className="text-sm text-secondary max-w-[150px]">
                               <div className="truncate" title={getDriverName(ticket.driver)}>
                                 {getDriverName(ticket.driver) || 'N/A'}
                               </div>
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-sm text-primary max-w-[180px]">
+                            <div className="text-sm text-secondary max-w-[180px]">
                               <div className="truncate" title={getVehicleInfo(ticket.vehicle)}>
                                 {getVehicleInfo(ticket.vehicle) || 'N/A'}
                               </div>
@@ -1368,7 +1403,7 @@ const Tickets: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-primary">
+                            <div className="text-sm text-secondary">
                               {ticket.unitNumber && (
                                 <div>Unit: {ticket.unitNumber}</div>
                               )}
@@ -1381,7 +1416,7 @@ const Tickets: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-primary">
+                            <div className="text-sm text-secondary">
                               <div className="font-bold">{formatCurrency(ticket.amount || 0)}</div>
                               {ticket.finalAmount && ticket.finalAmount !== ticket.amount && (
                                 <div className="text-green-600 text-xs">Final: {formatCurrency(ticket.finalAmount)}</div>
@@ -1397,7 +1432,7 @@ const Tickets: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-primary">
+                            <div className="text-sm text-secondary">
                               {ticket.outcome ? (
                                 <span className="text-xs px-2 py-1 rounded bg-card">
                                   {ticket.outcome.replace('on fight', 'On Fight').toUpperCase()}
@@ -1408,12 +1443,12 @@ const Tickets: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-primary">
+                            <div className="text-sm text-secondary">
                               {ticket.courtDate ? formatDate(ticket.courtDate) : 'N/A'}
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-primary">
+                            <div className="text-sm text-secondary">
                               {ticket.dueDate ? formatDate(ticket.dueDate) : 'N/A'}
                             </div>
                           </td>
@@ -1424,21 +1459,21 @@ const Tickets: React.FC = () => {
                                 className="text-[#00D1FF] hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors"
                                 title="View Details"
                               >
-                                <FaEye size={16} />
+                                <FaEye size={16} className="text-headings" />
                               </button>
                               <button
                                 onClick={() => handleEditTicket(ticket)}
                                 className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
                                 title="Edit Ticket"
                               >
-                                <FaEdit size={16} />
+                                <FaEdit size={16} className="text-headings" />
                               </button>
                               <button
                                 onClick={() => handleDeleteTicket(ticket)}
                                 className="text-[#A855F7] hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
                                 title="Delete Ticket"
                               >
-                                <FaTrash size={16} />
+                                <FaTrash size={16} className="text-[var(--accent-red)]" />
                               </button>
                             </div>
                           </td>
@@ -1520,7 +1555,7 @@ const Tickets: React.FC = () => {
             <div className="bg-card rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
               <div className="sticky top-0 bg-card border-b px-6 py-4 rounded-t-2xl z-10">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-primary">Add New Ticket</h3>
+                  <h3 className="text-xl font-bold text-headings">Add New Ticket</h3>
                   <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors">
                     <FaTimesCircle className="text-secondary" size={20} />
                   </button>
@@ -1530,7 +1565,7 @@ const Tickets: React.FC = () => {
               <div className="p-6 space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Country <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Country <span className="text-red-500">*</span></label>
                     <select
                       value={ticketForm.country || 'usa'}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, country: e.target.value as 'usa' | 'canada' }))}
@@ -1541,7 +1576,7 @@ const Tickets: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Violation Type <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Violation Type <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       placeholder="e.g., Speeding, Improper Lane Change"
@@ -1551,7 +1586,7 @@ const Tickets: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Amount <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Amount <span className="text-red-500">*</span></label>
                     <input
                       type="number"
                       step="0.01"
@@ -1563,7 +1598,7 @@ const Tickets: React.FC = () => {
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-primary mb-1">Violation Description <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Violation Description <span className="text-red-500">*</span></label>
                     <textarea
                       placeholder="Detailed description of the violation"
                       value={ticketForm.violationDescription || ''}
@@ -1573,25 +1608,27 @@ const Tickets: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Date Issued <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Date Issued <span className="text-red-500">*</span></label>
                     <input
                       type="date"
                       value={ticketForm.dateIssued || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, dateIssued: e.target.value }))}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      style={{ colorScheme: 'dark' }}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Due Date <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Due Date <span className="text-red-500">*</span></label>
                     <input
                       type="date"
                       value={ticketForm.dueDate || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, dueDate: e.target.value }))}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      style={{ colorScheme: 'dark' }}
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-primary mb-1">
+                    <label className="block text-sm font-medium text-headings mb-1">
                       {ticketForm.country === 'canada' ? 'Province' : 'State'} <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1603,7 +1640,7 @@ const Tickets: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Driver <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Driver <span className="text-red-500">*</span></label>
                     <select
                       value={typeof ticketForm.driver === 'string' ? ticketForm.driver : ticketForm.driver?._id || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, driver: e.target.value }))}
@@ -1616,7 +1653,7 @@ const Tickets: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Vehicle <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Vehicle <span className="text-red-500">*</span></label>
                     <select
                       value={typeof ticketForm.vehicle === 'string' ? ticketForm.vehicle : ticketForm.vehicle?._id || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, vehicle: e.target.value }))}
@@ -1635,7 +1672,7 @@ const Tickets: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Unit Number</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Unit Number</label>
                     <input
                       type="text"
                       placeholder="Unit number (e.g., 1001, 1002)"
@@ -1645,7 +1682,7 @@ const Tickets: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Trailer Number</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Trailer Number</label>
                     <select
                       value={ticketForm.trailerNumber || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, trailerNumber: e.target.value }))}
@@ -1660,7 +1697,7 @@ const Tickets: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Officer Name <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Officer Name <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       placeholder="Issuing officer name"
@@ -1670,7 +1707,7 @@ const Tickets: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Status <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Status <span className="text-red-500">*</span></label>
                     <select
                       value={ticketForm.status}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, status: e.target.value as 'paid' | 'unpaid' | 'fight' | 'dismissed' | 'reduced' }))}
@@ -1684,7 +1721,7 @@ const Tickets: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Outcome</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Outcome</label>
                     <select
                       value={ticketForm.outcome || 'unpaid'}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, outcome: e.target.value as 'paid' | 'reduced' | 'dismissed' | 'on fight' | 'unpaid' }))}
@@ -1698,16 +1735,17 @@ const Tickets: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Court Date</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Court Date</label>
                     <input
                       type="date"
                       value={ticketForm.courtDate || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, courtDate: e.target.value }))}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      style={{ colorScheme: 'dark' }}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Fighting By</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Fighting By</label>
                     <select
                       value={ticketForm.fightingBy || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, fightingBy: e.target.value as 'company' | 'lawyer' | undefined }))}
@@ -1720,7 +1758,7 @@ const Tickets: React.FC = () => {
                   </div>
                   {ticketForm.status === 'reduced' && (
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-1">Final Amount</label>
+                      <label className="block text-sm font-medium text-headings mb-1">Final Amount</label>
                       <input
                         type="number"
                         step="0.01"
@@ -1729,11 +1767,12 @@ const Tickets: React.FC = () => {
                         value={ticketForm.finalAmount || ''}
                         onChange={(e) => setTicketForm(prev => ({ ...prev, finalAmount: parseFloat(e.target.value) || undefined }))}
                         className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+
                       />
                     </div>
                   )}
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-primary mb-1">Notes</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Notes</label>
                     <textarea
                       placeholder="Additional notes"
                       value={ticketForm.notes || ''}
@@ -1967,7 +2006,7 @@ const Tickets: React.FC = () => {
             <div className="bg-card rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
               <div className="sticky top-0 bg-card border-b px-6 py-4 rounded-t-2xl z-10">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-primary">Edit Ticket: {selectedTicket.ticketNumber}</h3>
+                  <h3 className="text-xl font-bold text-headings">Edit Ticket: {selectedTicket.ticketNumber}</h3>
                   <button onClick={() => { setShowEditModal(false); setSelectedTicket(null); resetForm(); }} className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors">
                     <FaTimesCircle className="text-secondary" size={20} />
                   </button>
@@ -1977,18 +2016,38 @@ const Tickets: React.FC = () => {
               <div className="p-6 space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Country <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Country <span className="text-red-500">*</span></label>
                     <select
                       value={ticketForm.country || 'usa'}
-                      onChange={(e) => setTicketForm(prev => ({ ...prev, country: e.target.value as 'usa' | 'canada' }))}
-                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      onChange={(e) =>
+                        setTicketForm((prev) => ({
+                          ...prev,
+                          country: e.target.value as 'usa' | 'canada',
+                        }))
+                      }
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                     >
-                      <option value="usa">USA</option>
-                      <option value="canada">Canada</option>
+                      <option
+                        value="usa"
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        USA
+                      </option>
+
+                      <option
+                        value="canada"
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Canada
+                      </option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Violation Type <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Violation Type <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       placeholder="e.g., Speeding, Improper Lane Change"
@@ -1998,7 +2057,7 @@ const Tickets: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Amount <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Amount <span className="text-red-500">*</span></label>
                     <input
                       type="number"
                       step="0.01"
@@ -2010,7 +2069,7 @@ const Tickets: React.FC = () => {
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-primary mb-1">Violation Description <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Violation Description <span className="text-red-500">*</span></label>
                     <textarea
                       placeholder="Detailed description of the violation"
                       value={ticketForm.violationDescription || ''}
@@ -2020,25 +2079,27 @@ const Tickets: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Date Issued <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Date Issued <span className="text-red-500">*</span></label>
                     <input
                       type="date"
                       value={ticketForm.dateIssued || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, dateIssued: e.target.value }))}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      style={{ colorScheme: 'dark' }}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Due Date <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Due Date <span className="text-red-500">*</span></label>
                     <input
                       type="date"
                       value={ticketForm.dueDate || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, dueDate: e.target.value }))}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      style={{ colorScheme: 'dark' }}
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-primary mb-1">
+                    <label className="block text-sm font-medium text-headings mb-1">
                       {ticketForm.country === 'canada' ? 'Province' : 'State'} <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -2050,39 +2111,96 @@ const Tickets: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Driver <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Driver <span className="text-red-500">*</span></label>
                     <select
-                      value={typeof ticketForm.driver === 'string' ? ticketForm.driver : ticketForm.driver?._id || ''}
-                      onChange={(e) => setTicketForm(prev => ({ ...prev, driver: e.target.value }))}
-                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      value={
+                        typeof ticketForm.driver === "string"
+                          ? ticketForm.driver
+                          : ticketForm.driver?._id || ""
+                      }
+                      onChange={(e) =>
+                        setTicketForm((prev) => ({
+                          ...prev,
+                          driver: e.target.value,
+                        }))
+                      }
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                     >
-                      <option value="">Select Driver</option>
+                      <option
+                        value=""
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Select Driver
+                      </option>
+
                       {drivers.map((driver) => (
-                        <option key={driver._id} value={driver._id}>{driver.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Vehicle <span className="text-red-500">*</span></label>
-                    <select
-                      value={typeof ticketForm.vehicle === 'string' ? ticketForm.vehicle : ticketForm.vehicle?._id || ''}
-                      onChange={(e) => setTicketForm(prev => ({ ...prev, vehicle: e.target.value }))}
-                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
-                    >
-                      <option value="">Select Vehicle</option>
-                      {vehicles.map((vehicle) => (
-                        <option key={vehicle._id} value={vehicle._id}>
-                          {(() => {
-                            const vehicleName = [vehicle.make, vehicle.model].filter(Boolean).join(' ').trim() || vehicle.makeModel || 'Vehicle';
-                            const identifier = vehicle.plateNumber || vehicle.licensePlate || vehicle.internalId || 'N/A';
-                            return `${vehicleName} (${identifier})`;
-                          })()}
+                        <option
+                          key={driver._id}
+                          value={driver._id}
+                          className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                        >
+                          {driver.name}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Unit Number</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Vehicle <span className="text-red-500">*</span></label>
+                    <select
+                      value={
+                        typeof ticketForm.vehicle === "string"
+                          ? ticketForm.vehicle
+                          : ticketForm.vehicle?._id || ""
+                      }
+                      onChange={(e) =>
+                        setTicketForm((prev) => ({
+                          ...prev,
+                          vehicle: e.target.value,
+                        }))
+                      }
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
+                    >
+                      <option
+                        value=""
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Select Vehicle
+                      </option>
+
+                      {vehicles.map((vehicle) => {
+                        const vehicleName =
+                          [vehicle.make, vehicle.model].filter(Boolean).join(" ").trim() ||
+                          vehicle.makeModel ||
+                          "Vehicle";
+
+                        const identifier =
+                          vehicle.plateNumber ||
+                          vehicle.licensePlate ||
+                          vehicle.internalId ||
+                          "N/A";
+
+                        return (
+                          <option
+                            key={vehicle._id}
+                            value={vehicle._id}
+                            className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                          >
+                            {`${vehicleName} (${identifier})`}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-headings mb-1">Unit Number</label>
                     <input
                       type="text"
                       placeholder="Unit number (e.g., 1001, 1002)"
@@ -2092,7 +2210,7 @@ const Tickets: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Trailer Number</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Trailer Number</label>
                     <select
                       value={ticketForm.trailerNumber || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, trailerNumber: e.target.value }))}
@@ -2107,7 +2225,7 @@ const Tickets: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Officer Name <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Officer Name <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       placeholder="Issuing officer name"
@@ -2117,52 +2235,135 @@ const Tickets: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Status <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-headings mb-1">Status <span className="text-red-500">*</span></label>
                     <select
                       value={ticketForm.status}
-                      onChange={(e) => setTicketForm(prev => ({ ...prev, status: e.target.value as 'paid' | 'unpaid' | 'fight' | 'dismissed' | 'reduced' }))}
-                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      onChange={(e) =>
+                        setTicketForm((prev) => ({
+                          ...prev,
+                          status: e.target.value as
+                            | "paid"
+                            | "unpaid"
+                            | "on-fight"
+                            | "dismissed"
+                            | "reduced",
+                        }))
+                      }
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                     >
-                      <option value="unpaid">Unpaid</option>
-                      <option value="paid">Paid</option>
-                      <option value="fight">On Fight</option>
-                      <option value="dismissed">Dismissed</option>
-                      <option value="reduced">Reduced</option>
+                      <option value="unpaid" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Unpaid
+                      </option>
+
+                      <option value="paid" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Paid
+                      </option>
+
+                      <option value="on-fight" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        On Fight
+                      </option>
+
+                      <option value="dismissed" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Dismissed
+                      </option>
+
+                      <option value="reduced" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Reduced
+                      </option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Outcome</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Outcome</label>
                     <select
-                      value={ticketForm.outcome || 'unpaid'}
-                      onChange={(e) => setTicketForm(prev => ({ ...prev, outcome: e.target.value as 'paid' | 'reduced' | 'dismissed' | 'on fight' | 'unpaid' }))}
-                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      value={ticketForm.outcome || "unpaid"}
+                      onChange={(e) =>
+                        setTicketForm((prev) => ({
+                          ...prev,
+                          outcome: e.target.value as
+                            | "paid"
+                            | "reduced"
+                            | "dismissed"
+                            | "on-fight"
+                            | "unpaid",
+                        }))
+                      }
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                     >
-                      <option value="unpaid">Unpaid</option>
-                      <option value="paid">Paid</option>
-                      <option value="reduced">Reduced</option>
-                      <option value="dismissed">Dismissed</option>
-                      <option value="on fight">On Fight</option>
+                      <option value="unpaid" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Unpaid
+                      </option>
+
+                      <option value="paid" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Paid
+                      </option>
+
+                      <option value="reduced" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Reduced
+                      </option>
+
+                      <option value="dismissed" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Dismissed
+                      </option>
+
+                      <option value="on-fight" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        On Fight
+                      </option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Court Date</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Court Date</label>
                     <input
                       type="date"
                       value={ticketForm.courtDate || ''}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, courtDate: e.target.value }))}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      style={{ colorScheme: 'dark' }}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Fighting By</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Fighting By</label>
                     <select
                       value={ticketForm.fightingBy || ''}
-                      onChange={(e) => setTicketForm(prev => ({ ...prev, fightingBy: e.target.value as 'company' | 'lawyer' | undefined }))}
-                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      onChange={(e) =>
+                        setTicketForm((prev) => ({
+                          ...prev,
+                          fightingBy: e.target.value as 'company' | 'lawyer' | undefined,
+                        }))
+                      }
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                     >
-                      <option value="">Select Option</option>
-                      <option value="company">Company</option>
-                      <option value="lawyer">Lawyer</option>
+                      <option
+                        value=""
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Select Option
+                      </option>
+
+                      <option
+                        value="company"
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Company
+                      </option>
+
+                      <option
+                        value="lawyer"
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Lawyer
+                      </option>
                     </select>
                   </div>
                   {ticketForm.status === 'reduced' && (
@@ -2180,7 +2381,7 @@ const Tickets: React.FC = () => {
                     </div>
                   )}
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-primary mb-1">Notes</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Notes</label>
                     <textarea
                       placeholder="Additional notes"
                       value={ticketForm.notes || ''}
@@ -2240,8 +2441,8 @@ const Tickets: React.FC = () => {
                 {/* Lawyer Details Section - Only show if status is 'fight' */}
                 {ticketForm.status === 'fight' && (
                   <div className="bg-card rounded-xl p-6 border border-orange-200">
-                    <h4 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                      <FaGavel className="text-[#F59E0B]" size={20} />
+                    <h4 className="text-lg font-bold text-[var(--accent-amber)] mb-4 flex items-center gap-2">
+                      <FaGavel className="text-[var(--accent-amber)]" size={20} />
                       Lawyer Details
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
@@ -2386,6 +2587,7 @@ const Tickets: React.FC = () => {
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">Court Date</label>
                         <input
+                          style={{ colorScheme: 'dark' }}
                           type="date"
                           value={ticketForm.lawyerDetails?.courtDate ? new Date(ticketForm.lawyerDetails.courtDate).toISOString().split('T')[0] : ''}
                           onChange={(e) => setTicketForm(prev => ({
