@@ -905,7 +905,8 @@ const Incidents: React.FC = () => {
     icon: Icon,
     onClick,
     bgColor,
-    iconColor
+    iconColor,
+    background
   }: {
     title: string;
     value: number | string;
@@ -914,11 +915,12 @@ const Incidents: React.FC = () => {
     onClick?: () => void;
     bgColor: string;
     iconColor: string;
+    background: string;
   }) => {
     return (
       <div
         onClick={onClick}
-        className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
+        className={`bg-[${background}]/20 rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
       >
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
@@ -937,7 +939,7 @@ const Incidents: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
+    <div className="min-h-screen pb-10 bg-main">
       {/* Toast Notifications */}
       {notifications.map((notification) => (
         <ToastNotification
@@ -955,16 +957,16 @@ const Incidents: React.FC = () => {
           <div className="mb-4 relative z-10">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-2xl font-bold text-black flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-headings flex items-center gap-2">
                   Accidents
                 </h1>
-                <div className="flex items-center gap-2 text-black/90">
+                <div className="flex items-center gap-2 text-secondary">
                   <span className="text-xs">Manage and track all accidents</span>
                 </div>
               </div>
               <button
                 onClick={handleAddIncident}
-                className="flex items-center gap-2 px-4 py-2 bg-card text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
+                className="flex items-center gap-2 px-4 py-2 text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm bg-[var(--accent-navyblue)]"
               >
                 <FaPlus /> Report Incident
               </button>
@@ -976,30 +978,34 @@ const Incidents: React.FC = () => {
             <StatCard
               title="Total Incidents"
               value={stats.total}
-              bgColor="bg-card"
-              iconColor="text-[rgba(0,209,255,0.15)]"
+              bgColor=""
+              iconColor="text-[var(--accent-blue)]"
               icon={<FaExclamationTriangle />}
+              background='var(--accent-blue)'
             />
             <StatCard
               title="Open"
               value={stats.open}
-              bgColor="bg-card"
-              iconColor="text-[#A855F7]"
+              bgColor=""
+              iconColor="text-[var(--accent-purple)]"
               icon={<FaExclamationCircle />}
+              background='var(--accent-purple)'
             />
             <StatCard
               title="Under Review"
               value={stats.underReview}
-              bgColor="bg-card"
-              iconColor="text-[#F59E0B]"
+              bgColor=""
+              iconColor="text-[var(--accent-orange)]"
               icon={<FaInfoCircle />}
+              background='var(--accent-orange)'
             />
             <StatCard
               title="Closed"
               value={stats.closed}
-              bgColor="bg-green-50"
-              iconColor="text-green-600"
+              bgColor=""
+              iconColor="text-[var(--accent-green)]"
               icon={<FaCheckCircle />}
+              background='var(--accent-green)'
             />
           </div>
         </div>
@@ -1012,7 +1018,7 @@ const Incidents: React.FC = () => {
             <button
               onClick={() => setCountryFilter('all')}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${countryFilter === 'all'
-                ? 'bg-[#E0F2FE] text-[#0284C7]'
+                ? 'bg-[var(--accent-navyblue)] text-[#0284C7]'
                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
             >
@@ -1021,7 +1027,7 @@ const Incidents: React.FC = () => {
             <button
               onClick={() => setCountryFilter('canada')}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${countryFilter === 'canada'
-                ? 'bg-[#E0F2FE] text-[#0284C7]'
+                ? 'bg-[var(--accent-navyblue)] text-[#0284C7]'
                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
             >
@@ -1031,7 +1037,7 @@ const Incidents: React.FC = () => {
             <button
               onClick={() => setCountryFilter('usa')}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${countryFilter === 'usa'
-                ? 'bg-[#E0F2FE] text-[#0284C7]'
+                ? 'bg-[var(--accent-navyblue)] text-[#0284C7]'
                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
             >
@@ -1064,12 +1070,27 @@ const Incidents: React.FC = () => {
                   setStatusFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
               >
-                <option value="all">All Status</option>
-                <option value="open">Open</option>
-                <option value="under-review">Under Review</option>
-                <option value="closed">Closed</option>
+                <option value="all" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  All Status
+                </option>
+
+                <option value="open" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  Open
+                </option>
+
+                <option value="under-review" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  Under Review
+                </option>
+
+                <option value="closed" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  Closed
+                </option>
               </select>
             </div>
 
@@ -1080,11 +1101,27 @@ const Incidents: React.FC = () => {
                   setTypeFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
               >
-                <option value="all">All Types</option>
+                <option
+                  value="all"
+                  className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                >
+                  All Types
+                </option>
+
                 {incidentTypes.map((type) => (
-                  <option key={type} value={type}>{type}</option>
+                  <option
+                    key={type}
+                    value={type}
+                    className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                  >
+                    {type}
+                  </option>
                 ))}
               </select>
             </div>
@@ -1096,11 +1133,27 @@ const Incidents: React.FC = () => {
                   setLocationFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
               >
-                <option value="all">All Locations</option>
+                <option
+                  value="all"
+                  className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                >
+                  All Locations
+                </option>
+
                 {locations.map((location) => (
-                  <option key={location} value={location}>{location}</option>
+                  <option
+                    key={location}
+                    value={location}
+                    className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                  >
+                    {location}
+                  </option>
                 ))}
               </select>
             </div>
@@ -1112,11 +1165,27 @@ const Incidents: React.FC = () => {
                   setDriverFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
               >
-                <option value="all">All Drivers</option>
+                <option
+                  value="all"
+                  className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                >
+                  All Drivers
+                </option>
+
                 {drivers.map((driver) => (
-                  <option key={driver._id} value={driver._id}>{driver.name}</option>
+                  <option
+                    key={driver._id}
+                    value={driver._id}
+                    className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                  >
+                    {driver.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -1130,7 +1199,7 @@ const Incidents: React.FC = () => {
             </p>
             <button
               onClick={handleAddIncident}
-              className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors flex items-center gap-2"
+              className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors flex items-center gap-2"
             >
               <FaPlus size={16} />
               Add Incident
@@ -1170,8 +1239,7 @@ const Incidents: React.FC = () => {
               style={{
                 maxHeight: '20px',
                 marginBottom: '2px',
-                scrollbarWidth: 'thin',
-                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+
               }}
             >
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
@@ -1184,31 +1252,31 @@ const Incidents: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-card border-b border-theme">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky left-0 bg-card z-10">
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider sticky left-0 bg-card z-10">
                       Incident #
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider">
                       Date/Time
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider">
                       Location
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider">
                       Driver
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider">
                       Unit/Trailer
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider">
                       Case File #
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky right-0 bg-card z-10">
+                    <th className="px-4 py-3 text-left text-xs font-medium text- uppercase tracking-wider sticky right-0 bg-card z-10">
                       Actions
                     </th>
                   </tr>
@@ -1286,21 +1354,21 @@ const Incidents: React.FC = () => {
                               className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
                               title="View Details"
                             >
-                              <FaEye size={16} />
+                              <FaEye size={16} className='text-headings' />
                             </button>
                             <button
                               onClick={() => handleEditIncident(incident)}
                               className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
                               title="Edit Incident"
                             >
-                              <FaEdit size={16} />
+                              <FaEdit size={16} className='text-headings' />
                             </button>
                             <button
                               onClick={() => handleDeleteIncident(incident)}
                               className="text-[#A855F7] hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete Incident"
                             >
-                              <FaTrash size={16} />
+                              <FaTrash size={16} className='text-[var(--accent-red)]' />
                             </button>
                           </div>
                         </td>
@@ -1402,10 +1470,10 @@ const Incidents: React.FC = () => {
               <div className="p-6 space-y-6">
                 {/* Essential Incident Details */}
                 <div className="bg-card rounded-xl p-6">
-                  <h4 className="text-lg font-bold text-primary mb-4">Essential Incident Details</h4>
+                  <h4 className="text-lg font-bold text-headings mb-4">Essential Incident Details</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-1">Incident Date/Time <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-headings mb-1">Incident Date/Time <span className="text-red-500">*</span></label>
                       <input
                         type="datetime-local"
                         value={incidentForm.incidentDateTime || ''}
@@ -1917,7 +1985,7 @@ const Incidents: React.FC = () => {
             <div className="bg-card rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
               <div className="sticky top-0 bg-card border-b px-6 py-4 rounded-t-2xl z-10">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-primary">Edit Incident: {selectedIncident.incidentNumber}</h3>
+                  <h3 className="text-xl font-bold text-headings">Edit Incident: {selectedIncident.incidentNumber}</h3>
                   <button onClick={() => { setShowEditModal(false); setSelectedIncident(null); resetForm(); }} className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors">
                     <FaTimesCircle className="text-secondary" size={20} />
                   </button>
@@ -1927,19 +1995,20 @@ const Incidents: React.FC = () => {
               <div className="p-6 space-y-6">
                 {/* Similar form structure to Add Modal - using incidentForm state */}
                 <div className="bg-card rounded-xl p-6">
-                  <h4 className="text-lg font-bold text-primary mb-4">Essential Incident Details</h4>
+                  <h4 className="text-lg font-bold text-headings mb-4">Essential Incident Details</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-1">Incident Date/Time <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-headings mb-1">Incident Date/Time <span className="text-red-500">*</span></label>
                       <input
                         type="datetime-local"
                         value={incidentForm.incidentDateTime || ''}
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentDateTime: e.target.value }))}
                         className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        style={{ colorScheme: 'dark' }}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-1">Incident Type <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-headings mb-1">Incident Type <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         value={incidentForm.incidentType || ''}
@@ -1948,15 +2017,35 @@ const Incidents: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-primary mb-1">Status <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-medium text-headings mb-1">Status <span className="text-red-500">*</span></label>
                       <select
-                        value={incidentForm.incidentStatus || 'open'}
-                        onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentStatus: e.target.value as 'open' | 'under-review' | 'closed' }))}
-                        className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                        value={incidentForm.incidentStatus || "open"}
+                        onChange={(e) =>
+                          setIncidentForm((prev) => ({
+                            ...prev,
+                            incidentStatus: e.target.value as
+                              | "open"
+                              | "under-review"
+                              | "closed",
+                          }))
+                        }
+                        className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                       >
-                        <option value="open">Open</option>
-                        <option value="under-review">Under Review</option>
-                        <option value="closed">Closed</option>
+                        <option value="open" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                          Open
+                        </option>
+
+                        <option value="under-review" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                          Under Review
+                        </option>
+
+                        <option value="closed" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                          Closed
+                        </option>
                       </select>
                     </div>
                   </div>
@@ -1996,8 +2085,8 @@ const Incidents: React.FC = () => {
               <div className="p-6 space-y-4">
                 {/* Essential Incident Details */}
                 <div className="bg-card rounded-lg p-4 border border-theme">
-                  <h4 className="text-sm font-bold text-primary mb-3 flex items-center gap-2">
-                    <FaInfoCircle className="text-[var(--accent-color)]" size={16} />
+                  <h4 className="text-sm font-bold text-headings mb-3 flex items-center gap-2">
+                    <FaInfoCircle className="text-[var(--accent-navyblue)]" size={16} />
                     Essential Incident Details
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -2135,8 +2224,8 @@ const Incidents: React.FC = () => {
                 {/* Accident-Related Fields */}
                 {(selectedIncident.accidentReport || selectedIncident.accidentPictures?.length || selectedIncident.accidentVideo) && (
                   <div className="bg-card rounded-lg p-4 border border-theme">
-                    <h4 className="text-sm font-bold text-primary mb-3 flex items-center gap-2">
-                      <FaExclamationTriangle className="text-[#A855F7]" size={16} />
+                    <h4 className="text-sm font-bold text-[var(--accent-red)] mb-3 flex items-center gap-2">
+                      <FaExclamationTriangle className="text-[var(--accent-red)]" size={16} />
                       Accident Details
                     </h4>
                     {selectedIncident.accidentReport && (() => {
@@ -2151,7 +2240,7 @@ const Incidents: React.FC = () => {
                               href={report.signedUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-[#00D1FF] hover:text-blue-800 hover:underline"
+                              className="flex items-center gap-2 text-blue-500 hover:text-blue-800 hover:underline"
                             >
                               <FaFileAlt className="text-blue-500" size={14} />
                               <span className="text-sm">{report.fileName}</span>
