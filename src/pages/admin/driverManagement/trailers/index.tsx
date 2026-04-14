@@ -66,7 +66,6 @@ const TrailersPage: React.FC = () => {
     const [showSidebar, setShowSidebar] = useState(false);
     const [activeStep, setActiveStep] = useState<'Details' | 'Inspections' | 'Documents' | 'Notes'>('Details');
     const [inspectionType, setInspectionType] = useState<'One Time' | 'Recurring'>('One Time');
-    const [documentType, setDocumentType] = useState<'General' | 'Ownership' | 'Plate' | 'Safety' | 'Insurance'>('General');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     // Confirmation modal states
@@ -135,10 +134,11 @@ const TrailersPage: React.FC = () => {
     const [editingInspectionType, setEditingInspectionType] = useState<'oneTime' | 'recurring' | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Documents data
-    const [documents, setDocuments] = useState<Record<string, Array<{
+    // Documents data (single list, no tabs)
+    const [documents, setDocuments] = useState<Array<{
         id: string;
         _id?: string;
+        title: string;
         expiryDate: string;
         description: string;
         file: File | null;
@@ -146,15 +146,10 @@ const TrailersPage: React.FC = () => {
         fileName?: string;
         ignoreExpiration: boolean;
         isExisting?: boolean;
-    }>>>({
-        General: [],
-        Ownership: [],
-        Plate: [],
-        Safety: [],
-        Insurance: []
-    });
+    }>>([]);
 
     const [documentForm, setDocumentForm] = useState({
+        title: '',
         expiryDate: '',
         description: '',
         file: null as File | null,
@@ -162,27 +157,7 @@ const TrailersPage: React.FC = () => {
     });
 
     const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
-    const [editingDocumentType, setEditingDocumentType] = useState<string | null>(null);
     const documentFileInputRef = useRef<HTMLInputElement>(null);
-
-
-    // Invoices data
-    const [invoices, setInvoices] = useState<Array<{
-        id: string;
-        _id?: string;
-        invoiceNumber: string;
-        vendorWorkshop: string;
-        amount: string;
-        invoiceDate: string;
-        file: File | null;
-        fileUrl?: string | null;
-        fileName?: string | null;
-        notes: string;
-        isExisting?: boolean;
-    }>>([]);
-
-
-
 
 
     // Notes data
@@ -196,6 +171,7 @@ const TrailersPage: React.FC = () => {
         note: '',
         category: 'Category'
     });
+    const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
     // Column filters
     const [filters, setFilters] = useState({
@@ -258,9 +234,8 @@ const TrailersPage: React.FC = () => {
                 } else if (activeTab === 'Unassigned') {
                     // For unassigned, fetch all and filter on frontend
                 } else {
-                    // Yard filter - activeTab is a yard ID, ensure it's a string
-                    yardFilter = String(activeTab).trim();
-                    console.log('🏭 [YARD FILTER] Filtering by yard:', yardFilter);
+                    // Yard filter - activeTab is a yard ID
+                    yardFilter = activeTab;
                 }
 
                 console.log('🔍 Fetching trailers with filters:', { activeTab, yardFilter, ownershipFilter });
@@ -306,36 +281,7 @@ const TrailersPage: React.FC = () => {
                         status: trailer.status,
                         yard: trailer.yard || null
                     }));
-
-                    // Additional frontend filtering for yard tabs (in case backend doesn't filter properly)
-                    if (yardFilter && activeTab !== 'All' && activeTab !== 'External' && activeTab !== 'Unassigned') {
-                        const yardIdStr = String(yardFilter).trim();
-                        const filteredTrailers = transformedTrailers.filter((trailer: any) => {
-                            const trailerYardId = trailer.yard
-                                ? (typeof trailer.yard === 'string'
-                                    ? trailer.yard
-                                    : trailer.yard._id?.toString() || '')
-                                : '';
-                            const matches = trailerYardId === yardIdStr;
-                            if (!matches) {
-                                console.log('🚫 Filtered out trailer:', {
-                                    trailerId: trailer._id,
-                                    trailerYardId,
-                                    expectedYardId: yardIdStr,
-                                    trailerYard: trailer.yard
-                                });
-                            }
-                            return matches;
-                        });
-                        console.log('✅ [YARD FILTER] After filtering:', {
-                            yardId: yardIdStr,
-                            totalBefore: transformedTrailers.length,
-                            totalAfter: filteredTrailers.length
-                        });
-                        setTrailers(filteredTrailers);
-                    } else {
-                        setTrailers(transformedTrailers);
-                    }
+                    setTrailers(transformedTrailers);
                 }
             } catch (error) {
                 console.error('Error fetching trailers:', error);
@@ -547,25 +493,6 @@ const TrailersPage: React.FC = () => {
                         console.log('✅ Loaded notes:', loadedNotes.length);
                     }
 
-                    // Load invoices
-                    if (trailer.invoices && Array.isArray(trailer.invoices) && trailer.invoices.length > 0) {
-                        const loadedInvoices = trailer.invoices.map((invoice: any, index: number) => ({
-                            id: invoice._id || `invoice-${index}`,
-                            _id: invoice._id,
-                            invoiceNumber: invoice.invoiceNumber || '',
-                            vendorWorkshop: invoice.vendorWorkshop || '',
-                            amount: invoice.amount || '',
-                            invoiceDate: invoice.invoiceDate ? new Date(invoice.invoiceDate).toISOString().split('T')[0] : '',
-                            file: null,
-                            fileUrl: invoice.fileUrl || null,
-                            fileName: invoice.fileName || null,
-                            notes: invoice.notes || ''
-                        }));
-                        setInvoices(loadedInvoices);
-                        console.log('✅ Loaded invoices:', loadedInvoices.length);
-                    } else {
-                        setInvoices([]);
-                    }
                 }
             } catch (error) {
                 console.error('❌ Error loading trailer for edit:', error);
@@ -647,31 +574,30 @@ const TrailersPage: React.FC = () => {
     };
 
     // Document handlers
-    const handleEditDocument = (doc: any, docType: string) => {
+    const handleEditDocument = (doc: any) => {
         setEditingDocumentId(doc.id);
-        setEditingDocumentType(docType);
         setDocumentForm({
-            expiryDate: doc.expiryDate,
-            description: doc.description,
+            title: doc.title || '',
+            expiryDate: doc.expiryDate || '',
+            description: doc.description || '',
             file: doc.file || null,
-            ignoreExpiration: doc.ignoreExpiration
+            ignoreExpiration: doc.ignoreExpiration || false
         });
     };
 
     const handleSaveDocument = () => {
-        if (!documentForm.description) {
-            alert('Please enter a description');
+        if (!documentForm.description && !documentForm.title && !documentForm.file) {
+            alert('Please enter a title, description, or attach a file');
             return;
         }
 
-        if (editingDocumentId && editingDocumentType) {
-            // Update existing document
-            setDocuments(prev => ({
-                ...prev,
-                [editingDocumentType]: prev[editingDocumentType].map(doc =>
+        if (editingDocumentId) {
+            setDocuments(prev =>
+                prev.map(doc =>
                     doc.id === editingDocumentId
                         ? {
                             ...doc,
+                            title: documentForm.title,
                             expiryDate: documentForm.expiryDate,
                             description: documentForm.description,
                             ignoreExpiration: documentForm.ignoreExpiration,
@@ -680,13 +606,12 @@ const TrailersPage: React.FC = () => {
                         }
                         : doc
                 )
-            }));
+            );
             setEditingDocumentId(null);
-            setEditingDocumentType(null);
         } else {
-            // Add new document
             const newDoc = {
                 id: Date.now().toString(),
+                title: documentForm.title,
                 expiryDate: documentForm.expiryDate,
                 description: documentForm.description,
                 file: documentForm.file,
@@ -694,37 +619,20 @@ const TrailersPage: React.FC = () => {
                 ignoreExpiration: documentForm.ignoreExpiration,
                 isExisting: false
             };
-            setDocuments(prev => ({
-                ...prev,
-                [documentType]: [...prev[documentType], newDoc]
-            }));
+            setDocuments(prev => [...prev, newDoc]);
         }
 
-        setDocumentForm({
-            expiryDate: '',
-            description: '',
-            file: null,
-            ignoreExpiration: false
-        });
+        setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
         if (documentFileInputRef.current) {
             documentFileInputRef.current.value = '';
         }
     };
 
-    const handleDeleteDocument = (docId: string, docType: string) => {
-        setDocuments(prev => ({
-            ...prev,
-            [docType]: prev[docType].filter(doc => doc.id !== docId)
-        }));
+    const handleDeleteDocument = (docId: string) => {
+        setDocuments(prev => prev.filter(doc => doc.id !== docId));
         if (editingDocumentId === docId) {
             setEditingDocumentId(null);
-            setEditingDocumentType(null);
-            setDocumentForm({
-                expiryDate: '',
-                description: '',
-                file: null,
-                ignoreExpiration: false
-            });
+            setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
             if (documentFileInputRef.current) {
                 documentFileInputRef.current.value = '';
             }
@@ -733,13 +641,7 @@ const TrailersPage: React.FC = () => {
 
     const handleCancelEditDocument = () => {
         setEditingDocumentId(null);
-        setEditingDocumentType(null);
-        setDocumentForm({
-            expiryDate: '',
-            description: '',
-            file: null,
-            ignoreExpiration: false
-        });
+        setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
         if (documentFileInputRef.current) {
             documentFileInputRef.current.value = '';
         }
@@ -901,28 +803,6 @@ const TrailersPage: React.FC = () => {
             formDataToSend.append('oneTimeInspections', JSON.stringify(oneTimeInspectionsData));
             formDataToSend.append('recurringInspections', JSON.stringify(recurringInspectionsData));
 
-            // Handle invoices with files
-            console.log('🔍 [TRAILER] Processing invoices:', invoices);
-            invoices.forEach((invoice, index) => {
-                if (invoice.file) {
-                    console.log(`📎 [TRAILER] Appending file for invoice ${index}:`, invoice.file.name);
-                    formDataToSend.append(`invoiceFiles`, invoice.file);
-                }
-            });
-            formDataToSend.append('invoices', JSON.stringify(invoices.map((invoice) => {
-                const hasNewFile = !!invoice.file;
-                return {
-                    invoiceNumber: invoice.invoiceNumber,
-                    vendorWorkshop: invoice.vendorWorkshop,
-                    amount: invoice.amount,
-                    invoiceDate: invoice.invoiceDate,
-                    notes: invoice.notes,
-                    fileName: invoice.fileName,
-                    fileUrl: invoice.fileUrl,
-                    hasFile: hasNewFile
-                };
-            })));
-
             // Append notes
             const notesData = notes.map((note) => ({
                 note: note.note,
@@ -953,98 +833,44 @@ const TrailersPage: React.FC = () => {
 
                 console.log('💾 Saving trailer, ID:', trailerId);
 
-                // Save documents if trailer was created/updated successfully
+                // Save documents if trailer was created/updated successfully (single list, no tabs)
                 if (trailerId) {
-                    // Separate new documents and existing documents that need updates
-                    const newDocuments: Array<{ type: string; doc: any }> = [];
-                    const updatedDocuments: Array<{ type: string; doc: any }> = [];
+                    const newDocs = documents.filter((doc) => !doc.isExisting && (doc.file || doc.description || doc.title));
+                    const existingDocs = documents.filter((doc) => doc.isExisting && doc._id);
 
-                    Object.keys(documents).forEach((docType) => {
-                        documents[docType].forEach((doc) => {
-                            if (!doc.isExisting) {
-                                // New documents - create them
-                                newDocuments.push({ type: docType, doc });
-                            } else if (doc._id) {
-                                // Existing documents - update them if they have changes
-                                updatedDocuments.push({ type: docType, doc });
-                            }
-                        });
-                    });
-
-                    console.log('📄 New documents to create:', newDocuments.length);
-                    console.log('📄 Existing documents to update:', updatedDocuments.length);
-
-                    // Create new documents
-                    if (newDocuments.length > 0) {
+                    if (newDocs.length > 0) {
                         try {
-                            await Promise.all(newDocuments.map(async ({ type, doc }) => {
+                            await Promise.all(newDocs.map(async (doc) => {
                                 const docFormData = new FormData();
                                 docFormData.append('trailerId', trailerId.toString());
                                 docFormData.append('assetType', 'trailer');
-                                docFormData.append('documentType', type);
+                                docFormData.append('documentType', 'General');
                                 docFormData.append('documentNumber', doc.description || '');
-                                if (doc.expiryDate) {
-                                    docFormData.append('expiryDate', doc.expiryDate);
-                                }
-                                if (doc.file) {
-                                    docFormData.append('file', doc.file);
-                                }
-
-                                console.log('📤 Creating document:', { type, description: doc.description, hasFile: !!doc.file });
+                                if (doc.title) docFormData.append('title', doc.title);
+                                if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                                if (doc.file) docFormData.append('file', doc.file);
                                 const docResponse = await createVehicleDocument(docFormData);
-                                if (!docResponse?.success) {
-                                    console.error('❌ Error creating document:', docResponse);
-                                } else {
-                                    console.log('✅ Document created successfully');
-                                }
+                                if (!docResponse?.success) console.error('❌ Error creating document:', docResponse);
                             }));
                         } catch (docError) {
                             console.error('❌ Error creating documents:', docError);
                         }
                     }
 
-                    // Update existing documents
-                    if (updatedDocuments.length > 0) {
+                    if (existingDocs.length > 0) {
                         try {
-                            await Promise.all(updatedDocuments.map(async ({ type, doc }) => {
+                            await Promise.all(existingDocs.map(async (doc) => {
                                 const docFormData = new FormData();
-                                // Always include required fields for update
                                 docFormData.append('trailerId', trailerId.toString());
                                 docFormData.append('assetType', 'trailer');
-                                docFormData.append('documentType', type);
+                                docFormData.append('documentType', 'General');
                                 docFormData.append('documentNumber', doc.description || '');
-
-                                // Include expiryDate if it exists
-                                if (doc.expiryDate) {
-                                    docFormData.append('expiryDate', doc.expiryDate);
-                                } else {
-                                    // If no expiry date, send empty string to clear it
-                                    docFormData.append('expiryDate', '');
-                                }
-
-                                // Only append file if a new file was selected (doc.file is a File object)
-                                if (doc.file && doc.file instanceof File) {
-                                    docFormData.append('file', doc.file);
-                                    console.log('📎 Including new file in update:', doc.file.name);
-                                }
-
-                                // Log FormData contents for debugging
-                                const formDataEntries: string[] = [];
-                                for (const [key, value] of docFormData.entries()) {
-                                    if (value instanceof File) {
-                                        formDataEntries.push(`${key}: File(${value.name}, ${value.size} bytes)`);
-                                    } else {
-                                        formDataEntries.push(`${key}: ${value}`);
-                                    }
-                                }
-                                console.log('📤 Updating document payload:', { id: doc._id, type, entries: formDataEntries });
-
+                                if (doc.title) docFormData.append('title', doc.title);
+                                if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                                else docFormData.append('expiryDate', '');
+                                if (doc.file && doc.file instanceof File) docFormData.append('file', doc.file);
                                 const docResponse = await updateVehicleDocument(doc._id!, docFormData);
-                                if (!docResponse?.success) {
-                                    console.error('❌ Error updating document:', docResponse);
-                                } else {
-                                    console.log('✅ Document updated successfully');
-                                }
+                                if (!docResponse?.success) console.error('❌ Error updating document:', docResponse);
                             }));
                         } catch (docError) {
                             console.error('❌ Error updating documents:', docError);
@@ -1074,13 +900,7 @@ const TrailersPage: React.FC = () => {
                 setSelectedImage(null);
                 setSelectedImageFile(null);
                 setOriginalTrailerData(null);
-                setDocuments({
-                    General: [],
-                    Ownership: [],
-                    Plate: [],
-                    Safety: [],
-                    Insurance: []
-                });
+                setDocuments([]);
                 // Clear inspection state
                 setOneTimeInspections([]);
                 setRecurringInspections([]);
@@ -1095,6 +915,8 @@ const TrailersPage: React.FC = () => {
                 });
                 setEditingInspectionId(null);
                 setEditingInspectionType(null);
+                setEditingDocumentId(null);
+                setEditingNoteId(null);
                 // Refresh trailers list with current filter (same logic as fetchTrailers)
                 let yardFilter: string | undefined = undefined;
                 let ownershipFilter: string | undefined = undefined;
@@ -1131,46 +953,16 @@ const TrailersPage: React.FC = () => {
                         yard: trailer.yard || null
                     }));
                     setTrailers(transformedTrailers);
-
-                    // Refresh all counts after update
-                    try {
-                        const counts: Record<string, number> = {};
-
-                        // All count
-                        const allResponse = await getAllTrailers(1, 1);
-                        counts['All'] = allResponse?.pagination?.total || 0;
-
-                        // External count
-                        const externalResponse = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, undefined, 'THIRD PARTY ASSET');
-                        counts['External'] = externalResponse?.pagination?.total || 0;
-
-                        // Unassigned count
-                        const unassignedResponse = await getAllTrailers(1, 1000);
-                        if (unassignedResponse?.success && unassignedResponse?.data) {
-                            const unassignedCount = unassignedResponse.data.filter((trailer: any) => {
-                                const trailerId = trailer._id?.toString();
-                                return !trailerId || !assignedTrailerIds.has(trailerId);
-                            }).length;
-                            counts['Unassigned'] = unassignedCount;
-                        } else {
-                            counts['Unassigned'] = 0;
-                        }
-
-                        // Yard counts
-                        for (const yard of yards) {
-                            if (yard.status === 'active' && yard._id) {
-                                const yardId = yard._id.toString();
-                                console.log('🔄 [UPDATE] Refreshing count for yard:', yardId, yard.yardName);
-                                const yardResponse = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, yardId);
-                                const yardCount = yardResponse?.pagination?.total || 0;
-                                console.log('📊 [UPDATE] Yard count after update:', { yardId, yardName: yard.yardName, count: yardCount });
-                                counts[yardId] = yardCount;
-                            }
-                        }
-
-                        setYardCounts(counts);
-                    } catch (error) {
-                        console.error('Error refreshing counts:', error);
+                    // Refresh count for current tab and All tab
+                    setFetchedCounts(prev => {
+                        const updated = new Set(prev);
+                        updated.delete(activeTab);
+                        updated.delete('All');
+                        return updated;
+                    });
+                    fetchTabCount('All');
+                    if (activeTab !== 'All') {
+                        fetchTabCount(activeTab);
                     }
                 }
             } else {
@@ -1263,71 +1055,31 @@ const TrailersPage: React.FC = () => {
                     console.log('📥 Documents from trailer response:', trailerDocuments.length);
 
                     if (Array.isArray(trailerDocuments) && trailerDocuments.length > 0) {
-                        const docsByType: Record<string, Array<any>> = {
-                            General: [],
-                            Ownership: [],
-                            Plate: [],
-                            Safety: [],
-                            Insurance: []
-                        };
-
-                        // Process documents with signed URLs (already signed by backend)
-                        for (const doc of trailerDocuments) {
-                            const docType = doc.documentType || 'General';
-                            // Map document types to match frontend categories
-                            const mappedType = docType === 'General' || docType === 'Ownership' || docType === 'Plate' || docType === 'Safety' || docType === 'Insurance'
-                                ? docType
-                                : 'General';
-
-                            if (mappedType in docsByType) {
-                                // Get file URL - use signed URL from backend (already signed)
-                                let fileUrl = doc.files?.[0]?.fileUrl || doc.documentLocation || null;
-                                let fileName = doc.files?.[0]?.fileName || 'Document';
-
-                                docsByType[mappedType].push({
-                                    id: doc._id || `existing-${doc._id}`,
-                                    _id: doc._id,
-                                    expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
-                                    description: doc.documentNumber || doc.documentType || doc.description || '',
-                                    file: null, // No file object for existing documents
-                                    fileUrl: fileUrl,
-                                    fileName: fileName,
-                                    ignoreExpiration: false,
-                                    isExisting: true
-                                });
-                            }
-                        }
-
-                        console.log('📋 Loaded documents by type:', docsByType);
-                        console.log('📊 Document counts:', {
-                            General: docsByType.General.length,
-                            Ownership: docsByType.Ownership.length,
-                            Plate: docsByType.Plate.length,
-                            Safety: docsByType.Safety.length,
-                            Insurance: docsByType.Insurance.length
+                        const flatDocs = trailerDocuments.map((doc: any) => {
+                            const fileUrl = doc.files?.[0]?.fileUrl || doc.documentLocation || null;
+                            const fileName = doc.files?.[0]?.fileName || 'Document';
+                            return {
+                                id: doc._id || `existing-${doc._id}`,
+                                _id: doc._id,
+                                title: doc.title || doc.documentType || doc.documentNumber || '',
+                                expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
+                                description: doc.documentNumber || doc.documentType || doc.description || '',
+                                file: null,
+                                fileUrl,
+                                fileName,
+                                ignoreExpiration: doc.ignoreExpiration || false,
+                                isExisting: true
+                            };
                         });
-                        setDocuments(docsByType);
+                        console.log('📋 Loaded documents (flat list):', flatDocs.length);
+                        setDocuments(flatDocs);
                     } else {
                         console.log('⚠️ No documents found in trailer response');
-                        // Reset documents if none found
-                        setDocuments({
-                            General: [],
-                            Ownership: [],
-                            Plate: [],
-                            Safety: [],
-                            Insurance: []
-                        });
+                        setDocuments([]);
                     }
                 } catch (docError) {
                     console.error('❌ Error loading documents:', docError);
-                    // Reset documents on error
-                    setDocuments({
-                        General: [],
-                        Ownership: [],
-                        Plate: [],
-                        Safety: [],
-                        Insurance: []
-                    });
+                    setDocuments([]);
                 }
 
                 // Load inspections from trailer response
@@ -1388,34 +1140,6 @@ const TrailersPage: React.FC = () => {
     // Get filtered trailers
     const getFilteredTrailers = () => {
         let filtered = [...trailers];
-
-        // Filter by yard if a yard tab is selected (additional safety check)
-        if (activeTab !== 'All' && activeTab !== 'External' && activeTab !== 'Unassigned') {
-            const yardIdStr = String(activeTab).trim();
-            const beforeCount = filtered.length;
-            filtered = filtered.filter((trailer: any) => {
-                const trailerYardId = trailer.yard
-                    ? (typeof trailer.yard === 'string'
-                        ? trailer.yard
-                        : trailer.yard._id?.toString() || '')
-                    : '';
-                const matches = trailerYardId === yardIdStr;
-                if (!matches && trailerYardId) {
-                    console.log('🚫 [getFilteredTrailers] Filtering out trailer:', {
-                        trailerId: trailer._id,
-                        trailerYardId,
-                        expectedYardId: yardIdStr,
-                        matches
-                    });
-                }
-                return matches;
-            });
-            console.log('✅ [getFilteredTrailers] Yard filter applied:', {
-                yardId: yardIdStr,
-                beforeCount,
-                afterCount: filtered.length
-            });
-        }
 
         // Backend already handles yard and ownership filtering
         // Only apply client-side filtering for Unassigned
@@ -1611,9 +1335,9 @@ const TrailersPage: React.FC = () => {
             );
         }
         return sortConfig.direction === 'asc' ? (
-            <ChevronUp className="w-3 h-3 text-primary" />
+            <ChevronUp className="w-3 h-3 text-headings" />
         ) : (
-            <ChevronDown className="w-3 h-3 text-primary" />
+            <ChevronDown className="w-3 h-3 text-headings" />
         );
     };
 
@@ -1670,24 +1394,25 @@ const TrailersPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-main p-6">
+        <div className="min-h-screen bg-main p-6  ">
             <div className="max-w-full mx-auto">
                 {/* Header Section */}
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h1 className="text-3xl font-bold text-[var(--accent-navyblue)]">Trailers</h1>
+                        <h1 className="text-3xl font-bold text-headings">Trailers</h1>
                         <div className="flex items-center gap-3">
-                            <span className="text-2xl font-bold text-[var(--accent-navyblue)]">({filteredTrailers.length})</span>
+                            <span className="text-2xl font-bold text-headings">({filteredTrailers.length})</span>
                             <button
                                 onClick={handleExportTrailers}
                                 title="Export to Excel"
-                                className="w-10 h-10 bg-[var(--accent-teal)] !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+                                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
                             >
                                 <FileDown className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => {
                                     setEditingId(null);
+                                    setOriginalTrailerData(null);
                                     setFormData({
                                         unitNumber: '',
                                         vinNumber: '',
@@ -1707,6 +1432,17 @@ const TrailersPage: React.FC = () => {
                                     });
                                     setSelectedImage(null);
                                     setSelectedImageFile(null);
+                                    setDocuments([]);
+                                    setOneTimeInspections([]);
+                                    setRecurringInspections([]);
+                                    setNotes([]);
+                                    setInspectionForm({ expiryDate: '', description: '', ignoreExpiration: false, scheduledOn: '', after: '', unit: '', file: null });
+                                    setEditingInspectionId(null);
+                                    setEditingInspectionType(null);
+                                    setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
+                                    setEditingDocumentId(null);
+                                    setNoteForm({ note: '', category: 'Category' });
+                                    setEditingNoteId(null);
                                     setShowSidebar(true);
                                     setActiveStep('Details');
                                 }}
@@ -1719,7 +1455,7 @@ const TrailersPage: React.FC = () => {
                 </div>
 
                 {/* Navigation Tabs */}
-                <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+                <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme overflow-hidden b">
                     <div className="flex border-b border-theme overflow-x-auto">
                         {/* All Tab */}
                         <button
@@ -1732,7 +1468,7 @@ const TrailersPage: React.FC = () => {
                                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
-                            <div className="font-semibold text-[var(--accent-navyblue)]">
+                            <div className="font-semibold">
                                 All ({getCountByCategory('All')})
                             </div>
                         </button>
@@ -1744,18 +1480,17 @@ const TrailersPage: React.FC = () => {
                                 <button
                                     key={yard._id}
                                     onClick={() => {
-                                        const yardId = yard._id?.toString() || '';
-                                        setActiveTab(yardId);
-                                        fetchTabCount(yardId);
+                                        setActiveTab(yard._id!);
+                                        fetchTabCount(yard._id!);
                                     }}
-                                    className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === yard._id?.toString()
-                                        ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)]'
+                                    className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === yard._id
+                                        ? 'text-headings border-b-2 border-[var(--accent-blue)]'
                                         : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                         }`}
                                 >
                                     <div>
                                         <div className="font-semibold">
-                                            {yard.yardName} ({getCountByCategory(yard._id?.toString() || '')})
+                                            {yard.yardName} ({getCountByCategory(yard._id!)})
                                         </div>
                                         <div className="text-xs text-secondary mt-1">
                                             {yard.yardCode}
@@ -1775,7 +1510,7 @@ const TrailersPage: React.FC = () => {
                                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
-                            <div className="font-semibold text-[var(--accent-navyblue)]">
+                            <div className="font-semibold">
                                 External ({getCountByCategory('External')})
                             </div>
                         </button>
@@ -1791,7 +1526,7 @@ const TrailersPage: React.FC = () => {
                                 : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
-                            <div className="font-semibold text-[var(--accent-navyblue)]">
+                            <div className="font-semibold">
                                 Unassigned ({getCountByCategory('Unassigned')})
                             </div>
                         </button>
@@ -1803,7 +1538,7 @@ const TrailersPage: React.FC = () => {
                     <div className="flex flex-wrap items-center gap-4">
                         {/* Search Input */}
                         <div className="flex items-center gap-2 flex-1 min-w-[300px]">
-                            <label className="text-sm font-medium  whitespace-nowrap text-[var(--accent-navyblue)]">Unit #, Plate #, Make, VIN:</label>
+                            <label className="text-sm font-medium text-headings whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
                             <input
                                 type="text"
                                 placeholder="Search..."
@@ -1816,7 +1551,7 @@ const TrailersPage: React.FC = () => {
 
                         {/* Global Filters */}
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Sort By:</label>
+                            <label className="text-sm font-medium text-headings">Sort By:</label>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
@@ -1830,11 +1565,11 @@ const TrailersPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Compliance Status:</label>
+                            <label className="text-sm font-medium text-headings">Compliance Status:</label>
                             <select
                                 value={complianceStatus}
                                 onChange={(e) => setComplianceStatus(e.target.value)}
-                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent "
+                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                             >
                                 <option value="All">All</option>
                                 <option value="Compliant">Compliant</option>
@@ -1844,7 +1579,7 @@ const TrailersPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Operating Status:</label>
+                            <label className="text-sm font-medium text-headings">Operating Status:</label>
                             <select
                                 value={operatingStatus}
                                 onChange={(e) => setOperatingStatus(e.target.value)}
@@ -1863,13 +1598,13 @@ const TrailersPage: React.FC = () => {
                 </div>
 
                 {/* Data Table */}
-                <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+                <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden border-2">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-card border-b border-theme">
                                 <tr>
                                     {/* Trailer # */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Trailer #</span>
                                             <button onClick={() => handleSort('trailerNumber')} className="flex flex-col">
@@ -1886,7 +1621,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Plate # */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Plate #</span>
                                             <button onClick={() => handleSort('plateNumber')} className="flex flex-col">
@@ -1903,7 +1638,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Type */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Type</span>
                                             <button onClick={() => handleSort('type')} className="flex flex-col">
@@ -1920,7 +1655,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Ownership */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Ownership</span>
                                             <button onClick={() => handleSort('ownership')} className="flex flex-col">
@@ -1939,7 +1674,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Last Dispatch */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Last Dispatch</span>
                                             <button onClick={() => handleSort('lastDispatch')} className="flex flex-col">
@@ -1956,7 +1691,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Last Dispatch Date */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Last Dispatch Date</span>
                                             <button onClick={() => handleSort('lastDispatchDate')} className="flex flex-col">
@@ -1973,7 +1708,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Last Drop Location */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Last Drop Location</span>
                                             <button onClick={() => handleSort('lastDropLocation')} className="flex flex-col">
@@ -1990,7 +1725,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Notes */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Notes</span>
                                         </div>
@@ -2004,7 +1739,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Operating Status */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Operating Status</span>
                                             <button onClick={() => handleSort('operatingStatus')} className="flex flex-col">
@@ -2024,7 +1759,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Loaded Status */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Loaded Status</span>
                                             <HelpCircle className="w-4 h-4 text-secondary" />
@@ -2042,7 +1777,7 @@ const TrailersPage: React.FC = () => {
                                     </th>
 
                                     {/* Compliance */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Compliance</span>
                                         </div>
@@ -2058,12 +1793,12 @@ const TrailersPage: React.FC = () => {
                                         </select>
                                     </th>
                                     {/* Actions */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">
                                         <span>Actions</span>
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-theme divide-white/5">
+                            <tbody className="bg-card divide-y divide-theme divide-white/5 ">
                                 {filteredTrailers.length === 0 ? (
                                     <tr>
                                         <td colSpan={12} className="px-4 py-8 text-center text-secondary">
@@ -2075,14 +1810,14 @@ const TrailersPage: React.FC = () => {
                                         <tr
                                             onClick={() => handleEditTrailer(trailer._id || trailer.id || '')}
                                             key={trailer._id || trailer.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
-                                            <td className="px-4 py-3 text-sm text-primary">{trailer.trailerNumber || trailer.trailer || trailer.unitNumber}</td>
-                                            <td className="px-4 py-3 text-sm text-primary">{trailer.plateNumber}</td>
-                                            <td className="px-4 py-3 text-sm text-primary">{trailer.type}</td>
-                                            <td className="px-4 py-3 text-sm text-primary">{trailer.ownership}</td>
-                                            <td className="px-4 py-3 text-sm text-primary">{trailer.lastDispatch || ''}</td>
-                                            <td className="px-4 py-3 text-sm text-primary">{typeof trailer.lastDispatchDate === 'string' ? trailer.lastDispatchDate : (trailer.lastDispatchDate ? trailer.lastDispatchDate.toString() : '')}</td>
-                                            <td className="px-4 py-3 text-sm text-primary">{trailer.lastDropLocation || ''}</td>
-                                            <td className="px-4 py-3 text-sm text-primary">
+                                            <td className="px-4 py-3 text-sm text-secondary">{trailer.trailerNumber || trailer.trailer || trailer.unitNumber}</td>
+                                            <td className="px-4 py-3 text-sm text-secondary">{trailer.plateNumber}</td>
+                                            <td className="px-4 py-3 text-sm text-secondary">{trailer.type}</td>
+                                            <td className="px-4 py-3 text-sm text-secondary">{trailer.ownership}</td>
+                                            <td className="px-4 py-3 text-sm text-secondary">{trailer.lastDispatch || ''}</td>
+                                            <td className="px-4 py-3 text-sm text-secondary">{typeof trailer.lastDispatchDate === 'string' ? trailer.lastDispatchDate : (trailer.lastDispatchDate ? trailer.lastDispatchDate.toString() : '')}</td>
+                                            <td className="px-4 py-3 text-sm text-secondary">{trailer.lastDropLocation || ''}</td>
+                                            <td className="px-4 py-3 text-sm text-secondary">
                                                 {trailer.notes ? (
                                                     <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center">
                                                         <span className="text-xs">!</span>
@@ -2118,14 +1853,14 @@ const TrailersPage: React.FC = () => {
                                                 <div className="flex items-center gap-2">
                                                     <button
                                                         onClick={() => handleEditTrailer(trailer._id || trailer.id || '')}
-                                                        className="p-1.5 text-[#00D1FF] hover:bg-[var(--accent-navyblue)] rounded transition-colors"
+                                                        className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                                                         title="Edit"
                                                     >
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteClick(trailer._id || trailer.id || '')}
-                                                        className="p-1.5 text-[#A855F7] hover:bg-[var(--accent-red)] rounded transition-colors"
+                                                        className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                                         title="Delete"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -2211,7 +1946,7 @@ const TrailersPage: React.FC = () => {
                         <div className="flex-1 flex flex-col overflow-hidden">
                             {/* Header */}
                             <div className="flex items-center justify-between p-4 border-b border-theme bg-card">
-                                <h2 className="text-xl font-bold text-[var(--accent-navyblue)]">New Trailer</h2>
+                                <h2 className="text-xl font-bold text-headings">New Trailer</h2>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={handleSaveTrailer}
@@ -2229,15 +1964,15 @@ const TrailersPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Content Area */}
-                            <div className="flex-1 overflow-y-auto p-4 bg-card">
+                            {/* Content Area - scrollable; footer stays at bottom */}
+                            <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-card">
                                 {/* Details Step */}
                                 {activeStep === 'Details' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Basic Information</h3>
+                                        <h3 className="text-base font-semibold text-headings">Basic Information</h3>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Unit #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2249,7 +1984,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     VIN #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2261,7 +1996,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Plate #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2273,7 +2008,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Registration Country<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2281,16 +2016,16 @@ const TrailersPage: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, registrationCountry: e.target.value, registrationProvince: '' })}
                                                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="">Select Registration Country</option>
+                                                    <option className="form-option" value="">Select Registration Country</option>
                                                     {countries.map((country) => (
-                                                        <option key={country.code} value={country.name}>
+                                                        <option className="form-option" key={country.code} value={country.name}>
                                                             {country.flag} {country.name}
                                                         </option>
                                                     ))}
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Registration Province/State</label>
+                                                <label className="block text-sm font-medium text-headings mb-1">Registration Province/State</label>
                                                 <input
                                                     type="text"
                                                     value={formData.registrationProvince}
@@ -2301,7 +2036,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Make<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2313,7 +2048,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Model<span className="text-red-500">*</span></label>
+                                                <label className="block text-sm font-medium text-headings mb-1">Model<span className="text-red-500">*</span></label>
                                                 <input
                                                     type="text"
                                                     placeholder="Model"
@@ -2323,7 +2058,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Year<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2335,7 +2070,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Type<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2343,14 +2078,14 @@ const TrailersPage: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                                                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="">Select Type</option>
-                                                    <option value="RF">Reefer</option>
-                                                    <option value="DV">Dry Van</option>
-                                                    <option value="FB">Flatbed</option>
+                                                    <option className="form-option" value="">Select Type</option>
+                                                    <option className="form-option" value="RF">Reefer</option>
+                                                    <option className="form-option" value="DV">Dry Van</option>
+                                                    <option className="form-option" value="FB">Flatbed</option>
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Weight<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2362,7 +2097,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     UoM<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2370,12 +2105,12 @@ const TrailersPage: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, uom: e.target.value })}
                                                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="Kg">Kg</option>
-                                                    <option value="Lbs">Lbs</option>
+                                                    <option className="form-option" value="Kg">Kg</option>
+                                                    <option className="form-option" value="Lbs">Lbs</option>
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                <label className="block text-sm font-medium text-headings mb-1">
                                                     Status<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2383,56 +2118,69 @@ const TrailersPage: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                                                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="In Service">In Service</option>
-                                                    <option value="Out of Service">Out of Service</option>
-                                                    <option value="Maintenance">Maintenance</option>
+                                                    <option className="form-option" value="In Service">In Service</option>
+                                                    <option className="form-option" value="Out of Service">Out of Service</option>
+                                                    <option className="form-option" value="Maintenance">Maintenance</option>
                                                 </select>
                                             </div>
                                         </div>
 
                                         <div className="mt-4">
-                                            <h3 className="text-base font-semibold text-[var(--accent-navyblue)] mb-2">Ownership Information</h3>
+                                            <h3 className="text-base font-semibold text-headings mb-2">
+                                                Ownership Information
+                                            </h3>
+
                                             <div className="flex gap-2">
+
+                                                {/* Company Asset */}
                                                 <button
                                                     type="button"
                                                     onClick={() =>
-                                                        setFormData({ ...formData, ownership: "COMPANY ASSET", subType: "" })
+                                                        setFormData({
+                                                            ...formData,
+                                                            ownership: "COMPANY ASSET",
+                                                            subType: "",
+                                                        })
                                                     }
-                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors 
-    ${formData.ownership === "COMPANY ASSET"
-                                                            ? "bg-[var(--accent-navyblue)] text-white"
-                                                            : "bg-gray-700 text-white hover:bg-[var(--accent-navyblue)]"
+                                                    className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${formData.ownership === "COMPANY ASSET"
+                                                            ? "bg-[var(--accent-navyblue)] text-white shadow-md"
+                                                            : "bg-[rgba(255,255,255,0.05)] text-primary border border-theme hover:bg-[rgba(0,209,255,0.08)]"
                                                         }`}
                                                 >
                                                     COMPANY ASSET
                                                 </button>
 
+                                                {/* Third Party */}
                                                 <button
                                                     type="button"
                                                     onClick={() =>
-                                                        setFormData({ ...formData, ownership: "THIRD PARTY ASSET", subType: "" })
+                                                        setFormData({
+                                                            ...formData,
+                                                            ownership: "THIRD PARTY ASSET",
+                                                            subType: "",
+                                                        })
                                                     }
-                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors 
-    ${formData.ownership === "THIRD PARTY ASSET"
-                                                            ? "bg-[var(--accent-navyblue)] text-white"
-                                                            : "bg-gray-700 text-white hover:bg-[var(--accent-navyblue)]"
+                                                    className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${formData.ownership === "THIRD PARTY ASSET"
+                                                            ? "bg-[var(--accent-navyblue)] text-white shadow-md"
+                                                            : "bg-[rgba(255,255,255,0.05)] text-primary border border-theme hover:bg-[rgba(0,209,255,0.08)]"
                                                         }`}
                                                 >
                                                     THIRD PARTY ASSET
                                                 </button>
+
                                             </div>
                                         </div>
 
                                         <div className="mt-4">
-                                            <h3 className="text-base font-semibold text-primary mb-2">Yard</h3>
+                                            <h3 className="text-base font-semibold text-headings mb-2">Yard</h3>
                                             <select
                                                 value={formData.yard}
                                                 onChange={(e) => setFormData({ ...formData, yard: e.target.value })}
                                                 className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                             >
-                                                <option value="">Select</option>
+                                                <option className="form-option" value="">Select</option>
                                                 {yards.filter(yard => yard.status === 'active').map((yard) => (
-                                                    <option key={yard._id} value={yard._id}>
+                                                    <option className="form-option" key={yard._id} value={yard._id}>
                                                         {yard.yardName} ({yard.yardCode})
                                                     </option>
                                                 ))}
@@ -2441,36 +2189,43 @@ const TrailersPage: React.FC = () => {
 
                                         {(formData.ownership === 'COMPANY ASSET' || formData.ownership === 'THIRD PARTY ASSET') && (
                                             <div className="mt-4">
-                                                <h3 className="text-base font-semibold text-primary mb-2">Sub-Type</h3>
-                                                <div className="flex gap-2">
+                                                <h3 className="text-base font-semibold text-headings mb-2">Sub-Type</h3>
+
+                                                <div className="flex gap-2 flex-wrap">
+
                                                     {formData.ownership === 'COMPANY ASSET' ? (
                                                         <>
+                                                            {/* HIGHWAY USE */}
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setFormData({ ...formData, subType: 'HIGHWAY USE' })}
-                                                                className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.subType === 'HIGHWAY USE'
-                                                                    ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${formData.subType === 'HIGHWAY USE'
+                                                                        ? 'bg-[var(--accent-navyblue)] text-white shadow-md'
+                                                                        : 'bg-[rgba(255,255,255,0.05)] text-primary border border-theme hover:bg-[rgba(0,209,255,0.08)]'
                                                                     }`}
                                                             >
                                                                 HIGHWAY USE
                                                             </button>
+
+                                                            {/* CITY USE */}
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setFormData({ ...formData, subType: 'CITY USE' })}
-                                                                className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.subType === 'CITY USE'
-                                                                    ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${formData.subType === 'CITY USE'
+                                                                        ? 'bg-[var(--accent-navyblue)] text-white shadow-md'
+                                                                        : 'bg-[rgba(255,255,255,0.05)] text-primary border border-theme hover:bg-[rgba(0,209,255,0.08)]'
                                                                     }`}
                                                             >
                                                                 CITY USE
                                                             </button>
+
+                                                            {/* STORAGE USE */}
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setFormData({ ...formData, subType: 'STORAGE USE' })}
-                                                                className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.subType === 'STORAGE USE'
-                                                                    ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${formData.subType === 'STORAGE USE'
+                                                                        ? 'bg-[var(--accent-navyblue)] text-white shadow-md'
+                                                                        : 'bg-[rgba(255,255,255,0.05)] text-primary border border-theme hover:bg-[rgba(0,209,255,0.08)]'
                                                                     }`}
                                                             >
                                                                 STORAGE USE
@@ -2478,22 +2233,25 @@ const TrailersPage: React.FC = () => {
                                                         </>
                                                     ) : (
                                                         <>
+                                                            {/* RENTAL */}
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setFormData({ ...formData, subType: 'RENTAL' })}
-                                                                className={`px-6 py-2 rounded-lg font-medium transition-colors ${formData.subType === 'RENTAL'
-                                                                    ? 'bg-gray-700 text-white'
-                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${formData.subType === 'RENTAL'
+                                                                        ? 'bg-[var(--accent-navyblue)] text-white shadow-md'
+                                                                        : 'bg-[rgba(255,255,255,0.05)] text-primary border border-theme hover:bg-[rgba(0,209,255,0.08)]'
                                                                     }`}
                                                             >
                                                                 RENTAL
                                                             </button>
+
+                                                            {/* OTHER */}
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setFormData({ ...formData, subType: 'OTHER' })}
-                                                                className={`px-6 py-2 rounded-lg font-medium transition-colors ${formData.subType === 'OTHER'
-                                                                    ? 'bg-gray-700 text-white'
-                                                                    : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${formData.subType === 'OTHER'
+                                                                        ? 'bg-[var(--accent-navyblue)] text-white shadow-md'
+                                                                        : 'bg-[rgba(255,255,255,0.05)] text-primary border border-theme hover:bg-[rgba(0,209,255,0.08)]'
                                                                     }`}
                                                             >
                                                                 OTHER
@@ -2509,7 +2267,7 @@ const TrailersPage: React.FC = () => {
                                 {/* Inspections Step */}
                                 {activeStep === 'Inspections' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Trailer Inspections</h3>
+                                        <h3 className="text-base font-semibold text-headings">Trailer Inspections</h3>
 
                                         {/* Inspection Type Tabs */}
                                         <div className="flex gap-2">
@@ -2517,8 +2275,8 @@ const TrailersPage: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setInspectionType('One Time')}
                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors border-2 ${inspectionType === 'One Time'
-                                                    ? 'bg-card border-gray-700 text-primary'
-                                                    : 'bg-card border-theme text-primary hover:border-gray-400'
+                                                    ? 'bg-card border-gray-700 text-headings'
+                                                    : 'bg-card border-theme text-headings hover:border-gray-400'
                                                     }`}
                                             >
                                                 One Time
@@ -2527,8 +2285,8 @@ const TrailersPage: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setInspectionType('Recurring')}
                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors border-2 ${inspectionType === 'Recurring'
-                                                    ? 'bg-card border-gray-700 text-primary'
-                                                    : 'bg-card border-theme text-primary hover:border-gray-400'
+                                                    ? 'bg-card border-gray-700 text-headings'
+                                                    : 'bg-card border-theme text-headings hover:border-gray-400'
                                                     }`}
                                             >
                                                 Recurring
@@ -2540,7 +2298,7 @@ const TrailersPage: React.FC = () => {
                                             <div className="space-y-4">
                                                 <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Expiry Date</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">Expiry Date</label>
                                                         <div className="relative">
                                                             <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
@@ -2552,7 +2310,7 @@ const TrailersPage: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
@@ -2562,11 +2320,11 @@ const TrailersPage: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">File</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">File</label>
                                                         {inspectionForm.file ? (
                                                             <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
                                                                 <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
-                                                                <span className="text-sm text-primary truncate flex-1">
+                                                                <span className="text-sm text-headings truncate flex-1">
                                                                     {inspectionForm.file.name}
                                                                 </span>
                                                                 <button
@@ -2598,7 +2356,7 @@ const TrailersPage: React.FC = () => {
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, ignoreExpiration: e.target.checked })}
                                                             className="w-4 h-4"
                                                         />
-                                                        <label className="text-sm text-primary">Ignore Expiration</label>
+                                                        <label className="text-sm text-headings">Ignore Expiration</label>
                                                     </div>
                                                     {editingInspectionId && editingInspectionType === 'oneTime' ? (
                                                         <>
@@ -2660,11 +2418,11 @@ const TrailersPage: React.FC = () => {
                                                     <table className="w-full">
                                                         <thead className="bg-card">
                                                             <tr>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium ">Expiry Date</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium ">Description</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium ">File</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Expiry Date</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Description</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">File</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Ignore Expiration</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -2677,10 +2435,10 @@ const TrailersPage: React.FC = () => {
                                                                     <tr
                                                                         key={inspection.id}
                                                                         onClick={() => handleEditInspection(inspection, 'oneTime')}
-                                                                        className="border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
+                                                                        className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingInspectionId === inspection.id ? 'bg-card' : ''}`}
                                                                     >
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.expiryDate}</td>
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.description}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.expiryDate}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.description}</td>
                                                                         <td className="px-4 py-2 text-sm">
                                                                             {inspection.fileName ? (
                                                                                 inspection.fileUrl ? (
@@ -2708,18 +2466,24 @@ const TrailersPage: React.FC = () => {
                                                                                 <span className="text-secondary">No file</span>
                                                                             )}
                                                                         </td>
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                         <td className="px-4 py-2 text-sm">
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    handleDeleteInspection(inspection.id, 'oneTime');
-                                                                                }}
-                                                                                className="text-[#A855F7] hover:text-red-800"
-                                                                                title="Delete"
-                                                                            >
-                                                                                <Trash2 className="w-4 h-4" />
-                                                                            </button>
+                                                                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                                                <button
+                                                                                    onClick={() => handleEditInspection(inspection, 'oneTime')}
+                                                                                    className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                                                                                    title="Edit"
+                                                                                >
+                                                                                    <Edit className="w-4 h-4" />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleDeleteInspection(inspection.id, 'oneTime')}
+                                                                                    className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                                                                                    title="Delete"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                </button>
+                                                                            </div>
                                                                         </td>
                                                                     </tr>
                                                                 ))
@@ -2735,7 +2499,7 @@ const TrailersPage: React.FC = () => {
                                             <div className="space-y-4">
                                                 <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">Scheduled On</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">Scheduled On</label>
                                                         <div className="relative">
                                                             <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
@@ -2747,7 +2511,7 @@ const TrailersPage: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">After</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">After</label>
                                                         <input
                                                             type="text"
                                                             placeholder="After"
@@ -2757,20 +2521,20 @@ const TrailersPage: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">Unit</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">Unit</label>
                                                         <select
                                                             value={inspectionForm.unit}
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, unit: e.target.value })}
                                                             className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                         >
-                                                            <option value="">Select Unit</option>
-                                                            <option value="Days">Days</option>
-                                                            <option value="Weeks">Weeks</option>
-                                                            <option value="Months">Months</option>
+                                                            <option className='form-option' value="">Select Unit</option>
+                                                            <option className='form-option' value="Days">Days</option>
+                                                            <option className='form-option' value="Weeks">Weeks</option>
+                                                            <option className='form-option' value="Months">Months</option>
                                                         </select>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
@@ -2780,11 +2544,11 @@ const TrailersPage: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-primary mb-1">File</label>
+                                                        <label className="block text-sm font-medium text-headings mb-1">File</label>
                                                         {inspectionForm.file ? (
                                                             <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
                                                                 <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
-                                                                <span className="text-sm text-primary truncate flex-1">
+                                                                <span className="text-sm text-headings truncate flex-1">
                                                                     {inspectionForm.file.name}
                                                                 </span>
                                                                 <button
@@ -2816,7 +2580,7 @@ const TrailersPage: React.FC = () => {
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, ignoreExpiration: e.target.checked })}
                                                             className="w-4 h-4"
                                                         />
-                                                        <label className="text-sm text-primary">Ignore Expiration</label>
+                                                        <label className="text-sm text-headings">Ignore Expiration</label>
                                                     </div>
                                                     {editingInspectionId && editingInspectionType === 'recurring' ? (
                                                         <>
@@ -2884,13 +2648,13 @@ const TrailersPage: React.FC = () => {
                                                     <table className="w-full">
                                                         <thead className="bg-card">
                                                             <tr>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Scheduled On</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">After</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Unit</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Scheduled On</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">After</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Unit</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Description</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">File</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Ignore Expiration</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-headings">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -2903,12 +2667,12 @@ const TrailersPage: React.FC = () => {
                                                                     <tr
                                                                         key={inspection.id}
                                                                         onClick={() => handleEditInspection(inspection, 'recurring')}
-                                                                        className="border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
+                                                                        className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingInspectionId === inspection.id ? 'bg-card' : ''}`}
                                                                     >
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.scheduledOn}</td>
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.after}</td>
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.unit}</td>
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.description}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.scheduledOn}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.after}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.unit}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.description}</td>
                                                                         <td className="px-4 py-2 text-sm">
                                                                             {inspection.fileName ? (
                                                                                 inspection.fileUrl ? (
@@ -2936,18 +2700,24 @@ const TrailersPage: React.FC = () => {
                                                                                 <span className="text-secondary">No file</span>
                                                                             )}
                                                                         </td>
-                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                        <td className="px-4 py-2 text-sm text-headings">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                         <td className="px-4 py-2 text-sm">
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    handleDeleteInspection(inspection.id, 'recurring');
-                                                                                }}
-                                                                                className="text-[#A855F7] hover:text-red-800"
-                                                                                title="Delete"
-                                                                            >
-                                                                                <Trash2 className="w-4 h-4" />
-                                                                            </button>
+                                                                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                                                <button
+                                                                                    onClick={() => handleEditInspection(inspection, 'recurring')}
+                                                                                    className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                                                                                    title="Edit"
+                                                                                >
+                                                                                    <Edit className="w-4 h-4" />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleDeleteInspection(inspection.id, 'recurring')}
+                                                                                    className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                                                                                    title="Delete"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                </button>
+                                                                            </div>
                                                                         </td>
                                                                     </tr>
                                                                 ))
@@ -2960,166 +2730,159 @@ const TrailersPage: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Documents Step */}
+                                {/* Documents Step (no tabs; single list with Title) */}
                                 {activeStep === 'Documents' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Documents</h3>
-
-                                        {/* Document Type Tabs */}
-                                        <div className="flex gap-2 border-b border-theme">
-                                            {(['General', 'Ownership', 'Plate', 'Safety', 'Insurance'] as const).map((type) => (
-                                                <button
-                                                    key={type}
-                                                    type="button"
-                                                    onClick={() => setDocumentType(type)}
-                                                    className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${documentType === type
-                                                        ? 'border-gray-700 text-primary'
-                                                        : 'border-transparent text-secondary hover:text-primary'
-                                                        }`}
-                                                >
-                                                    {type}
-                                                </button>
-                                            ))}
-                                        </div>
+                                        <h3 className="text-base font-semibold text-headings">Documents</h3>
 
                                         {/* Document Form */}
-                                        <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
-                                            <div className="flex-1">
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Expiry Date</label>
-                                                <div className="relative">
-                                                    <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
+                                        <div className="bg-card p-4 rounded-lg space-y-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-headings mb-1">Title</label>
                                                     <input
-                                                        type="date"
-                                                        value={documentForm.expiryDate}
-                                                        onChange={(e) => setDocumentForm({ ...documentForm, expiryDate: e.target.value })}
-                                                        className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                                                        type="text"
+                                                        placeholder="Title"
+                                                        value={documentForm.title}
+                                                        onChange={(e) => setDocumentForm({ ...documentForm, title: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-headings mb-1">Expiry Date</label>
+                                                    <div className="relative">
+                                                        <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
+                                                        <input
+                                                            type="date"
+                                                            value={documentForm.expiryDate}
+                                                            onChange={(e) => setDocumentForm({ ...documentForm, expiryDate: e.target.value })}
+                                                            className="w-full pl-8 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-headings mb-1">Description</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Description"
+                                                        value={documentForm.description}
+                                                        onChange={(e) => setDocumentForm({ ...documentForm, description: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     />
                                                 </div>
                                             </div>
-                                            <div className="flex-1">
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Description</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Description"
-                                                    value={documentForm.description}
-                                                    onChange={(e) => setDocumentForm({ ...documentForm, description: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">File</label>
-                                                {documentForm.file ? (
-                                                    <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
-                                                        <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
-                                                        <span className="text-sm text-primary truncate flex-1">
-                                                            {documentForm.file.name}
-                                                        </span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setDocumentForm({ ...documentForm, file: null });
-                                                                if (documentFileInputRef.current) {
-                                                                    documentFileInputRef.current.value = '';
-                                                                }
-                                                            }}
-                                                            className="text-secondary hover:text-[#A855F7] transition-colors flex-shrink-0"
-                                                            title="Remove file"
-                                                        >
-                                                            <X className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                ) : (
+                                            <div className="flex flex-wrap gap-4 items-end">
+                                                <div className="min-w-[200px]">
+                                                    <label className="block text-sm font-medium text-headings mb-1">File</label>
+                                                    {documentForm.file ? (
+                                                        <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
+                                                            <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
+                                                            <span className="text-sm text-headings truncate flex-1">{documentForm.file.name}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setDocumentForm({ ...documentForm, file: null });
+                                                                    if (documentFileInputRef.current) documentFileInputRef.current.value = '';
+                                                                }}
+                                                                className="text-secondary hover:text-[#A855F7] transition-colors flex-shrink-0"
+                                                                title="Remove file"
+                                                            >
+                                                                <X className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <input
+                                                                ref={documentFileInputRef}
+                                                                type="file"
+                                                                onChange={(e) => {
+                                                                    if (e.target.files?.[0]) setDocumentForm({ ...documentForm, file: e.target.files[0] });
+                                                                }}
+                                                                className="hidden"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => documentFileInputRef.current?.click()}
+                                                                className="w-full px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium flex items-center justify-center gap-2"
+                                                            >
+                                                                <Upload className="w-4 h-4" />
+                                                                <span>Select File</span>
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={documentForm.ignoreExpiration}
+                                                        onChange={(e) => setDocumentForm({ ...documentForm, ignoreExpiration: e.target.checked })}
+                                                        className="w-4 h-4"
+                                                    />
+                                                    <label className="text-sm text-headings">Ignore Expiration</label>
+                                                </div>
+                                                {editingDocumentId ? (
                                                     <>
-                                                        <input
-                                                            ref={documentFileInputRef}
-                                                            type="file"
-                                                            onChange={(e) => {
-                                                                if (e.target.files && e.target.files[0]) {
-                                                                    setDocumentForm({ ...documentForm, file: e.target.files[0] });
-                                                                }
-                                                            }}
-                                                            className="hidden"
-                                                        />
                                                         <button
                                                             type="button"
-                                                            onClick={() => documentFileInputRef.current?.click()}
-                                                            className="w-full px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium flex items-center justify-center gap-2"
+                                                            onClick={handleSaveDocument}
+                                                            className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700"
+                                                            title="Save"
                                                         >
-                                                            <Upload className="w-4 h-4" />
-                                                            <span>Select File</span>
+                                                            <Plus className="w-5 h-5" />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleCancelEditDocument}
+                                                            className="w-10 h-10 bg-gray-500 !text-white rounded-lg flex items-center justify-center hover:bg-gray-600"
+                                                            title="Cancel"
+                                                        >
+                                                            <X className="w-5 h-5" />
                                                         </button>
                                                     </>
-                                                )}
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={documentForm.ignoreExpiration}
-                                                    onChange={(e) => setDocumentForm({ ...documentForm, ignoreExpiration: e.target.checked })}
-                                                    className="w-4 h-4"
-                                                />
-                                                <label className="text-sm text-primary">Ignore Expiration</label>
-                                            </div>
-                                            {editingDocumentId ? (
-                                                <>
+                                                ) : (
                                                     <button
                                                         type="button"
                                                         onClick={handleSaveDocument}
-                                                        className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700"
-                                                        title="Save"
+                                                        className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800"
+                                                        title="Add"
                                                     >
                                                         <Plus className="w-5 h-5" />
                                                     </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleCancelEditDocument}
-                                                        className="w-10 h-10 bg-gray-500 !text-white rounded-lg flex items-center justify-center hover:bg-gray-600"
-                                                        title="Cancel"
-                                                    >
-                                                        <X className="w-5 h-5" />
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <button
-                                                    type="button"
-                                                    onClick={handleSaveDocument}
-                                                    className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800"
-                                                    title="Add"
-                                                >
-                                                    <Plus className="w-5 h-5" />
-                                                </button>
-                                            )}
+                                                )}
+                                            </div>
                                         </div>
 
-                                        <p className="text-sm text-secondary">Click row to edit • Drag to reorder</p>
+                                        <p className="text-sm text-secondary">Click row to edit</p>
 
                                         {/* Documents Table */}
-                                        <div className="bg-card rounded-lg border border-theme overflow-hidden">
-                                            <table className="w-full">
+                                        <div className="bg-card rounded-lg border border-theme overflow-x-auto">
+                                            <table className="w-full min-w-[800px]">
                                                 <thead className="bg-card">
                                                     <tr>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Expiry Date</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-headings">Title</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-headings">Expiry Date</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-headings">Description</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-headings">File</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-headings">Ignore Expiration</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-headings">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {documents[documentType].length === 0 ? (
+                                                    {documents.length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={5} className="px-4 py-8 text-center text-secondary">No Data</td>
+                                                            <td colSpan={6} className="px-4 py-8 text-center text-secondary">No Data</td>
                                                         </tr>
                                                     ) : (
-                                                        documents[documentType].map((doc) => (
+                                                        documents.map((doc) => (
                                                             <tr
                                                                 key={doc.id}
-                                                                onClick={() => handleEditDocument(doc, documentType)}
-                                                                className="border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
+                                                                onClick={() => handleEditDocument(doc)}
+                                                                className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingDocumentId === doc.id ? 'bg-card' : ''}`}
                                                             >
-                                                                <td className="px-4 py-2 text-sm text-primary">{doc.expiryDate}</td>
-                                                                <td className="px-4 py-2 text-sm text-primary">{doc.description}</td>
-                                                                <td className="px-4 py-2 text-sm text-primary">
+                                                                <td className="px-4 py-2 text-sm text-headings">{doc.title || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-headings">{doc.expiryDate || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-headings">{doc.description || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-headings">
                                                                     {doc.fileUrl ? (
                                                                         <a
                                                                             href={doc.fileUrl}
@@ -3132,7 +2895,7 @@ const TrailersPage: React.FC = () => {
                                                                             <span>{doc.fileName || 'View File'}</span>
                                                                         </a>
                                                                     ) : doc.file ? (
-                                                                        <span className="flex items-center gap-2 text-primary">
+                                                                        <span className="flex items-center gap-2 text-headings">
                                                                             <FileText className="w-4 h-4" />
                                                                             <span>{doc.file.name}</span>
                                                                         </span>
@@ -3140,18 +2903,24 @@ const TrailersPage: React.FC = () => {
                                                                         <span className="text-secondary">No file</span>
                                                                     )}
                                                                 </td>
-                                                                <td className="px-4 py-2 text-sm text-primary">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
-                                                                <td className="px-4 py-2 text-sm">
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handleDeleteDocument(doc.id, documentType);
-                                                                        }}
-                                                                        className="text-[#A855F7] hover:text-red-800 p-1"
-                                                                        title="Delete"
-                                                                    >
-                                                                        <Trash2 className="w-4 h-4" />
-                                                                    </button>
+                                                                <td className="px-4 py-2 text-sm text-headings">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                <td className="px-4 py-2 text-sm" onClick={(e) => e.stopPropagation()}>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => handleEditDocument(doc)}
+                                                                            className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Edit className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDeleteDocument(doc.id)}
+                                                                            className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
                                                                 </td>
                                                             </tr>
                                                         ))
@@ -3165,12 +2934,12 @@ const TrailersPage: React.FC = () => {
                                 {/* Notes Step */}
                                 {activeStep === 'Notes' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Notes</h3>
+                                        <h3 className="text-base font-semibold text-headings">Notes</h3>
 
                                         {/* Note Form */}
                                         <div className="flex gap-4 items-end bg-card p-4 rounded-lg">
                                             <div className="flex-1">
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Note</label>
+                                                <label className="block text-sm font-medium text-headings mb-1">Note</label>
                                                 <input
                                                     type="text"
                                                     placeholder="Note"
@@ -3180,7 +2949,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Category</label>
+                                                <label className="block text-sm font-medium text-headings mb-1">Category</label>
                                                 <div className="relative">
                                                     <select
                                                         value={noteForm.category}
@@ -3197,20 +2966,42 @@ const TrailersPage: React.FC = () => {
                                                     <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                 </div>
                                             </div>
+                                            {editingNoteId && (
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingNoteId(null);
+                                                        setNoteForm({ note: '', category: 'Category' });
+                                                    }}
+                                                    className="w-10 h-10 bg-gray-400 !text-white rounded-lg flex items-center justify-center hover:bg-gray-500 transition-colors flex-shrink-0"
+                                                    title="Cancel"
+                                                >
+                                                    <X className="w-5 h-5" />
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => {
                                                     if (noteForm.note && noteForm.category !== 'Category') {
-                                                        setNotes([...notes, {
-                                                            id: Date.now().toString(),
-                                                            note: noteForm.note,
-                                                            category: noteForm.category
-                                                        }]);
+                                                        if (editingNoteId) {
+                                                            setNotes(notes.map(n =>
+                                                                n.id === editingNoteId
+                                                                    ? { ...n, note: noteForm.note, category: noteForm.category }
+                                                                    : n
+                                                            ));
+                                                            setEditingNoteId(null);
+                                                        } else {
+                                                            setNotes([...notes, {
+                                                                id: Date.now().toString(),
+                                                                note: noteForm.note,
+                                                                category: noteForm.category
+                                                            }]);
+                                                        }
                                                         setNoteForm({ note: '', category: 'Category' });
                                                     }
                                                 }}
                                                 className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors flex-shrink-0"
+                                                title={editingNoteId ? 'Update Note' : 'Add Note'}
                                             >
-                                                <Plus className="w-5 h-5" />
+                                                {editingNoteId ? <Edit className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                                             </button>
                                         </div>
 
@@ -3219,20 +3010,48 @@ const TrailersPage: React.FC = () => {
                                             <table className="w-full">
                                                 <thead className="bg-card border-b border-theme">
                                                     <tr>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Note</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-[var(--accent-navyblue)] uppercase">Category</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">Note</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">Category</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-theme">
                                                     {notes.length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={2} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>
+                                                            <td colSpan={3} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>
                                                         </tr>
                                                     ) : (
                                                         notes.map((note) => (
-                                                            <tr key={note.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
-                                                                <td className="px-4 py-3 text-sm text-primary">{note.note}</td>
-                                                                <td className="px-4 py-3 text-sm text-primary">{note.category}</td>
+                                                            <tr key={note.id} className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${editingNoteId === note.id ? 'bg-card' : ''}`}>
+                                                                <td className="px-4 py-3 text-sm text-headings">{note.note}</td>
+                                                                <td className="px-4 py-3 text-sm text-headings">{note.category}</td>
+                                                                <td className="px-4 py-3 text-sm text-headings">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setEditingNoteId(note.id);
+                                                                                setNoteForm({ note: note.note, category: note.category });
+                                                                            }}
+                                                                            className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Edit className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setNotes(notes.filter(n => n.id !== note.id));
+                                                                                if (editingNoteId === note.id) {
+                                                                                    setEditingNoteId(null);
+                                                                                    setNoteForm({ note: '', category: 'Category' });
+                                                                                }
+                                                                            }}
+                                                                            className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
                                                             </tr>
                                                         ))
                                                     )}
@@ -3242,32 +3061,32 @@ const TrailersPage: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Navigation Buttons */}
-                                <div className="mt-4 pt-4 border-t border-theme">
-                                    <div className="flex justify-between gap-3">
-                                        <button
-                                            onClick={handlePrevious}
-                                            disabled={!getPreviousStep()}
-                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${getPreviousStep()
-                                                ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                : 'bg-gray-200 text-secondary cursor-not-allowed'
-                                                }`}
-                                        >
-                                            <ChevronLeft className="w-3.5 h-3.5" />
-                                            Previous
-                                        </button>
-                                        <button
-                                            onClick={handleNext}
-                                            disabled={!getNextStep()}
-                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${getNextStep()
-                                                ? 'bg-[var(--accent-navyblue)] !text-white hover:bg-gray-800'
-                                                : 'bg-[var(--accent-navyblue)] text-secondary cursor-not-allowed'
-                                                }`}
-                                        >
-                                            Next
-                                            <ChevronRight className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
+                            </div>
+                            {/* Footer: Previous/Next fixed at bottom */}
+                            <div className="flex-shrink-0 border-t border-theme bg-card px-4 py-3">
+                                <div className="flex justify-between gap-3">
+                                    <button
+                                        onClick={handlePrevious}
+                                        disabled={!getPreviousStep()}
+                                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${getPreviousStep()
+                                            ? 'bg-gray-700 !text-white hover:bg-gray-800'
+                                            : 'bg-gray-200 text-secondary cursor-not-allowed'
+                                            }`}
+                                    >
+                                        <ChevronLeft className="w-3.5 h-3.5" />
+                                        Previous
+                                    </button>
+                                    <button
+                                        onClick={handleNext}
+                                        disabled={!getNextStep()}
+                                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${getNextStep()
+                                            ? 'bg-gray-700 !text-white hover:bg-gray-800'
+                                            : 'bg-gray-200 text-secondary cursor-not-allowed'
+                                            }`}
+                                    >
+                                        Next
+                                        <ChevronRight className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
                             </div>
                         </div>

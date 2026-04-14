@@ -11,6 +11,16 @@ import { getAllYards, type Yard } from '../../../../axios/api/fleet.yards';
 import apiClient from '../../../../axios/apiClient';
 import ConfirmationModal from '../../../../components/common/ConfirmationModal';
 
+type StepType =
+  | 'Details'
+  | 'Inspections'
+  | 'Documents'
+  | 'Invoice'
+  | 'Notes'
+  | 'Payroll'
+  | 'Deductions'
+  | 'Additions';
+
 interface Truck {
     _id?: string;
     id?: string;
@@ -1589,14 +1599,19 @@ const Trucks: React.FC = () => {
     };
 
     // Navigation helper functions for sidebar steps
-    const steps: Array<'Details' | 'Inspections' | 'Documents' | 'Invoice' | 'Notes'> = ['Details', 'Inspections', 'Documents', 'Invoice', 'Notes'];
+    const steps = [
+        'Details',
+        'Inspections',
+        'Documents',
+        'Invoice',
+        'Notes',
+        ...(formData.ownership === 'OWNER OPERATOR'
+            ? ['Payroll', 'Deductions', 'Additions']
+            : [])
+    ];
 
     const getNextStep = () => {
-        // If on a conditional step (Payroll, Deductions, Additions), return null (no next step)
-        if (['Payroll', 'Deductions', 'Additions'].includes(activeStep)) {
-            return null;
-        }
-        const currentIndex = steps.indexOf(activeStep as typeof steps[number]);
+        const currentIndex = steps.indexOf(activeStep);
         if (currentIndex < steps.length - 1) {
             return steps[currentIndex + 1];
         }
@@ -1604,11 +1619,7 @@ const Trucks: React.FC = () => {
     };
 
     const getPreviousStep = () => {
-        // If on a conditional step (Payroll, Deductions, Additions), navigate back to Notes
-        if (['Payroll', 'Deductions', 'Additions'].includes(activeStep)) {
-            return 'Notes' as const;
-        }
-        const currentIndex = steps.indexOf(activeStep as typeof steps[number]);
+        const currentIndex = steps.indexOf(activeStep);
         if (currentIndex > 0) {
             return steps[currentIndex - 1];
         }
@@ -2120,7 +2131,7 @@ const Trucks: React.FC = () => {
                                                     key={step}
                                                     onClick={() => setActiveStep(step)}
                                                     className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
-                                                        ? 'bg-[var(--accent-blue)] !text-white shadow-sm'
+                                                        ? 'bg-[var(--accent-navyblue)] !text-white shadow-sm'
                                                         : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                         }`}
                                                 >
@@ -2213,9 +2224,9 @@ const Trucks: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, registrationCountry: e.target.value, registrationProvince: '' })}
                                                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="">Select Registration Country</option>
+                                                    <option className="form-option" value="">Select Registration Country</option>
                                                     {countries.map((country) => (
-                                                        <option key={country.code} value={country.name}>
+                                                        <option className="form-option" key={country.code} value={country.name}>
                                                             {country.flag} {country.name}
                                                         </option>
                                                     ))}
@@ -2301,8 +2312,8 @@ const Trucks: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, uom: e.target.value })}
                                                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="Kg">Kg</option>
-                                                    <option value="Lbs">Lbs</option>
+                                                    <option className="form-option" value="Kg">Kg</option>
+                                                    <option className="form-option" value="Lbs">Lbs</option>
                                                 </select>
                                             </div>
                                             <div>
@@ -2325,9 +2336,9 @@ const Trucks: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                                                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="In Service">In Service</option>
-                                                    <option value="Out of Service">Out of Service</option>
-                                                    <option value="Maintenance">Maintenance</option>
+                                                    <option className="form-option" value="In Service">In Service</option>
+                                                    <option className="form-option" value="Out of Service">Out of Service</option>
+                                                    <option className="form-option" value="Maintenance">Maintenance</option>
                                                 </select>
                                             </div>
                                             <div>
@@ -2365,7 +2376,7 @@ const Trucks: React.FC = () => {
                                                 >
                                                     <option value="">Select Trailer</option>
                                                     {trailers.map((trailer) => (
-                                                        <option key={trailer._id} value={trailer._id}>
+                                                        <option className="form-option" key={trailer._id} value={trailer._id}>
                                                             {trailer.unitNumber || trailer.trailer || `Trailer ${trailer._id}`}
                                                         </option>
                                                     ))}
@@ -2416,13 +2427,13 @@ const Trucks: React.FC = () => {
                                                         onChange={(e) => setFormData({ ...formData, operator: e.target.value })}
                                                         className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     >
-                                                        <option value="">Select Operator</option>
+                                                        <option className="form-option" value="">Select Operator</option>
                                                         {operators.length > 0 ? operators.map((operator) => (
-                                                            <option key={operator._id} value={operator._id}>
+                                                            <option className="form-option" key={operator._id} value={operator._id}>
                                                                 {operator.name} {operator.email ? `(${operator.email})` : ''}
                                                             </option>
                                                         )) : (
-                                                            <option value="" disabled>No operators available</option>
+                                                            <option className="form-option" value="" disabled>No operators available</option>
                                                         )}
                                                     </select>
                                                 </div>
@@ -2435,13 +2446,13 @@ const Trucks: React.FC = () => {
                                                         onChange={(e) => setFormData({ ...formData, coOperator: e.target.value })}
                                                         className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     >
-                                                        <option value="">Select Co-Operator</option>
+                                                        <option className="form-option" value="">Select Co-Operator</option>
                                                         {operators.length > 0 ? operators.map((operator) => (
-                                                            <option key={operator._id} value={operator._id}>
+                                                            <option className="form-option" key={operator._id} value={operator._id}>
                                                                 {operator.name} {operator.email ? `(${operator.email})` : ''}
                                                             </option>
                                                         )) : (
-                                                            <option value="" disabled>No operators available</option>
+                                                            <option className="form-option" value="" disabled>No operators available</option>
                                                         )}
                                                     </select>
                                                 </div>
@@ -2454,9 +2465,9 @@ const Trucks: React.FC = () => {
                                                         onChange={(e) => setFormData({ ...formData, yard: e.target.value })}
                                                         className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     >
-                                                        <option value="">Select</option>
+                                                        <option className="form-option" value="">Select</option>
                                                         {yards.filter(yard => yard.status === 'active').map((yard) => (
-                                                            <option key={yard._id} value={yard._id}>
+                                                            <option className="form-option" key={yard._id} value={yard._id}>
                                                                 {yard.yardName} ({yard.yardCode})
                                                             </option>
                                                         ))}
@@ -2692,10 +2703,10 @@ const Trucks: React.FC = () => {
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, unit: e.target.value })}
                                                                 className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                             >
-                                                                <option value="">Select Unit</option>
-                                                                <option value="Days">Days</option>
-                                                                <option value="Weeks">Weeks</option>
-                                                                <option value="Months">Months</option>
+                                                                <option className="form-option" value="">Select Unit</option>
+                                                                <option className="form-option" value="Days">Days</option>
+                                                                <option className="form-option" value="Weeks">Weeks</option>
+                                                                <option className="form-option" value="Months">Months</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -3788,13 +3799,13 @@ const Trucks: React.FC = () => {
                                                                 onChange={(e) => setDeductionForm({ ...deductionForm, interval: e.target.value })}
                                                                 className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
-                                                                <option value="Interval">Interval</option>
-                                                                <option value="Annual">Annual</option>
-                                                                <option value="Monthly">Monthly</option>
-                                                                <option value="Per Mile">Per Mile</option>
-                                                                <option value="One Time">One Time</option>
-                                                                <option value="Weekly">Weekly</option>
-                                                                <option value="Biweekly">Biweekly</option>
+                                                                <option className="form-option" value="Interval">Interval</option>
+                                                                <option className="form-option" value="Annual">Annual</option>
+                                                                <option className="form-option" value="Monthly">Monthly</option>
+                                                                <option className="form-option" value="Per Mile">Per Mile</option>
+                                                                <option className="form-option" value="One Time">One Time</option>
+                                                                <option className="form-option" value="Weekly">Weekly</option>
+                                                                <option className="form-option" value="Biweekly">Biweekly</option>
                                                             </select>
                                                             <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
@@ -3807,8 +3818,8 @@ const Trucks: React.FC = () => {
                                                                 onChange={(e) => setDeductionForm({ ...deductionForm, currency: e.target.value })}
                                                                 className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
-                                                                <option value="CAD">CAD</option>
-                                                                <option value="USD">USD</option>
+                                                                <option className="form-option" value="CAD">CAD</option>
+                                                                <option className="form-option" value="USD">USD</option>
                                                             </select>
                                                             <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
@@ -3909,13 +3920,13 @@ const Trucks: React.FC = () => {
                                                                 onChange={(e) => setAdditionForm({ ...additionForm, interval: e.target.value })}
                                                                 className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
-                                                                <option value="Interval">Interval</option>
-                                                                <option value="Annual">Annual</option>
-                                                                <option value="Monthly">Monthly</option>
-                                                                <option value="Per Mile">Per Mile</option>
-                                                                <option value="One Time">One Time</option>
-                                                                <option value="Weekly">Weekly</option>
-                                                                <option value="Biweekly">Biweekly</option>
+                                                                <option className="form-option" value="Interval">Interval</option>
+                                                                <option className="form-option" value="Annual">Annual</option>
+                                                                <option className="form-option" value="Monthly">Monthly</option>
+                                                                <option className="form-option" value="Per Mile">Per Mile</option>
+                                                                <option className="form-option" value="One Time">One Time</option>
+                                                                <option className="form-option" value="Weekly">Weekly</option>
+                                                                <option className="form-option" value="Biweekly">Biweekly</option>
                                                             </select>
                                                             <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
@@ -3928,8 +3939,8 @@ const Trucks: React.FC = () => {
                                                                 onChange={(e) => setAdditionForm({ ...additionForm, currency: e.target.value })}
                                                                 className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
-                                                                <option value="CAD">CAD</option>
-                                                                <option value="USD">USD</option>
+                                                                <option className="form-option" value="CAD">CAD</option>
+                                                                <option className="form-option" value="USD">USD</option>
                                                             </select>
                                                             <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>

@@ -415,44 +415,74 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Driver</label>
+                        <label className="block text-sm font-medium text-primary mb-2">
+                            Driver
+                        </label>
                         <select
                             value={selectedDriver}
                             onChange={(e) => setSelectedDriver(e.target.value)}
-                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200"
                         >
-                            <option value="">All Drivers</option>
-                            {drivers.map(driver => (
-                                <option key={driver._id} value={driver._id}>
+                            <option  className="bg-[#0f1b2d] text-white" value="">
+                                All Drivers
+                            </option>
+                            {drivers.map((driver) => (
+                                <option
+                                    key={driver._id}
+                                    value={driver._id}
+                                    className="bg-[#0f1b2d] text-white"
+                                >
                                     {driver.name}
                                 </option>
                             ))}
                         </select>
                     </div>
+
                     <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Certificate Type</label>
+                        <label className="block text-sm font-medium text-primary mb-2">
+                            Certificate Type
+                        </label>
                         <select
                             value={selectedType}
                             onChange={(e) => setSelectedType(e.target.value)}
-                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200"
                         >
-                            <option value="">All Types</option>
-                            {certificateTypes.map(type => (
-                                <option key={type} value={type}>{type}</option>
+                            <option className="bg-[#0f1b2d] text-white" value="">
+                                All Types
+                            </option>
+                            {certificateTypes.map((type) => (
+                                <option
+                                    key={type}
+                                    value={type}
+                                    className="bg-[#0f1b2d] text-white"
+                                >
+                                    {type}
+                                </option>
                             ))}
                         </select>
                     </div>
+
                     <div>
-                        <label className="block text-sm font-medium text-primary mb-2">Status</label>
+                        <label className="block text-sm font-medium text-primary mb-2">
+                            Status
+                        </label>
                         <select
                             value={selectedStatus}
                             onChange={(e) => setSelectedStatus(e.target.value)}
-                            className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200"
                         >
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="expiring_soon">Expiring Soon</option>
-                            <option value="expired">Expired</option>
+                            <option className="bg-[#0f1b2d] text-white" value="">
+                                All Status
+                            </option>
+                            <option className="bg-[#0f1b2d] text-white" value="active">
+                                Active
+                            </option>
+                            <option className="bg-[#0f1b2d] text-white" value="expiring_soon">
+                                Expiring Soon
+                            </option>
+                            <option className="bg-[#0f1b2d] text-white" value="expired">
+                                Expired
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -617,9 +647,9 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                     className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
                                 >
-                                    <option value="">Select a driver</option>
+                                    <option className="form-option" value="">Select a driver</option>
                                     {drivers.map(driver => (
-                                        <option key={driver._id} value={driver._id}>
+                                        <option className="form-option" key={driver._id} value={driver._id}>
                                             {driver.name}
                                         </option>
                                     ))}
@@ -650,9 +680,9 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                     className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
                                 >
-                                    <option value="">Select type</option>
+                                    <option className="form-option" value="">Select type</option>
                                     {certificateTypes.map(type => (
-                                        <option key={type} value={type}>{type}</option>
+                                        <option className="form-option" key={type} value={type}>{type}</option>
                                     ))}
                                 </select>
                             </div>
@@ -667,11 +697,11 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                     className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
                                 >
-                                    <option value="">Select verification type</option>
-                                    <option value="TDG">TDG</option>
-                                    <option value="VEHICLE">Vehicle Inspection</option>
-                                    <option value="HOS">Hours of Service</option>
-                                    <option value="WINTER">Winter Driving</option>
+                                    <option className="form-option" value="">Select verification type</option>
+                                    <option className="form-option" value="TDG">TDG</option>
+                                    <option className="form-option" value="VEHICLE">Vehicle Inspection</option>
+                                    <option className="form-option" value="HOS">Hours of Service</option>
+                                    <option className="form-option" value="WINTER">Winter Driving</option>
                                 </select>
                                 <p className="text-xs text-secondary mt-1">
                                     Links certificate to test type for compliance verification

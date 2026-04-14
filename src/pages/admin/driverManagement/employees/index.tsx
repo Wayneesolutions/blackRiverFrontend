@@ -1253,21 +1253,34 @@ const EmployeesPage = () => {
           </div>
 
           <div className="flex items-center gap-4">
+
+            {/* Filter By */}
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-primary">Filter By:</label>
+              <label className="text-sm font-medium text-primary">
+                Filter By:
+              </label>
               <select
                 value={filterBy}
                 onChange={(e) => setFilterBy(e.target.value)}
-                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                className="px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200"
               >
-                <option value="All">All</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
+                <option className="bg-[#0f1b2d] text-white" value="All">
+                  All
+                </option>
+                <option className="bg-[#0f1b2d] text-white" value="Active">
+                  Active
+                </option>
+                <option className="bg-[#0f1b2d] text-white" value="Inactive">
+                  Inactive
+                </option>
               </select>
             </div>
 
+            {/* Sort By */}
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-primary">Sort By:</label>
+              <label className="text-sm font-medium text-primary">
+                Sort By:
+              </label>
               <select
                 value={sortBy}
                 onChange={(e) => {
@@ -1276,16 +1289,29 @@ const EmployeesPage = () => {
                     handleSort(e.target.value as keyof Employee);
                   }
                 }}
-                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                className="px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200"
               >
-                <option value="">Select</option>
-                <option value="firstName">First Name</option>
-                <option value="lastName">Last Name</option>
-                <option value="email">Email</option>
-                <option value="role">Role</option>
-                <option value="status">Status</option>
+                <option className="bg-[#0f1b2d] text-white" value="">
+                  Select
+                </option>
+                <option className="bg-[#0f1b2d] text-white" value="firstName">
+                  First Name
+                </option>
+                <option className="bg-[#0f1b2d] text-white" value="lastName">
+                  Last Name
+                </option>
+                <option className="bg-[#0f1b2d] text-white" value="email">
+                  Email
+                </option>
+                <option className="bg-[#0f1b2d] text-white" value="role">
+                  Role
+                </option>
+                <option className="bg-[#0f1b2d] text-white" value="status">
+                  Status
+                </option>
               </select>
             </div>
+
           </div>
         </div>
 
@@ -1731,9 +1757,9 @@ const EmployeesPage = () => {
                           onChange={(e) => setBasicData({ ...basicData, status: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="">Select</option>
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
+                          <option className="form-option" value="">Select</option>
+                          <option className="form-option" value="active">Active</option>
+                          <option className="form-option" value="inactive">Inactive</option>
                         </select>
                       </div>
                       <div>
@@ -1745,9 +1771,9 @@ const EmployeesPage = () => {
                           onChange={(e) => setBasicData({ ...basicData, role: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="">Select</option>
+                          <option className="form-option" value="">Select</option>
                           {roles.map((role) => (
-                            <option key={role} value={role}>{role}</option>
+                            <option className="form-option" key={role} value={role}>{role}</option>
                           ))}
                         </select>
                       </div>
@@ -1778,10 +1804,10 @@ const EmployeesPage = () => {
                           onChange={(e) => setPersonalData({ ...personalData, payType: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="">Select</option>
-                          <option value="Hourly">Hourly</option>
-                          <option value="Salary">Weekly</option>
-                          <option value="Commission">Monthly</option>
+                          <option className="form-option" value="">Select</option>
+                          <option className="form-option" value="Hourly">Hourly</option>
+                          <option className="form-option" value="Salary">Weekly</option>
+                          <option className="form-option" value="Commission">Monthly</option>
                         </select>
                       </div>
                       <div>
@@ -1828,9 +1854,9 @@ const EmployeesPage = () => {
                           onChange={(e) => setPersonalData({ ...personalData, department: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="">Select</option>
+                          <option className="form-option" value="">Select</option>
                           {departments.map((dept) => (
-                            <option key={dept} value={dept}>{dept}</option>
+                            <option className="form-option" key={dept} value={dept}>{dept}</option>
                           ))}
                         </select>
                       </div>
@@ -1841,9 +1867,9 @@ const EmployeesPage = () => {
                           onChange={(e) => setPersonalData({ ...personalData, employmentType: e.target.value as 'FULL-TIME' | 'PART-TIME' | 'CONTRACT BASIS' })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="FULL-TIME">Full-time</option>
-                          <option value="PART-TIME">Part-time</option>
-                          <option value="CONTRACT BASIS">Contract Basis</option>
+                          <option className="form-option" value="FULL-TIME">Full-time</option>
+                          <option className="form-option" value="PART-TIME">Part-time</option>
+                          <option className="form-option" value="CONTRACT BASIS">Contract Basis</option>
                         </select>
                       </div>
                       <div>
@@ -2006,9 +2032,9 @@ const EmployeesPage = () => {
                           }}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="">Select Country</option>
+                          <option className="form-option" value="">Select Country</option>
                           {countries.map((country) => (
-                            <option key={country.code} value={country.code}>
+                            <option className="form-option" key={country.code} value={country.code}>
                               {country.flag} {country.name}
                             </option>
                           ))}
@@ -2481,11 +2507,11 @@ const EmployeesPage = () => {
                           onChange={(e) => setNewDeduction({ ...newDeduction, interval: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="">Interval</option>
-                          <option value="Weekly">Weekly</option>
-                          <option value="Bi-Weekly">Bi-Weekly</option>
-                          <option value="Monthly">Monthly</option>
-                          <option value="Yearly">Yearly</option>
+                          <option className="form-option" value="">Interval</option>
+                          <option className="form-option" value="Weekly">Weekly</option>
+                          <option className="form-option" value="Bi-Weekly">Bi-Weekly</option>
+                          <option className="form-option" value="Monthly">Monthly</option>
+                          <option className="form-option" value="Yearly">Yearly</option>
                         </select>
                       </div>
                       <div className="flex-1">
@@ -2495,8 +2521,8 @@ const EmployeesPage = () => {
                           onChange={(e) => setNewDeduction({ ...newDeduction, currency: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="CAD">CAD</option>
-                          <option value="USD">USD</option>
+                          <option className="form-option" value="CAD">CAD</option>
+                          <option className="form-option" value="USD">USD</option>
                         </select>
                       </div>
                       <div className="flex items-end">
@@ -2683,11 +2709,11 @@ const EmployeesPage = () => {
                           onChange={(e) => setNewAddition({ ...newAddition, interval: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="">Interval</option>
-                          <option value="Weekly">Weekly</option>
-                          <option value="Bi-Weekly">Bi-Weekly</option>
-                          <option value="Monthly">Monthly</option>
-                          <option value="Yearly">Yearly</option>
+                          <option className="form-option" value="">Interval</option>
+                          <option className="form-option" value="Weekly">Weekly</option>
+                          <option className="form-option" value="Bi-Weekly">Bi-Weekly</option>
+                          <option className="form-option" value="Monthly">Monthly</option>
+                          <option className="form-option" value="Yearly">Yearly</option>
                         </select>
                       </div>
                       <div className="flex-1">
@@ -2697,8 +2723,8 @@ const EmployeesPage = () => {
                           onChange={(e) => setNewAddition({ ...newAddition, currency: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="CAD">CAD</option>
-                          <option value="USD">USD</option>
+                          <option className="form-option" value="CAD">CAD</option>
+                          <option className="form-option" value="USD">USD</option>
                         </select>
                       </div>
                       <div className="flex items-end">

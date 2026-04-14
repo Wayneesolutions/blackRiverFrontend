@@ -11,6 +11,8 @@ import { deleteViolation } from '../../../../axios/api/violations';
 import { deleteDeductionAddition } from '../../../../axios/api/account.settlement';
 import AddressSearch from '../../../../components/common/AddressSearch';
 
+import DateField from "../../../../components/common/DateField"
+
 // US States
 const US_STATES = [
   { value: 'AL', label: 'Alabama' },
@@ -164,8 +166,11 @@ const DriverManagement = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPin, setShowPin] = useState(false);
   const [pinIsExisting, setPinIsExisting] = useState(false);
-
-
+  const passportExpiryRef = useRef(null);
+  const expiryRef = useRef(null);
+  const hireDateRef = useRef(null);
+  const terminationDateRef = useRef(null);
+  const dateRef = useRef(null);
   const [filterBy, setFilterBy] = useState('Active');
   const [category, setCategory] = useState('');
   const [complianceStatus, setComplianceStatus] = useState('All');
@@ -3697,11 +3702,11 @@ const DriverManagement = () => {
               <select
                 value={filterBy}
                 onChange={(e) => setFilterBy(e.target.value)}
-                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent text-sm"
+                className="px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 text-sm"
               >
-                <option>Active</option>
-                <option>Inactive</option>
-                <option>All</option>
+                <option className="bg-[#0f1b2d] text-white">Active</option>
+                <option className="bg-[#0f1b2d] text-white">Inactive</option>
+                <option className="bg-[#0f1b2d] text-white">All</option>
               </select>
             </div>
 
@@ -3711,11 +3716,12 @@ const DriverManagement = () => {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm min-w-[120px]"
+                className="px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 text-sm min-w-[120px]"
               >
-                <option value="">Select...</option>
-                <option>StandBy</option>
-
+                <option className="bg-[#0f1b2d] text-white" value="">
+                  Select...
+                </option>
+                <option className="bg-[#0f1b2d] text-white">StandBy</option>
               </select>
             </div>
 
@@ -3725,12 +3731,12 @@ const DriverManagement = () => {
               <select
                 value={complianceStatus}
                 onChange={(e) => setComplianceStatus(e.target.value)}
-                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm min-w-[120px]"
+                className="px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 text-sm min-w-[120px]"
               >
-                <option>All</option>
-                <option>Compliant</option>
-                <option>Expiring Soon</option>
-                <option>Non-Compliant</option>
+                <option className="bg-[#0f1b2d] text-white">All</option>
+                <option className="bg-[#0f1b2d] text-white">Compliant</option>
+                <option className="bg-[#0f1b2d] text-white">Expiring Soon</option>
+                <option className="bg-[#0f1b2d] text-white">Non-Compliant</option>
               </select>
             </div>
 
@@ -3740,13 +3746,15 @@ const DriverManagement = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm min-w-[120px]"
+                className="px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 text-sm min-w-[120px]"
               >
-                <option value="">Select...</option>
-                <option>Driver ID</option>
-                <option>First Name</option>
-                <option>Last Name</option>
-                <option>Status</option>
+                <option className="bg-[#0f1b2d] text-white" value="">
+                  Select...
+                </option>
+                <option className="bg-[#0f1b2d] text-white">Driver ID</option>
+                <option className="bg-[#0f1b2d] text-white">First Name</option>
+                <option className="bg-[#0f1b2d] text-white">Last Name</option>
+                <option className="bg-[#0f1b2d] text-white">Status</option>
               </select>
             </div>
 
@@ -4364,27 +4372,48 @@ const DriverManagement = () => {
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-primary mb-0.5">
-                          Date Of Birth<span className="text-[var(--accent-red)]">*</span>
+                          Date Of Birth <span className="text-[var(--accent-red)]">*</span>
                         </label>
-                        <div className="relative">
-                          <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-secondary pointer-events-none" />
+
+                        <div
+                          className="relative cursor-pointer"
+                          onMouseDown={(e) => {
+                            e.preventDefault(); // IMPORTANT
+                            if (dateRef.current) {
+                              dateRef.current.showPicker?.(); // open calendar
+                              dateRef.current.focus();
+                            }
+                          }}
+                        >
+                          {/* Icon */}
+                          <Calendar className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-secondary pointer-events-none z-10" />
+
+                          {/* Input */}
                           <input
+                            ref={dateRef}
                             type="date"
                             value={formData.dateOfBirth}
                             onChange={(e) => {
                               setFormData({ ...formData, dateOfBirth: e.target.value });
                               if (validationErrors.dateOfBirth) {
-                                setValidationErrors({ ...validationErrors, dateOfBirth: '' });
+                                setValidationErrors({
+                                  ...validationErrors,
+                                  dateOfBirth: "",
+                                });
                               }
                             }}
-                            className={`w-full pl-7 pr-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.dateOfBirth ? 'border-[var(--accent-red)]' : 'border-theme'
+                            className={`w-full pl-7 pr-2 py-2 text-sm bg-[rgba(255,255,255,0.05)] text-primary border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 cursor-pointer ${validationErrors.dateOfBirth
+                              ? "border-[var(--accent-red)]"
+                              : "border-theme"
                               }`}
-                            placeholder="Select"
-                            max={new Date().toISOString().split('T')[0]}
+                            max={new Date().toISOString().split("T")[0]}
                           />
                         </div>
+
                         {validationErrors.dateOfBirth && (
-                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.dateOfBirth}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">
+                            {validationErrors.dateOfBirth}
+                          </p>
                         )}
                       </div>
                       <div>
@@ -4934,13 +4963,14 @@ const DriverManagement = () => {
 
                     {/* Sixth Row */}
                     <div className="grid grid-cols-2 gap-2">
+                      {/* Country */}
                       <div>
                         <label className="block text-xs font-medium text-primary mb-0.5">
-                          Country<span className="text-[var(--accent-red)]">*</span>
+                          Country <span className="text-[var(--accent-red)]">*</span>
                         </label>
+
                         <select
                           value={(() => {
-                            // Find country by name (formData.country stores the name)
                             const foundCountry = countries.find(c => c.name === formData.country);
                             return foundCountry ? foundCountry.code : '';
                           })()}
@@ -4958,40 +4988,62 @@ const DriverManagement = () => {
                               setValidationErrors({ ...validationErrors, stateProvince: '' });
                             }
                           }}
-                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.country ? 'border-[var(--accent-red)]' : 'border-theme'
+                          className={`w-full px-2 py-1 text-xs bg-[rgba(255,255,255,0.05)] text-primary border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 ${validationErrors.country
+                            ? 'border-[var(--accent-red)]'
+                            : 'border-theme'
                             }`}
                         >
-                          <option value="">Select Country</option>
+                          <option className="bg-[#0f1b2d] text-white" value="">
+                            Select Country
+                          </option>
                           {countries.map((country) => (
-                            <option key={country.code} value={country.code}>
+                            <option
+                              key={country.code}
+                              value={country.code}
+                              className="bg-[#0f1b2d] text-white"
+                            >
                               {country.flag} {country.name}
                             </option>
                           ))}
                         </select>
+
                         {validationErrors.country && (
-                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.country}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">
+                            {validationErrors.country}
+                          </p>
                         )}
                       </div>
+
+                      {/* Province / State */}
                       <div>
                         <label className="block text-xs font-medium text-primary mb-0.5">
-                          Province/State<span className="text-[var(--accent-red)]">*</span>
+                          Province/State <span className="text-[var(--accent-red)]">*</span>
                         </label>
+
                         <input
                           type="text"
                           value={formData.stateProvince}
                           onChange={(e) => {
                             setFormData({ ...formData, stateProvince: e.target.value });
                             if (validationErrors.stateProvince) {
-                              setValidationErrors({ ...validationErrors, stateProvince: '' });
+                              setValidationErrors({
+                                ...validationErrors,
+                                stateProvince: ''
+                              });
                             }
                           }}
                           disabled={!formData.country}
                           placeholder={formData.country ? "Enter Province/State" : "Select country first"}
-                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent disabled:bg-card disabled:cursor-not-allowed ${validationErrors.stateProvince ? 'border-[var(--accent-red)]' : 'border-theme'
+                          className={`w-full px-2 py-1 text-xs bg-[rgba(255,255,255,0.05)] text-primary placeholder:text-secondary border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 disabled:bg-[rgba(255,255,255,0.02)] disabled:text-secondary disabled:cursor-not-allowed ${validationErrors.stateProvince
+                            ? 'border-[var(--accent-red)]'
+                            : 'border-theme'
                             }`}
                         />
+
                         {validationErrors.stateProvince && (
-                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.stateProvince}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">
+                            {validationErrors.stateProvince}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -5015,35 +5067,68 @@ const DriverManagement = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-1">Hire Date</label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Hire Date
+                        </label>
+
+                        <div
+                          className="relative cursor-pointer"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            hireDateRef.current?.showPicker?.();
+                            hireDateRef.current?.focus();
+                          }}
+                        >
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none z-10" />
+
                           <input
+                            ref={hireDateRef}
                             type="date"
                             value={personalData.hireDate}
-                            onChange={(e) => setPersonalData({ ...personalData, hireDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                            onChange={(e) =>
+                              setPersonalData({ ...personalData, hireDate: e.target.value })
+                            }
+                            className="w-full pl-10 pr-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 cursor-pointer"
                             placeholder="Select"
                           />
                         </div>
                       </div>
+
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-1">Termination Date</label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Termination Date
+                        </label>
+
+                        <div
+                          className="relative cursor-pointer"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            terminationDateRef.current?.showPicker?.();
+                            terminationDateRef.current?.focus();
+                          }}
+                        >
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none z-10" />
+
                           <input
+                            ref={terminationDateRef}
                             type="date"
                             value={personalData.terminationDate}
-                            onChange={(e) => setPersonalData({ ...personalData, terminationDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                            onChange={(e) =>
+                              setPersonalData({
+                                ...personalData,
+                                terminationDate: e.target.value,
+                              })
+                            }
+                            className="w-full pl-10 pr-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 cursor-pointer"
                             placeholder="Select"
                           />
                         </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-primary mb-1">
-                          Status<span className="text-[var(--accent-red)]">*</span>
+                          Status <span className="text-[var(--accent-red)]">*</span>
                         </label>
+
                         <select
                           value={personalData.status}
                           onChange={(e) => {
@@ -5052,16 +5137,29 @@ const DriverManagement = () => {
                               setValidationErrors({ ...validationErrors, status: '' });
                             }
                           }}
-                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.status ? 'border-[var(--accent-red)]' : 'border-theme'
+                          className={`w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 ${validationErrors.status
+                            ? 'border-[var(--accent-red)]'
+                            : 'border-theme'
                             }`}
                         >
-                          <option value="">Select Status</option>
-                          <option value="Active">Active</option>
-                          <option value="Inactive">Inactive</option>
-                          <option value="Terminated">Terminated</option>
+                          <option className="bg-[#0f1b2d] text-white" value="">
+                            Select Status
+                          </option>
+                          <option className="bg-[#0f1b2d] text-white" value="Active">
+                            Active
+                          </option>
+                          <option className="bg-[#0f1b2d] text-white" value="Inactive">
+                            Inactive
+                          </option>
+                          <option className="bg-[#0f1b2d] text-white" value="Terminated">
+                            Terminated
+                          </option>
                         </select>
+
                         {validationErrors.status && (
-                          <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.status}</p>
+                          <p className="text-xs text-[var(--accent-red)] mt-0.5">
+                            {validationErrors.status}
+                          </p>
                         )}
                       </div>
                       <div>
@@ -5279,45 +5377,70 @@ const DriverManagement = () => {
                       </div>
 
                       <div className="grid grid-cols-2 gap-4 mt-4">
+                        {/* Payment Country */}
                         <div>
                           <label className="block text-sm font-medium text-primary mb-1">
                             Payment Country
                           </label>
+
                           <select
                             value={(() => {
-                              // Find country by name (personalData.paymentCountry stores the name)
-                              const foundCountry = countries.find(c => c.name === personalData.paymentCountry);
-                              return foundCountry ? foundCountry.code : '';
+                              const foundCountry = countries.find(
+                                (c) => c.name === personalData.paymentCountry
+                              );
+                              return foundCountry ? foundCountry.code : "";
                             })()}
                             onChange={(e) => {
-                              const selectedCountry = countries.find(c => c.code === e.target.value);
+                              const selectedCountry = countries.find(
+                                (c) => c.code === e.target.value
+                              );
                               setPersonalData({
                                 ...personalData,
-                                paymentCountry: selectedCountry ? selectedCountry.name : '',
-                                paymentStateProvince: ''
+                                paymentCountry: selectedCountry
+                                  ? selectedCountry.name
+                                  : "",
+                                paymentStateProvince: "",
                               });
                             }}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                            className="w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200"
                           >
-                            <option value="">Select Country</option>
+                            <option className="bg-[#0f1b2d] text-white" value="">
+                              Select Country
+                            </option>
                             {countries.map((country) => (
-                              <option key={country.code} value={country.code}>
+                              <option
+                                key={country.code}
+                                value={country.code}
+                                className="bg-[#0f1b2d] text-white"
+                              >
                                 {country.flag} {country.name}
                               </option>
                             ))}
                           </select>
                         </div>
+
+                        {/* Payment Province / State */}
                         <div>
                           <label className="block text-sm font-medium text-primary mb-1">
                             Payment Province/State
                           </label>
+
                           <input
                             type="text"
                             value={personalData.paymentStateProvince}
-                            onChange={(e) => setPersonalData({ ...personalData, paymentStateProvince: e.target.value })}
+                            onChange={(e) =>
+                              setPersonalData({
+                                ...personalData,
+                                paymentStateProvince: e.target.value,
+                              })
+                            }
                             disabled={!personalData.paymentCountry}
-                            placeholder={personalData.paymentCountry ? "Enter Province/State" : "Select country first"}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent disabled:bg-card disabled:cursor-not-allowed"
+                            placeholder={
+                              personalData.paymentCountry
+                                ? "Enter Province/State"
+                                : "Select country first"
+                            }
+                            className="w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary placeholder:text-secondary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 disabled:bg-[rgba(255,255,255,0.02)] disabled:text-secondary disabled:cursor-not-allowed"
                           />
                         </div>
                       </div>
@@ -5616,30 +5739,62 @@ const DriverManagement = () => {
 
                     {/* Gender and Citizenship */}
                     <div className="mt-6 grid grid-cols-2 gap-4">
+                      {/* Gender */}
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-1">Gender</label>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Gender
+                        </label>
+
                         <select
                           value={personalData.gender}
-                          onChange={(e) => setPersonalData({ ...personalData, gender: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                          onChange={(e) =>
+                            setPersonalData({ ...personalData, gender: e.target.value })
+                          }
+                          className="w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200"
                         >
-                          <option value="">Select Gender</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                          <option value="Other">Other</option>
-                          <option value="Prefer not to say">Prefer not to say</option>
+                          <option className="bg-[#0f1b2d] text-white" value="">
+                            Select Gender
+                          </option>
+                          <option className="bg-[#0f1b2d] text-white" value="Male">
+                            Male
+                          </option>
+                          <option className="bg-[#0f1b2d] text-white" value="Female">
+                            Female
+                          </option>
+                          <option className="bg-[#0f1b2d] text-white" value="Other">
+                            Other
+                          </option>
+                          <option className="bg-[#0f1b2d] text-white" value="Prefer not to say">
+                            Prefer not to say
+                          </option>
                         </select>
                       </div>
+
+                      {/* Citizenship */}
                       <div>
-                        <label className="block text-sm font-medium text-primary mb-1">Citizenship</label>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Citizenship
+                        </label>
+
                         <select
                           value={personalData.citizenship}
-                          onChange={(e) => setPersonalData({ ...personalData, citizenship: e.target.value })}
-                          className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                          onChange={(e) =>
+                            setPersonalData({
+                              ...personalData,
+                              citizenship: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200"
                         >
-                          <option value="">Select Citizenship</option>
+                          <option className="bg-[#0f1b2d] text-white" value="">
+                            Select Citizenship
+                          </option>
                           {countries.map((country) => (
-                            <option key={country.code} value={country.name}>
+                            <option
+                              key={country.code}
+                              value={country.name}
+                              className="bg-[#0f1b2d] text-white"
+                            >
                               {country.name}
                             </option>
                           ))}
@@ -5681,26 +5836,49 @@ const DriverManagement = () => {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-primary mb-1">
-                            Date Of Expiry<span className="text-[var(--accent-red)]">*</span>
+                            Date Of Expiry <span className="text-[var(--accent-red)]">*</span>
                           </label>
-                          <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
+
+                          <div
+                            className="relative cursor-pointer"
+                            onMouseDown={(e) => {
+                              e.preventDefault(); // IMPORTANT
+                              expiryRef.current?.showPicker?.();
+                              expiryRef.current?.focus();
+                            }}
+                          >
+                            {/* Icon */}
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none z-10" />
+
+                            {/* Input */}
                             <input
+                              ref={expiryRef}
                               type="date"
                               value={travelData.driversLicenseExpiry}
                               onChange={(e) => {
-                                setTravelData({ ...travelData, driversLicenseExpiry: e.target.value });
+                                setTravelData({
+                                  ...travelData,
+                                  driversLicenseExpiry: e.target.value,
+                                });
                                 if (validationErrors.driversLicenseExpiry) {
-                                  setValidationErrors({ ...validationErrors, driversLicenseExpiry: '' });
+                                  setValidationErrors({
+                                    ...validationErrors,
+                                    driversLicenseExpiry: "",
+                                  });
                                 }
                               }}
-                              className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.driversLicenseExpiry ? 'border-[var(--accent-red)]' : 'border-theme'
+                              className={`w-full pl-10 pr-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 cursor-pointer ${validationErrors.driversLicenseExpiry
+                                ? "border-[var(--accent-red)]"
+                                : "border-theme"
                                 }`}
                               placeholder="Select"
                             />
                           </div>
+
                           {validationErrors.driversLicenseExpiry && (
-                            <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.driversLicenseExpiry}</p>
+                            <p className="text-xs text-[var(--accent-red)] mt-0.5">
+                              {validationErrors.driversLicenseExpiry}
+                            </p>
                           )}
                         </div>
                         <div>
@@ -5742,15 +5920,30 @@ const DriverManagement = () => {
                           )}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-1">Passport Country</label>
+                          <label className="block text-sm font-medium text-primary mb-1">
+                            Passport Country
+                          </label>
+
                           <select
                             value={travelData.passportCountry}
-                            onChange={(e) => setTravelData({ ...travelData, passportCountry: e.target.value })}
-                            className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                            onChange={(e) =>
+                              setTravelData({
+                                ...travelData,
+                                passportCountry: e.target.value,
+                              })
+                            }
+                            className="w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200"
                           >
-                            <option value="">Select Passport Country</option>
+                            <option className="bg-[#0f1b2d] text-white" value="">
+                              Select Passport Country
+                            </option>
+
                             {countries.map((country) => (
-                              <option key={country.code} value={country.name}>
+                              <option
+                                key={country.code}
+                                value={country.name}
+                                className="bg-[#0f1b2d] text-white"
+                              >
                                 {country.name}
                               </option>
                             ))}
@@ -5758,26 +5951,49 @@ const DriverManagement = () => {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-primary mb-1">
-                            Date Of Expiry<span className="text-[var(--accent-red)]">*</span>
+                            Date Of Expiry <span className="text-[var(--accent-red)]">*</span>
                           </label>
-                          <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
+
+                          <div
+                            className="relative cursor-pointer"
+                            onMouseDown={(e) => {
+                              e.preventDefault(); // IMPORTANT
+                              passportExpiryRef.current?.showPicker?.();
+                              passportExpiryRef.current?.focus();
+                            }}
+                          >
+                            {/* Icon */}
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none z-10" />
+
+                            {/* Input */}
                             <input
+                              ref={passportExpiryRef}
                               type="date"
                               value={travelData.passportExpiry}
                               onChange={(e) => {
-                                setTravelData({ ...travelData, passportExpiry: e.target.value });
+                                setTravelData({
+                                  ...travelData,
+                                  passportExpiry: e.target.value,
+                                });
                                 if (validationErrors.passportExpiry) {
-                                  setValidationErrors({ ...validationErrors, passportExpiry: '' });
+                                  setValidationErrors({
+                                    ...validationErrors,
+                                    passportExpiry: "",
+                                  });
                                 }
                               }}
-                              className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.passportExpiry ? 'border-[var(--accent-red)]' : 'border-theme'
+                              className={`w-full pl-10 pr-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 cursor-pointer ${validationErrors.passportExpiry
+                                ? "border-[var(--accent-red)]"
+                                : "border-theme"
                                 }`}
                               placeholder="Select"
                             />
                           </div>
+
                           {validationErrors.passportExpiry && (
-                            <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.passportExpiry}</p>
+                            <p className="text-xs text-[var(--accent-red)] mt-0.5">
+                              {validationErrors.passportExpiry}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -5798,17 +6014,16 @@ const DriverManagement = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-1">Date Of Expiry</label>
-                          <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
-                            <input
-                              type="date"
-                              value={travelData.fastCardExpiry}
-                              onChange={(e) => setTravelData({ ...travelData, fastCardExpiry: e.target.value })}
-                              className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
-                              placeholder="Select"
-                            />
-                          </div>
+                          <DateField
+                            label="Date Of Expiry"
+                            value={travelData.fastCardExpiry}
+                            onChange={(e) =>
+                              setTravelData({
+                                ...travelData,
+                                fastCardExpiry: e.target.value,
+                              })
+                            }
+                          />
                         </div>
                         <div className="flex items-end">
                           <label className="flex items-center gap-2 cursor-pointer">
@@ -5863,35 +6078,33 @@ const DriverManagement = () => {
 
                     {/* Permanent Residence Expiry */}
                     {travelData.canadianWorkerStatus === 'PERMANENT RESIDENT' && (
-                      <div className="mt-6">
-                        <label className="block text-sm font-medium text-primary mb-1">Permanent Residence Expiry</label>
-                        <div className="relative max-w-md">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
-                          <input
-                            type="date"
-                            value={travelData.permanentResidenceExpiry}
-                            onChange={(e) => setTravelData({ ...travelData, permanentResidenceExpiry: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
-                            placeholder="Select"
-                          />
-                        </div>
+                      <div className="mt-6 max-w-md">
+                        <DateField
+                          label="Permanent Residence Expiry"
+                          value={travelData.permanentResidenceExpiry}
+                          onChange={(e) =>
+                            setTravelData({
+                              ...travelData,
+                              permanentResidenceExpiry: e.target.value,
+                            })
+                          }
+                        />
                       </div>
                     )}
 
                     {/* Work Permit Expiry */}
                     {travelData.canadianWorkerStatus === 'WORK PERMIT' && (
-                      <div className="mt-6">
-                        <label className="block text-sm font-medium text-primary mb-1">Work Permit Expiry</label>
-                        <div className="relative max-w-md">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
-                          <input
-                            type="date"
-                            value={travelData.workPermitExpiry}
-                            onChange={(e) => setTravelData({ ...travelData, workPermitExpiry: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
-                            placeholder="Select"
-                          />
-                        </div>
+                      <div className="mt-6 max-w-md">
+                        <DateField
+                          label="Work Permit Expiry"
+                          value={travelData.workPermitExpiry}
+                          onChange={(e) =>
+                            setTravelData({
+                              ...travelData,
+                              workPermitExpiry: e.target.value,
+                            })
+                          }
+                        />
                       </div>
                     )}
 
@@ -6644,151 +6857,111 @@ const DriverManagement = () => {
                           </tr>
                         </thead>
                         <tbody className="bg-card">
-                          <tr className="bg-card">
-                            <td className="px-3 py-2">
-                              <div className="relative">
+                          <tr className="bg-card hover:bg-[rgba(0,209,255,0.05)] transition-all">
+                            <td colSpan={7} className="p-3">
+
+                              {/* Row 1 */}
+                              <div className="grid grid-cols-5 gap-3 mb-2">
+
+                                {/* Date */}
                                 <input
                                   type="date"
                                   value={newTicket.date}
                                   onChange={(e) => setNewTicket({ ...newTicket, date: e.target.value })}
-                                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                                  className="form-select text-sm"
                                 />
-                                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
-                              </div>
-                            </td>
-                            <td className="px-3 py-2">
-                              <input
-                                type="text"
-                                placeholder="Title"
-                                value={newTicket.title}
-                                onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
-                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
-                              />
-                            </td>
-                            <td className="px-3 py-2">
-                              <input
-                                type="text"
-                                placeholder="Description"
-                                value={newTicket.description}
-                                onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
-                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
-                              />
-                            </td>
-                            <td className="px-3 py-2">
-                              <div className="flex items-center gap-2">
+
+                                {/* Title */}
                                 <input
                                   type="text"
-                                  placeholder="Amount"
-                                  value={newTicket.amount}
-                                  onChange={(e) => setNewTicket({ ...newTicket, amount: e.target.value })}
-                                  className="flex-1 px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                                  placeholder="Title"
+                                  value={newTicket.title}
+                                  onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
+                                  className="form-select text-sm"
                                 />
-                                <select
-                                  value={newTicket.currency}
-                                  onChange={(e) => setNewTicket({ ...newTicket, currency: e.target.value })}
-                                  className="w-20 px-2 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent text-sm"
-                                >
-                                  <option value="CAD">CAD</option>
-                                  <option value="USD">USD</option>
-                                </select>
-                              </div>
-                            </td>
-                            <td className="px-3 py-2">
-                              <select
-                                value={newTicket.status}
-                                onChange={(e) => setNewTicket({ ...newTicket, status: e.target.value })}
-                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
-                              >
-                                <option value="Unpaid">Unpaid</option>
-                                <option value="Paid">Paid</option>
-                                <option value="Contested">Contested</option>
-                                <option value="Waived">Waived</option>
-                              </select>
-                            </td>
-                            <td className="px-3 py-2">
-                              <div className="flex items-center gap-2 min-w-0">
-                                {ticketFile ? (
-                                  <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card flex-1 min-w-0">
-                                    <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
-                                    <span className="text-sm text-primary truncate flex-1 min-w-0">{ticketFile.name}</span>
-                                    <button
-                                      onClick={() => {
-                                        setTicketFile(null);
-                                        setNewTicket({ ...newTicket, file: null });
-                                      }}
-                                      className="text-secondary hover:text-[#A855F7] transition-colors flex-shrink-0"
-                                      title="Remove file"
-                                    >
-                                      <X className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <label className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors flex-1 min-w-0">
-                                    <Upload className="w-4 h-4 text-secondary flex-shrink-0" />
-                                    <span className="text-sm text-primary truncate">Select File</span>
-                                    <input
-                                      type="file"
-                                      className="hidden"
-                                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                      onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) {
-                                          setTicketFile(file);
-                                          setNewTicket({ ...newTicket, file: file });
-                                        }
-                                      }}
-                                    />
-                                  </label>
-                                )}
-                                <button
-                                  onClick={() => {
-                                    if (newTicket.date || newTicket.title || newTicket.description || newTicket.amount) {
-                                      if (editingTicketId) {
-                                        setTickets(tickets.map(t =>
-                                          t.id === editingTicketId
-                                            ? {
-                                              ...t,
-                                              date: newTicket.date,
-                                              title: newTicket.title,
-                                              description: newTicket.description,
-                                              amount: newTicket.amount,
-                                              currency: newTicket.currency,
-                                              status: newTicket.status,
-                                              file: newTicket.file
-                                            }
-                                            : t
-                                        ));
-                                        setEditingTicketId(null);
-                                      } else {
-                                        setTickets([...tickets, {
-                                          id: Date.now().toString(),
-                                          date: newTicket.date,
-                                          title: newTicket.title,
-                                          description: newTicket.description,
-                                          amount: newTicket.amount,
-                                          currency: newTicket.currency,
-                                          status: newTicket.status,
-                                          file: newTicket.file
-                                        }]);
-                                      }
-                                      setNewTicket({
-                                        date: '',
-                                        title: '',
-                                        description: '',
-                                        amount: '',
-                                        currency: 'CAD',
-                                        status: 'Unpaid',
-                                        file: null
-                                      });
-                                      setTicketFile(null);
+
+                                {/* Amount + Currency */}
+                                <div className="flex items-center gap-2 w-full">
+
+                                  <input
+                                    type="text"
+                                    placeholder="Amount"
+                                    value={newTicket.amount || ''}
+                                    onChange={(e) =>
+                                      setNewTicket((prev) => ({
+                                        ...prev,
+                                        amount: e.target.value,
+                                      }))
                                     }
-                                  }}
-                                  className="w-10 h-10 bg-[rgba(255,255,255,0.08)] border border-theme !text-white rounded-lg flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors flex-shrink-0"
-                                  title={editingTicketId ? "Save changes" : "Add ticket"}
+                                    className="flex-1 min-w-[60px] px-3 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                                  />
+
+                                  <select
+                                    value={newTicket.currency}
+                                    onChange={(e) =>
+                                      setNewTicket((prev) => ({
+                                        ...prev,
+                                        currency: e.target.value,
+                                      }))
+                                    }
+                                    className="w-14 px-2 py-2 bg-[rgba(255,255,255,0.05)] text-primary border border-theme rounded-lg"
+                                  >
+                                    <option className="form-option">CAD</option>
+                                    <option className="form-option">USD</option>
+                                  </select>
+
+                                </div>
+
+                                {/* Status */}
+                                <select
+                                  value={newTicket.status}
+                                  onChange={(e) => setNewTicket({ ...newTicket, status: e.target.value })}
+                                  className="form-select text-sm"
                                 >
-                                  {editingTicketId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                                  <option className="form-option">Unpaid</option>
+                                  <option className="form-option">Paid</option>
+                                  <option className="form-option">Contested</option>
+                                  <option className="form-option">Waived</option>
+                                </select>
+
+                                {/* Action */}
+                                <button className="bg-[var(--accent-navyblue)] text-white rounded-lg px-2 hover:opacity-90">
+                                  {editingTicketId ? "Save" : "Add"}
                                 </button>
                               </div>
+
+                              {/* Row 2 */}
+                              <div className="grid grid-cols-2 gap-3">
+
+                                {/* Description */}
+                                <input
+                                  type="text"
+                                  placeholder="Description"
+                                  value={newTicket.description}
+                                  onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
+                                  className="form-select text-sm"
+                                />
+
+                                {/* File Upload */}
+                                <label className="form-select flex items-center gap-2 cursor-pointer">
+                                  <Upload className="w-4 h-4 text-secondary" />
+                                  <span className="text-sm text-secondary truncate">
+                                    {ticketFile ? ticketFile.name : "Upload File"}
+                                  </span>
+                                  <input
+                                    type="file"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) {
+                                        setTicketFile(file);
+                                        setNewTicket({ ...newTicket, file });
+                                      }
+                                    }}
+                                  />
+                                </label>
+                              </div>
+
                             </td>
                           </tr>
                         </tbody>
@@ -7086,13 +7259,13 @@ const DriverManagement = () => {
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent ${validationErrors.violationType ? 'border-[var(--accent-red)]' : 'border-theme'
                               }`}
                           >
-                            <option value="">Select Type</option>
-                            <option value="HOS">HOS</option>
-                            <option value="Behaviour Issue">Behaviour Issue</option>
-                            <option value="Safety Violation">Safety Violation</option>
-                            <option value="Warning Letter">Warning Letter</option>
-                            <option value="General">General</option>
-                            <option value="Other">Other</option>
+                            <option className="form-option" value="">Select Type</option>
+                            <option className="form-option" value="HOS">HOS</option>
+                            <option className="form-option" value="Behaviour Issue">Behaviour Issue</option>
+                            <option className="form-option" value="Safety Violation">Safety Violation</option>
+                            <option className="form-option" value="Warning Letter">Warning Letter</option>
+                            <option className="form-option" value="General">General</option>
+                            <option className="form-option" value="Other">Other</option>
                           </select>
                           {validationErrors.violationType && (
                             <p className="text-xs text-[var(--accent-red)] mt-0.5">{validationErrors.violationType}</p>
@@ -7109,16 +7282,21 @@ const DriverManagement = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-primary mb-1">Date of Incident <span className="text-[var(--accent-red)]">*</span></label>
-                          <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
-                            <input
-                              type="date"
-                              value={newViolation.dateOfIncident}
-                              onChange={(e) => setNewViolation({ ...newViolation, dateOfIncident: e.target.value })}
-                              className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
-                            />
-                          </div>
+                          <DateField
+                            label={
+                              <>
+                                Date of Incident{" "}
+                                <span className="text-[var(--accent-red)]">*</span>
+                              </>
+                            }
+                            value={newViolation.dateOfIncident}
+                            onChange={(e) =>
+                              setNewViolation((prev) => ({
+                                ...prev,
+                                dateOfIncident: e.target.value,
+                              }))
+                            }
+                          />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-primary mb-1">Reported By</label>
@@ -7137,10 +7315,10 @@ const DriverManagement = () => {
                             onChange={(e) => setNewViolation({ ...newViolation, severity: e.target.value })}
                             className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           >
-                            <option value="">Select Severity</option>
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
-                            <option value="High">High</option>
+                            <option className="form-option" value="">Select Severity</option>
+                            <option className="form-option" value="Low">Low</option>
+                            <option className="form-option" value="Medium">Medium</option>
+                            <option className="form-option" value="High">High</option>
                           </select>
                         </div>
                         <div>
@@ -7150,11 +7328,11 @@ const DriverManagement = () => {
                             onChange={(e) => setNewViolation({ ...newViolation, actionTaken: e.target.value })}
                             className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           >
-                            <option value="">Select Action</option>
-                            <option value="None">None</option>
-                            <option value="Warning">Warning</option>
-                            <option value="Training">Training</option>
-                            <option value="Suspension">Suspension</option>
+                            <option className="form-option" value="">Select Action</option>
+                            <option className="form-option" value="None">None</option>
+                            <option className="form-option" value="Warning">Warning</option>
+                            <option className="form-option" value="Training">Training</option>
+                            <option className="form-option" value="Suspension">Suspension</option>
                           </select>
                         </div>
                         <div>
@@ -7164,10 +7342,10 @@ const DriverManagement = () => {
                             onChange={(e) => setNewViolation({ ...newViolation, status: e.target.value })}
                             className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                           >
-                            <option value="">Select Status</option>
-                            <option value="Open">Open</option>
-                            <option value="Under Review">Under Review</option>
-                            <option value="Closed">Closed</option>
+                            <option className="form-option" value="">Select Status</option>
+                            <option className="form-option" value="Open">Open</option>
+                            <option className="form-option" value="Under Review">Under Review</option>
+                            <option className="form-option" value="Closed">Closed</option>
                           </select>
                         </div>
                         <div className="sm:col-span-2 lg:col-span-3">
@@ -7488,12 +7666,12 @@ const DriverManagement = () => {
                           onChange={(e) => setNewNote({ ...newNote, category: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="">Category</option>
-                          <option value="Safety">Safety</option>
-                          <option value="Attitude">Attitude</option>
-                          <option value="Ops">Ops</option>
-                          <option value="General">General</option>
-                          <option value="Maintenance">Maintenance</option>
+                          <option className="form-option" value="">Category</option>
+                          <option className="form-option" value="Safety">Safety</option>
+                          <option className="form-option" value="Attitude">Attitude</option>
+                          <option className="form-option" value="Ops">Ops</option>
+                          <option className="form-option" value="General">General</option>
+                          <option className="form-option" value="Maintenance">Maintenance</option>
                         </select>
                       </div>
                       <div>
@@ -7600,16 +7778,16 @@ const DriverManagement = () => {
                     {/* Deductions Input Row */}
                     <div className="flex items-center gap-3 p-4 bg-card rounded-lg">
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-primary mb-1">Start Date</label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
-                          <input
-                            type="date"
-                            value={newDeduction.startDate}
-                            onChange={(e) => setNewDeduction({ ...newDeduction, startDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
-                          />
-                        </div>
+                        <DateField
+                          label="Start Date"
+                          value={newDeduction.startDate}
+                          onChange={(e) =>
+                            setNewDeduction((prev) => ({
+                              ...prev,
+                              startDate: e.target.value,
+                            }))
+                          }
+                        />
                       </div>
                       <div className="flex-1">
                         <label className="block text-sm font-medium text-primary mb-1">Description</label>
@@ -7638,12 +7816,12 @@ const DriverManagement = () => {
                           onChange={(e) => setNewDeduction({ ...newDeduction, interval: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="">Interval</option>
-                          <option value="Weekly">Weekly</option>
-                          <option value="Bi-Weekly">Bi-Weekly</option>
-                          <option value="Monthly">Monthly</option>
-                          <option value="Yearly">Yearly</option>
-                          <option value="One Time Payment">One Time Payment</option>
+                          <option className="form-option" value="">Interval</option>
+                          <option className="form-option" value="Weekly">Weekly</option>
+                          <option className="form-option" value="Bi-Weekly">Bi-Weekly</option>
+                          <option className="form-option" value="Monthly">Monthly</option>
+                          <option className="form-option" value="Yearly">Yearly</option>
+                          <option className="form-option" value="One Time Payment">One Time Payment</option>
                         </select>
                       </div>
                       <div className="flex-1">
@@ -7653,8 +7831,8 @@ const DriverManagement = () => {
                           onChange={(e) => setNewDeduction({ ...newDeduction, currency: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="CAD">CAD</option>
-                          <option value="USD">USD</option>
+                          <option className="form-option" value="CAD">CAD</option>
+                          <option className="form-option" value="USD">USD</option>
                         </select>
                       </div>
                       <div className="flex items-end">
@@ -7806,16 +7984,16 @@ const DriverManagement = () => {
                     {/* Additions Input Row */}
                     <div className="flex items-center gap-3 p-4 bg-card rounded-lg">
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-primary mb-1">Start Date</label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
-                          <input
-                            type="date"
-                            value={newAddition.startDate}
-                            onChange={(e) => setNewAddition({ ...newAddition, startDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
-                          />
-                        </div>
+                        <DateField
+                          label="Start Date"
+                          value={newAddition.startDate}
+                          onChange={(e) =>
+                            setNewAddition((prev) => ({
+                              ...prev,
+                              startDate: e.target.value,
+                            }))
+                          }
+                        />
                       </div>
                       <div className="flex-1">
                         <label className="block text-sm font-medium text-primary mb-1">Description</label>
@@ -7844,12 +8022,12 @@ const DriverManagement = () => {
                           onChange={(e) => setNewAddition({ ...newAddition, interval: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="">Interval</option>
-                          <option value="Weekly">Weekly</option>
-                          <option value="Bi-Weekly">Bi-Weekly</option>
-                          <option value="Monthly">Monthly</option>
-                          <option value="Yearly">Yearly</option>
-                          <option value="One Time Payment">One Time Payment</option>
+                          <option className="form-option" value="">Interval</option>
+                          <option className="form-option" value="Weekly">Weekly</option>
+                          <option className="form-option" value="Bi-Weekly">Bi-Weekly</option>
+                          <option className="form-option" value="Monthly">Monthly</option>
+                          <option className="form-option" value="Yearly">Yearly</option>
+                          <option className="form-option" value="One Time Payment">One Time Payment</option>
                         </select>
                       </div>
                       <div className="flex-1">
@@ -7859,8 +8037,8 @@ const DriverManagement = () => {
                           onChange={(e) => setNewAddition({ ...newAddition, currency: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                         >
-                          <option value="CAD">CAD</option>
-                          <option value="USD">USD</option>
+                          <option className="form-option" value="CAD">CAD</option>
+                          <option className="form-option" value="USD">USD</option>
                         </select>
                       </div>
                       <div className="flex items-end">
@@ -8407,11 +8585,15 @@ const DriverManagement = () => {
                           {/* Input Row */}
                           <tr className="bg-card">
                             <td className="px-4 py-3">
-                              <input
-                                type="date"
+                              <DateField
+                                label="Date"
                                 value={newDrugTest.date}
-                                onChange={(e) => setNewDrugTest({ ...newDrugTest, date: e.target.value })}
-                                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
+                                onChange={(e) =>
+                                  setNewDrugTest((prev) => ({
+                                    ...prev,
+                                    date: e.target.value,
+                                  }))
+                                }
                               />
                             </td>
                             <td className="px-4 py-3">
@@ -8420,10 +8602,10 @@ const DriverManagement = () => {
                                 onChange={(e) => setNewDrugTest({ ...newDrugTest, result: e.target.value })}
                                 className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-navyblue)] focus:border-transparent"
                               >
-                                <option value="">Select Result</option>
-                                <option value="Negative">Negative</option>
-                                <option value="Positive">Positive</option>
-                                <option value="Pending">Pending</option>
+                                <option className="form-option" value="">Select Result</option>
+                                <option className="form-option" value="Negative">Negative</option>
+                                <option className="form-option" value="Positive">Positive</option>
+                                <option className="form-option" value="Pending">Pending</option>
                               </select>
                             </td>
                             <td className="px-4 py-3">

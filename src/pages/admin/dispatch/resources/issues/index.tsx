@@ -363,7 +363,7 @@ const Issues: React.FC = () => {
           </div>
 
           {/* Issues Table */}
-          <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+          <div className="w-full bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
 
             <div
@@ -382,7 +382,7 @@ const Issues: React.FC = () => {
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
-              <table className="min-w-full divide-y divide-theme" style={{ minWidth: '1000px' }}>
+              <table className="w-full divide-theme">
                 <thead className="bg-card">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
@@ -451,12 +451,26 @@ const Issues: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(issue.priority)}`}>
+                          <span
+                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${issue.priority === 'high'
+                              ? 'bg-[rgba(239,68,68,0.15)] text-[#F87171]'
+                              : issue.priority === 'medium'
+                                ? 'bg-[rgba(245,158,11,0.15)] text-[#FBBF24]'
+                                : 'bg-[rgba(34,197,94,0.15)] text-[#4ADE80]'
+                              }`}
+                          >
                             {issue.priority.charAt(0).toUpperCase() + issue.priority.slice(1)}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(issue.status)}`}>
+                          <span
+                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${issue.status === 'open'
+                              ? 'bg-[rgba(168,85,247,0.15)] text-[#C084FC]'
+                              : issue.status === 'in-progress'
+                                ? 'bg-[rgba(34,197,94,0.15)] text-[#4ADE80]'
+                                : 'bg-[rgba(255,255,255,0.08)] text-secondary'
+                              }`}
+                          >
                             {issue.status.replace('-', ' ').charAt(0).toUpperCase() +
                               issue.status.replace('-', ' ').slice(1)}
                           </span>
@@ -479,23 +493,27 @@ const Issues: React.FC = () => {
                         <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
 
+                            {/* Edit */}
                             <button
                               onClick={() => {
                                 setEditingIssue(issue);
                                 setShowNewIssueSidebar(true);
                               }}
-                              className="text-green-600 hover:text-green-800 p-1"
+                              className="p-2 text-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] rounded-lg transition-all duration-200"
                               title="Edit Issue"
                             >
                               <MdEdit />
                             </button>
+
+                            {/* Delete */}
                             <button
                               onClick={() => handleDelete(issue._id)}
-                              className="text-[#A855F7] hover:text-red-800 p-1"
+                              className="p-2 text-red-400 hover:bg-[rgba(239,68,68,0.1)] rounded-lg transition-all duration-200"
                               title="Delete Issue"
                             >
                               <MdDelete />
                             </button>
+
                           </div>
                         </td>
                       </tr>
@@ -636,7 +654,7 @@ const Issues: React.FC = () => {
 
               <div className="space-y-6">
                 {/* Issue Header */}
-                <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                <div className="text-white p-6 rounded-lg">
                   <div className="flex items-center gap-4">
                     <div className="flex-shrink-0">
                       {getIssueTypeIcon(selectedIssue.issueType)}

@@ -948,7 +948,7 @@ const SparePartsInventory = () => {
                                 handleDeletePart(part);
                                 setShowDropdown(false);
                             }}
-                            className="flex items-center gap-3 w-full px-4 py-2 text-sm text-[#A855F7] hover:bg-red-50 transition-colors"
+                            className="flex items-center gap-3 w-full px-4 py-2 text-sm !text-red !hover:bg-red-50 transition-colors"
                         >
                             <FaTrash size={14} />
                             Delete Part
@@ -1198,7 +1198,7 @@ const SparePartsInventory = () => {
         iconColor: string;
         textColor: string;
     }) => (
-        <div className="bg-card rounded-lg p-3 shadow-sm border border-transparent hover:border-blue-100 transition-all">
+        <div className="bg-card rounded-lg p-3 shadow-sm border border-transparent  transition-all">
             <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                     <h3 className={`text-sm font-bold  mb-1 ${textColor}`}>{title}</h3>
@@ -1350,13 +1350,13 @@ const SparePartsInventory = () => {
                                         onChange={(e) => newPartRef.current.category = e.target.value}
                                         className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
-                                        <option value="">Select Category</option>
-                                        <option value="Engine Parts">Engine Parts</option>
-                                        <option value="Brake System">Brake System</option>
-                                        <option value="Transmission">Transmission</option>
-                                        <option value="Electrical">Electrical</option>
-                                        <option value="Suspension">Suspension</option>
-                                        <option value="Body Parts">Body Parts</option>
+                                        <option className='form-option' value="">Select Category</option>
+                                        <option className='form-option' value="Engine Parts">Engine Parts</option>
+                                        <option className='form-option' value="Brake System">Brake System</option>
+                                        <option className='form-option' value="Transmission">Transmission</option>
+                                        <option className='form-option' value="Electrical">Electrical</option>
+                                        <option className='form-option' value="Suspension">Suspension</option>
+                                        <option className='form-option' value="Body Parts">Body Parts</option>
                                     </select>
                                 </div>
                                 <div>
@@ -1368,9 +1368,9 @@ const SparePartsInventory = () => {
                                         onChange={(e) => newPartRef.current.condition = e.target.value}
                                         className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
-                                        <option value="new">New</option>
-                                        <option value="refurbished">Refurbished</option>
-                                        <option value="used">Used</option>
+                                        <option className='form-option' value="new">New</option>
+                                        <option className='form-option' value="refurbished">Refurbished</option>
+                                        <option className='form-option' value="used">Used</option>
                                     </select>
                                 </div>
                             </div>
@@ -1491,13 +1491,13 @@ const SparePartsInventory = () => {
                                         }}
                                         className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
-                                        <option value="">Select Supplier</option>
+                                        <option className='form-option' value="">Select Supplier</option>
                                         {suppliers.map(supplier => (
-                                            <option key={supplier._id} value={supplier._id}>
+                                            <option className='form-option' key={supplier._id} value={supplier._id}>
                                                 {supplier.name}
                                             </option>
                                         ))}
-                                        <option value="__create_new__" className="text-[#00D1FF] font-semibold">
+                                        <option className='form-option' value="__create_new__">
                                             + Create New Supplier
                                         </option>
                                     </select>
@@ -1929,7 +1929,7 @@ const SparePartsInventory = () => {
                             <button
                                 onClick={confirmDeletePart}
                                 disabled={deleteLoading}
-                                className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="px-4 py-2 bg-red-600 !text-white rounded-lg !hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                                 {deleteLoading ? 'Deleting...' : 'Delete'}
                             </button>
@@ -2115,7 +2115,7 @@ const SparePartsInventory = () => {
                         </div>
 
                         {/* Spare Part Details */}
-                        <div className="mb-6 p-4 rounded-lg text-white" style={{ background: ACCENT_GRADIENT }}>
+                        <div className="mb-6 p-4 rounded-lg text-white">
                             <div className="flex items-center justify-between mb-3">
                                 <div>
                                     <h4 className="text-lg font-bold">{selectedPart.partName}</h4>
@@ -2215,8 +2215,8 @@ const SparePartsInventory = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-5 py-2.5 !text-white !ml-3 rounded-lg font-medium transition-colors shadow-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    style={{ background: ACCENT_GRADIENT }}
+                                    className="px-5 py-2.5 bg-[var(--accent-navyblue)]  !text-white !ml-3 rounded-lg font-medium transition-colors shadow-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    
                                     disabled={submitting || loadingUnits || units.length === 0}
                                 >
                                     {submitting ? 'Processing...' : 'Use Part'}

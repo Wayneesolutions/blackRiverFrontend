@@ -907,9 +907,9 @@ const FleetMaintenanceCustomers = () => {
                         onChange={(e) => setPrimaryPaymentMethod(e.target.value)}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.primaryPaymentMethod ? 'border-red-500' : 'border-theme'}`}
                       >
-                        <option value="">Select...</option>
+                        <option className='form-option' value="">Select...</option>
                         {paymentMethods.map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
+                          <option className='form-option' key={opt} value={opt}>{opt}</option>
                         ))}
                       </select>
                       {errors.primaryPaymentMethod && <p className="text-red-500 text-xs mt-1">{errors.primaryPaymentMethod}</p>}
@@ -922,9 +922,9 @@ const FleetMaintenanceCustomers = () => {
                         onChange={(e) => setTerms(e.target.value)}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.terms ? 'border-red-500' : 'border-theme'}`}
                       >
-                        <option value="">Select...</option>
+                        <option className='form-option' value="">Select...</option>
                         {termsOptions.map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
+                          <option className='form-option' key={opt} value={opt}>{opt}</option>
                         ))}
                       </select>
                       {errors.terms && <p className="text-red-500 text-xs mt-1">{errors.terms}</p>}
@@ -947,9 +947,9 @@ const FleetMaintenanceCustomers = () => {
                         onChange={(e) => setCustomerType(e.target.value)}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.customerType ? 'border-red-500' : 'border-theme'}`}
                       >
-                        <option value="">Select...</option>
+                        <option className='form-option' value="">Select...</option>
                         {customerTypes.map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
+                          <option className='form-option' key={opt} value={opt}>{opt}</option>
                         ))}
                       </select>
                       {errors.customerType && <p className="text-red-500 text-xs mt-1">{errors.customerType}</p>}

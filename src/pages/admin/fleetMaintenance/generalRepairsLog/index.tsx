@@ -1004,12 +1004,12 @@ const GeneralRepairsLog: React.FC = () => {
                                 }}
                                 disabled={(repair as any).verificationStatus === 'verified'}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${(repair as any).verificationStatus === 'verified'
-                                  ? 'bg-green-100 text-green-700 border-green-300 cursor-not-allowed'
-                                  : 'bg-yellow-100 text-yellow-700 border-yellow-300 cursor-pointer hover:bg-yellow-200'
+                                  ? '!bg-green-100 !text-green-700 border-green-300 cursor-not-allowed'
+                                  : '!bg-yellow-100 !text-yellow-700 border-yellow-300 cursor-pointer hover:bg-yellow-200'
                                   }`}
                               >
-                                <option value="not-verified">Not Verified</option>
-                                <option value="verified">Verified</option>
+                                <option className='form-option' value="not-verified">Not Verified</option>
+                                <option className='form-option' value="verified">Verified</option>
                               </select>
                             ) : (
                               <span className="text-secondary text-sm">—</span>
@@ -1161,7 +1161,7 @@ const GeneralRepairsLog: React.FC = () => {
 
                     {/* Completion Details - Show if order is completed */}
                     {((selectedRepair as any).status === 'completed') && (
-                      <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+                      <div className=" p-6 rounded-lg border border-green-200">
                         <h4 className="font-semibold text-headings mb-4 text-lg flex items-center gap-2">
                           <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                           Completion Details
@@ -1309,6 +1309,7 @@ const GeneralRepairsLog: React.FC = () => {
                       <div>
                         <label className="block text-sm font-medium text-headings mb-2">Unit Number *</label>
                         <select
+
                           value={formData.unitNumber}
                           onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
                           className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
@@ -1322,9 +1323,9 @@ const GeneralRepairsLog: React.FC = () => {
                             e.target.style.boxShadow = '';
                           }}
                         >
-                          <option value="">Select Unit</option>
+                          <option className='form-option' value="">Select Unit</option>
                           {units.map((unit) => (
-                            <option key={unit.unitNo} value={unit.unitNo}>
+                            <option className='form-option' key={unit.unitNo} value={unit.unitNo}>
                               {unit.unitNo} - {unit.makeModel}
                             </option>
                           ))}
@@ -1391,9 +1392,9 @@ const GeneralRepairsLog: React.FC = () => {
                               onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                               onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                             >
-                              <option value="">Select mechanic</option>
+                              <option className='form-option' value="">Select mechanic</option>
                               {serviceProviders.map((provider) => (
-                                <option key={provider.id} value={provider.id}>
+                                <option className='form-option' key={provider.id} value={provider.id}>
                                   {provider.name} {provider.role ? `(${provider.role})` : ''}
                                 </option>
                               ))}

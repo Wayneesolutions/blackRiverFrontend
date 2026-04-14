@@ -356,7 +356,7 @@ const TrainingContentView: React.FC = () => {
 
   return (
     <div className="p-6 bg-main min-h-screen">
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-headings mb-2">Training Content</h1>
           <p className="text-secondary">

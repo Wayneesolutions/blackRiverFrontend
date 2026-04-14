@@ -443,7 +443,7 @@ const YardManagement = () => {
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     >
                       {yardTypes.map(type => (
-                        <option key={type} value={type}>
+                        <option className='form-option' key={type} value={type}>
                           {type.charAt(0).toUpperCase() + type.slice(1)}
                         </option>
                       ))}
@@ -461,7 +461,7 @@ const YardManagement = () => {
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     >
                       {statusOptions.map(status => (
-                        <option key={status} value={status}>
+                        <option className='form-option' key={status} value={status}>
                           {status.charAt(0).toUpperCase() + status.slice(1)}
                         </option>
                       ))}

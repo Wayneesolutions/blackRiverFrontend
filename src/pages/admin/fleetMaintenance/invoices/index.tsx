@@ -1765,66 +1765,76 @@ const FleetInvoicesPage = () => {
                             value={INVOICE_STATUS_OPTIONS.some((o) => o.value === row.status) ? row.status : 'draft'}
                             onChange={(e) => handleStatusChange(row._id, e.target.value)}
                             disabled={updatingStatusId === row._id}
-                            className={`min-w-[100px] px-2.5 py-1.5 text-sm font-medium rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed ${row.status === 'paid'
-                              ? 'border-green-200 bg-[var(--accent-teal)] text-[var(--accent-teal)]'
-                              : row.status === 'sent'
-                                ? 'border-blue-200 bg-[var(--accent-blue)] text-[var(--accent-blue)]'
-                                : row.status === 'cancelled'
-                                  ? 'border-theme bg-card text-secondary'
-                                  : displayStatus === 'overdue'
-                                    ? 'border-orange-200 bg-[var(--accent-orange)] text-[var(--accent-orange)]'
-                                    : 'border-theme bg-card text-secondary'
+                            className={`min-w-[110px] px-3 py-1.5 text-sm font-medium rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] disabled:opacity-60 disabled:cursor-not-allowed ${row.status === 'paid'
+                                ? 'bg-[rgba(16,185,129,0.15)] text-[#34D399] border-[rgba(16,185,129,0.3)]'
+                                : row.status === 'sent'
+                                  ? 'bg-[rgba(59,130,246,0.15)] text-[#60A5FA] border-[rgba(59,130,246,0.3)]'
+                                  : row.status === 'cancelled'
+                                    ? 'bg-[rgba(239,68,68,0.12)] text-[#F87171] border-[rgba(239,68,68,0.3)]'
+                                    : displayStatus === 'overdue'
+                                      ? 'bg-[rgba(245,158,11,0.15)] text-[#FBBF24] border-[rgba(245,158,11,0.3)]'
+                                      : 'bg-[rgba(255,255,255,0.05)] text-secondary border border-theme hover:bg-[rgba(255,255,255,0.08)]'
                               }`}
                           >
                             {INVOICE_STATUS_OPTIONS.map((opt) => (
-                              <option key={opt.value} value={opt.value}>
+                              <option key={opt.value} value={opt.value} className="form-option">
                                 {opt.label}
                               </option>
                             ))}
                           </select>
+
                           {updatingStatusId === row._id && (
                             <span className="ml-2 text-xs text-secondary">Updating…</span>
                           )}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
+
+                            {/* Edit */}
                             <button
                               type="button"
                               onClick={() => handleEditInvoice(row._id)}
-                              className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-2 text-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] rounded-lg transition-all"
                               title="View/Edit"
                             >
                               <FaEdit size={14} />
                             </button>
+
+                            {/* Email */}
                             <button
                               type="button"
                               onClick={() => handleSendInvoiceEmail(row)}
                               disabled={emailingId === row._id}
-                              className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50"
+                              className="p-2 text-emerald-400 hover:bg-[rgba(16,185,129,0.1)] rounded-lg transition-all disabled:opacity-50"
                               title={emailingId === row._id ? 'Sending…' : 'Send Invoice Email'}
                             >
                               {emailingId === row._id
                                 ? <FaSpinner size={14} className="animate-spin" />
                                 : <FaEnvelope size={14} />}
                             </button>
+
+                            {/* Delete */}
                             <button
                               type="button"
                               onClick={() => handleDeleteInvoice(row._id)}
                               disabled={deleting === row._id}
-                              className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                              className="p-2 text-red-400 hover:bg-[rgba(239,68,68,0.1)] rounded-lg transition-all disabled:opacity-50"
                               title="Delete"
                             >
                               <FaTrash size={14} />
                             </button>
+
+                            {/* PDF */}
                             <button
                               type="button"
                               onClick={() => handleDownloadInvoicePDF(row._id)}
                               disabled={printingPdfId === row._id}
-                              className="p-2 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors disabled:opacity-50"
+                              className="p-2 text-secondary hover:text-white hover:bg-[rgba(255,255,255,0.08)] rounded-lg transition-all disabled:opacity-50"
                               title={printingPdfId === row._id ? 'Generating PDF…' : 'Download PDF'}
                             >
                               <FaPrint size={14} />
                             </button>
+
                           </div>
                         </td>
                       </tr>
@@ -1863,7 +1873,7 @@ const FleetInvoicesPage = () => {
                   <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Vehicle Information</h3>
                   <div className="space-y-3">
                     {vehicleInfo.map((vehicle, idx) => (
-                      <div key={idx} className="rounded-lg border border-blue-200 bg-blue-50/50 p-4">
+                      <div key={idx} className="rounded-lg  p-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                           <div>
                             <p className="text-xs text-secondary mb-1">Unit Number</p>
@@ -1906,9 +1916,9 @@ const FleetInvoicesPage = () => {
                         onChange={(e) => handleCustomerChange(e.target.value)}
                         className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-headings ${extractedVendorName && !customerId ? 'border-amber-400 bg-amber-50' : 'border-theme'}`}
                       >
-                        <option value="">{extractedVendorName ? `— Using: ${extractedVendorName} —` : 'Select client...'}</option>
+                        <option className='form-option' value="">{extractedVendorName ? `— Using: ${extractedVendorName} —` : 'Select client...'}</option>
                         {customers.map((c) => (
-                          <option key={c._id} value={c._id}>{c.name}</option>
+                          <option className='form-option' key={c._id} value={c._id}>{c.name}</option>
                         ))}
                       </select>
                       {extractedVendorName && !customerId && (
@@ -2039,9 +2049,9 @@ const FleetInvoicesPage = () => {
                         onChange={(e) => handleTermsChange(e.target.value)}
                         className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="">Payment window...</option>
+                        <option className='form-option' value="">Payment window...</option>
                         {TERMS_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>{o.value}</option>
+                          <option className='form-option' key={o.value} value={o.value}>{o.value}</option>
                         ))}
                       </select>
                     </div>
@@ -2160,9 +2170,9 @@ const FleetInvoicesPage = () => {
                             }}
                             className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                           >
-                            <option value="">Select...</option>
+                            <option className='form-option' value="">Select...</option>
                             {productOptions.map((opt) => (
-                              <option key={opt.id} value={opt.id}>{opt.label}</option>
+                              <option className='form-option' key={opt.id} value={opt.id}>{opt.label}</option>
                             ))}
                           </select>
                           {productOptionsLoading && (
@@ -2219,9 +2229,9 @@ const FleetInvoicesPage = () => {
                             className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                           >
                             {allTaxes.map((t) => (
-                              <option key={t.id} value={t.id}>{t.name} ({t.percent}%)</option>
+                              <option className='form-option' key={t.id} value={t.id}>{t.name} ({t.percent}%)</option>
                             ))}
-                            <option value="__add__">+ Add custom tax...</option>
+                            <option className='form-option' value="__add__">+ Add custom tax...</option>
                           </select>
                         </div>
                       </div>
@@ -2346,7 +2356,7 @@ const FleetInvoicesPage = () => {
                       className="w-full px-3 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       {allTaxes.map((tax) => (
-                        <option key={tax.id} value={tax.id}>
+                        <option className='form-option' key={tax.id} value={tax.id}>
                           {tax.name} {tax.percent > 0 ? `(${tax.percent}%)` : ''}
                         </option>
                       ))}

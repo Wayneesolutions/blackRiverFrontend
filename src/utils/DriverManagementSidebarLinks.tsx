@@ -68,11 +68,11 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     icon: <FaGraduationCap />,
     label: "Driver Training Center",
   },
-  {
-    key: "/admin/Management/drug-test",
-    icon: <FaFlask />,
-    label: "Drug Test",
-  },
+  // {
+  //   key: "/admin/Management/drug-test",
+  //   icon: <FaFlask />,
+  //   label: "Drug Test",
+  // },
   {
     key: "/admin/Management/eld-documents",
     icon: <FileText className="w-5 h-5" />,

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FileText, 
-  Upload, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  X, 
-  Image as ImageIcon, 
-  Video, 
+import {
+  FileText,
+  Upload,
+  Plus,
+  Edit,
+  Trash2,
+  X,
+  Image as ImageIcon,
+  Video,
   CheckCircle,
   Eye,
   Play
@@ -107,7 +107,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
   );
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
-  
+
   // Training Content State
   const [trainingContent, setTrainingContent] = useState<TrainingContent[]>([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -364,7 +364,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
   const handleSaveQuestionBank = async () => {
     console.log('🔵 handleSaveQuestionBank called');
     console.log('🔵 questionBankForm:', questionBankForm);
-    
+
     if (!questionBankForm.testName.trim()) {
       showNotification('error', 'Please provide a test name');
       return;
@@ -591,21 +591,19 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
               <div className="flex border-b border-theme">
                 <button
                   onClick={() => setActiveTab('training')}
-                  className={`px-6 py-3 font-medium text-sm transition-colors ${
-                    activeTab === 'training'
+                  className={`px-6 py-3 font-medium text-sm transition-colors ${activeTab === 'training'
                       ? 'text-[rgba(0,209,255,0.15)] border-b-2 border-[rgba(0,209,255,0.15)]'
                       : 'text-secondary hover:text-primary'
-                  }`}
+                    }`}
                 >
                   Training Content
                 </button>
                 <button
                   onClick={() => setActiveTab('questionBanks')}
-                  className={`px-6 py-3 font-medium text-sm transition-colors ${
-                    activeTab === 'questionBanks'
+                  className={`px-6 py-3 font-medium text-sm transition-colors ${activeTab === 'questionBanks'
                       ? 'text-[rgba(0,209,255,0.15)] border-b-2 border-[rgba(0,209,255,0.15)]'
                       : 'text-secondary hover:text-primary'
-                  }`}
+                    }`}
                 >
                   Question Banks
                 </button>
@@ -641,46 +639,63 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                 <p className="text-secondary text-sm mt-2">Click "Upload Content" to get started</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {trainingContent.map((content) => (
-                  <div key={content.id} className="border border-theme rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3 flex-1">
-                        {getFileIcon(content.type)}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-primary truncate">{content.name}</h3>
-                          <p className="text-xs text-secondary">{content.type}</p>
+                  <div
+                    key={content.id}
+                    className="bg-[#0f1b2d] border border-[rgba(0,209,255,0.15)] rounded-xl p-5 hover:shadow-lg hover:border-[rgba(0,209,255,0.35)] transition-all duration-300"
+                  >
+                    {/* Top Section */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex gap-3">
+                        <div className="text-red-400">
+                          {getFileIcon(content.type)}
+                        </div>
+
+                        <div className="min-w-0">
+                          <h3 className="text-primary font-semibold line-clamp-2 break-words">
+                            {content.name}
+                          </h3>
+                          <p className="text-xs text-secondary mt-1">
+                            {content.type}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+
+                      {/* Actions */}
+                      <div className="flex gap-2">
                         <button
                           onClick={() => handleViewContent(content)}
-                          className="text-blue-500 hover:text-blue-700 transition-colors"
-                          title="View/Open Content"
+                          className="text-blue-400 hover:text-blue-600 transition"
                         >
-                          {content.type === 'VIDEO' ? (
+                          {content.type === "VIDEO" ? (
                             <Play className="w-4 h-4" />
                           ) : (
                             <Eye className="w-4 h-4" />
                           )}
                         </button>
+
                         <button
                           onClick={() => handleDeleteContent(content.id)}
-                          className="text-red-500 hover:text-red-700 transition-colors"
-                          title="Delete Content"
+                          className="text-red-400 hover:text-red-600 transition"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${getTestTypeColor(content.testType)}`}>
+
+                    {/* Tag */}
+                    <div className="mb-3">
+                      <span className="px-3 py-1 rounded-md text-xs font-medium bg-[rgba(255,255,255,0.08)] text-primary">
                         {content.testType}
                       </span>
                     </div>
+
+                    {/* Footer */}
                     {content.uploadedAt && (
                       <p className="text-xs text-secondary">
-                        Uploaded: {new Date(content.uploadedAt).toLocaleDateString()}
+                        Uploaded:{" "}
+                        {new Date(content.uploadedAt).toLocaleDateString()}
                       </p>
                     )}
                   </div>
@@ -747,7 +762,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                         </button>
                         <button
                           onClick={() => handleDeleteQuestionBank(bank.id)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded transition-colors"
+                          className="p-2 !text-red-500 !hover:bg-red-50 rounded transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -797,11 +812,10 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                         <button
                           key={option.value}
                           onClick={() => setUploadForm(prev => ({ ...prev, type: option.value }))}
-                          className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-lg transition-colors ${
-                            uploadForm.type === option.value
+                          className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-lg transition-colors ${uploadForm.type === option.value
                               ? 'border-[rgba(0,209,255,0.15)] bg-[rgba(0,209,255,0.15)]/10 text-[rgba(0,209,255,0.15)]'
                               : 'border-theme hover:border-gray-400'
-                          }`}
+                            }`}
                         >
                           {option.icon}
                           <span className="text-sm font-medium">{option.label}</span>
@@ -818,7 +832,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)]"
                     >
                       {testTypes.map((type) => (
-                        <option key={type.value} value={type.value}>
+                        <option className="form-option" key={type.value} value={type.value}>
                           {type.label}
                         </option>
                       ))}
@@ -912,7 +926,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                         className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)]"
                       >
                         {testTypes.map((type) => (
-                          <option key={type.value} value={type.value}>
+                          <option className="form-option" key={type.value} value={type.value}>
                             {type.label}
                           </option>
                         ))}
@@ -1035,11 +1049,10 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                                   {question.options.map((option, optIndex) => (
                                     <div
                                       key={optIndex}
-                                      className={`flex items-center gap-2 text-sm ${
-                                        optIndex === question.correctAnswer
+                                      className={`flex items-center gap-2 text-sm ${optIndex === question.correctAnswer
                                           ? 'text-green-600 font-medium'
                                           : 'text-secondary'
-                                      }`}
+                                        }`}
                                     >
                                       {optIndex === question.correctAnswer ? (
                                         <CheckCircle className="w-4 h-4" />

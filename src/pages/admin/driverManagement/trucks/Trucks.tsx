@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, Upload, ChevronUp, ChevronDown, Clock, X, Image as ImageIcon, Calendar, ChevronLeft, ChevronRight, Edit, Trash2, FileText, Check, FileDown } from 'lucide-react';
 import ExcelJS from 'exceljs';
@@ -10,6 +10,16 @@ import { getAllEmployees } from '../../../../axios/api/employee';
 import { getAllYards, type Yard } from '../../../../axios/api/fleet.yards';
 import apiClient from '../../../../axios/apiClient';
 import ConfirmationModal from '../../../../components/common/ConfirmationModal';
+
+type StepType =
+  | 'Details'
+  | 'Inspections'
+  | 'Documents'
+  | 'Invoice'
+  | 'Notes'
+  | 'Payroll'
+  | 'Deductions'
+  | 'Additions';
 
 interface Truck {
     _id?: string;
@@ -84,7 +94,7 @@ const Trucks: React.FC = () => {
 
     // Sidebar modal state
     const [showSidebar, setShowSidebar] = useState(false);
-    const [activeStep, setActiveStep] = useState<'Details' | 'Inspections' | 'Documents' | 'Notes' | 'Payroll' | 'Deductions' | 'Additions'>('Details');
+    const [activeStep, setActiveStep] = useState<'Details' | 'Inspections' | 'Documents' | 'Invoice' | 'Notes' | 'Payroll' | 'Deductions' | 'Additions'>('Details');
     const [inspectionType, setInspectionType] = useState<'One Time' | 'Recurring'>('One Time');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -241,11 +251,11 @@ const Trucks: React.FC = () => {
         console.log('🗑️ Deleted inspection:', id);
     };
 
-    // Documents data
-    const [documentType, setDocumentType] = useState<'General' | 'Ownership' | 'Cab Card' | 'Plate' | 'Safety' | 'Insurance'>('General');
-    const [documents, setDocuments] = useState<Record<string, Array<{
+    // Documents data (single list, no tabs)
+    const [documents, setDocuments] = useState<Array<{
         id: string;
         _id?: string;
+        title: string;
         expiryDate: string;
         description: string;
         file: File | null;
@@ -253,20 +263,15 @@ const Trucks: React.FC = () => {
         fileName?: string;
         ignoreExpiration: boolean;
         isExisting?: boolean;
-    }>>>({
-        General: [],
-        Ownership: [],
-        'Cab Card': [],
-        Plate: [],
-        Safety: [],
-        Insurance: []
-    });
+    }>>([]);
     const [documentForm, setDocumentForm] = useState({
+        title: '',
         expiryDate: '',
         description: '',
         file: null as File | null,
         ignoreExpiration: false
     });
+    const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
 
     // Invoices data
     const [invoices, setInvoices] = useState<Array<{
@@ -283,6 +288,17 @@ const Trucks: React.FC = () => {
         isExisting?: boolean;
     }>>([]);
 
+    const [invoiceForm, setInvoiceForm] = useState({
+        invoiceNumber: '',
+        vendorWorkshop: '',
+        amount: '',
+        invoiceDate: '',
+        file: null as File | null,
+        notes: ''
+    });
+
+    const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
+    const invoiceFileInputRef = useRef<HTMLInputElement>(null);
 
     // Notes data
     const [notes, setNotes] = useState<Array<{
@@ -294,6 +310,7 @@ const Trucks: React.FC = () => {
         note: '',
         category: 'Category'
     });
+    const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
     // Payroll data
     const [paymentMethod, setPaymentMethod] = useState<'PAID PER MILE' | 'PAID PERCENT' | 'PAID BY TRIP' | 'PAID PER HOUR'>('PAID PER MILE');
@@ -697,69 +714,37 @@ const Trucks: React.FC = () => {
 
                             console.log('📄 Found vehicle entry:', vehicleEntry);
 
-                            const docsByType: Record<string, Array<any>> = {
-                                General: [],
-                                Ownership: [],
-                                'Cab Card': [],
-                                Plate: [],
-                                Safety: [],
-                                Insurance: []
-                            };
-
-                            // Extract documents from the vehicle entry
+                            // Flatten all document types into a single list (no tabs)
                             const vehicleDocuments = vehicleEntry?.documents || [];
                             console.log('📄 Vehicle documents:', vehicleDocuments);
-
-                            vehicleDocuments.forEach((doc: any) => {
-                                const type = doc.documentType || 'General';
+                            const flatDocs = vehicleDocuments.map((doc: any) => {
                                 console.log('📄 Processing document:', {
-                                    type,
                                     documentNumber: doc.documentNumber,
                                     hasFiles: !!doc.files?.length,
                                     fileUrl: doc.documentLocation
                                 });
-                                if (docsByType[type]) {
-                                    docsByType[type].push({
-                                        id: doc._id,
-                                        _id: doc._id,
-                                        expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
-                                        description: doc.documentNumber || doc.description || '',
-                                        file: null,
-                                        fileUrl: doc.files?.[0]?.fileUrl || doc.documentLocation,
-                                        fileName: doc.files?.[0]?.fileName || (doc.files?.[0] ? 'Document' : null),
-                                        ignoreExpiration: doc.ignoreExpiration || false,
-                                        isExisting: true
-                                    });
-                                } else {
-                                    console.warn('⚠️ Unknown document type:', type);
-                                }
+                                return {
+                                    id: doc._id,
+                                    _id: doc._id,
+                                    title: doc.title || doc.documentType || doc.documentNumber || '',
+                                    expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
+                                    description: doc.documentNumber || doc.description || '',
+                                    file: null,
+                                    fileUrl: doc.files?.[0]?.fileUrl || doc.documentLocation,
+                                    fileName: doc.files?.[0]?.fileName || (doc.files?.[0] ? 'Document' : null),
+                                    ignoreExpiration: doc.ignoreExpiration || false,
+                                    isExisting: true
+                                };
                             });
-
-                            console.log('📄 Documents organized by type:', docsByType);
-                            setDocuments(docsByType);
+                            console.log('📄 Documents (flat list):', flatDocs);
+                            setDocuments(flatDocs);
                         } else {
                             console.log('📄 No documents found or API error');
-                            // Initialize empty documents
-                            setDocuments({
-                                General: [],
-                                Ownership: [],
-                                'Cab Card': [],
-                                Plate: [],
-                                Safety: [],
-                                Insurance: []
-                            });
+                            setDocuments([]);
                         }
                     } catch (error) {
                         console.error('❌ Error fetching documents:', error);
-                        // Initialize empty documents on error
-                        setDocuments({
-                            General: [],
-                            Ownership: [],
-                            'Cab Card': [],
-                            Plate: [],
-                            Safety: [],
-                            Insurance: []
-                        });
+                        setDocuments([]);
                     }
 
                     // Load inspections
@@ -1010,12 +995,8 @@ const Trucks: React.FC = () => {
                 // Fetch counts for each yard
                 for (const yard of yards) {
                     if (yard.status === 'active' && yard._id) {
-                        const yardId = yard._id.toString();
-                        console.log('🔍 [COUNT] Fetching count for yard:', yardId, yard.yardName);
-                        const yardResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, undefined, yardId);
-                        const yardCount = yardResponse?.pagination?.total || 0;
-                        console.log('📊 [COUNT] Yard count result:', { yardId, yardName: yard.yardName, count: yardCount });
-                        counts[yardId] = yardCount;
+                        const yardResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, undefined, yard._id);
+                        counts[yard._id] = yardResponse?.pagination?.total || 0;
                     }
                 }
 
@@ -1111,56 +1092,6 @@ const Trucks: React.FC = () => {
                     formDataToSend.append('subType', formData.subType || '');
                 }
 
-                // Handle operator update - check if operator has changed
-                const currentOperatorId = formData.operator || '';
-                const originalOperatorId = originalTruckData.operator
-                    ? (typeof originalTruckData.operator === 'string'
-                        ? originalTruckData.operator
-                        : originalTruckData.operator._id?.toString() || '')
-                    : '';
-
-                if (currentOperatorId !== originalOperatorId) {
-                    console.log('🔄 [UPDATE] Operator changed:', { from: originalOperatorId, to: currentOperatorId });
-                    if (currentOperatorId) {
-                        formDataToSend.append('operator', currentOperatorId);
-                    } else {
-                        formDataToSend.append('operator', '');
-                    }
-                }
-
-                // Handle coOperator update - check if coOperator has changed
-                const currentCoOperatorId = formData.coOperator || '';
-                const originalCoOperatorId = originalTruckData.coOperator
-                    ? (typeof originalTruckData.coOperator === 'string'
-                        ? originalTruckData.coOperator
-                        : originalTruckData.coOperator._id?.toString() || '')
-                    : '';
-
-                if (currentCoOperatorId !== originalCoOperatorId) {
-                    console.log('🔄 [UPDATE] CoOperator changed:', { from: originalCoOperatorId, to: currentCoOperatorId });
-                    if (currentCoOperatorId) {
-                        formDataToSend.append('coOperator', currentCoOperatorId);
-                    } else {
-                        formDataToSend.append('coOperator', '');
-                    }
-                }
-
-                // Handle yard update - always send yard value (even if unchanged, to ensure it's saved)
-                const currentYardId = String(formData.yard || '').trim();
-                const originalYardId = String(originalTruckData.yard || '').trim();
-
-                console.log('🔍 [UPDATE] Yard check:', {
-                    currentYardId,
-                    originalYardId,
-                    formDataYard: formData.yard,
-                    originalTruckDataYard: originalTruckData.yard,
-                    hasChanged: currentYardId !== originalYardId
-                });
-
-                // Always send yard to ensure it's updated (even if value is empty to clear it)
-                console.log('✅ [UPDATE] Adding yard to payload:', currentYardId || '(empty - will clear yard)');
-                formDataToSend.append('yard', currentYardId);
-
                 if (selectedImageFile) {
                     formDataToSend.append('image', selectedImageFile);
                 }
@@ -1244,35 +1175,6 @@ const Trucks: React.FC = () => {
                     // Refresh trucks list
                     const refreshResponse = await getAllVehicles(1, 1000);
                     if (refreshResponse?.success && refreshResponse?.data) {
-                        // Refresh category counts after update
-                        const counts: Record<string, number> = {};
-                        const allResponse = await getAllVehicles(1, 1);
-                        counts['All'] = allResponse?.pagination?.total || 0;
-
-                        const externalResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, 'OWNER OPERATOR');
-                        counts['External'] = externalResponse?.pagination?.total || 0;
-
-                        const unassignedResponse = await getAllVehicles(1, 1000);
-                        if (unassignedResponse?.success && unassignedResponse?.data) {
-                            const unassignedCount = unassignedResponse.data.filter((truck: any) => {
-                                const truckId = truck._id?.toString();
-                                return !truckId || !assignedTruckIds.has(truckId);
-                            }).length;
-                            counts['Unassigned'] = unassignedCount;
-                        } else {
-                            counts['Unassigned'] = 0;
-                        }
-
-                        // Fetch counts for each yard
-                        for (const yard of yards) {
-                            if (yard.status === 'active' && yard._id) {
-                                const yardId = yard._id.toString();
-                                const yardResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, undefined, yardId);
-                                counts[yardId] = yardResponse?.pagination?.total || 0;
-                            }
-                        }
-
-                        setCategoryCounts(counts);
                         const transformedTrucks = refreshResponse.data.map((truck: any) => ({
                             _id: truck._id,
                             id: truck._id,
@@ -1429,34 +1331,22 @@ const Trucks: React.FC = () => {
                 if (response?.success) {
                     const newTruckId = response?.data?._id || response?.data?.id;
 
-                    // Handle documents for newly created truck
+                    // Handle documents for newly created truck (single list, no tabs)
                     if (newTruckId) {
-                        const newDocuments: Array<{ type: string; doc: any }> = [];
-
-                        Object.entries(documents).forEach(([type, docs]) => {
-                            docs.forEach((doc) => {
-                                if (!doc.isExisting && (doc.file || doc.description)) {
-                                    newDocuments.push({ type, doc });
-                                }
-                            });
-                        });
-
-                        // Create new documents
-                        if (newDocuments.length > 0) {
+                        const docsToCreate = documents.filter(
+                            (doc) => !doc.isExisting && (doc.file || doc.description || doc.title)
+                        );
+                        if (docsToCreate.length > 0) {
                             try {
-                                await Promise.all(newDocuments.map(async ({ type, doc }) => {
+                                await Promise.all(docsToCreate.map(async (doc) => {
                                     const docFormData = new FormData();
                                     docFormData.append('vehicleId', newTruckId);
                                     docFormData.append('assetType', 'vehicle');
-                                    docFormData.append('documentType', type);
+                                    docFormData.append('documentType', 'General');
                                     docFormData.append('documentNumber', doc.description || '');
-                                    if (doc.expiryDate) {
-                                        docFormData.append('expiryDate', doc.expiryDate);
-                                    }
-                                    if (doc.file) {
-                                        docFormData.append('file', doc.file);
-                                    }
-
+                                    if (doc.title) docFormData.append('title', doc.title);
+                                    if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                                    if (doc.file) docFormData.append('file', doc.file);
                                     await createVehicleDocument(docFormData);
                                 }));
                             } catch (docError) {
@@ -1509,38 +1399,23 @@ const Trucks: React.FC = () => {
                 }
             }
 
-            // Handle documents for updates
+            // Handle documents for updates (single list, no tabs)
             if (editingId) {
-                const trailerId = editingId;
-                const newDocuments: Array<{ type: string; doc: any }> = [];
-                const updatedDocuments: Array<{ type: string; doc: any }> = [];
+                const vehicleId = editingId;
+                const newDocs = documents.filter((doc) => !doc.isExisting && (doc.file || doc.description || doc.title));
+                const existingDocs = documents.filter((doc) => doc.isExisting && doc._id);
 
-                Object.entries(documents).forEach(([type, docs]) => {
-                    docs.forEach((doc) => {
-                        if (doc.isExisting && doc._id) {
-                            updatedDocuments.push({ type, doc });
-                        } else if (!doc.isExisting && (doc.file || doc.description)) {
-                            newDocuments.push({ type, doc });
-                        }
-                    });
-                });
-
-                // Create new documents
-                if (newDocuments.length > 0) {
+                if (newDocs.length > 0) {
                     try {
-                        await Promise.all(newDocuments.map(async ({ type, doc }) => {
+                        await Promise.all(newDocs.map(async (doc) => {
                             const docFormData = new FormData();
-                            docFormData.append('vehicleId', trailerId);
+                            docFormData.append('vehicleId', vehicleId);
                             docFormData.append('assetType', 'vehicle');
-                            docFormData.append('documentType', type);
+                            docFormData.append('documentType', 'General');
                             docFormData.append('documentNumber', doc.description || '');
-                            if (doc.expiryDate) {
-                                docFormData.append('expiryDate', doc.expiryDate);
-                            }
-                            if (doc.file) {
-                                docFormData.append('file', doc.file);
-                            }
-
+                            if (doc.title) docFormData.append('title', doc.title);
+                            if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                            if (doc.file) docFormData.append('file', doc.file);
                             await createVehicleDocument(docFormData);
                         }));
                     } catch (docError) {
@@ -1548,24 +1423,18 @@ const Trucks: React.FC = () => {
                     }
                 }
 
-                // Update existing documents
-                if (updatedDocuments.length > 0) {
+                if (existingDocs.length > 0) {
                     try {
-                        await Promise.all(updatedDocuments.map(async ({ type, doc }) => {
+                        await Promise.all(existingDocs.map(async (doc) => {
                             const docFormData = new FormData();
-                            docFormData.append('vehicleId', trailerId);
+                            docFormData.append('vehicleId', vehicleId);
                             docFormData.append('assetType', 'vehicle');
-                            docFormData.append('documentType', type);
+                            docFormData.append('documentType', 'General');
                             docFormData.append('documentNumber', doc.description || '');
-                            if (doc.expiryDate) {
-                                docFormData.append('expiryDate', doc.expiryDate);
-                            } else {
-                                docFormData.append('expiryDate', '');
-                            }
-                            if (doc.file && doc.file instanceof File) {
-                                docFormData.append('file', doc.file);
-                            }
-
+                            if (doc.title) docFormData.append('title', doc.title);
+                            if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                            else docFormData.append('expiryDate', '');
+                            if (doc.file && doc.file instanceof File) docFormData.append('file', doc.file);
                             await updateVehicleDocument(doc._id!, docFormData);
                         }));
                     } catch (docError) {
@@ -1603,17 +1472,12 @@ const Trucks: React.FC = () => {
             setSelectedImageFile(null);
             setEditingId(null);
             setOriginalTruckData(null);
-            setDocuments({
-                General: [],
-                Ownership: [],
-                'Cab Card': [],
-                Plate: [],
-                Safety: [],
-                Insurance: []
-            });
+            setDocuments([]);
             setOneTimeInspections([]);
             setRecurringInspections([]);
             setNotes([]);
+            setEditingDocumentId(null);
+            setEditingNoteId(null);
             setShowSidebar(false);
         } catch (error) {
             console.error('Error saving truck:', error);
@@ -1735,14 +1599,19 @@ const Trucks: React.FC = () => {
     };
 
     // Navigation helper functions for sidebar steps
-    const steps: Array<'Details' | 'Inspections' | 'Documents' | 'Notes'> = ['Details', 'Inspections', 'Documents', 'Notes'];
+    const steps = [
+        'Details',
+        'Inspections',
+        'Documents',
+        'Invoice',
+        'Notes',
+        ...(formData.ownership === 'OWNER OPERATOR'
+            ? ['Payroll', 'Deductions', 'Additions']
+            : [])
+    ];
 
     const getNextStep = () => {
-        // If on a conditional step (Payroll, Deductions, Additions), return null (no next step)
-        if (['Payroll', 'Deductions', 'Additions'].includes(activeStep)) {
-            return null;
-        }
-        const currentIndex = steps.indexOf(activeStep as typeof steps[number]);
+        const currentIndex = steps.indexOf(activeStep);
         if (currentIndex < steps.length - 1) {
             return steps[currentIndex + 1];
         }
@@ -1750,11 +1619,7 @@ const Trucks: React.FC = () => {
     };
 
     const getPreviousStep = () => {
-        // If on a conditional step (Payroll, Deductions, Additions), navigate back to Notes
-        if (['Payroll', 'Deductions', 'Additions'].includes(activeStep)) {
-            return 'Notes' as const;
-        }
-        const currentIndex = steps.indexOf(activeStep as typeof steps[number]);
+        const currentIndex = steps.indexOf(activeStep);
         if (currentIndex > 0) {
             return steps[currentIndex - 1];
         }
@@ -1776,7 +1641,7 @@ const Trucks: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-main p-6 ">
+        <div className="min-h-screen bg-main p-6">
             <div className="max-w-full mx-auto">
                 {/* Header Section */}
                 <div className="mb-6">
@@ -1787,12 +1652,14 @@ const Trucks: React.FC = () => {
                             <button
                                 onClick={handleExportTrucks}
                                 title="Export to Excel"
-                                className="w-10 h-10 bg-[var(--accent-teal)] !text-white rounded-lg flex items-center justify-center hover:bg-[var(--accent-teal)] transition-colors shadow-md"
+                                className="w-10 h-10 bg-[var(--accent-teal)] !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
                             >
                                 <FileDown className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => {
+                                    setEditingId(null);
+                                    setOriginalTruckData(null);
                                     setFormData({
                                         unitNumber: '',
                                         vinNumber: '',
@@ -1819,23 +1686,20 @@ const Trucks: React.FC = () => {
                                     });
                                     setSelectedImage(null);
                                     setSelectedImageFile(null);
-                                    setEditingId(null);
-                                    setOriginalTruckData(null);
-                                    setDocuments({
-                                        General: [],
-                                        Ownership: [],
-                                        'Cab Card': [],
-                                        Plate: [],
-                                        Safety: [],
-                                        Insurance: []
-                                    });
+                                    setDocuments([]);
                                     setOneTimeInspections([]);
                                     setRecurringInspections([]);
                                     setNotes([]);
-                                    setEditingId(null);
-                                    setOriginalTruckData(null);
-                                    setSelectedImage(null);
-                                    setSelectedImageFile(null);
+                                    setInvoices([]);
+                                    setInspectionForm({ expiryDate: '', description: '', ignoreExpiration: false, scheduledOn: '', after: '', unit: '', file: null });
+                                    setEditingInspectionId(null);
+                                    setEditingInspectionType(null);
+                                    setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
+                                    setEditingDocumentId(null);
+                                    setInvoiceForm({ invoiceNumber: '', vendorWorkshop: '', amount: '', invoiceDate: '', file: null, notes: '' });
+                                    setEditingInvoiceId(null);
+                                    setNoteForm({ note: '', category: 'Category' });
+                                    setEditingNoteId(null);
                                     setShowSidebar(true);
                                     setActiveStep('Details');
                                 }}
@@ -1864,7 +1728,7 @@ const Trucks: React.FC = () => {
                                 }`}
                         >
                             <div>
-                                <div className="font-semibold">
+                                <div className="font-semibold text-[var(--accent-navyblue)]">
                                     All ({getCountByCategory('All')})
                                 </div>
                             </div>
@@ -1887,7 +1751,7 @@ const Trucks: React.FC = () => {
                             >
                                 <div>
                                     <div className="font-semibold">
-                                        {yard.yardName} ({getCountByCategory(yard._id?.toString() || '')})
+                                        {yard.yardName} ({getCountByCategory(yard._id!)})
                                     </div>
                                     <div className="text-xs text-secondary mt-1">Home to {yard.yardName}</div>
                                 </div>
@@ -1908,7 +1772,7 @@ const Trucks: React.FC = () => {
                                 }`}
                         >
                             <div>
-                                <div className="font-semibold">
+                                <div className="font-semibold text-[var(--accent-navyblue)]">
                                     External ({getCountByCategory('External')})
                                 </div>
                             </div>
@@ -1928,7 +1792,7 @@ const Trucks: React.FC = () => {
                                 }`}
                         >
                             <div>
-                                <div className="font-semibold">
+                                <div className="font-semibold text-[var(--accent-navyblue)]">
                                     Unassigned ({getCountByCategory('Unassigned')})
                                 </div>
                             </div>
@@ -1941,7 +1805,7 @@ const Trucks: React.FC = () => {
                     <div className="flex flex-wrap items-center gap-4">
                         {/* Search Input */}
                         <div className="flex items-center gap-2 flex-1 min-w-[300px]">
-                            <label className="text-sm font-medium text-primary whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)] whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
                             <input
                                 type="text"
                                 placeholder="Search..."
@@ -1954,7 +1818,7 @@ const Trucks: React.FC = () => {
 
                         {/* Global Filters */}
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-primary">Category:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Category:</label>
                             <select
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
@@ -1966,7 +1830,7 @@ const Trucks: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-primary">Compliance Status:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Compliance Status:</label>
                             <select
                                 value={complianceStatus}
                                 onChange={(e) => setComplianceStatus(e.target.value)}
@@ -1980,7 +1844,7 @@ const Trucks: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-primary">Sort By:</label>
+                            <label className="text-sm font-medium text-[var(--accent-navyblue)]">Sort By:</label>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
@@ -2167,7 +2031,7 @@ const Trucks: React.FC = () => {
                                                             e.stopPropagation();
                                                             handleEditTruck((truck._id || truck.id) ?? '');
                                                         }}
-                                                        className="p-1.5  hover:bg-[var(--accent-navyblue)] rounded transition-colors "
+                                                        className="p-1.5 text-[#00D1FF] hover:bg-[var(--accent-navyblue)] rounded transition-colors"
                                                         title="Edit"
                                                     >
                                                         <Edit className="w-4 h-4" />
@@ -2247,7 +2111,7 @@ const Trucks: React.FC = () => {
                             {/* Navigation Tabs */}
                             <div className="flex-1 overflow-y-auto p-2">
                                 <nav className="flex flex-col gap-1.5">
-                                    {(['Details', 'Inspections', 'Documents', 'Notes'] as const).map((step) => (
+                                    {(['Details', 'Inspections', 'Documents', 'Invoice', 'Notes'] as const).map((step) => (
                                         <button
                                             key={step}
                                             onClick={() => setActiveStep(step)}
@@ -2267,7 +2131,7 @@ const Trucks: React.FC = () => {
                                                     key={step}
                                                     onClick={() => setActiveStep(step)}
                                                     className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
-                                                        ? 'bg-[var(--accent-blue)] !text-white shadow-sm'
+                                                        ? 'bg-[var(--accent-navyblue)] !text-white shadow-sm'
                                                         : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                         }`}
                                                 >
@@ -2308,8 +2172,8 @@ const Trucks: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Content Area */}
-                            <div className="flex-1 overflow-y-auto p-4 bg-card">
+                            {/* Content Area - scrollable; footer stays at bottom */}
+                            <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-card">
                                 {/* Details Step */}
                                 {activeStep === 'Details' && (
                                     <div className="space-y-4">
@@ -2360,9 +2224,9 @@ const Trucks: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, registrationCountry: e.target.value, registrationProvince: '' })}
                                                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="">Select Registration Country</option>
+                                                    <option className="form-option" value="">Select Registration Country</option>
                                                     {countries.map((country) => (
-                                                        <option key={country.code} value={country.name}>
+                                                        <option className="form-option" key={country.code} value={country.name}>
                                                             {country.flag} {country.name}
                                                         </option>
                                                     ))}
@@ -2448,8 +2312,8 @@ const Trucks: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, uom: e.target.value })}
                                                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="Kg">Kg</option>
-                                                    <option value="Lbs">Lbs</option>
+                                                    <option className="form-option" value="Kg">Kg</option>
+                                                    <option className="form-option" value="Lbs">Lbs</option>
                                                 </select>
                                             </div>
                                             <div>
@@ -2472,9 +2336,9 @@ const Trucks: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                                                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="In Service">In Service</option>
-                                                    <option value="Out of Service">Out of Service</option>
-                                                    <option value="Maintenance">Maintenance</option>
+                                                    <option className="form-option" value="In Service">In Service</option>
+                                                    <option className="form-option" value="Out of Service">Out of Service</option>
+                                                    <option className="form-option" value="Maintenance">Maintenance</option>
                                                 </select>
                                             </div>
                                             <div>
@@ -2490,7 +2354,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Tracking Key
                                                 </label>
                                                 <input
@@ -2502,7 +2366,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Trailer
                                                 </label>
                                                 <select
@@ -2512,7 +2376,7 @@ const Trucks: React.FC = () => {
                                                 >
                                                     <option value="">Select Trailer</option>
                                                     {trailers.map((trailer) => (
-                                                        <option key={trailer._id} value={trailer._id}>
+                                                        <option className="form-option" key={trailer._id} value={trailer._id}>
                                                             {trailer.unitNumber || trailer.trailer || `Trailer ${trailer._id}`}
                                                         </option>
                                                     ))}
@@ -2520,29 +2384,34 @@ const Trucks: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)] mt-6">Ownership Information</h3>
+                                        <h3 className="text-base font-semibold text-primary mt-6">Ownership Information</h3>
                                         <div className="space-y-3">
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => {
-                                                        setFormData({ ...formData, ownership: 'COMPANY ASSET' });
-                                                        // If switching to Company Asset and currently on conditional tabs, switch to Details
-                                                        if (['Payroll', 'Deductions', 'Additions'].includes(activeStep)) {
-                                                            setActiveStep('Details');
+                                                        setFormData({ ...formData, ownership: "COMPANY ASSET" });
+
+                                                        if (["Payroll", "Deductions", "Additions"].includes(activeStep)) {
+                                                            setActiveStep("Details");
                                                         }
                                                     }}
-                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'COMPANY ASSET'
-                                                        ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-primary hover:bg-gray-300'
+                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors duration-200
+    ${formData.ownership === "COMPANY ASSET"
+                                                            ? "bg-[var(--accent-navyblue)] text-white"
+                                                            : "bg-gray-700 text-white hover:bg-[var(--accent-navyblue)]"
                                                         }`}
                                                 >
                                                     COMPANY ASSET
                                                 </button>
+
                                                 <button
-                                                    onClick={() => setFormData({ ...formData, ownership: 'OWNER OPERATOR' })}
-                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'OWNER OPERATOR'
-                                                        ? 'bg-[var(--accent-navyblue)] !text-white'
-                                                        : 'bg-[var(--accent-navyblue)] text-primary hover:bg-[var(--accent-blue)]'
+                                                    onClick={() =>
+                                                        setFormData({ ...formData, ownership: "OWNER OPERATOR" })
+                                                    }
+                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors duration-200
+    ${formData.ownership === "OWNER OPERATOR"
+                                                            ? "bg-[var(--accent-navyblue)] text-white"
+                                                            : "bg-gray-700 text-white hover:bg-[var(--accent-navyblue)]"
                                                         }`}
                                                 >
                                                     OWNER OPERATOR
@@ -2550,7 +2419,7 @@ const Trucks: React.FC = () => {
                                             </div>
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                    <label className="block text-sm font-medium text-primary mb-1">
                                                         Operator
                                                     </label>
                                                     <select
@@ -2558,18 +2427,18 @@ const Trucks: React.FC = () => {
                                                         onChange={(e) => setFormData({ ...formData, operator: e.target.value })}
                                                         className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     >
-                                                        <option value="">Select Operator</option>
+                                                        <option className="form-option" value="">Select Operator</option>
                                                         {operators.length > 0 ? operators.map((operator) => (
-                                                            <option key={operator._id} value={operator._id}>
+                                                            <option className="form-option" key={operator._id} value={operator._id}>
                                                                 {operator.name} {operator.email ? `(${operator.email})` : ''}
                                                             </option>
                                                         )) : (
-                                                            <option value="" disabled>No operators available</option>
+                                                            <option className="form-option" value="" disabled>No operators available</option>
                                                         )}
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                    <label className="block text-sm font-medium text-primary mb-1">
                                                         Co-Operator
                                                     </label>
                                                     <select
@@ -2577,18 +2446,18 @@ const Trucks: React.FC = () => {
                                                         onChange={(e) => setFormData({ ...formData, coOperator: e.target.value })}
                                                         className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     >
-                                                        <option value="">Select Co-Operator</option>
+                                                        <option className="form-option" value="">Select Co-Operator</option>
                                                         {operators.length > 0 ? operators.map((operator) => (
-                                                            <option key={operator._id} value={operator._id}>
+                                                            <option className="form-option" key={operator._id} value={operator._id}>
                                                                 {operator.name} {operator.email ? `(${operator.email})` : ''}
                                                             </option>
                                                         )) : (
-                                                            <option value="" disabled>No operators available</option>
+                                                            <option className="form-option" value="" disabled>No operators available</option>
                                                         )}
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">
+                                                    <label className="block text-sm font-medium text-primary mb-1">
                                                         Yard
                                                     </label>
                                                     <select
@@ -2596,9 +2465,9 @@ const Trucks: React.FC = () => {
                                                         onChange={(e) => setFormData({ ...formData, yard: e.target.value })}
                                                         className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     >
-                                                        <option value="">Select</option>
+                                                        <option className="form-option" value="">Select</option>
                                                         {yards.filter(yard => yard.status === 'active').map((yard) => (
-                                                            <option key={yard._id} value={yard._id}>
+                                                            <option className="form-option" key={yard._id} value={yard._id}>
                                                                 {yard.yardName} ({yard.yardCode})
                                                             </option>
                                                         ))}
@@ -2612,7 +2481,7 @@ const Trucks: React.FC = () => {
                                 {/* Inspections Step */}
                                 {activeStep === 'Inspections' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Truck Inspections</h3>
+                                        <h3 className="text-base font-semibold text-primary">Truck Inspections</h3>
 
                                         {/* Inspection Type Tabs */}
                                         <div className="flex gap-2">
@@ -2643,7 +2512,7 @@ const Trucks: React.FC = () => {
                                             <div className="space-y-4">
                                                 <div className="flex gap-2 items-end bg-card p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Expiry Date</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
                                                         <div className="relative">
                                                             <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
@@ -2655,7 +2524,7 @@ const Trucks: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
@@ -2665,7 +2534,7 @@ const Trucks: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">File</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                         <button
                                                             type="button"
                                                             onClick={() => {
@@ -2773,16 +2642,22 @@ const Trucks: React.FC = () => {
                                                                         </td>
                                                                         <td className="px-4 py-2 text-sm text-primary">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                         <td className="px-4 py-2 text-sm text-primary">
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    handleDeleteInspection(inspection.id, 'oneTime');
-                                                                                }}
-                                                                                className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
-                                                                                title="Delete"
-                                                                            >
-                                                                                <Trash2 className="w-4 h-4" />
-                                                                            </button>
+                                                                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                                                <button
+                                                                                    onClick={() => handleEditInspection(inspection, 'oneTime')}
+                                                                                    className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                                                                                    title="Edit"
+                                                                                >
+                                                                                    <Edit className="w-4 h-4" />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleDeleteInspection(inspection.id, 'oneTime')}
+                                                                                    className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                                                                                    title="Delete"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                </button>
+                                                                            </div>
                                                                         </td>
                                                                     </tr>
                                                                 ))
@@ -2828,10 +2703,10 @@ const Trucks: React.FC = () => {
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, unit: e.target.value })}
                                                                 className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                             >
-                                                                <option value="">Select Unit</option>
-                                                                <option value="Days">Days</option>
-                                                                <option value="Weeks">Weeks</option>
-                                                                <option value="Months">Months</option>
+                                                                <option className="form-option" value="">Select Unit</option>
+                                                                <option className="form-option" value="Days">Days</option>
+                                                                <option className="form-option" value="Weeks">Weeks</option>
+                                                                <option className="form-option" value="Months">Months</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -2979,16 +2854,22 @@ const Trucks: React.FC = () => {
                                                                         </td>
                                                                         <td className="px-4 py-2 text-sm text-primary">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                         <td className="px-4 py-2 text-sm text-primary">
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    handleDeleteInspection(inspection.id, 'recurring');
-                                                                                }}
-                                                                                className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
-                                                                                title="Delete"
-                                                                            >
-                                                                                <Trash2 className="w-4 h-4" />
-                                                                            </button>
+                                                                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                                                <button
+                                                                                    onClick={() => handleEditInspection(inspection, 'recurring')}
+                                                                                    className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                                                                                    title="Edit"
+                                                                                >
+                                                                                    <Edit className="w-4 h-4" />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleDeleteInspection(inspection.id, 'recurring')}
+                                                                                    className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                                                                                    title="Delete"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                </button>
+                                                                            </div>
                                                                         </td>
                                                                     </tr>
                                                                 ))
@@ -3001,43 +2882,27 @@ const Trucks: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Documents Step */}
+                                {/* Documents Step (no tabs; single list with Title) */}
                                 {activeStep === 'Documents' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Documents</h3>
-
-                                        {/* Document Type Tabs */}
-                                        <div className="flex gap-2 border-b border-theme text-[var(--accent-navyblue)]">
-                                            {(['General', 'Ownership', 'Cab Card', 'Plate', 'Safety', 'Insurance'] as const).map((type) => (
-                                                <button
-                                                    key={type}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        console.log('📑 Switching to document type:', type);
-                                                        console.log('📑 Documents for', type, ':', documents[type]);
-                                                        setDocumentType(type);
-                                                    }}
-                                                    className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${documentType === type
-                                                        ? 'border-[var(--accent-navyblue)] text-[var(--accent-navyblue)]'
-                                                        : 'border-transparent text-[var(--accent-navyblue)] hover:text-[var(--accent-navyblue)]'
-                                                        }`}
-                                                >
-                                                    {type}
-                                                    {documents[type] && documents[type].length > 0 && (
-                                                        <span className="ml-2 px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">
-                                                            {documents[type].length}
-                                                        </span>
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
+                                        <h3 className="text-base font-semibold text-primary">Documents</h3>
 
                                         {/* Document Form */}
                                         <div className="bg-card p-4 rounded-lg space-y-4">
-                                            {/* Row 1: Expiry Date and Description */}
-                                            <div className="grid grid-cols-2 gap-4">
+                                            {/* Row 1: Title, Expiry Date, Description */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Expiry Date</label>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Title</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Title"
+                                                        value={documentForm.title}
+                                                        onChange={(e) => setDocumentForm({ ...documentForm, title: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
                                                     <div className="relative">
                                                         <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                         <input
@@ -3049,7 +2914,7 @@ const Trucks: React.FC = () => {
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Description</label>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                     <input
                                                         type="text"
                                                         placeholder="Description"
@@ -3062,7 +2927,7 @@ const Trucks: React.FC = () => {
 
                                             {/* Row 2: File Upload */}
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">File</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                 {documentForm.file ? (
                                                     <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
                                                         <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
@@ -3097,7 +2962,7 @@ const Trucks: React.FC = () => {
                                                 )}
                                             </div>
 
-                                            {/* Row 3: Checkbox and Action Button */}
+                                            {/* Row 3: Checkbox and Action Buttons */}
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
                                                     <input
@@ -3108,36 +2973,56 @@ const Trucks: React.FC = () => {
                                                     />
                                                     <label className="text-sm text-primary">Ignore Expiration</label>
                                                 </div>
-                                                <button
-                                                    onClick={() => {
-                                                        console.log('📄 Adding document to type:', documentType);
-                                                        console.log('📄 Current documents:', documents);
-                                                        if (documentForm.description) {
-                                                            const newDoc = {
-                                                                id: Date.now().toString(),
-                                                                expiryDate: documentForm.expiryDate,
-                                                                description: documentForm.description,
-                                                                file: documentForm.file,
-                                                                fileName: documentForm.file?.name || '',
-                                                                ignoreExpiration: documentForm.ignoreExpiration
-                                                            };
-                                                            console.log('📄 New document:', newDoc);
-                                                            const updatedDocuments = {
-                                                                ...documents,
-                                                                [documentType]: [...(documents[documentType] || []), newDoc]
-                                                            };
-                                                            console.log('📄 Updated documents:', updatedDocuments);
-                                                            setDocuments(updatedDocuments);
-                                                            setDocumentForm({ expiryDate: '', description: '', file: null, ignoreExpiration: false });
-                                                        } else {
-                                                            console.warn('⚠️ Cannot add document: description is required');
-                                                        }
-                                                    }}
-                                                    className="px-4 py-2 bg-gray-700 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-800"
-                                                >
-                                                    <Plus className="w-4 h-4" />
-                                                    <span>Add</span>
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    {editingDocumentId && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingDocumentId(null);
+                                                                setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
+                                                            }}
+                                                            className="px-4 py-2 bg-gray-400 !text-white rounded-lg hover:bg-gray-500"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => {
+                                                            if (documentForm.description || documentForm.title || documentForm.file) {
+                                                                if (editingDocumentId) {
+                                                                    setDocuments(documents.map(d =>
+                                                                        d.id === editingDocumentId
+                                                                            ? {
+                                                                                ...d,
+                                                                                title: documentForm.title,
+                                                                                expiryDate: documentForm.expiryDate,
+                                                                                description: documentForm.description,
+                                                                                file: documentForm.file ?? d.file,
+                                                                                fileName: documentForm.file?.name ?? d.fileName,
+                                                                                ignoreExpiration: documentForm.ignoreExpiration
+                                                                            }
+                                                                            : d
+                                                                    ));
+                                                                    setEditingDocumentId(null);
+                                                                } else {
+                                                                    setDocuments([...documents, {
+                                                                        id: Date.now().toString(),
+                                                                        title: documentForm.title || '',
+                                                                        expiryDate: documentForm.expiryDate,
+                                                                        description: documentForm.description,
+                                                                        file: documentForm.file,
+                                                                        fileName: documentForm.file?.name || '',
+                                                                        ignoreExpiration: documentForm.ignoreExpiration
+                                                                    }]);
+                                                                }
+                                                                setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
+                                                            }
+                                                        }}
+                                                        className="px-4 py-2 bg-gray-700 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-800"
+                                                    >
+                                                        {editingDocumentId ? <Edit className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                                                        <span>{editingDocumentId ? 'Update' : 'Add'}</span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -3146,6 +3031,7 @@ const Trucks: React.FC = () => {
                                             <table className="w-full min-w-[800px]">
                                                 <thead className="bg-card">
                                                     <tr>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Title</th>
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-primary">Expiry Date</th>
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
@@ -3154,15 +3040,16 @@ const Trucks: React.FC = () => {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {(!documents[documentType] || documents[documentType].length === 0) ? (
+                                                    {documents.length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={5} className="px-4 py-8 text-center text-secondary">No Data</td>
+                                                            <td colSpan={6} className="px-4 py-8 text-center text-secondary">No Data</td>
                                                         </tr>
                                                     ) : (
-                                                        documents[documentType].map((doc) => (
-                                                            <tr key={doc.id} className="border-t border-theme hover:bg-[rgba(255,255,255,0.03)]">
+                                                        documents.map((doc) => (
+                                                            <tr key={doc.id} className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] ${editingDocumentId === doc.id ? 'bg-card' : ''}`}>
+                                                                <td className="px-4 py-2 text-sm text-primary">{doc.title || '-'}</td>
                                                                 <td className="px-4 py-2 text-sm text-primary">{doc.expiryDate || '-'}</td>
-                                                                <td className="px-4 py-2 text-sm text-primary">{doc.description}</td>
+                                                                <td className="px-4 py-2 text-sm text-primary">{doc.description || '-'}</td>
                                                                 <td className="px-4 py-2 text-sm text-primary">
                                                                     {doc.fileName || doc.fileUrl || doc.file ? (
                                                                         doc.fileUrl ? (
@@ -3190,19 +3077,331 @@ const Trucks: React.FC = () => {
                                                                 </td>
                                                                 <td className="px-4 py-2 text-sm text-primary">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                 <td className="px-4 py-2 text-sm text-primary">
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            console.log('🗑️ Deleting document from type:', documentType, 'id:', doc.id);
-                                                                            setDocuments({
-                                                                                ...documents,
-                                                                                [documentType]: (documents[documentType] || []).filter(d => d.id !== doc.id)
-                                                                            });
-                                                                        }}
-                                                                        className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
-                                                                        title="Delete"
-                                                                    >
-                                                                        <Trash2 className="w-4 h-4" />
-                                                                    </button>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setEditingDocumentId(doc.id);
+                                                                                setDocumentForm({
+                                                                                    title: doc.title || '',
+                                                                                    expiryDate: doc.expiryDate || '',
+                                                                                    description: doc.description || '',
+                                                                                    file: doc.file || null,
+                                                                                    ignoreExpiration: doc.ignoreExpiration
+                                                                                });
+                                                                            }}
+                                                                            className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Edit className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setDocuments(documents.filter((d) => d.id !== doc.id));
+                                                                                if (editingDocumentId === doc.id) {
+                                                                                    setEditingDocumentId(null);
+                                                                                    setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
+                                                                                }
+                                                                            }}
+                                                                            className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Invoice Step */}
+                                {activeStep === 'Invoice' && (
+                                    <div className="space-y-4">
+
+                                        {/* Invoice Form */}
+                                        <div className="bg-card p-4 rounded-lg">
+                                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Invoice Number<span className="text-red-500">*</span></label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Invoice Number"
+                                                        value={invoiceForm.invoiceNumber}
+                                                        onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceNumber: e.target.value })}
+                                                        className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Vendor / Workshop<span className="text-red-500">*</span></label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Vendor / Workshop"
+                                                        value={invoiceForm.vendorWorkshop}
+                                                        onChange={(e) => setInvoiceForm({ ...invoiceForm, vendorWorkshop: e.target.value })}
+                                                        className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Amount<span className="text-red-500">*</span></label>
+                                                    <div className="relative">
+                                                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary">$</span>
+                                                        <input
+                                                            type="number"
+                                                            placeholder="0.00"
+                                                            value={invoiceForm.amount}
+                                                            onChange={(e) => {
+                                                                const value = e.target.value;
+                                                                if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                                                                    setInvoiceForm({ ...invoiceForm, amount: value });
+                                                                }
+                                                            }}
+                                                            min="0"
+                                                            step="0.01"
+                                                            className="w-full pl-7 pr-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Invoice Date<span className="text-red-500">*</span></label>
+                                                    <div className="relative">
+                                                        <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary pointer-events-none" />
+                                                        <input
+                                                            type="date"
+                                                            value={invoiceForm.invoiceDate}
+                                                            onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceDate: e.target.value })}
+                                                            className="w-full pl-8 pr-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="mb-4">
+                                                <label className="block text-sm font-medium text-primary mb-1">Upload Invoice (PDF / Image)</label>
+                                                {invoiceForm.file ? (
+                                                    <div className="flex items-center gap-2 px-3 py-2 border border-theme rounded-lg bg-card">
+                                                        <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
+                                                        <span className="text-sm text-primary truncate flex-1">
+                                                            {invoiceForm.file.name}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setInvoiceForm({ ...invoiceForm, file: null });
+                                                                if (invoiceFileInputRef.current) {
+                                                                    invoiceFileInputRef.current.value = '';
+                                                                }
+                                                            }}
+                                                            className="text-secondary hover:text-[#A855F7] transition-colors flex-shrink-0"
+                                                            title="Remove file"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <input
+                                                            ref={invoiceFileInputRef}
+                                                            type="file"
+                                                            accept=".pdf,.jpg,.jpeg,.png,.gif"
+                                                            onChange={(e) => {
+                                                                if (e.target.files && e.target.files[0]) {
+                                                                    setInvoiceForm({ ...invoiceForm, file: e.target.files[0] });
+                                                                }
+                                                            }}
+                                                            className="hidden"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => invoiceFileInputRef.current?.click()}
+                                                            className="w-full px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium bg-card flex items-center justify-center gap-2"
+                                                        >
+                                                            <Upload className="w-4 h-4" />
+                                                            <span>Select File</span>
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
+                                            <div className="mb-4">
+                                                <label className="block text-sm font-medium text-primary mb-1">Notes</label>
+                                                <textarea
+                                                    placeholder="Notes"
+                                                    value={invoiceForm.notes}
+                                                    onChange={(e) => setInvoiceForm({ ...invoiceForm, notes: e.target.value })}
+                                                    className="w-full px-3 py-2 bg-card border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] min-h-[80px] text-sm resize-none"
+                                                />
+                                            </div>
+                                            <div className="flex justify-end gap-2">
+                                                {editingInvoiceId && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingInvoiceId(null);
+                                                            setInvoiceForm({
+                                                                invoiceNumber: '',
+                                                                vendorWorkshop: '',
+                                                                amount: '',
+                                                                invoiceDate: '',
+                                                                file: null,
+                                                                notes: ''
+                                                            });
+                                                            if (invoiceFileInputRef.current) {
+                                                                invoiceFileInputRef.current.value = '';
+                                                            }
+                                                        }}
+                                                        className="px-4 py-2 bg-gray-500 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-600 transition-colors"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                        <span>Cancel</span>
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => {
+                                                        if (invoiceForm.invoiceNumber && invoiceForm.vendorWorkshop && invoiceForm.amount && invoiceForm.invoiceDate) {
+                                                            if (editingInvoiceId) {
+                                                                setInvoices(invoices.map(inv =>
+                                                                    inv.id === editingInvoiceId
+                                                                        ? {
+                                                                            ...inv,
+                                                                            invoiceNumber: invoiceForm.invoiceNumber,
+                                                                            vendorWorkshop: invoiceForm.vendorWorkshop,
+                                                                            amount: invoiceForm.amount,
+                                                                            invoiceDate: invoiceForm.invoiceDate,
+                                                                            file: invoiceForm.file || inv.file,
+                                                                            fileName: invoiceForm.file?.name || inv.fileName,
+                                                                            notes: invoiceForm.notes
+                                                                        }
+                                                                        : inv
+                                                                ));
+                                                                setEditingInvoiceId(null);
+                                                            } else {
+                                                                setInvoices([...invoices, {
+                                                                    id: Date.now().toString(),
+                                                                    invoiceNumber: invoiceForm.invoiceNumber,
+                                                                    vendorWorkshop: invoiceForm.vendorWorkshop,
+                                                                    amount: invoiceForm.amount,
+                                                                    invoiceDate: invoiceForm.invoiceDate,
+                                                                    file: invoiceForm.file,
+                                                                    fileName: invoiceForm.file?.name || '',
+                                                                    notes: invoiceForm.notes
+                                                                }]);
+                                                            }
+                                                            setInvoiceForm({
+                                                                invoiceNumber: '',
+                                                                vendorWorkshop: '',
+                                                                amount: '',
+                                                                invoiceDate: '',
+                                                                file: null,
+                                                                notes: ''
+                                                            });
+                                                            if (invoiceFileInputRef.current) {
+                                                                invoiceFileInputRef.current.value = '';
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="px-4 py-2 bg-gray-700 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-800 transition-colors"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                    <span>{editingInvoiceId ? 'Update' : 'Add'} Invoice</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Invoices Table */}
+                                        <div className="bg-card rounded-lg border border-theme overflow-x-auto">
+                                            <table className="w-full min-w-[1000px]">
+                                                <thead className="bg-card border-b border-theme">
+                                                    <tr>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Invoice Number</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Vendor / Workshop</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Amount</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Invoice Date</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">File</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Notes</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-theme">
+                                                    {invoices.length === 0 ? (
+                                                        <tr>
+                                                            <td colSpan={7} className="px-4 py-12 text-center text-secondary text-sm">No Invoices</td>
+                                                        </tr>
+                                                    ) : (
+                                                        invoices.map((invoice) => (
+                                                            <tr key={invoice.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                                                <td className="px-4 py-3 text-sm text-primary">{invoice.invoiceNumber}</td>
+                                                                <td className="px-4 py-3 text-sm text-primary">{invoice.vendorWorkshop}</td>
+                                                                <td className="px-4 py-3 text-sm text-primary">${parseFloat(invoice.amount || '0').toFixed(2)}</td>
+                                                                <td className="px-4 py-3 text-sm text-primary">{invoice.invoiceDate || '-'}</td>
+                                                                <td className="px-4 py-3 text-sm text-primary">
+                                                                    {invoice.fileUrl ? (
+                                                                        <a
+                                                                            href={invoice.fileUrl}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="flex items-center gap-2 text-[#00D1FF] hover:text-blue-800 hover:underline"
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            <FileText className="w-4 h-4" />
+                                                                            <span>{invoice.fileName || 'View File'}</span>
+                                                                        </a>
+                                                                    ) : invoice.fileName || invoice.file ? (
+                                                                        <div className="flex items-center gap-2 text-[#00D1FF]">
+                                                                            <FileText className="w-4 h-4" />
+                                                                            <span className="truncate max-w-[150px]">
+                                                                                {invoice.fileName || (invoice.file instanceof File ? invoice.file.name : 'File attached')}
+                                                                            </span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="text-secondary">No file</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-4 py-3 text-sm text-primary">
+                                                                    <span className="truncate max-w-[200px] block" title={invoice.notes}>
+                                                                        {invoice.notes || '-'}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-4 py-3 text-sm text-primary">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setEditingInvoiceId(invoice.id);
+                                                                                setInvoiceForm({
+                                                                                    invoiceNumber: invoice.invoiceNumber,
+                                                                                    vendorWorkshop: invoice.vendorWorkshop,
+                                                                                    amount: invoice.amount,
+                                                                                    invoiceDate: invoice.invoiceDate,
+                                                                                    file: invoice.file,
+                                                                                    notes: invoice.notes
+                                                                                });
+                                                                            }}
+                                                                            className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Edit className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setInvoices(invoices.filter(i => i.id !== invoice.id));
+                                                                                if (editingInvoiceId === invoice.id) {
+                                                                                    setEditingInvoiceId(null);
+                                                                                    setInvoiceForm({
+                                                                                        invoiceNumber: '',
+                                                                                        vendorWorkshop: '',
+                                                                                        amount: '',
+                                                                                        invoiceDate: '',
+                                                                                        file: null,
+                                                                                        notes: ''
+                                                                                    });
+                                                                                }
+                                                                            }}
+                                                                            className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
                                                                 </td>
                                                             </tr>
                                                         ))
@@ -3216,12 +3415,12 @@ const Trucks: React.FC = () => {
                                 {/* Notes Step */}
                                 {activeStep === 'Notes' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-[var(--accent-navyblue)]">Notes</h3>
+                                        <h3 className="text-base font-semibold text-primary">Notes</h3>
 
                                         {/* Note Form */}
                                         <div className="flex gap-4 items-end bg-card p-4 rounded-lg">
                                             <div className="flex-1">
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Note</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">Note</label>
                                                 <input
                                                     type="text"
                                                     placeholder="Note"
@@ -3231,7 +3430,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-[var(--accent-navyblue)] mb-1">Category</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">Category</label>
                                                 <div className="relative">
                                                     <select
                                                         value={noteForm.category}
@@ -3248,20 +3447,42 @@ const Trucks: React.FC = () => {
                                                     <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                 </div>
                                             </div>
+                                            {editingNoteId && (
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingNoteId(null);
+                                                        setNoteForm({ note: '', category: 'Category' });
+                                                    }}
+                                                    className="w-10 h-10 bg-gray-400 !text-white rounded-lg flex items-center justify-center hover:bg-gray-500 transition-colors flex-shrink-0"
+                                                    title="Cancel"
+                                                >
+                                                    <X className="w-5 h-5" />
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => {
                                                     if (noteForm.note && noteForm.category !== 'Category') {
-                                                        setNotes([...notes, {
-                                                            id: Date.now().toString(),
-                                                            note: noteForm.note,
-                                                            category: noteForm.category
-                                                        }]);
+                                                        if (editingNoteId) {
+                                                            setNotes(notes.map(n =>
+                                                                n.id === editingNoteId
+                                                                    ? { ...n, note: noteForm.note, category: noteForm.category }
+                                                                    : n
+                                                            ));
+                                                            setEditingNoteId(null);
+                                                        } else {
+                                                            setNotes([...notes, {
+                                                                id: Date.now().toString(),
+                                                                note: noteForm.note,
+                                                                category: noteForm.category
+                                                            }]);
+                                                        }
                                                         setNoteForm({ note: '', category: 'Category' });
                                                     }
                                                 }}
                                                 className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors flex-shrink-0"
+                                                title={editingNoteId ? 'Update Note' : 'Add Note'}
                                             >
-                                                <Plus className="w-5 h-5" />
+                                                {editingNoteId ? <Edit className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                                             </button>
                                         </div>
 
@@ -3272,18 +3493,46 @@ const Trucks: React.FC = () => {
                                                     <tr>
                                                         <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Note</th>
                                                         <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Category</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-theme">
                                                     {notes.length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={2} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>
+                                                            <td colSpan={3} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>
                                                         </tr>
                                                     ) : (
                                                         notes.map((note) => (
-                                                            <tr key={note.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                                            <tr key={note.id} className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${editingNoteId === note.id ? 'bg-card' : ''}`}>
                                                                 <td className="px-4 py-3 text-sm text-primary">{note.note}</td>
                                                                 <td className="px-4 py-3 text-sm text-primary">{note.category}</td>
+                                                                <td className="px-4 py-3 text-sm text-primary">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setEditingNoteId(note.id);
+                                                                                setNoteForm({ note: note.note, category: note.category });
+                                                                            }}
+                                                                            className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Edit className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setNotes(notes.filter(n => n.id !== note.id));
+                                                                                if (editingNoteId === note.id) {
+                                                                                    setEditingNoteId(null);
+                                                                                    setNoteForm({ note: '', category: 'Category' });
+                                                                                }
+                                                                            }}
+                                                                            className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
                                                             </tr>
                                                         ))
                                                     )}
@@ -3550,13 +3799,13 @@ const Trucks: React.FC = () => {
                                                                 onChange={(e) => setDeductionForm({ ...deductionForm, interval: e.target.value })}
                                                                 className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
-                                                                <option value="Interval">Interval</option>
-                                                                <option value="Annual">Annual</option>
-                                                                <option value="Monthly">Monthly</option>
-                                                                <option value="Per Mile">Per Mile</option>
-                                                                <option value="One Time">One Time</option>
-                                                                <option value="Weekly">Weekly</option>
-                                                                <option value="Biweekly">Biweekly</option>
+                                                                <option className="form-option" value="Interval">Interval</option>
+                                                                <option className="form-option" value="Annual">Annual</option>
+                                                                <option className="form-option" value="Monthly">Monthly</option>
+                                                                <option className="form-option" value="Per Mile">Per Mile</option>
+                                                                <option className="form-option" value="One Time">One Time</option>
+                                                                <option className="form-option" value="Weekly">Weekly</option>
+                                                                <option className="form-option" value="Biweekly">Biweekly</option>
                                                             </select>
                                                             <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
@@ -3569,8 +3818,8 @@ const Trucks: React.FC = () => {
                                                                 onChange={(e) => setDeductionForm({ ...deductionForm, currency: e.target.value })}
                                                                 className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
-                                                                <option value="CAD">CAD</option>
-                                                                <option value="USD">USD</option>
+                                                                <option className="form-option" value="CAD">CAD</option>
+                                                                <option className="form-option" value="USD">USD</option>
                                                             </select>
                                                             <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
@@ -3671,13 +3920,13 @@ const Trucks: React.FC = () => {
                                                                 onChange={(e) => setAdditionForm({ ...additionForm, interval: e.target.value })}
                                                                 className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
-                                                                <option value="Interval">Interval</option>
-                                                                <option value="Annual">Annual</option>
-                                                                <option value="Monthly">Monthly</option>
-                                                                <option value="Per Mile">Per Mile</option>
-                                                                <option value="One Time">One Time</option>
-                                                                <option value="Weekly">Weekly</option>
-                                                                <option value="Biweekly">Biweekly</option>
+                                                                <option className="form-option" value="Interval">Interval</option>
+                                                                <option className="form-option" value="Annual">Annual</option>
+                                                                <option className="form-option" value="Monthly">Monthly</option>
+                                                                <option className="form-option" value="Per Mile">Per Mile</option>
+                                                                <option className="form-option" value="One Time">One Time</option>
+                                                                <option className="form-option" value="Weekly">Weekly</option>
+                                                                <option className="form-option" value="Biweekly">Biweekly</option>
                                                             </select>
                                                             <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
@@ -3690,8 +3939,8 @@ const Trucks: React.FC = () => {
                                                                 onChange={(e) => setAdditionForm({ ...additionForm, currency: e.target.value })}
                                                                 className="w-full px-3 py-2 pr-8 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] text-sm appearance-none"
                                                             >
-                                                                <option value="CAD">CAD</option>
-                                                                <option value="USD">USD</option>
+                                                                <option className="form-option" value="CAD">CAD</option>
+                                                                <option className="form-option" value="USD">USD</option>
                                                             </select>
                                                             <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
@@ -3748,32 +3997,32 @@ const Trucks: React.FC = () => {
                                     </>
                                 )}
 
-                                {/* Navigation Buttons */}
-                                <div className="mt-4 pt-4 border-t border-theme">
-                                    <div className="flex justify-between gap-3">
-                                        <button
-                                            onClick={handlePrevious}
-                                            disabled={!getPreviousStep()}
-                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${getPreviousStep()
-                                                ? 'bg-[var(--accent-navyblue)] text-white hover:bg-[var(--accent-blue)]'
-                                                : 'bg-[var(--accent-navyblue)] text-secondary cursor-not-allowed'
-                                                }`}
-                                        >
-                                            <ChevronLeft className="w-3.5 h-3.5" />
-                                            Previous
-                                        </button>
-                                        <button
-                                            onClick={handleNext}
-                                            disabled={!getNextStep()}
-                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors text-white ${getNextStep()
-                                                ? 'bg-[var(--accent-navyblue)] hover:bg-[var(--accent-blue)]'
-                                                : 'bg-[var(--accent-navyblue)] cursor-not-allowed'
-                                                }`}
-                                        >
-                                            Next
-                                            <ChevronRight className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
+                            </div>
+                            {/* Footer: Previous/Next fixed at bottom */}
+                            <div className="flex-shrink-0 border-t border-theme bg-card px-4 py-3">
+                                <div className="flex justify-between gap-3">
+                                    <button
+                                        onClick={handlePrevious}
+                                        disabled={!getPreviousStep()}
+                                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${getPreviousStep()
+                                            ? 'bg-gray-700 !text-white hover:bg-[var(--accent-navyblue)]'
+                                            : 'bg-gray-700 text-secondary cursor-not-allowed'
+                                            }`}
+                                    >
+                                        <ChevronLeft className="w-3.5 h-3.5" />
+                                        Previous
+                                    </button>
+                                    <button
+                                        onClick={handleNext}
+                                        disabled={!getNextStep()}
+                                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${getNextStep()
+                                            ? 'bg-gray-700 !text-white hover:bg-gray-800'
+                                            : 'bg-gray-200 text-secondary cursor-not-allowed'
+                                            }`}
+                                    >
+                                        Next
+                                        <ChevronRight className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
                             </div>
                         </div>

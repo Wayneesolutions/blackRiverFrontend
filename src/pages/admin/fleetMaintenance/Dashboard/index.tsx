@@ -475,7 +475,7 @@ const ComplianceDashboard: React.FC = () => {
       bgColor: 'bg-[var(--accent-blue)]/10',
       iconColor: 'text-[var(--accent-blue)]',
       textColor: 'text-[var(--accent-blue)]',
-      onClick: () => navigate(`${getBasePath()}/fleet-units`)
+      onClick: () => navigate(`${getBasePath()}/trucks`)
     },
     {
       id: 'out-of-service',
@@ -486,7 +486,7 @@ const ComplianceDashboard: React.FC = () => {
       bgColor: 'bg-[var(--accent-red)]/10',
       iconColor: 'text-[var(--accent-red)]',
       textColor: 'text-[var(--accent-red)]',
-      onClick: () => navigate(`${getBasePath()}/fleet-units`)
+      onClick: () => navigate(`${getBasePath()}/trucks`)
     },
     {
       id: 'under-repair',
@@ -498,18 +498,6 @@ const ComplianceDashboard: React.FC = () => {
       iconColor: 'text-[var(--accent-amber)]',
       textColor: 'text-[var(--accent-amber)]',
       onClick: () => navigate(`${getBasePath()}/maintenance-orders-log`)
-    },
-
-    {
-      id: 'safety',
-      title: 'Safety Alerts',
-      value: safetyAlerts.length,
-      subtitle: 'Expiring/Expired',
-      icon: AlertTriangle,
-      bgColor: 'bg-[var(--accent-red)]/10',
-      iconColor: 'text-[var(--accent-red)]',
-      textColor: 'text-[var(--accent-red)]',
-      onClick: () => navigate(`${getBasePath()}/regulatory-safety`)
     },
     {
       id: 'overdue',
@@ -531,7 +519,7 @@ const ComplianceDashboard: React.FC = () => {
       bgColor: 'bg-[var(--accent-green)]/10',
       iconColor: 'text-[var(--accent-green)]',
       textColor: 'text-[var(--accent-green)]',
-      onClick: () => navigate(`${getBasePath()}/invoices`)
+      onClick: () => navigate(`${getBasePath()}/maintenance-orders-log`)
     },
     {
       id: 'inactive',
@@ -542,7 +530,7 @@ const ComplianceDashboard: React.FC = () => {
       bgColor: 'bg-[var(--accent-indigo)]/10',
       iconColor: 'text-[var(--accent-indigo)]',
       textColor: 'text-[var(--accent-indigo)]',
-      onClick: () => navigate(`${getBasePath()}/fleet-units`)
+      onClick: () => navigate(`${getBasePath()}/trucks`)
     }
   ];
 
@@ -772,7 +760,7 @@ const ComplianceDashboard: React.FC = () => {
 
             {/* Invoice Breakdown Section */}
             <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6 mb-6">
-              <h2 className="text-lg font-bold text-[var(--accent-navyblue)] mb-4">Invoice Breakdown</h2>
+              <h2 className="text-lg font-bold text-white mb-4">Invoice Breakdown</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {invoiceBreakdown.map((item) => {
@@ -810,200 +798,6 @@ const ComplianceDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Safety Fleet Monitor */}
-            <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden mb-6">
-              <div
-                onClick={() => navigate(`${getBasePath()}/regulatory-safety`)}
-                className="px-6 py-4 border-b border-theme bg-card cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-headings flex items-center">
-                    <AlertTriangle className="h-5 w-5 mr-2 text-headings" />
-                    Regulatory & Safety
-                  </h3>
-                  <span className="text-sm text-secondary">View All →</span>
-                </div>
-                <p className="text-xs text-secondary mt-1 ml-7">Units with safety expiry within 30 days or expired</p>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-card">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Unit No.</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Make/Model</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Safety Expiry</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Days Until Expiry</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-theme  ">
-                    {safetyAlerts.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-12 text-center text-secondary">
-                          <div className="flex flex-col items-center gap-2">
-                            <FaCheckCircle className="text-green-500" size={32} />
-                            <p>All safety certifications are up to date!</p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      safetyAlerts.map((alert) => (
-                        <tr
-                          key={`${alert.unitNo}-${alert.safetyExpiry}`}
-                          className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${alert.status === 'expired' ? 'bg-card' : 'bg-card'
-                            }`}
-                        >
-                          <td className="px-6 py-4 font-medium text-headings">{alert.unitNo}</td>
-                          <td className="px-6 py-4 text-headings">{alert.makeModel || '—'}</td>
-                          <td className="px-6 py-4 text-headings">{formatDate(alert.safetyExpiry)}</td>
-                          <td className="px-6 py-4">
-                            <span className={`font-semibold ${alert.daysUntilExpiry < 0 ? 'text-[#A855F7]' : 'text-[#00FFA3]'}`}>
-                              {alert.daysUntilExpiry < 0
-                                ? `Expired ${Math.abs(alert.daysUntilExpiry)} days ago`
-                                : `${alert.daysUntilExpiry} days remaining`}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span
-                              className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${alert.status === 'expired'
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                                }`}
-                            >
-                              {alert.status === 'expired' ? (
-                                <>
-                                  <FaExclamationCircle className="mr-1" size={12} /> EXPIRED
-                                </>
-                              ) : (
-                                <>
-                                  <AlertTriangle className="mr-1" size={12} /> WARNING
-                                </>
-                              )}
-                            </span>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Compliance Documents - Expired/Due Documents */}
-            <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden mb-6">
-              <div
-                onClick={() => navigate(`${getBasePath()}/vehicle-documents`)}
-                className="px-6 py-4 border-b border-theme bg-card cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-headings flex items-center">
-                    <FileText className="h-5 w-5 mr-2 text-headings" />
-                    Compliance Documents (7 Mandatory Regulatory Requirements)
-                  </h3>
-                  <span className="text-sm text-secondary">View All →</span>
-                </div>
-                <p className="text-xs text-secondary mt-1 ml-7">Expired, due, and documents going to expire for trucks and trailers</p>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-card">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Unit No.</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Document Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Document Number</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Expiry Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Days Until Expiry</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-headings uppercase">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-theme ">
-                    {complianceDocuments.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="px-6 py-12 text-center text-secondary">
-                          <div className="flex flex-col items-center gap-2">
-                            <FaCheckCircle className="text-green-500" size={32} />
-                            <p>All compliance documents are up to date!</p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      complianceDocuments.map((doc) => {
-                        const isExpired = doc.daysUntilExpiry !== null && doc.daysUntilExpiry < 0;
-                        const isDueSoon = doc.daysUntilExpiry !== null && doc.daysUntilExpiry >= 0 && doc.daysUntilExpiry <= 30;
-                        const isGoingToExpire = doc.daysUntilExpiry !== null && doc.daysUntilExpiry > 30 && doc.daysUntilExpiry <= 60;
-
-                        let rowBgColor = '';
-                        let statusBadgeColor = '';
-                        let statusText = '';
-                        let statusIcon = null;
-                        let daysTextColor = '';
-
-                        if (isExpired) {
-                          rowBgColor = 'bg-card';
-                          statusBadgeColor = 'bg-red-100 text-red-800';
-                          statusText = 'EXPIRED';
-                          statusIcon = <FaExclamationCircle className="mr-1" size={12} />;
-                          daysTextColor = 'text-[#A855F7]';
-                        } else if (isDueSoon) {
-                          rowBgColor = 'bg-card';
-                          statusBadgeColor = 'bg-yellow-100 text-yellow-800';
-                          statusText = 'DUE SOON';
-                          statusIcon = <AlertTriangle className="mr-1" size={12} />;
-                          daysTextColor = 'text-[#00FFA3]';
-                        } else if (isGoingToExpire) {
-                          rowBgColor = 'bg-card';
-                          statusBadgeColor = 'bg-orange-100 text-orange-800';
-                          statusText = 'GOING TO EXPIRE';
-                          statusIcon = <Clock className="mr-1" size={12} />;
-                          daysTextColor = 'text-[#F59E0B]';
-                        } else {
-                          rowBgColor = 'bg-card';
-                          statusBadgeColor = 'bg-yellow-100 text-yellow-800';
-                          statusText = 'DUE';
-                          statusIcon = <AlertTriangle className="mr-1" size={12} />;
-                          daysTextColor = 'text-[#00FFA3]';
-                        }
-
-                        return (
-                          <tr
-                            key={doc._id}
-                            className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${rowBgColor}`}
-                          >
-                            <td className="px-6 py-4 font-medium text-headings">{doc.unitNo}</td>
-                            <td className="px-6 py-4 text-headings">
-                              <span className="inline-flex px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800">
-                                {doc.unitType}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-headings">
-                              <span className="capitalize">{doc.documentType.replace(/_/g, ' ')}</span>
-                            </td>
-                            <td className="px-6 py-4 text-headings">{doc.documentNumber}</td>
-                            <td className="px-6 py-4 text-headings">{formatDate(doc.expiryDate)}</td>
-                            <td className="px-6 py-4">
-                              <span className={`font-semibold ${daysTextColor}`}>
-                                {doc.daysUntilExpiry === null
-                                  ? 'N/A'
-                                  : doc.daysUntilExpiry < 0
-                                    ? `Expired ${Math.abs(doc.daysUntilExpiry)} days ago`
-                                    : `${doc.daysUntilExpiry} days remaining`}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusBadgeColor}`}>
-                                {statusIcon}
-                                {statusText}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
 
             {/* Scheduled Service Status */}
             <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
@@ -1012,8 +806,8 @@ const ComplianceDashboard: React.FC = () => {
                 className="px-6 py-4 border-b border-theme bg-card cursor-pointer hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-headings flex items-center">
-                    <Calendar className="h-5 w-5 mr-2 text-headings" />
+                  <h3 className="text-lg font-bold text-white flex items-center">
+                    <Calendar className="h-5 w-5 mr-2 text-white" />
                     Scheduled Service Status
                   </h3>
                   <span className="text-sm text-secondary">View All →</span>

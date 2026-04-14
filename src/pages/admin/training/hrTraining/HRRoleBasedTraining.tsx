@@ -290,7 +290,7 @@ const HRRoleBasedTraining: React.FC = () => {
 
   return (
     <div className="p-6 bg-main min-h-screen">
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-[var(--accent-navyblue)] mb-2">Role-Based Training</h1>
           <p className="text-secondary">Upload and manage training materials for different roles</p>

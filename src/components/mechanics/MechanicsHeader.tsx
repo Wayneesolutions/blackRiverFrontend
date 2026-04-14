@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
-import { FaSignOutAlt, FaUser, FaBars } from "react-icons/fa";
-import { Search, X, LogOut, AlertCircle, ArrowRight, ArrowLeft, LayoutDashboard, ClipboardList, UserCheck } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { FaSignOutAlt, FaBars, FaUser } from "react-icons/fa";
+import { Search, X, LogOut, ArrowRight, ArrowLeft, LayoutDashboard, ClipboardList, UserCheck } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -14,10 +14,42 @@ interface MechanicsHeaderProps {
 }
 
 const MECHANICS_QUICK_ACTIONS = [
-  { id: "dashboard", title: "Dashboard", description: "View mechanics dashboard", path: "/dashboard", icon: <LayoutDashboard size={16} />, keywords: ["dashboard", "home", "overview"] },
-  { id: "orders", title: "Orders", description: "View maintenance orders", path: "/orders", icon: <ClipboardList size={16} />, keywords: ["orders", "maintenance", "repairs", "work"] },
-  { id: "completed-orders", title: "Completed Orders", description: "View completed maintenance orders only", path: "/completed-orders", icon: <ClipboardList size={16} />, keywords: ["completed", "orders", "done", "finished"] },
-  { id: "profile", title: "Profile", description: "View and edit your profile", path: "/profile", icon: <UserCheck size={16} />, keywords: ["profile", "account", "settings", "user"] },
+  {
+    id: "dashboard",
+    title: "Dashboard",
+    description: "View mechanics dashboard",
+    path: "/dashboard",
+    icon: <LayoutDashboard size={16} />,
+    keywords: ["dashboard", "home", "overview"],
+    type: "navigation",
+  },
+  {
+    id: "orders",
+    title: "Orders",
+    description: "View maintenance orders",
+    path: "/orders",
+    icon: <ClipboardList size={16} />,
+    keywords: ["orders", "maintenance", "repairs", "work"],
+    type: "navigation",
+  },
+  {
+    id: "completed-orders",
+    title: "Completed Orders",
+    description: "View completed maintenance orders only",
+    path: "/completed-orders",
+    icon: <ClipboardList size={16} />,
+    keywords: ["completed", "orders", "done", "finished"],
+    type: "navigation",
+  },
+  {
+    id: "profile",
+    title: "Profile",
+    description: "View and edit your profile",
+    path: "/profile",
+    icon: <UserCheck size={16} />,
+    keywords: ["profile", "account", "settings", "user"],
+    type: "navigation",
+  },
 ];
 
 const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
@@ -29,8 +61,10 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
+
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
   const { logout } = useLogout();
   const { userInfo } = useSelector((state: RootState) => state.userAuth);
   const navigate = useNavigate();
@@ -43,142 +77,148 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
       action.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Close search on outside click
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+    const handleClick = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setIsSearchOpen(false);
       }
     };
-    if (isSearchOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isSearchOpen]);
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
+  // Escape closes, Ctrl+K opens search
   useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && isSearchOpen) {
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
         setIsSearchOpen(false);
         setSearchQuery("");
         setSelectedIndex(0);
       }
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
     };
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
+    document.addEventListener("keydown", keyHandler);
+    return () => document.removeEventListener("keydown", keyHandler);
+  }, []);
+
+  useEffect(() => { setSelectedIndex(0); }, [searchQuery]);
+  useEffect(() => {
+    if (isSearchOpen) setTimeout(() => inputRef.current?.focus(), 100);
   }, [isSearchOpen]);
 
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [searchQuery]);
+  const handleLogoutClick = useCallback(() => { setShowLogoutModal(true); }, []);
+  const confirmLogout = useCallback(() => { setShowLogoutModal(false); logout(); }, [logout]);
+  const cancelLogout = useCallback(() => { setShowLogoutModal(false); }, []);
 
-  const handleProfileClick = () => {
-    navigate(`${basePath}/profile`);
-  };
+  const handleActionSelect = useCallback(
+    (action: (typeof MECHANICS_QUICK_ACTIONS)[0]) => {
+      navigate(`${basePath}${action.path}`);
+      setSearchQuery("");
+      setIsSearchOpen(false);
+      setSelectedIndex(0);
+    },
+    [navigate, basePath]
+  );
 
-  const handleActionSelect = (action: (typeof MECHANICS_QUICK_ACTIONS)[0]) => {
-    navigate(`${basePath}${action.path}`);
-    setSearchQuery("");
-    setIsSearchOpen(false);
-    setSelectedIndex(0);
-  };
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (filteredActions.length === 0) return;
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setSelectedIndex((prev) => (prev < filteredActions.length - 1 ? prev + 1 : 0));
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setSelectedIndex((prev) => (prev > 0 ? prev - 1 : filteredActions.length - 1));
+          break;
+        case "Enter":
+          e.preventDefault();
+          if (filteredActions.length > 0) handleActionSelect(filteredActions[selectedIndex]);
+          break;
+      }
+    },
+    [filteredActions, selectedIndex, handleActionSelect]
+  );
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (filteredActions.length === 0) return;
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setSelectedIndex((prev) => (prev < filteredActions.length - 1 ? prev + 1 : 0));
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : filteredActions.length - 1));
-        break;
-      case "Enter":
-        e.preventDefault();
-        if (filteredActions.length > 0) handleActionSelect(filteredActions[selectedIndex]);
-        break;
-    }
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (filteredActions.length > 0) handleActionSelect(filteredActions[selectedIndex]);
-  };
+  const handleSearchSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      if (filteredActions.length > 0) handleActionSelect(filteredActions[selectedIndex]);
+    },
+    [filteredActions, selectedIndex, handleActionSelect]
+  );
 
   return (
     <>
-      <header
-        className="flex items-center justify-between px-6 py-4 shadow-sm relative z-20"
-        style={{ background: "linear-gradient(135deg, var(--accent-blue) 0%, #31a2d4 100%)" }}
-      >
+      <header className="flex items-center justify-between px-6 py-4 shadow-sm relative z-20 bg-main">
+
+        {/* LEFT: Sidebar toggle + navigation */}
         <div className="flex items-center gap-4">
-          <button
-            onClick={onToggleSidebar}
-            className="p-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
-            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
+          <button onClick={onToggleSidebar} className="header-btn" title="Toggle Sidebar">
             <FaBars size={20} />
           </button>
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
-            title="Previous"
-          >
+          <button onClick={() => navigate(-1)} className="header-btn" title="Previous">
             <ArrowLeft size={22} />
           </button>
-          <button
-            onClick={() => navigate(1)}
-            className="p-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
-            title="Next"
-          >
+          <button onClick={() => navigate(1)} className="header-btn" title="Next">
             <ArrowRight size={22} />
           </button>
         </div>
 
-        {pageTitle && (
-          <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
-            <span className="text-white font-semibold text-lg tracking-wide">{pageTitle}</span>
-          </div>
-        )}
+        {/* CENTER: Page Title */}
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <span className="text-primary font-semibold text-lg tracking-wide">
+            {pageTitle || "Mechanics"}
+          </span>
+        </div>
 
+        {/* RIGHT: Search + Profile + Logout */}
         <div className="flex items-center gap-4">
+
+          {/* Search Button */}
           <button
             onClick={() => setIsSearchOpen(true)}
-            className="p-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
-            title="Quick Search"
+            className="flex items-center gap-3 px-4 py-2 rounded-lg bg-[var(--bg-card)] border border-[rgba(255,255,255,0.08)] hover:border-[#42aeec]/40 text-secondary hover:text-primary transition-all"
+            title="Search (Ctrl+K)"
           >
-            <Search size={20} />
+            <Search size={16} className="flex-shrink-0" />
+            <span className="text-sm hidden sm:block">Search...</span>
+            <kbd className="text-xs bg-[rgba(255,255,255,0.06)] px-2 py-0.5 rounded text-secondary font-mono hidden sm:block">
+              Ctrl K
+            </kbd>
           </button>
 
+          {/* Profile */}
           <button
-            onClick={handleProfileClick}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
+            onClick={() => navigate(`${basePath}/profile`)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-card)] border border-[rgba(255,255,255,0.08)] hover:border-[#42aeec]/40 text-secondary hover:text-primary transition-all"
             title="Profile"
           >
-            <FaUser size={16} />
-            <span className="text-sm font-medium hidden sm:inline">
+            <FaUser size={14} />
+            <span className="text-sm hidden sm:block">
               {userInfo?.userData?.name?.split(" ")[0] || "Profile"}
             </span>
           </button>
 
-          <button
-            onClick={() => setShowLogoutModal(true)}
-            className="p-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
-            title="Logout"
-          >
+          {/* Logout */}
+          <button onClick={handleLogoutClick} className="header-btn" title="Logout">
             <FaSignOutAlt size={18} />
           </button>
         </div>
       </header>
 
-      {/* Quick Search Overlay */}
+      {/* SEARCH OVERLAY */}
       {isSearchOpen && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 bg-black/30 backdrop-blur-sm">
-          <div ref={searchRef} className="bg-card rounded-lg shadow-2xl w-full max-w-2xl mx-4">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 bg-black/50 backdrop-blur-md">
+          <div ref={searchRef} className="bg-card text-primary border border-theme rounded-xl shadow-2xl w-full max-w-2xl mx-4">
             <form onSubmit={handleSearchSubmit} className="p-4 border-b border-theme">
               <div className="relative">
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
                   <Search className="text-secondary" size={20} />
                 </div>
                 <input
@@ -192,14 +232,10 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
                 />
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsSearchOpen(false);
-                    setSearchQuery("");
-                    setSelectedIndex(0);
-                  }}
+                  onClick={() => { setIsSearchOpen(false); setSearchQuery(""); setSelectedIndex(0); }}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                 >
-                  <X className="text-secondary" size={20} />
+                  <X size={20} />
                 </button>
               </div>
             </form>
@@ -211,17 +247,30 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
                     <button
                       key={action.id}
                       onClick={() => handleActionSelect(action)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${index === selectedIndex ? "bg-card border-blue-500" : "border-transparent hover:border-blue-300"
-                        }`}
+                      className={`w-full flex items-center gap-3 px-4 py-3 transition-all duration-150 border-l-2 ${
+                        index === selectedIndex
+                          ? "active-accent border-[var(--accent-blue)]"
+                          : "border-transparent hover-accent"
+                      }`}
                     >
-                      <div className={`flex-shrink-0 p-2 rounded-lg bg-blue-100 text-blue-700`}>{action.icon}</div>
+                      <div className={`flex-shrink-0 ${index === selectedIndex ? "scale-110" : ""}`}>
+                        <div className="p-2 rounded-lg bg-[rgba(0,209,255,0.1)] text-[var(--accent-blue)]">
+                          {action.icon}
+                        </div>
+                      </div>
                       <div className="flex-1 text-left min-w-0">
-                        <div className="font-semibold text-primary truncate">{action.title}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-primary truncate">{action.title}</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-[rgba(0,209,255,0.1)] text-[var(--accent-blue)]">
+                            Navigate
+                          </span>
+                        </div>
                         <p className="text-sm text-secondary mt-0.5 truncate">{action.description}</p>
                       </div>
                       <ArrowRight
-                        className={`flex-shrink-0 transition-all ${index === selectedIndex ? "text-[#00D1FF] opacity-100" : "text-secondary opacity-0"
-                          }`}
+                        className={`flex-shrink-0 transition-all ${
+                          index === selectedIndex ? "text-[var(--accent-blue)] opacity-100" : "text-secondary opacity-0"
+                        }`}
                         size={18}
                       />
                     </button>
@@ -229,7 +278,7 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
                 </div>
                 <div className="border-t border-theme px-4 py-2 bg-card">
                   <p className="text-xs text-secondary text-center">
-                    {filteredActions.length} result{filteredActions.length !== 1 ? "s" : ""} • Use ↑↓ to navigate, Enter to select
+                    {filteredActions.length} result{filteredActions.length !== 1 ? "s" : ""} • Use ↑↓ to navigate
                   </p>
                 </div>
               </div>
@@ -237,52 +286,43 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
 
             {searchQuery.trim() !== "" && filteredActions.length === 0 && (
               <div className="p-8">
-                <p className="text-sm text-secondary text-center">No results for "{searchQuery}"</p>
+                <p className="text-sm text-secondary text-center">No actions found for "{searchQuery}"</p>
               </div>
             )}
 
             {searchQuery.trim() === "" && (
               <div className="p-8">
-                <p className="text-sm text-secondary text-center">Type to search Dashboard, Orders, or Profile</p>
+                <p className="text-sm text-secondary text-center">
+                  Type to search for Dashboard, Orders, or Profile
+                </p>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Logout Modal */}
+      {/* LOGOUT CONFIRMATION MODAL */}
       {showLogoutModal && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowLogoutModal(false)}>
-          <div className="bg-card rounded-2xl shadow-2xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-theme">
-              <div className="flex items-center gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                  <LogOut className="text-[#A855F7]" size={24} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-primary">Confirm Logout</h3>
-                  <p className="text-sm text-secondary mt-1">Are you sure you want to logout?</p>
-                </div>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[var(--bg-card)] border border-[rgba(255,255,255,0.08)] rounded-xl shadow-2xl w-full max-w-sm mx-4 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-red-500/10">
+                <LogOut size={20} className="text-red-400" />
               </div>
+              <h3 className="text-base font-semibold text-primary">Confirm Logout</h3>
             </div>
-            <div className="p-6">
-              <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <AlertCircle className="text-amber-600 flex-shrink-0 mt-0.5" size={20} />
-                <p className="text-sm text-amber-800">You'll need to sign in again to access your account after logging out.</p>
-              </div>
-            </div>
-            <div className="p-6 border-t border-theme flex justify-end gap-3">
-              <button onClick={() => setShowLogoutModal(false)} className="px-6 py-2.5 text-primary bg-card hover:bg-gray-200 rounded-lg transition-colors font-medium">
+            <p className="text-sm text-secondary mb-6">Are you sure you want to log out?</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={cancelLogout}
+                className="px-4 py-2 text-sm rounded-lg border border-[rgba(255,255,255,0.08)] text-secondary hover:text-primary hover:border-[rgba(255,255,255,0.2)] transition-all"
+              >
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  setShowLogoutModal(false);
-                  logout();
-                }}
-                className="px-6 py-2.5 !text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-medium flex items-center gap-2"
+                onClick={confirmLogout}
+                className="px-4 py-2 text-sm rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium transition-all"
               >
-                <LogOut size={18} />
                 Logout
               </button>
             </div>
@@ -294,4 +334,3 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
 };
 
 export default MechanicsHeader;
-
