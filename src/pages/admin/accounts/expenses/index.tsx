@@ -1042,21 +1042,29 @@ const ExpensesPage = () => {
 
         {/* Stats Cards - Dynamic based on categories */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <div className="bg-[#E3F2FD] p-6 rounded-xl border-blue-100 shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative">
+
+          {/* 🔷 TOTAL EXPENSES */}
+          <div className="bg-[var(--bg-card)] p-6 rounded-xl border border-[rgba(255,255,255,0.08)] shadow-sm hover:shadow-lg hover:shadow-[#42aeec]/10 transition-all duration-300">
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1 min-w-0 pr-2">
-                <p className="text-[#063f6f] text-sm">Total Expenses</p>
-                <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>${totalAmount.toLocaleString()}</p>
+                <p className="text-secondary text-sm">Total Expenses</p>
+                <p className="text-2xl font-bold text-primary">
+                  ${totalAmount.toLocaleString()}
+                </p>
               </div>
-              <div className="bg-card p-2.5 rounded-full shadow-sm flex-shrink-0">
+              <div className="bg-[rgba(66,174,236,0.1)] p-2.5 rounded-full">
                 <DollarSign className="text-[var(--accent-blue)]" size={20} />
               </div>
             </div>
           </div>
 
+
+          {/* 🔷 CATEGORY CARDS */}
           {categories.slice(0, 3).map((category, index) => {
+
             const categoryExpenses = expenses.filter(e => {
               const categoryIdStr = String(category._id);
+
               let expenseCategoryId: string | null = null;
               if (e.categoryId) {
                 if (typeof e.categoryId === 'string') {
@@ -1065,34 +1073,47 @@ const ExpensesPage = () => {
                   expenseCategoryId = String((e.categoryId as any)._id || e.categoryId);
                 }
               }
+
               let expenseCategoryObjId: string | null = null;
-              if (e.category) {
-                if (typeof e.category === 'object' && e.category !== null) {
-                  expenseCategoryObjId = String(e.category._id || (e.category as any)._id);
-                }
+              if (e.category && typeof e.category === 'object') {
+                expenseCategoryObjId = String(e.category._id);
               }
-              return (expenseCategoryId && String(expenseCategoryId) === categoryIdStr) ||
-                (expenseCategoryObjId && String(expenseCategoryObjId) === categoryIdStr);
+
+              return (
+                (expenseCategoryId && expenseCategoryId === categoryIdStr) ||
+                (expenseCategoryObjId && expenseCategoryObjId === categoryIdStr)
+              );
             });
+
             const categoryTotal = categoryExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
 
+            // 🎨 HR STYLE COLORS
             const cardColors = [
-              { bg: 'bg-[#E1F5FE]', border: 'border-cyan-100', icon: '⛽' },
-              { bg: 'bg-[#E8F5E9]', border: 'border-green-100', icon: '🔧' },
-              { bg: 'bg-[#F3E5F5]', border: 'border-purple-100', icon: '💰' }
+              { accent: 'text-cyan-400', iconBg: 'bg-cyan-400/10', icon: '⛽' },
+              { accent: 'text-green-400', iconBg: 'bg-green-400/10', icon: '🔧' },
+              { accent: 'text-purple-400', iconBg: 'bg-purple-400/10', icon: '💰' }
             ];
-            const colors = cardColors[index] || { bg: 'bg-[#E1F5FE]', border: 'border-cyan-100', icon: '📊' };
+
+            const colors = cardColors[index] || {
+              accent: 'text-blue-400',
+              iconBg: 'bg-blue-400/10',
+              icon: '📊'
+            };
 
             return (
-              <div key={category._id} className={`${colors.bg} p-6 rounded-xl ${colors.border} shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative`}>
+              <div
+                key={category._id}
+                className="bg-[var(--bg-card)] p-6 rounded-xl border border-[rgba(255,255,255,0.08)] shadow-sm hover:shadow-lg hover:shadow-[#42aeec]/10 transition-all duration-300"
+              >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0 pr-2">
-                    <p className="text-[#063f6f] text-sm">{category.name}</p>
-                    <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
+                    <p className="text-secondary text-sm">{category.name}</p>
+                    <p className={`text-2xl font-bold ${colors.accent}`}>
                       ${categoryTotal.toLocaleString()}
                     </p>
                   </div>
-                  <div className="bg-card p-2.5 rounded-full shadow-sm flex-shrink-0">
+
+                  <div className={`${colors.iconBg} p-2.5 rounded-full`}>
                     <span className="text-xl">{colors.icon}</span>
                   </div>
                 </div>
@@ -1100,19 +1121,23 @@ const ExpensesPage = () => {
             );
           })}
 
-          <div className="bg-[#FFF3E0] p-6 rounded-xl border-orange-100 shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative">
+
+          {/* 🔷 TOTAL PAYROLL */}
+          <div className="bg-[var(--bg-card)] p-6 rounded-xl border border-[rgba(255,255,255,0.08)] shadow-sm hover:shadow-lg hover:shadow-[#42aeec]/10 transition-all duration-300">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <p className="text-[#063f6f] text-sm mb-1">Total Payroll</p>
-                <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
+                <p className="text-secondary text-sm mb-1">Total Payroll</p>
+                <p className="text-2xl font-bold text-primary">
                   ${totalPayroll.toLocaleString()}
                 </p>
               </div>
-              <div className="bg-card p-2.5 rounded-full shadow-sm flex-shrink-0">
+
+              <div className="bg-[rgba(66,174,236,0.1)] p-2.5 rounded-full">
                 <Users className="text-[var(--accent-blue)]" size={20} />
               </div>
             </div>
           </div>
+
         </div>
 
         {/* Category Tabs */}
@@ -1366,9 +1391,9 @@ const ExpensesPage = () => {
                         onChange={handleInputChange}
                         className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="">Select Employee</option>
+                        <option className='form-option' value="">Select Employee</option>
                         {employees.map(emp => (
-                          <option key={emp._id} value={emp._id}>
+                          <option className='form-option' key={emp._id} value={emp._id}>
                             {emp.name} - {emp.role || emp.position || 'Employee'}
                           </option>
                         ))}
@@ -1386,9 +1411,9 @@ const ExpensesPage = () => {
                         required
                         className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="">Select Category</option>
+                        <option className='form-option' value="">Select Category</option>
                         {categories.map(category => (
-                          <option key={category._id} value={category._id}>
+                          <option className='form-option' key={category._id} value={category._id}>
                             {category.name}
                           </option>
                         ))}
@@ -1416,7 +1441,7 @@ const ExpensesPage = () => {
                       disabled={!formData.categoryId || loadingTypes}
                       className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-card disabled:cursor-not-allowed"
                     >
-                      <option value="">
+                      <option className='form-option' value="">
                         {loadingTypes
                           ? 'Loading types...'
                           : !formData.categoryId
@@ -1424,7 +1449,7 @@ const ExpensesPage = () => {
                             : 'Select Type'}
                       </option>
                       {expenseTypes.map((type: ExpenseType) => (
-                        <option key={type._id} value={type._id}>
+                        <option className='form-option' key={type._id} value={type._id}>
                           {type.name}
                         </option>
                       ))}
@@ -1495,9 +1520,9 @@ const ExpensesPage = () => {
                         disabled={loadingFleet}
                         className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-card disabled:cursor-not-allowed"
                       >
-                        <option value="">Select Truck (Optional)</option>
+                        <option className='form-option' value="">Select Truck (Optional)</option>
                         {trucks.map(truck => (
-                          <option key={truck._id} value={truck._id}>
+                          <option className='form-option' key={truck._id} value={truck._id}>
                             {truck.unitNo || truck.unitNumber || truck.internalId || truck.plateNumber || truck._id}
                             {truck.make && truck.model ? ` - ${truck.make} ${truck.model}` : ''}
                           </option>
@@ -1516,9 +1541,9 @@ const ExpensesPage = () => {
                         disabled={loadingFleet}
                         className="w-full border border-theme rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-card disabled:cursor-not-allowed"
                       >
-                        <option value="">Select Trailer (Optional)</option>
+                        <option className='form-option' value="">Select Trailer (Optional)</option>
                         {trailers.map(trailer => (
-                          <option key={trailer._id} value={trailer._id}>
+                          <option className='form-option' key={trailer._id} value={trailer._id}>
                             {trailer.unitNo || trailer.unitNumber || trailer.internalId || trailer.plateNumber || trailer._id}
                             {trailer.make && trailer.model ? ` - ${trailer.make} ${trailer.model}` : ''}
                           </option>
@@ -2071,9 +2096,9 @@ const ExpensesPage = () => {
                         className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                         required
                       >
-                        <option value="">Select Category</option>
+                        <option className='form-option' value="">Select Category</option>
                         {categories.map(category => (
-                          <option key={category._id} value={category._id}>
+                          <option className='form-option' key={category._id} value={category._id}>
                             {category.name}
                           </option>
                         ))}
@@ -2106,8 +2131,8 @@ const ExpensesPage = () => {
                         onChange={(e) => setTypeFormData(prev => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
                         className="w-full border border-theme rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                       >
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
+                        <option className='form-option' value="active">Active</option>
+                        <option className='form-option' value="inactive">Inactive</option>
                       </select>
                     </div>
                   </div>

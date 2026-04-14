@@ -756,7 +756,25 @@ const InvoiceManagement: React.FC = () => {
     };
 
     const getStatusColor = (status: string): string => {
-        return status === 'paid' ? 'text-green-600 bg-green-100' : 'text-[#00FFA3] bg-yellow-100';
+        switch (status.toLowerCase()) {
+            case 'paid':
+                return 'text-green-400 bg-green-400/10 border border-green-400/20';
+
+            case 'pending':
+                return 'text-yellow-400 bg-yellow-400/10 border border-yellow-400/20';
+
+            case 'overdue':
+                return 'text-red-400 bg-red-400/10 border border-red-400/20';
+
+            case 'draft':
+                return 'text-gray-400 bg-gray-400/10 border border-gray-400/20';
+
+            case 'cancelled':
+                return 'text-purple-400 bg-purple-400/10 border border-purple-400/20';
+
+            default:
+                return 'text-secondary bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)]';
+        }
     };
 
     const calculateStats = () => {
@@ -1944,8 +1962,8 @@ const InvoiceManagement: React.FC = () => {
                             <button
                                 onClick={handleSave}
                                 disabled={loading}
-                                className="px-4 py-2 rounded-md transition-colors disabled:bg-gray-400"
-                                style={primaryButtonStyle}
+                                className="px-4 py-2 rounded-md transition-colors disabled:bg-gray-400 bg-[var(--accent-navyblue)]"
+
                             >
                                 {loading ? 'Saving...' : 'Save Changes'}
                             </button>
@@ -2025,8 +2043,8 @@ const InvoiceManagement: React.FC = () => {
                                     onChange={(e) => handleInputChange('status', e.target.value)}
                                     className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 >
-                                    <option value="pending">Pending</option>
-                                    <option value="paid">Paid</option>
+                                    <option className='form-option' value="pending">Pending</option>
+                                    <option className='form-option' value="paid">Paid</option>
                                 </select>
                             </div>
 
@@ -2205,8 +2223,8 @@ const InvoiceManagement: React.FC = () => {
                             <button
                                 onClick={handleCreate}
                                 disabled={loading}
-                                className="px-4 py-2 rounded-md transition-colors flex items-center gap-2 disabled:bg-gray-400"
-                                style={primaryButtonStyle}
+                                className="px-4 py-2 rounded-md transition-colors flex items-center gap-2 bg-[var(--accent-navyblue)]"
+
                             >
                                 <Plus className="h-4 w-4" />
                                 {loading ? 'Creating...' : 'Create Invoice'}
