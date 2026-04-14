@@ -342,7 +342,7 @@ const EnhancedComplianceRecords: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
+    <div className="min-h-screen p-6 bg-main">
       <div className="w-full mx-auto">
         {/* Toast Notifications */}
         <div className="fixed top-4 right-4 z-[10001] space-y-2">
@@ -359,7 +359,7 @@ const EnhancedComplianceRecords: React.FC = () => {
         <div className="mb-10">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <h1 className="text-4xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
+              <h1 className="text-4xl font-bold text-headings" >
                 Compliance Records Management
               </h1>
               <p className="text-lg text-secondary mt-2">
@@ -368,10 +368,10 @@ const EnhancedComplianceRecords: React.FC = () => {
             </div>
             <button
               onClick={() => handleNavigation('../Dashboard')}
-              className="px-6 py-3 rounded-xl !text-white font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center space-x-2"
-              style={{ background: CUSTOM_COLORS.gradient }}
+              className=" bg-[var(--accent-navyblue)] px-6 py-3 rounded-xl !text-white font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center space-x-2 "
+
             >
-              <FaChartLine size={18} />
+              <FaChartLine size={18} className="text-primary" />
               <span>View Dashboard</span>
             </button>
           </div>
@@ -391,16 +391,25 @@ const EnhancedComplianceRecords: React.FC = () => {
               <button
                 key={view.id}
                 onClick={() => setActiveView(view.id as any)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition ${activeView === view.id
-                  ? '!text-white shadow-lg'
-                  : 'bg-card text-primary hover:bg-gray-200'
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all
+    ${activeView === view.id
+                    ? 'bg-[var(--accent-blue)]/10 text-[var(--accent-navyblue)] border border-[var(--accent-blue)]/30 shadow-sm'
+                    : 'bg-card text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] border border-transparent'
                   }`}
-                style={activeView === view.id ? { background: CUSTOM_COLORS.gradient } : {}}
               >
-                {view.icon}
+                {/* Icon */}
+                <span className="text-current">{view.icon}</span>
+
+                {/* Label */}
                 <span>{view.label}</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeView === view.id ? 'bg-card text-purple-600' : 'bg-purple-100 text-purple-600'
-                  }`}>
+
+                {/* Badge */}
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeView === view.id
+                    ? 'bg-card text-[var(--accent-blue)]'
+                    : 'bg-[var(--bg-secondary)] text-[var(--accent-blue)]'
+                    }`}
+                >
                   {view.count}
                 </span>
               </button>
@@ -410,7 +419,7 @@ const EnhancedComplianceRecords: React.FC = () => {
 
         {/* Statistics Cards - Dashboard Style */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4" style={{ color: CUSTOM_COLORS.dark }}>
+          <h2 className="text-2xl font-bold mb-4 text-headings" >
             📊 Compliance Overview
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -528,24 +537,60 @@ const EnhancedComplianceRecords: React.FC = () => {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="px-4 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
               >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="expiring">Expiring</option>
-                <option value="expired">Expired</option>
-                <option value="completed">Completed</option>
-                <option value="investigating">Investigating</option>
+                <option value="all" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  All Status
+                </option>
+
+                <option value="active" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  Active
+                </option>
+
+                <option value="expiring" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  Expiring
+                </option>
+
+                <option value="expired" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  Expired
+                </option>
+
+                <option value="completed" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  Completed
+                </option>
+
+                <option value="investigating" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  Investigating
+                </option>
               </select>
               <select
                 value={filterCompliance}
                 onChange={(e) => setFilterCompliance(e.target.value)}
-                className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="px-4 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
               >
-                <option value="all">All Compliance</option>
-                <option value="compliant">Compliant</option>
-                <option value="non-compliant">Non-Compliant</option>
-                <option value="at-risk">At Risk</option>
+                <option value="all" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  All Compliance
+                </option>
+
+                <option value="compliant" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  Compliant
+                </option>
+
+                <option value="non-compliant" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  Non-Compliant
+                </option>
+
+                <option value="at-risk" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  At Risk
+                </option>
               </select>
             </div>
           </div>
@@ -556,7 +601,7 @@ const EnhancedComplianceRecords: React.FC = () => {
           <div className="p-6 border-b">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
+                <h3 className="text-xl font-bold text-headings" >
                   {activeView === 'all' ? 'All Compliance Records' :
                     activeView === 'policies' ? '📋 Policy Records' :
                       activeView === 'training' ? '🎓 Training Records' :
@@ -581,15 +626,15 @@ const EnhancedComplianceRecords: React.FC = () => {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead style={{ background: CUSTOM_COLORS.gradient, color: '#ffffff' }}>
+              <thead >
                 <tr>
-                  <th className="px-6 py-4 text-left text-white font-semibold">Record ID</th>
-                  <th className="px-6 py-4 text-left text-white font-semibold">Title</th>
-                  <th className="px-6 py-4 text-left text-white font-semibold">Type</th>
-                  <th className="px-6 py-4 text-left text-white font-semibold">Status</th>
-                  <th className="px-6 py-4 text-left text-white font-semibold">Compliance</th>
-                  <th className="px-6 py-4 text-left text-white font-semibold">Key Info</th>
-                  <th className="px-6 py-4 text-left text-white font-semibold">Actions</th>
+                  <th className="px-6 py-4 text-left text-headings font-semibold">Record ID</th>
+                  <th className="px-6 py-4 text-left text-headings font-semibold">Title</th>
+                  <th className="px-6 py-4 text-left text-headings font-semibold">Type</th>
+                  <th className="px-6 py-4 text-left text-headings font-semibold">Status</th>
+                  <th className="px-6 py-4 text-left text-headings font-semibold">Compliance</th>
+                  <th className="px-6 py-4 text-left text-headings font-semibold">Key Info</th>
+                  <th className="px-6 py-4 text-left text-headings font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -690,7 +735,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                                 setShowSidebar(true);
                               }}
                             >
-                              <FaEye size={18} />
+                              <FaEye size={18} className="text-headings" />
                             </button>
                           </div>
                         </td>
@@ -809,14 +854,14 @@ const EnhancedComplianceRecords: React.FC = () => {
 
                 {'incidentType' in selectedRecord && (
                   <div className="space-y-4">
-                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-primary">
-                      <FaExclamationTriangle className="text-[#A855F7]" /> Incident Report
+                    <h3 className="font-bold border-b pb-2 flex items-center gap-2 text-headings">
+                      <FaExclamationTriangle className="text-headings" /> Incident Report
                     </h3>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div><span className="text-secondary">Date:</span> <div className="font-medium">{selectedRecord.incidentDate}</div></div>
                       <div><span className="text-secondary">Reported By:</span> <div className="font-medium">{selectedRecord.reportedBy}</div></div>
                       <div><span className="text-secondary">Location:</span> <div className="font-medium">{selectedRecord.location}</div></div>
-                      <div><span className="text-secondary">Severity:</span> <div className="font-medium capitalize text-[#A855F7]">{selectedRecord.severity}</div></div>
+                      <div><span className="text-secondary">Severity:</span> <div className="font-medium capitalize textprimary">{selectedRecord.severity}</div></div>
                     </div>
                     <div className="bg-card p-3 rounded-lg text-sm">
                       <span className="text-secondary block mb-1">Description:</span>
@@ -829,7 +874,7 @@ const EnhancedComplianceRecords: React.FC = () => {
                           {selectedRecord.photosVideos.map((url, idx) => (
                             <a key={idx} href={url} target="_blank" rel="noreferrer" className="shrink-0 w-20 h-20 bg-gray-200 rounded-lg overflow-hidden border border-theme">
                               {url.endsWith('.mp4') ? (
-                                <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white text-xs">Video</div>
+                                <div className="w-full h-full flex items-center justify-center bg-gray-800 text-primary text-xs">Video</div>
                               ) : (
                                 <img src={url} alt="evidence" className="w-full h-full object-cover" />
                               )}
@@ -899,7 +944,7 @@ const EnhancedComplianceRecords: React.FC = () => {
               <div className="p-6 border-t bg-card">
                 <button
                   onClick={() => setShowSidebar(false)}
-                  className="w-full py-3 bg-card border border-theme rounded-lg text-primary font-semibold hover:bg-[rgba(255,255,255,0.03)] transition"
+                  className="w-full py-3 bg-[var(--accent-navyblue)] border border-theme rounded-lg text-primary font-semibold hover:bg-[rgba(255,255,255,0.03)] transition"
                 >
                   Close Details
                 </button>

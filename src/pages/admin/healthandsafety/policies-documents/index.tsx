@@ -58,14 +58,14 @@ interface ToastNotification {
 
 const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
   const icons = {
-    success: <FaCheckCircle className="text-green-500" size={24} />,
+    success: <FaCheckCircle className="text-[var(--accent-green)]" size={24} />,
     error: <FaExclamationTriangle className="text-red-500" size={24} />,
     info: <FaInfoCircle className="text-blue-500" size={24} />,
     warning: <FaExclamationTriangle className="text-yellow-500" size={24} />
   };
 
   const bgColors = {
-    success: 'bg-green-50 border-green-200',
+    success: 'bg-[var(--accent-green)]/20 border-[var(--accent-green)]',
     error: 'bg-card border-red-200',
     info: 'bg-card border-blue-200',
     warning: 'bg-card border-yellow-200'
@@ -333,7 +333,7 @@ const PolicyManagementModule = () => {
     const policyCategoriesCount = uniqueCategories.size;
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 border-2 border-red-700">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 
           <div className="bg-card p-5 rounded-xl shadow-md border-l-4 border-purple-500">
@@ -370,20 +370,20 @@ const PolicyManagementModule = () => {
 
 
         <div className="bg-card rounded-xl shadow-lg overflow-hidden p-6">
-          <h3 className="text-xl font-bold mb-4 text-red-700 flex items-center gap-2"><FaUserTimes /> Acknowledgment Audit Report</h3>
+          <h3 className="text-xl font-bold mb-4 text-headings flex items-center gap-2"><FaUserTimes /> Acknowledgment Audit Report</h3>
           <p className='text-sm text-secondary mb-4'>Audit-ready list showing policies where mandatory acknowledgment (Read Receipts) is missing for the **current version**.</p>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-theme">
+            <table className="min-w-full divide-y divide-theme divide-white/5">
               <thead className="bg-card">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Policy Title (Version)</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Assigned Roles</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Unacknowledged</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Compliance %</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Action</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Policy Title (Version)</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Assigned Roles</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Unacknowledged</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Compliance %</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase">Action</th>
                 </tr>
               </thead>
-              <tbody className="bg-card divide-y divide-theme">
+              <tbody className="bg-card divide-y divide-theme divide-white/5">
                 {nonCompliantAcknowledgment.map(p => (
                   <tr key={p._id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">{p.title} <span className='text-secondary font-normal'>v.**{p.version}**</span></td>
@@ -455,7 +455,7 @@ const PolicyManagementModule = () => {
       <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div className="bg-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-card">
-            <h2 className="text-2xl font-bold">Upload New Policy/SOP</h2>
+            <h2 className="text-2xl font-bold text-headings">Upload New Policy/SOP</h2>
             <button onClick={onClose} className="text-secondary hover:text-primary">
               <FaTimes size={24} />
             </button>
@@ -464,7 +464,7 @@ const PolicyManagementModule = () => {
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold mb-2">Policy Title *</label>
+                <label className="block text-sm font-semibold mb-2 text-headings">Policy Title *</label>
                 <input
                   type="text"
                   placeholder="e.g., Fueling Operations SOP"
@@ -475,7 +475,7 @@ const PolicyManagementModule = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Policy Number *</label>
+                <label className="block text-sm font-semibold mb-2 text-headings">Policy Number *</label>
                 <input
                   type="text"
                   placeholder="e.g., SOP-D-001"
@@ -486,7 +486,7 @@ const PolicyManagementModule = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Category *</label>
+                <label className="block text-sm font-semibold mb-2 text-headings">Category *</label>
                 <select
                   className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.category}
@@ -497,7 +497,7 @@ const PolicyManagementModule = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Document Type *</label>
+                <label className="block text-sm font-semibold mb-2 text-headings">Document Type *</label>
                 <select
                   className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.documentType}
@@ -511,56 +511,101 @@ const PolicyManagementModule = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Effective Date *</label>
+                <label className="block text-sm font-semibold mb-2 text-headings">Effective Date *</label>
                 <input
                   type="date"
                   className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.effectiveDate}
                   onChange={(e) => setFormData({ ...formData, effectiveDate: e.target.value })}
+                  style={{ colorScheme: 'dark' }}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Review Date *</label>
+                <label className="block text-sm font-semibold mb-2 text-headings">Review Date *</label>
                 <input
                   type="date"
                   className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.reviewDate}
                   onChange={(e) => setFormData({ ...formData, reviewDate: e.target.value })}
+                  style={{ colorScheme: 'dark' }}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Renewal Cycle (months) *</label>
+                <label className="block text-sm font-semibold mb-2 text-headings">Renewal Cycle (months) *</label>
                 <select
-                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.renewalCycle}
-                  onChange={(e) => setFormData({ ...formData, renewalCycle: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      renewalCycle: Number(e.target.value),
+                    })
+                  }
+                  className="w-full px-4 py-3 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                 >
-                  <option value={12}>12 months</option>
-                  <option value={24}>24 months</option>
-                  <option value={36}>36 months</option>
+                  <option value={12} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    12 months
+                  </option>
+
+                  <option value={24} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    24 months
+                  </option>
+
+                  <option value={36} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    36 months
+                  </option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Policy Owner *</label>
+                <label className="block text-sm font-semibold mb-2 text-headings">Policy Owner *</label>
                 <select
-                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.owner}
-                  onChange={(e) => setFormData({ ...formData, owner: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, owner: e.target.value })
+                  }
+                  className="w-full px-4 py-3 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                 >
-                  <option value="">Select Owner</option>
-                  <option>Safety Manager</option>
-                  <option>HR Manager</option>
-                  <option>Operations Manager</option>
-                  <option>Fleet Manager</option>
-                  <option>Yard Supervisor</option>
+                  <option
+                    value=""
+                    className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                  >
+                    Select Owner
+                  </option>
+
+                  <option className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Safety Manager
+                  </option>
+
+                  <option className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    HR Manager
+                  </option>
+
+                  <option className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Operations Manager
+                  </option>
+
+                  <option className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Fleet Manager
+                  </option>
+
+                  <option className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Yard Supervisor
+                  </option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Version Number</label>
+                <label className="block text-sm font-semibold mb-2 text-headings">Version Number</label>
                 <input
                   type="text"
                   placeholder="1.0"
@@ -571,7 +616,7 @@ const PolicyManagementModule = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Link to Training (Optional)</label>
+                <label className="block text-sm font-semibold mb-2 text-headings">Link to Training (Optional)</label>
                 <input
                   type="text"
                   placeholder="Training ID"
@@ -582,7 +627,7 @@ const PolicyManagementModule = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold mb-2">Assign to Roles *</label>
+                <label className="block text-sm font-semibold mb-2 text-headings">Assign to Roles *</label>
                 <div className="grid grid-cols-3 gap-3">
                   {['All Staff', 'Drivers', 'Mechanics', 'Warehouse Staff', 'Office Staff', 'Managers'].map(role => (
                     <label key={role} className="flex items-center gap-2">
@@ -641,12 +686,12 @@ const PolicyManagementModule = () => {
                     alert('Please fill in all required fields');
                   }
                 }}
-                style={{ background: CUSTOM_COLORS.gradient }}
-                className="flex-1 px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition"
+
+                className="flex-1 px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition bg-[var(--accent-navyblue)]"
               >
                 Upload Policy & Assign to Employees
               </button>
-              <button onClick={onClose} className="px-6 py-3 bg-gray-200 text-primary rounded-lg font-semibold hover:bg-gray-300 transition">
+              <button onClick={onClose} className="px-6 py-3 bg-card border border-theme text-headings rounded-lg font-semibold hover:bg-[var(--accent-navyblue)]/20 transition ">
                 Cancel
               </button>
             </div>
@@ -834,13 +879,31 @@ const PolicyManagementModule = () => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="px-4 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
             >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="under-review">Under Review</option>
-              <option value="draft">Draft</option>
-              <option value="expired">Expired</option>
+              <option value="all" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                All Status
+              </option>
+
+              <option value="active" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Active
+              </option>
+
+              <option value="under-review" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Under Review
+              </option>
+
+              <option value="draft" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Draft
+              </option>
+
+              <option value="expired" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Expired
+              </option>
             </select>
             {/* Filter by Category */}
             <select
@@ -885,18 +948,18 @@ const PolicyManagementModule = () => {
           }}
         >
           <table className="w-full">
-            <thead style={{ background: CUSTOM_COLORS.gradient }}>
+            <thead >
               <tr>
-                <th className="px-6 py-4 text-left text-white font-semibold">Policy #</th>
-                <th className="px-6 py-4 text-left text-white font-semibold">Title / Document Type</th>
-                <th className="px-6 py-4 text-left text-white font-semibold">Category</th>
-                <th className="px-6 py-4 text-left text-white font-semibold">Assigned Roles</th>
-                <th className="px-6 py-4 text-left text-white font-semibold">Document</th>
-                <th className="px-6 py-4 text-left text-white font-semibold">Version / Effective Date</th>
-                <th className="px-6 py-4 text-left text-white font-semibold">Next Review (Renewal Cycle)</th>
-                <th className="px-6 py-4 text-left text-white font-semibold">Acknowledgment</th>
-                <th className="px-6 py-4 text-left text-white font-semibold">Status</th>
-                <th className="px-6 py-4 text-left text-white font-semibold">Actions</th>
+                <th className="px-6 py-4 text-left text-headings font-semibold">Policy #</th>
+                <th className="px-6 py-4 text-left text-headings font-semibold">Title / Document Type</th>
+                <th className="px-6 py-4 text-left text-headings font-semibold">Category</th>
+                <th className="px-6 py-4 text-left text-headings font-semibold">Assigned Roles</th>
+                <th className="px-6 py-4 text-left text-headings font-semibold">Document</th>
+                <th className="px-6 py-4 text-left text-headings font-semibold">Version / Effective Date</th>
+                <th className="px-6 py-4 text-left text-headings font-semibold">Next Review (Renewal Cycle)</th>
+                <th className="px-6 py-4 text-left text-headings font-semibold">Acknowledgment</th>
+                <th className="px-6 py-4 text-left text-headings font-semibold">Status</th>
+                <th className="px-6 py-4 text-left text-headings font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -1051,7 +1114,7 @@ const PolicyManagementModule = () => {
   );
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
+    <div className="min-h-screen p-6 bg-main">
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10001] space-y-2">
         {notifications.map(notification => (
@@ -1065,7 +1128,8 @@ const PolicyManagementModule = () => {
       <div className="w-full mx-auto">
         <div className="mb-6 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
+            <h1 className="text-3xl font-bold mb-2 text-headings"
+            >
               Company Policy Management & Renewal Tracking 📑
             </h1>
             <p className="text-secondary">Centralized policy library, version control, and **mandatory acknowledgment tracking** for CLC compliance.</p>
@@ -1079,11 +1143,8 @@ const PolicyManagementModule = () => {
             </button>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2 font-semibold"
-              style={{
-                background: CUSTOM_COLORS.gradient,
-                boxShadow: `0 4px 6px ${CUSTOM_COLORS.light}40`
-              }}
+              className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2 font-semibold bg-[var(--accent-navyblue)]"
+
             >
               <FaPlus /> Upload New Policy
             </button>

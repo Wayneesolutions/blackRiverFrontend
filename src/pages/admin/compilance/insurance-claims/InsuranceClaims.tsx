@@ -544,15 +544,15 @@ const InsuranceClaims: React.FC = () => {
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
-              <FaShieldAlt className="text-[var(--accent-blue)]" size={32} />
+            <h1 className="text-3xl font-bold text-[var(--accent-navyblue)] flex items-center gap-3">
+              <FaShieldAlt className="text-[var(--accent-navyblue)]" size={32} />
               Insurance Claims
             </h1>
             <p className="text-secondary mt-2">Manage and track all insurance claims</p>
           </div>
           <button
             onClick={handleAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-blue)] !text-white rounded-lg hover:bg-[rgba(0,209,255,0.15)] transition-colors font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[rgba(0,209,255,0.15)] transition-colors font-medium"
           >
             <FaPlus size={16} />
             Add Claim
@@ -561,7 +561,7 @@ const InsuranceClaims: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
+          <div className="bg-[var(--accent-blue)]/20 rounded-lg shadow-sm border border-theme p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-secondary">Total Claims</p>
@@ -570,7 +570,7 @@ const InsuranceClaims: React.FC = () => {
               <FaShieldAlt className="text-[var(--accent-blue)]" size={24} />
             </div>
           </div>
-          <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
+          <div className="bg-[var(--accent-amber)]/20 rounded-lg shadow-sm border border-theme p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-secondary">Pending</p>
@@ -578,10 +578,10 @@ const InsuranceClaims: React.FC = () => {
                   {claims.filter(c => c.status === 'pending').length}
                 </p>
               </div>
-              <FaExclamationCircle className="text-yellow-500" size={24} />
+              <FaExclamationCircle className="text-[var(--accent-amber)]" size={24} />
             </div>
           </div>
-          <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
+          <div className="bg-[var(--accent-green)]/20 rounded-lg shadow-sm border border-theme p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-secondary">Approved</p>
@@ -589,10 +589,10 @@ const InsuranceClaims: React.FC = () => {
                   {claims.filter(c => c.status === 'approved').length}
                 </p>
               </div>
-              <FaCheckCircle className="text-green-500" size={24} />
+              <FaCheckCircle className="text-[var(--accent-green)]" size={24} />
             </div>
           </div>
-          <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
+          <div className="bg-[var(--accent-purple)]/20 rounded-lg shadow-sm border border-theme p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-secondary">Total Amount</p>
@@ -600,7 +600,7 @@ const InsuranceClaims: React.FC = () => {
                   ${claims.reduce((sum, c) => sum + (c.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
-              <FaDollarSign className="text-green-500" size={24} />
+              <FaDollarSign className="text-[var(--accent-purple)]" size={24} />
             </div>
           </div>
         </div>
@@ -623,27 +623,72 @@ const InsuranceClaims: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+              className="px-4 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
             >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="submitted">Submitted</option>
-              <option value="under-review">Under Review</option>
-              <option value="approved">Approved</option>
-              <option value="denied">Denied</option>
-              <option value="closed">Closed</option>
+              <option value="all" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                All Status
+              </option>
+
+              <option value="pending" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Pending
+              </option>
+
+              <option value="submitted" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Submitted
+              </option>
+
+              <option value="under-review" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Under Review
+              </option>
+
+              <option value="approved" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Approved
+              </option>
+
+              <option value="denied" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Denied
+              </option>
+
+              <option value="closed" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Closed
+              </option>
             </select>
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+              className="px-4 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
             >
-              <option value="all">All Types</option>
-              <option value="accident">Accident</option>
-              <option value="theft">Theft</option>
-              <option value="damage">Damage</option>
-              <option value="liability">Liability</option>
-              <option value="other">Other</option>
+              <option value="all" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                All Types
+              </option>
+
+              <option value="accident" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Accident
+              </option>
+
+              <option value="theft" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Theft
+              </option>
+
+              <option value="damage" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Damage
+              </option>
+
+              <option value="liability" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Liability
+              </option>
+
+              <option value="other" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Other
+              </option>
             </select>
           </div>
         </div>
@@ -875,7 +920,7 @@ const InsuranceClaims: React.FC = () => {
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-primary">
+              <h2 className="text-xl font-bold text-headings">
                 {showEditModal ? 'Edit Insurance Claim' : 'Add New Insurance Claim'}
               </h2>
               <button
@@ -892,7 +937,7 @@ const InsuranceClaims: React.FC = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Claim Number *
                   </label>
                   <input
@@ -904,7 +949,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Accident Number
                   </label>
                   <input
@@ -916,23 +961,46 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Claim Type *
                   </label>
                   <select
                     value={claimForm.claimType}
-                    onChange={(e) => setClaimForm({ ...claimForm, claimType: e.target.value as any })}
-                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                    onChange={(e) =>
+                      setClaimForm({
+                        ...claimForm,
+                        claimType: e.target.value as any,
+                      })
+                    }
+                    className="w-full px-4 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
                   >
-                    <option value="accident">Accident</option>
-                    <option value="theft">Theft</option>
-                    <option value="damage">Damage</option>
-                    <option value="liability">Liability</option>
-                    <option value="other">Other</option>
+                    <option value="accident" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Accident
+                    </option>
+
+                    <option value="theft" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Theft
+                    </option>
+
+                    <option value="damage" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Damage
+                    </option>
+
+                    <option value="liability" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Liability
+                    </option>
+
+                    <option value="other" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Other
+                    </option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Incident Date *
                   </label>
                   <input
@@ -940,11 +1008,12 @@ const InsuranceClaims: React.FC = () => {
                     value={claimForm.incidentDate}
                     onChange={(e) => setClaimForm({ ...claimForm, incidentDate: e.target.value })}
                     className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                    style={{ colorScheme: 'dark' }}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Claim Date *
                   </label>
                   <input
@@ -953,63 +1022,128 @@ const InsuranceClaims: React.FC = () => {
                     onChange={(e) => setClaimForm({ ...claimForm, claimDate: e.target.value })}
                     className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                     required
+                    style={{ colorScheme: 'dark' }}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Status *
                   </label>
                   <select
                     value={claimForm.status}
-                    onChange={(e) => setClaimForm({ ...claimForm, status: e.target.value as any })}
-                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                    onChange={(e) =>
+                      setClaimForm((prev) => ({
+                        ...prev,
+                        status: e.target.value as any,
+                      }))
+                    }
+                    className="w-full px-4 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
                   >
-                    <option value="pending">Pending</option>
-                    <option value="submitted">Submitted</option>
-                    <option value="under-review">Under Review</option>
-                    <option value="approved">Approved</option>
-                    <option value="denied">Denied</option>
-                    <option value="closed">Closed</option>
+                    {[
+                      { value: "pending", label: "Pending" },
+                      { value: "submitted", label: "Submitted" },
+                      { value: "under-review", label: "Under Review" },
+                      { value: "approved", label: "Approved" },
+                      { value: "denied", label: "Denied" },
+                      { value: "closed", label: "Closed" },
+                    ].map((opt) => (
+                      <option
+                        key={opt.value}
+                        value={opt.value}
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        {opt.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Driver *
                   </label>
                   <select
                     value={claimForm.driver}
-                    onChange={(e) => setClaimForm({ ...claimForm, driver: e.target.value })}
-                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                    onChange={(e) =>
+                      setClaimForm((prev) => ({
+                        ...prev,
+                        driver: e.target.value,
+                      }))
+                    }
                     required
+                    className="w-full px-4 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
                   >
-                    <option value="">Select Driver</option>
-                    {drivers.map(driver => (
-                      <option key={driver._id} value={driver._id}>
+                    <option
+                      value=""
+                      className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                    >
+                      Select Driver
+                    </option>
+
+                    {drivers.map((driver) => (
+                      <option
+                        key={driver._id}
+                        value={driver._id}
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
                         {driver.name}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Vehicle *
                   </label>
                   <select
                     value={claimForm.vehicle}
-                    onChange={(e) => setClaimForm({ ...claimForm, vehicle: e.target.value })}
-                    className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                    onChange={(e) =>
+                      setClaimForm((prev) => ({
+                        ...prev,
+                        vehicle: e.target.value,
+                      }))
+                    }
                     required
+                    className="w-full px-4 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
                   >
-                    <option value="">Select Vehicle</option>
-                    {vehicles.map(vehicle => (
-                      <option key={vehicle._id} value={vehicle._id}>
-                        {vehicle.internalId || vehicle.plateNumber} - {vehicle.make} {vehicle.model}
-                      </option>
-                    ))}
+                    <option
+                      value=""
+                      className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                    >
+                      Select Vehicle
+                    </option>
+
+                    {vehicles.map((vehicle) => {
+                      const identifier =
+                        vehicle.internalId || vehicle.plateNumber || "N/A";
+
+                      const name = `${vehicle.make || ""} ${vehicle.model || ""}`.trim();
+
+                      return (
+                        <option
+                          key={vehicle._id}
+                          value={vehicle._id}
+                          className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                        >
+                          {identifier} • {name || "Vehicle"}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Insurance Company *
                   </label>
                   <input
@@ -1022,7 +1156,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Policy Number *
                   </label>
                   <input
@@ -1035,7 +1169,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Claim Amount ($) *
                   </label>
                   <input
@@ -1050,7 +1184,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Deductible ($)
                   </label>
                   <input
@@ -1064,7 +1198,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Adjuster Name
                   </label>
                   <input
@@ -1076,7 +1210,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Adjuster Contact
                   </label>
                   <input
@@ -1088,7 +1222,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Location
                   </label>
                   <input
@@ -1100,7 +1234,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Description *
                   </label>
                   <textarea
@@ -1113,7 +1247,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-primary mb-2">
+                  <label className="block text-sm font-medium text-headings mb-2">
                     Notes
                   </label>
                   <textarea

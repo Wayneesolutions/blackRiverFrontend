@@ -801,7 +801,8 @@ const CvsaInspection: React.FC = () => {
     icon: Icon,
     onClick,
     bgColor,
-    iconColor
+    iconColor,
+    background
   }: {
     title: string;
     value: number | string;
@@ -810,11 +811,12 @@ const CvsaInspection: React.FC = () => {
     onClick?: () => void;
     bgColor: string;
     iconColor: string;
+    background?: string;
   }) => {
     return (
       <div
         onClick={onClick}
-        className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
+        className={`bg-[${background}]/20 rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
       >
         <div className="flex items-start justify-between mb-2">
           {/* Left side content */}
@@ -837,7 +839,7 @@ const CvsaInspection: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
+    <div className="min-h-screen pb-10 bg-main" >
       {/* Toast Notifications Container - High z-index to be above modal */}
       <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
         {notifications.map(notification => (
@@ -858,8 +860,8 @@ const CvsaInspection: React.FC = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-black">CVSA Inspection Management</h1>
-                <div className="flex items-center gap-2 text-black/90">
+                <h1 className="text-2xl font-bold text-headings">CVSA Inspection Management</h1>
+                <div className="flex items-center gap-2 text-secondary">
                   <span className="text-xs">Compliance / CVSA Inspections</span>
                 </div>
               </div>
@@ -876,20 +878,19 @@ const CvsaInspection: React.FC = () => {
                   >
                     <FaFlag
                       size={12}
-                      className={activeTab === 'canada' ? 'text-red-500' : 'text-black/60'}
+                      className={activeTab === 'canada' ? 'text-red-500' : 'text-secondary'}
                     />
 
                     <span
                       className={
                         activeTab === 'canada'
                           ? 'bg-clip-text text-transparent'
-                          : 'text-black'
+                          : 'text-secondary'
                       }
                       style={
                         activeTab === 'canada'
                           ? {
-                            backgroundImage:
-                              'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                            color: 'var(--accent-navyblue)',
                           }
                           : {}
                       }
@@ -908,20 +909,19 @@ const CvsaInspection: React.FC = () => {
                   >
                     <FaFlagUsa
                       size={12}
-                      className={activeTab === 'usa' ? 'text-blue-500' : 'text-black/60'}
+                      className={activeTab === 'usa' ? 'text-blue-500' : 'text-secondary'}
                     />
 
                     <span
                       className={
                         activeTab === 'usa'
                           ? 'bg-clip-text text-transparent'
-                          : 'text-black'
+                          : 'text-secondary'
                       }
                       style={
                         activeTab === 'usa'
                           ? {
-                            backgroundImage:
-                              'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
+                            color: 'var(--accent-navyblue)',
                           }
                           : {}
                       }
@@ -935,8 +935,8 @@ const CvsaInspection: React.FC = () => {
 
                 <button
                   onClick={handleAddInspection}
-                  style={{ background: `linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)`, }}
-                  className="flex items-center gap-2 px-4 py-2  !text-white rounded-lg shadow-sm  transition-colors font-medium text-sm"
+
+                  className="flex items-center gap-2 px-4 py-2  !text-white rounded-lg shadow-sm  transition-colors font-medium text-sm bg-[var(--accent-navyblue)] hover:bg-[var(--accent-navyblue)]/80"
                 >
                   + Add Inspection
                 </button>
@@ -950,36 +950,41 @@ const CvsaInspection: React.FC = () => {
               title="Total"
               value={stats.total}
               icon={<FaClipboardCheck />}
-              bgColor="bg-card"
-              iconColor="text-[#00D1FF]"
+              bgColor="b"
+              iconColor="text-[var(--accent-blue)]"
+              background="var(--accent-blue)"
             />
             <StatCard
               title="Passed"
               value={stats.pass}
               icon={<FaCheckCircle />}
-              bgColor="bg-green-50"
-              iconColor="text-green-600"
+              bgColor=""
+              iconColor="text-[var(--accent-green)]"
+              background="var(--accent-green)"
             />
             <StatCard
               title="Failed"
               value={stats.fail}
               icon={<FaTimesCircle />}
-              bgColor="bg-card"
-              iconColor="text-[#A855F7]"
+              bgColor="b"
+              iconColor="text-[var(--accent-purple)]"
+              background="var(--accent-purple)"
             />
             <StatCard
               title="Warning"
               value={stats.warning}
               icon={<FaExclamationTriangle />}
-              bgColor="bg-card"
-              iconColor="text-[#00FFA3]"
+              bgColor="b"
+              iconColor="text-[var(--accent-green)]"
+              background="var(--accent-green)"
             />
             <StatCard
               title="Out of Svc"
               value={stats.outOfService}
               icon={<FaBan />}
-              bgColor="bg-red-100"
-              iconColor="text-red-800"
+              bgColor="b"
+              iconColor="text-[var(--accent-red)]"
+              background="var(--accent-red)"
             />
           </div>
         </div>
@@ -1010,13 +1015,31 @@ const CvsaInspection: React.FC = () => {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                  className="px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                 >
-                  <option value="all">All Status</option>
-                  <option value="pass">Pass</option>
-                  <option value="fail">Fail</option>
-                  <option value="warning">Warning</option>
-                  <option value="out-of-service">Out of Service</option>
+                  <option value="all" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    All Status
+                  </option>
+
+                  <option value="pass" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Pass
+                  </option>
+
+                  <option value="fail" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Fail
+                  </option>
+
+                  <option value="warning" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Warning
+                  </option>
+
+                  <option value="out-of-service" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                    Out of Service
+                  </option>
                 </select>
               </div>
             </div>
@@ -1029,12 +1052,27 @@ const CvsaInspection: React.FC = () => {
                   setPageSize(newSize);
                   setCurrentPage(1);
                 }}
-                className="px-3 py-2 border border-theme rounded-lg text-sm focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                className="px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
               >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
+                <option value={10} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  10
+                </option>
+
+                <option value={20} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  20
+                </option>
+
+                <option value={50} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  50
+                </option>
+
+                <option value={100} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  100
+                </option>
               </select>
             </div>
           </div>
@@ -1043,7 +1081,7 @@ const CvsaInspection: React.FC = () => {
         {/* Inspections Table */}
         <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
           <div className="px-6 py-4 border-b border-theme">
-            <h3 className="text-lg font-bold text-primary">
+            <h3 className="text-lg font-bold text-headings">
               {activeTab.toUpperCase()} Inspections ({total > 0 ? total : filteredInspections.length})
             </h3>
           </div>
@@ -1091,8 +1129,7 @@ const CvsaInspection: React.FC = () => {
                   style={{
                     maxHeight: '20px',
                     marginBottom: '2px',
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+
                   }}
                 >
                   <div className="top-scroll-content" style={{ height: '1px' }}></div>
@@ -1105,54 +1142,54 @@ const CvsaInspection: React.FC = () => {
                   <table className="w-full min-w-[1200px]">
                     <thead className="bg-card">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky left-0 bg-card z-10">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider sticky left-0 bg-card z-10">
                           Inspection ID
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Date
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Location
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Country
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Vehicle
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Driver
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Inspector
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Report #
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Level
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Jurisdiction
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           USDOT #
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           OOS Issued
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                           Violations
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider sticky right-0 bg-card z-10">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider sticky right-0 bg-card z-10">
                           Actions
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-card divide-y divide-theme">
+                    <tbody className="bg-card divide-y divide-theme divide-white/5">
                       {filteredInspections.map((inspection) => (
                         <tr
                           key={inspection._id}
@@ -1160,12 +1197,12 @@ const CvsaInspection: React.FC = () => {
                           onClick={() => handleViewInspection(inspection)}
                         >
                           <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-card z-10">
-                            <div className="text-sm font-medium text-primary">
+                            <div className="text-sm font-medium text-secondary">
                               {inspection.inspectionId || 'N/A'}
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-primary">
+                            <div className="text-sm text-secondary">
                               <div className="flex items-center gap-1">
                                 <FaCalendarAlt className="text-secondary" size={12} />
                                 {inspection.date ? formatDate(inspection.date) : 'N/A'}
@@ -1178,7 +1215,7 @@ const CvsaInspection: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-sm text-primary max-w-[200px] truncate" title={inspection.location || 'N/A'}>
+                            <div className="text-sm text-secondary max-w-[200px] truncate" title={inspection.location || 'N/A'}>
                               <div className="flex items-center gap-1">
                                 <FaMapMarkerAlt className="text-secondary flex-shrink-0" size={12} />
                                 {inspection.location || 'N/A'}
@@ -1186,7 +1223,7 @@ const CvsaInspection: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-primary uppercase">
+                            <div className="text-sm text-secondary uppercase">
                               {inspection.country === 'canada' ? (
                                 <span className="flex items-center gap-1">
                                   <FaFlag className="text-[#A855F7]" size={14} />
@@ -1201,7 +1238,7 @@ const CvsaInspection: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-sm text-primary max-w-[180px]">
+                            <div className="text-sm text-secondary max-w-[180px]">
                               <div className="font-medium truncate" title={getVehicleInfo(inspection.vehicle)}>
                                 {getVehicleInfo(inspection.vehicle) || 'N/A'}
                               </div>
@@ -1213,7 +1250,7 @@ const CvsaInspection: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-sm text-primary max-w-[150px]">
+                            <div className="text-sm text-secondary max-w-[150px]">
                               <div className="truncate" title={getDriverName(inspection.driver)}>
                                 {getDriverName(inspection.driver) || 'N/A'}
                               </div>
@@ -1233,27 +1270,27 @@ const CvsaInspection: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-sm text-primary max-w-[150px] truncate" title={inspection.inspectorName || 'N/A'}>
+                            <div className="text-sm text-secondary max-w-[150px] truncate" title={inspection.inspectorName || 'N/A'}>
                               {inspection.inspectorName || 'N/A'}
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-primary">
+                            <div className="text-sm text-secondary">
                               {inspection.reportNumber || 'N/A'}
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm font-medium text-primary">
+                            <div className="text-sm font-medium text-secondary">
                               {inspection.inspectionLevel ? `Level ${inspection.inspectionLevel}` : 'N/A'}
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-primary">
+                            <div className="text-sm text-secondary">
                               {inspection.jurisdiction || 'N/A'}
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-primary">
+                            <div className="text-sm text-secondary">
                               {inspection.carrierUSDOTNumber || 'N/A'}
                             </div>
                           </td>
@@ -1297,21 +1334,21 @@ const CvsaInspection: React.FC = () => {
                                 className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
                                 title="View Details"
                               >
-                                <FaEye size={16} />
+                                <FaEye size={16} className="text-headings hover:text-secondary" />
                               </button>
                               <button
                                 onClick={() => handleEditInspection(inspection)}
                                 className="text-[var(--accent-color)] hover:text-[var(--accent-dark)] p-2 hover:bg-[var(--accent-soft)] rounded-lg transition-colors"
                                 title="Edit Inspection"
                               >
-                                <FaEdit size={16} />
+                                <FaEdit size={16} className="text-headings hover:text-secondary" />
                               </button>
                               <button
                                 onClick={() => handleDeleteInspection(inspection)}
                                 className="text-[#A855F7] hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
                                 title="Delete Inspection"
                               >
-                                <FaTrash size={16} />
+                                <FaTrash size={16} className="text-[var(--accent-red)] hover:text-secondary" />
                               </button>
                             </div>
                           </td>

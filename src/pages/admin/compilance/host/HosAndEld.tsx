@@ -700,8 +700,8 @@ const VehicleEldMonitor = () => {
             <div className="top-0 z-30 bg-card shadow-sm">
                 <div className="px-8 py-5 flex justify-between items-center">
                     <div>
-                        <h1 className="text-2xl font-bold text-primary flex items-center gap-3">
-                            <ShieldCheck size={28} className="text-[#00D1FF]" />
+                        <h1 className="text-2xl font-bold text-headings flex items-center gap-3">
+                            <ShieldCheck size={28} className="text-headings" />
                             Compliance Portal
                         </h1>
                         <p className="text-sm text-secondary mt-1 ml-10">ELD Mandate Monitoring & HOS Audit Tracking</p>
@@ -760,10 +760,8 @@ const VehicleEldMonitor = () => {
                                     <button
                                         onClick={handleSyncHOS}
                                         disabled={syncing}
-                                        style={{
-                                            background: syncing ? '#9CA3AF' : 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
-                                        }}
-                                        className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+
+                                        className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--accent-navyblue)]">
                                         <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} />
                                         {syncing ? 'Syncing...' : 'Sync from Samsara'}
                                     </button>
@@ -780,13 +778,13 @@ const VehicleEldMonitor = () => {
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-card text-secondary uppercase text-[11px] font-bold">
                                     <tr>
-                                        <th className="px-6 py-4">Driver Name</th>
-                                        <th className="px-6 py-4">Log Date</th>
-                                        <th className="px-6 py-4">Driving Time</th>
-                                        <th className="px-6 py-4">On-Duty Time</th>
-                                        <th className="px-6 py-4">Violation Type</th>
-                                        <th className="px-6 py-4">Status</th>
-                                        <th className="px-6 py-4">Actions</th>
+                                        <th className="px-6 py-4 text-headings">Driver Name</th>
+                                        <th className="px-6 py-4 text-headings">Log Date</th>
+                                        <th className="px-6 py-4 text-headings">Driving Time</th>
+                                        <th className="px-6 py-4 text-headings">On-Duty Time</th>
+                                        <th className="px-6 py-4 text-headings">Violation Type</th>
+                                        <th className="px-6 py-4 text-headings">Status</th>
+                                        <th className="px-6 py-4 text-headings">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">

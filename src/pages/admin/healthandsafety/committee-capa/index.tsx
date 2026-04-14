@@ -608,51 +608,48 @@ const EnhancedCommitteeCAPA = () => {
   const renderCommitteeManagement = () => (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: CUSTOM_COLORS.dark }}>
+        <h2 className="text-2xl font-bold flex items-center gap-2 text-headings" >
           <FaUsersCog /> H&S Committee Members
         </h2>
         <button
           onClick={handleCreateMember}
-          className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2"
-          style={{
-            background: CUSTOM_COLORS.gradient,
-            boxShadow: `0 4px 6px rgba(0,0,0,0.1)`
-          }}
+          className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2 bg-[var(--accent-navyblue)]"
+
         >
           <FaPlus /> Add Member
         </button>
       </div>
-      <p className="mb-6 text-primary">
+      <p className="mb-6 text-secondary">
         Federally mandated committee structure: <strong>Supervisor (Chair)</strong>, <strong>Employee Representative</strong>, and <strong>H&S Rep</strong>. Track training, attendance, term dates.
       </p>
 
-      <div className="bg-card rounded-xl shadow-lg overflow-hidden p-6">
+      <div className="bg-card rounded-xl shadow-lg overflow-hidden p-6 ">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {members.map((member) => (
-            <div key={member._id} className="border-2 border-blue-200 rounded-lg p-5 hover:shadow-xl transition bg-gradient-to-br from-blue-50 to-white">
+            <div key={member._id} className="border-2 border-theme rounded-lg p-5 hover:shadow-xl transition ">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-lg text-primary">{member.name}</h3>
+                <h3 className="font-bold text-lg text-headings">{member.name}</h3>
                 <span className={`px-2 py-1 rounded-full text-xs font-bold ${member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-card text-primary'
                   }`}>
                   {(member.status || 'unknown').toUpperCase()}
                 </span>
               </div>
 
-              <div className="mb-3 bg-blue-100 p-2 rounded-lg">
-                <p className="text-sm font-bold text-blue-900">{member.role}</p>
+              <div className="mb-3 bg-[var(--accent-navyblue)]/20 border-2 border-theme p-2 rounded-lg">
+                <p className="text-sm font-bold text-primary">{member.role}</p>
               </div>
 
               <div className="space-y-2 text-sm text-primary mb-4">
-                <p><strong>Dept:</strong> {member.department}</p>
-                <p><strong>Email:</strong> {member.email}</p>
-                <p><strong>Phone:</strong> {member.phone}</p>
-                <p><strong>Term:</strong> {new Date(member.termStartDate).toLocaleDateString()} - {new Date(member.termEndDate).toLocaleDateString()}</p>
+                <p><strong className="text-headings">Dept:</strong> {member.department}</p>
+                <p><strong className="text-headings">Email:</strong> {member.email}</p>
+                <p><strong className="text-headings">Phone:</strong> {member.phone}</p>
+                <p><strong className="text-headings">Term:</strong> {new Date(member.termStartDate).toLocaleDateString()} - {new Date(member.termEndDate).toLocaleDateString()}</p>
               </div>
 
               <div className="mb-4">
                 <p className="text-xs font-bold text-secondary mb-1">TRAINING COMPLETED:</p>
                 {(!member.trainingCompleted || member.trainingCompleted.length === 0) ? (
-                  <p className="text-xs text-[#A855F7]">⚠️ No training recorded</p>
+                  <p className="text-xs text-headings">⚠️ No training recorded</p>
                 ) : (
                   member.trainingCompleted.map((training, idx) => (
                     <div key={idx} className="text-xs bg-green-50 p-2 rounded mb-1">
@@ -677,11 +674,11 @@ const EnhancedCommitteeCAPA = () => {
         </div>
       </div>
 
-      <div className="mt-6 bg-card border-2 border-blue-200 rounded-xl p-5">
-        <h3 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
+      <div className="mt-6 bg-card border-2 border-theme rounded-xl p-5">
+        <h3 className="font-bold text-headings mb-2 flex items-center gap-2">
           <FaCheckCircle /> CLC Compliance Requirements Met
         </h3>
-        <ul className="text-sm text-blue-800 space-y-1">
+        <ul className="text-sm text-headings space-y-1">
           <li>✅ Committee structure includes Supervisor (Chair), Employee Rep, and H&S Rep</li>
           <li>✅ Member training tracked (H&S Committee Training, Investigation Training)</li>
           <li>✅ Meeting attendance records maintained</li>
@@ -696,21 +693,18 @@ const EnhancedCommitteeCAPA = () => {
   const renderCAPAManagement = () => (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: CUSTOM_COLORS.dark }}>
+        <h2 className="text-2xl font-bold flex items-center gap-2 text-headings">
           <ClipboardList className="w-7 h-7" /> CAPA Management System
         </h2>
         <button
           onClick={handleCreateCAPA}
-          className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2"
-          style={{
-            background: CUSTOM_COLORS.gradient,
-            boxShadow: `0 4px 6px rgba(0,0,0,0.1)`
-          }}
+          className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2 bg-[var(--accent-navyblue)]"
+
         >
           <FaPlus /> New CAPA
         </button>
       </div>
-      <p className="mb-6 text-primary">
+      <p className="mb-6 text-secondary">
         Corrective & Preventive Action tracking with automated reminders, escalation rules, and verification checklists.
       </p>
 
@@ -720,21 +714,21 @@ const EnhancedCommitteeCAPA = () => {
           <div className="text-3xl font-bold text-primary">{capaStats.total}</div>
           <div className="text-sm text-secondary">Total CAPAs</div>
         </div>
-        <div className="bg-card rounded-lg shadow-md p-4 border-2 border-red-300">
-          <div className="text-3xl font-bold text-[#A855F7]">{capaStats.overdue}</div>
-          <div className="text-sm text-red-700">Overdue</div>
+        <div className="bg-[var(--accent-red)]/20 rounded-lg shadow-md p-4 border-2 border-theme">
+          <div className="text-3xl font-bold text-[var(--accent-red)]">{capaStats.overdue}</div>
+          <div className="text-sm text-[var(--accent-red)]">Overdue</div>
         </div>
-        <div className="bg-card rounded-lg shadow-md p-4 border-2 border-yellow-300">
+        <div className="bg-[var(--accent-green)]/20 rounded-lg shadow-md p-4 border-2 border-theme">
           <div className="text-3xl font-bold text-[#00FFA3]">{capaStats.dueThisWeek}</div>
-          <div className="text-sm text-yellow-700">Due This Week</div>
+          <div className="text-sm text-[#00FFA3]">Due This Week</div>
         </div>
-        <div className="bg-card rounded-lg shadow-md p-4 border-2 border-blue-300">
-          <div className="text-3xl font-bold text-[#00D1FF]">{capaStats.inProgress}</div>
-          <div className="text-sm text-blue-700">In Progress</div>
+        <div className="bg-[var(--accent-blue)]/20 rounded-lg shadow-md p-4 border-2 border-theme">
+          <div className="text-3xl font-bold text-[var(--accent-blue)]">{capaStats.inProgress}</div>
+          <div className="text-sm text-[var(--accent-blue)]">In Progress</div>
         </div>
-        <div className="bg-green-50 rounded-lg shadow-md p-4 border-2 border-green-300">
-          <div className="text-3xl font-bold text-green-600">{capaStats.completed}</div>
-          <div className="text-sm text-green-700">Completed</div>
+        <div className="bg-[var(--accent-green)]/20 rounded-lg shadow-md p-4 border-2 border-theme">
+          <div className="text-3xl font-bold text-[var(--accent-green)]">{capaStats.completed}</div>
+          <div className="text-sm text-[var(--accent-green)]">Completed</div>
         </div>
       </div>
 
@@ -756,13 +750,31 @@ const EnhancedCommitteeCAPA = () => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border-2 border-theme rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
+              className="w-full pl-10 pr-4 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  appearance-none cursor-pointer transition-all"
             >
-              <option value="all">All Statuses</option>
-              <option value="open">Open</option>
-              <option value="in-progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="overdue">Overdue</option>
+              <option value="all" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                All Statuses
+              </option>
+
+              <option value="open" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Open
+              </option>
+
+              <option value="in-progress" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                In Progress
+              </option>
+
+              <option value="completed" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Completed
+              </option>
+
+              <option value="overdue" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Overdue
+              </option>
             </select>
           </div>
           <div className="relative">
@@ -770,13 +782,31 @@ const EnhancedCommitteeCAPA = () => {
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border-2 border-theme rounded-lg focus:border-blue-500 focus:outline-none appearance-none"
+              className="w-full pl-10 pr-4 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  appearance-none cursor-pointer transition-all"
             >
-              <option value="all">All Priorities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
+              <option value="all" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                All Priorities
+              </option>
+
+              <option value="critical" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Critical
+              </option>
+
+              <option value="high" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                High
+              </option>
+
+              <option value="medium" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Medium
+              </option>
+
+              <option value="low" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Low
+              </option>
             </select>
           </div>
         </div>
@@ -1028,7 +1058,7 @@ const EnhancedCommitteeCAPA = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-main flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
           <p className="text-xl font-semibold text-primary">Loading...</p>
@@ -1038,7 +1068,7 @@ const EnhancedCommitteeCAPA = () => {
   }
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
+    <div className="min-h-screen p-6 bg-main">
       <div className="w-full mx-auto">
         {/* Toast Notifications */}
         <div className="fixed top-4 right-4 z-[10001] space-y-2">
@@ -1088,7 +1118,7 @@ const EnhancedCommitteeCAPA = () => {
 
         {/* Committee Member Modal */}
         {showMemberModal && (
-          <div className="fixed inset-0 bg-card/30 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-card/30 backdrop-blur-md z-50 flex items-center justify-center p-4 ">
             <div className="bg-card rounded-xl shadow-2xl max-w-md w-full">
               <div className="p-6 border-b border-theme">
                 <div className="flex justify-between items-center">
@@ -1103,7 +1133,7 @@ const EnhancedCommitteeCAPA = () => {
               </div>
               <form onSubmit={handleSubmitMember} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-1">Name *</label>
+                  <label className="block text-sm font-medium text-headings mb-1">Name *</label>
                   <input
                     type="text"
                     value={memberFormData.name}
@@ -1113,7 +1143,7 @@ const EnhancedCommitteeCAPA = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-1">Role *</label>
+                  <label className="block text-sm font-medium text-headings mb-1">Role *</label>
                   <input
                     type="text"
                     value={memberFormData.role}
@@ -1124,7 +1154,7 @@ const EnhancedCommitteeCAPA = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-1">Department *</label>
+                  <label className="block text-sm font-medium text-headings mb-1">Department *</label>
                   <input
                     type="text"
                     value={memberFormData.department}
@@ -1134,7 +1164,7 @@ const EnhancedCommitteeCAPA = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-1">Email *</label>
+                  <label className="block text-sm font-medium text-headings mb-1">Email *</label>
                   <input
                     type="email"
                     value={memberFormData.email}
@@ -1144,7 +1174,7 @@ const EnhancedCommitteeCAPA = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-1">Phone *</label>
+                  <label className="block text-sm font-medium text-headings mb-1">Phone *</label>
                   <input
                     type="tel"
                     value={memberFormData.phone}
@@ -1163,8 +1193,8 @@ const EnhancedCommitteeCAPA = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-lg !text-white"
-                    style={{ background: CUSTOM_COLORS.gradient }}
+                    className="px-4 py-2 rounded-lg !text-white bg-[var(--accent-navyblue)]"
+
                   >
                     {editingMember ? 'Update' : 'Create'}
                   </button>

@@ -308,7 +308,7 @@ const ReportsAnalytics = () => {
   } : { scheduled: 0, inProgress: 0, completed: 0, overdue: 0 };
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
+    <div className="min-h-screen p-6 bg-main">
       <div className="w-full mx-auto">
         {/* Toast Notifications */}
         <div className="fixed top-4 right-4 z-[10001] space-y-2">
@@ -324,18 +324,15 @@ const ReportsAnalytics = () => {
         {/* Header */}
         <div className="mb-6 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
+            <h1 className="text-3xl font-bold mb-2 text-headings">
               Reports & Analytics
             </h1>
             <p className="text-secondary">View and generate health & safety reports and analytics</p>
           </div>
           <button
             onClick={() => setShowGenerateModal(true)}
-            className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2"
-            style={{
-              background: CUSTOM_COLORS.gradient,
-              boxShadow: `0 4px 6px ${CUSTOM_COLORS.light}40`
-            }}
+            className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2 bg-[var(--accent-navyblue)]"
+
           >
             <FaChartBar /> Generate Report
           </button>
@@ -343,10 +340,10 @@ const ReportsAnalytics = () => {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          <div className="bg-card rounded-xl p-6 shadow-lg">
+          <div className="bg-[var(--accent-red)]/20 rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <FaExclamationTriangle className="text-red-500 text-2xl" />
-              <span className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
+              <span className="text-2xl font-bold" >
                 {stats.totalIncidents}
               </span>
             </div>
@@ -354,10 +351,10 @@ const ReportsAnalytics = () => {
             <p className="text-xs text-secondary mt-1">{stats.openIncidents} Open</p>
           </div>
 
-          <div className="bg-card rounded-xl p-6 shadow-lg">
+          <div className=" rounded-xl p-6 shadow-lg bg-[var(--accent-blue)]/20">
             <div className="flex items-center justify-between mb-4">
               <FaClipboardList className="text-blue-500 text-2xl" />
-              <span className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
+              <span className="text-2xl font-bold" >
                 {stats.totalInspections}
               </span>
             </div>
@@ -365,10 +362,10 @@ const ReportsAnalytics = () => {
             <p className="text-xs text-secondary mt-1">{stats.passedInspections} Passed</p>
           </div>
 
-          <div className="bg-card rounded-xl p-6 shadow-lg">
+          <div className=" rounded-xl p-6 shadow-lg bg-[var(--accent-green)]/20">
             <div className="flex items-center justify-between mb-4">
               <FaCheckCircle className="text-green-500 text-2xl" />
-              <span className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
+              <span className="text-2xl font-bold" >
                 {stats.totalTraining}
               </span>
             </div>
@@ -376,10 +373,10 @@ const ReportsAnalytics = () => {
             <p className="text-xs text-secondary mt-1">{stats.completedTraining} Completed</p>
           </div>
 
-          <div className="bg-card rounded-xl p-6 shadow-lg">
+          <div className=" rounded-xl p-6 shadow-lg bg-[var(--accent-purple)]/20">
             <div className="flex items-center justify-between mb-4">
               <FaFilePdf className="text-purple-500 text-2xl" />
-              <span className="text-2xl font-bold" style={{ color: CUSTOM_COLORS.dark }}>
+              <span className="text-2xl font-bold" >
                 {stats.activePolicies}
               </span>
             </div>
@@ -396,13 +393,31 @@ const ReportsAnalytics = () => {
             <select
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="px-4 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
             >
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="yearly">Yearly</option>
+              <option value="daily" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Daily
+              </option>
+
+              <option value="weekly" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Weekly
+              </option>
+
+              <option value="monthly" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Monthly
+              </option>
+
+              <option value="quarterly" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Quarterly
+              </option>
+
+              <option value="yearly" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                Yearly
+              </option>
             </select>
           </div>
         </div>
@@ -410,7 +425,7 @@ const ReportsAnalytics = () => {
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <div className="bg-card rounded-xl p-6 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4" style={{ color: CUSTOM_COLORS.dark }}>
+            <h3 className="text-lg font-semibold mb-4" >
               Incident Trends
             </h3>
             <div className="h-64 flex items-center justify-center">
@@ -450,7 +465,7 @@ const ReportsAnalytics = () => {
           </div>
 
           <div className="bg-card rounded-xl p-6 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4" style={{ color: CUSTOM_COLORS.dark }}>
+            <h3 className="text-lg font-semibold mb-4" >
               Inspection Status
             </h3>
             <div className="h-64 flex items-center justify-center">
@@ -517,21 +532,21 @@ const ReportsAnalytics = () => {
         {/* Reports Table */}
         <div className="bg-card rounded-xl shadow-lg overflow-hidden">
           <div className="p-4 border-b border-theme">
-            <h3 className="text-lg font-semibold" style={{ color: CUSTOM_COLORS.dark }}>
+            <h3 className="text-lg font-semibold" >
               Generated Reports
             </h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead style={{ background: CUSTOM_COLORS.gradient }}>
+              <thead >
                 <tr>
-                  <th className="px-6 py-4 text-left text-white font-semibold">Report #</th>
-                  <th className="px-6 py-4 text-left text-white font-semibold">Title</th>
-                  <th className="px-6 py-4 text-left text-white font-semibold">Type</th>
-                  <th className="px-6 py-4 text-left text-white font-semibold">Period</th>
-                  <th className="px-6 py-4 text-left text-white font-semibold">Generated Date</th>
-                  <th className="px-6 py-4 text-left text-white font-semibold">Status</th>
-                  <th className="px-6 py-4 text-left text-white font-semibold">Actions</th>
+                  <th className="px-6 py-4 text-left text-headings font-semibold">Report #</th>
+                  <th className="px-6 py-4 text-left text-headings font-semibold">Title</th>
+                  <th className="px-6 py-4 text-left text-headings font-semibold">Type</th>
+                  <th className="px-6 py-4 text-left text-headings font-semibold">Period</th>
+                  <th className="px-6 py-4 text-left text-headings font-semibold">Generated Date</th>
+                  <th className="px-6 py-4 text-left text-headings font-semibold">Status</th>
+                  <th className="px-6 py-4 text-left text-headings font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -606,7 +621,7 @@ const ReportsAnalytics = () => {
               </div>
               <form onSubmit={handleGenerateReport} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-1">Title</label>
+                  <label className="block text-sm font-medium text-headings mb-1">Title</label>
                   <input
                     type="text"
                     value={generateFormData.title}
@@ -616,34 +631,83 @@ const ReportsAnalytics = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-1">Report Type *</label>
+                  <label className="block text-sm font-medium text-headings mb-1">Report Type *</label>
                   <select
                     value={generateFormData.type}
-                    onChange={(e) => setGenerateFormData({ ...generateFormData, type: e.target.value })}
+                    onChange={(e) =>
+                      setGenerateFormData({
+                        ...generateFormData,
+                        type: e.target.value,
+                      })
+                    }
                     required
-                    className="w-full border border-theme p-2 rounded-lg"
+                    className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
                   >
-                    <option value="Monthly Summary">Monthly Summary</option>
-                    <option value="Incident Analysis">Incident Analysis</option>
-                    <option value="Inspection Summary">Inspection Summary</option>
-                    <option value="Training Report">Training Report</option>
-                    <option value="CAPA Report">CAPA Report</option>
-                    <option value="Custom">Custom</option>
+                    <option value="Monthly Summary" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Monthly Summary
+                    </option>
+
+                    <option value="Incident Analysis" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Incident Analysis
+                    </option>
+
+                    <option value="Inspection Summary" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Inspection Summary
+                    </option>
+
+                    <option value="Training Report" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Training Report
+                    </option>
+
+                    <option value="CAPA Report" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      CAPA Report
+                    </option>
+
+                    <option value="Custom" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Custom
+                    </option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-1">Period Type *</label>
+                  <label className="block text-sm font-medium text-headings mb-1">Period Type *</label>
                   <select
                     value={generateFormData.periodType}
-                    onChange={(e) => setGenerateFormData({ ...generateFormData, periodType: e.target.value })}
+                    onChange={(e) =>
+                      setGenerateFormData({
+                        ...generateFormData,
+                        periodType: e.target.value,
+                      })
+                    }
                     required
-                    className="w-full border border-theme p-2 rounded-lg"
+                    className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
                   >
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
-                    <option value="yearly">Yearly</option>
+                    <option value="daily" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Daily
+                    </option>
+
+                    <option value="weekly" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Weekly
+                    </option>
+
+                    <option value="monthly" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Monthly
+                    </option>
+
+                    <option value="quarterly" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Quarterly
+                    </option>
+
+                    <option value="yearly" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                      Yearly
+                    </option>
                   </select>
                 </div>
 
@@ -658,8 +722,7 @@ const ReportsAnalytics = () => {
                   <button
                     type="submit"
                     disabled={generateLoading}
-                    className="px-4 py-2 rounded-lg !text-white disabled:opacity-50"
-                    style={{ background: CUSTOM_COLORS.gradient }}
+                    className="px-4 py-2 rounded-lg !text-white disabled:opacity-50 bg-[var(--accent-navyblue)]"
                   >
                     {generateLoading ? 'Generating...' : 'Generate'}
                   </button>

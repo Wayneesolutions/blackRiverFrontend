@@ -14,7 +14,7 @@ interface Stats {
 }
 
 const StatCard = ({
-  icon, label, value, sub, color, bgColor, onClick,
+  icon, label, value, sub, color, bgColor, onClick, background
 }: {
   icon: React.ReactNode;
   label: string;
@@ -22,11 +22,12 @@ const StatCard = ({
   sub?: string;
   color: string;
   bgColor: string;
+  background?: string;
   onClick?: () => void;
 }) => (
   <div
     onClick={onClick}
-    className={`bg-card rounded-xl p-5 shadow-sm border border-theme flex items-start gap-4 ${onClick ? "cursor-pointer hover:shadow-md hover:border-[var(--accent-blue)]/20 transition-all group" : ""}`}
+    className={`bg-[${background}]/20 rounded-xl p-5 shadow-sm border border-theme flex items-start gap-4 ${onClick ? "cursor-pointer hover:shadow-md hover:border-[var(--accent-blue)]/20 transition-all group" : ""}`}
   >
     <div className={`${bgColor} rounded-xl p-3 flex-shrink-0`}>
       <span className={color}>{icon}</span>
@@ -61,9 +62,9 @@ const Dashboard = () => {
       ]);
 
       setStats({
-        totalTrucks:   tRes?.pagination?.total  || tRes?.data?.length  || 0,
+        totalTrucks: tRes?.pagination?.total || tRes?.data?.length || 0,
         totalTrailers: trRes?.pagination?.total || trRes?.data?.length || 0,
-        totalDrivers:  dRes?.pagination?.total  || dRes?.data?.length  || 0,
+        totalDrivers: dRes?.pagination?.total || dRes?.data?.length || 0,
       });
     } catch {
       setError("Failed to load dashboard data");
@@ -89,7 +90,7 @@ const Dashboard = () => {
       {/* Page header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-primary">Dashboard</h1>
+          <h1 className="text-xl font-bold text-headings">Dashboard</h1>
           <p className="text-sm text-secondary mt-0.5">Manifest portal overview</p>
         </div>
         <button
@@ -113,31 +114,34 @@ const Dashboard = () => {
           label="Trucks"
           value={stats.totalTrucks}
           sub="In fleet"
-          color="text-teal-600"
-          bgColor="bg-teal-50"
+          color="text-[var(--accent-teal)]"
+          bgColor=""
           onClick={() => navigate("/admin/manifest/trucks")}
+          background="var(--accent-teal)"
         />
         <StatCard
           icon={<Package size={22} />}
           label="Trailers"
           value={stats.totalTrailers}
           sub="In fleet"
-          color="text-indigo-600"
-          bgColor="bg-indigo-50"
+          color="text-[var(--accent-blue)]"
+          bgColor=""
           onClick={() => navigate("/admin/manifest/trailers")}
+          background="var(--accent-blue)"
         />
         <StatCard
           icon={<Users size={22} />}
           label="Drivers"
           value={stats.totalDrivers}
           sub="Active staff"
-          color="text-purple-600"
-          bgColor="bg-card"
+          color="text-[var(--accent-purple)]"
+          bgColor=""
           onClick={() => navigate("/admin/manifest/drivers")}
+          background="var(--accent-purple)"
         />
       </div>
 
-  
+
     </div>
   );
 };
