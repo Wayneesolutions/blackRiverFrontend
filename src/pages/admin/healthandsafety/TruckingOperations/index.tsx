@@ -658,31 +658,31 @@ const TruckingOperations: React.FC = () => {
       {/* Logs Table */}
       <div className="bg-card rounded-xl shadow-lg overflow-hidden">
         <div className="p-6 border-b">
-          <h3 className="text-xl font-bold text-primary">Load Securement Logs</h3>
+          <h3 className="text-xl font-bold text-headings">Load Securement Logs</h3>
           <p className="text-sm text-secondary mt-1">Pre-departure checks per FMCSA/CVSA standards</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-card">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Log #</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Date/Time</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Driver</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Vehicle</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Load Type</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Securement</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Compliance</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Log #</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Date/Time</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Driver</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Vehicle</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Load Type</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Securement</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text- uppercase">Compliance</th>
 
               </tr>
             </thead>
-            <tbody className="divide-y divide-theme">
+            <tbody className="divide-y divide-theme divide-white/5">
               {loadSecurementLogs.map((log) => (
                 <tr key={log._id} className="hover:bg-[rgba(255,255,255,0.03)]">
-                  <td className="px-6 py-4 text-sm font-medium text-primary">{log.logNumber}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-secondary">{log.logNumber}</td>
                   <td className="px-6 py-4 text-sm text-secondary">
                     {formatDateTime(log.date, log.time)}
                   </td>
-                  <td className="px-6 py-4 text-sm text-primary">{log.driverName}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{log.driverName}</td>
                   <td className="px-6 py-4 text-sm text-secondary">
                     <div>{log.vehicleNumber}</div>
                     <div className="text-xs text-secondary">{log.trailerNumber}</div>
@@ -749,24 +749,24 @@ const TruckingOperations: React.FC = () => {
           <table className="w-full">
             <thead className="bg-card">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Log #</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Date/Time</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Driver</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Unit</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Temp (°C)</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Cleanliness</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Status</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Log #</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Date/Time</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Driver</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Unit</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Temp (°C)</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Cleanliness</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Status</th>
 
               </tr>
             </thead>
-            <tbody className="divide-y divide-theme">
+            <tbody className="divide-y divide-theme divide-white/5 ">
               {reeferLogs.map((log) => (
                 <tr key={log._id} className="hover:bg-[rgba(255,255,255,0.03)]">
-                  <td className="px-6 py-4 text-sm font-medium text-primary">{log.logNumber}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-secondary">{log.logNumber}</td>
                   <td className="px-6 py-4 text-sm text-secondary">
                     {formatDateTime(log.date, log.time)}
                   </td>
-                  <td className="px-6 py-4 text-sm text-primary">{log.driverName}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{log.driverName}</td>
                   <td className="px-6 py-4 text-sm text-secondary">{log.trailerNumber}</td>
                   <td className="px-6 py-4 text-sm">
                     <div className="flex items-center">
@@ -842,24 +842,24 @@ const TruckingOperations: React.FC = () => {
           <table className="w-full">
             <thead className="bg-card">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Checklist #</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Date/Time</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Location</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Performed By</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Vehicle</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Status</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Checklist #</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Date/Time</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Location</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Performed By</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Vehicle</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Status</th>
 
               </tr>
             </thead>
             <tbody className="divide-y divide-theme">
               {winterChecklists.map((checklist) => (
                 <tr key={checklist._id} className="hover:bg-[rgba(255,255,255,0.03)]">
-                  <td className="px-6 py-4 text-sm font-medium text-primary">{checklist.checklistNumber}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-secondary">{checklist.checklistNumber}</td>
                   <td className="px-6 py-4 text-sm text-secondary">
                     {formatDateTime(checklist.date, checklist.time)}
                   </td>
-                  <td className="px-6 py-4 text-sm text-primary">{checklist.location}</td>
-                  <td className="px-6 py-4 text-sm text-primary">{checklist.performedBy}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{checklist.location}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{checklist.performedBy}</td>
                   <td className="px-6 py-4 text-sm text-secondary">{checklist.vehicleNumber || 'N/A'}</td>
                   <td className="px-6 py-4">
                     {checklist.hazardsIdentified ? (
@@ -921,25 +921,25 @@ const TruckingOperations: React.FC = () => {
           <table className="w-full">
             <thead className="bg-card">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Log #</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Date/Time</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Location</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Performed By</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Vehicle</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Fuel Type</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Spill Status</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Log #</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Date/Time</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Location</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Performed By</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Vehicle</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Fuel Type</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Spill Status</th>
 
               </tr>
             </thead>
             <tbody className="divide-y divide-theme">
               {fuelingLogs.map((log) => (
                 <tr key={log._id} className="hover:bg-[rgba(255,255,255,0.03)]">
-                  <td className="px-6 py-4 text-sm font-medium text-primary">{log.logNumber}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-secondary">{log.logNumber}</td>
                   <td className="px-6 py-4 text-sm text-secondary">
                     {formatDateTime(log.date, log.time)}
                   </td>
-                  <td className="px-6 py-4 text-sm text-primary">{log.location}</td>
-                  <td className="px-6 py-4 text-sm text-primary">{log.performedBy}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{log.location}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{log.performedBy}</td>
                   <td className="px-6 py-4 text-sm text-secondary">{log.vehicleNumber || 'N/A'}</td>
                   <td className="px-6 py-4 text-sm">
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold uppercase">
@@ -1006,25 +1006,25 @@ const TruckingOperations: React.FC = () => {
           <table className="w-full">
             <thead className="bg-card">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Log #</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Date/Time</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Driver</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Vehicle</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">UN Number</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Class</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Placarding</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Status</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Log #</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Date/Time</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Driver</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Vehicle</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">UN Number</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Class</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Placarding</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-headings uppercase">Status</th>
 
               </tr>
             </thead>
-            <tbody className="divide-y divide-theme">
+            <tbody className="divide-y divide-theme divide-white/5">
               {tdgLogs.map((log) => (
                 <tr key={log._id} className="hover:bg-[rgba(255,255,255,0.03)]">
-                  <td className="px-6 py-4 text-sm font-medium text-primary">{log.logNumber}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-secondary">{log.logNumber}</td>
                   <td className="px-6 py-4 text-sm text-secondary">
                     {formatDateTime(log.date, log.time)}
                   </td>
-                  <td className="px-6 py-4 text-sm text-primary">{log.driverName}</td>
+                  <td className="px-6 py-4 text-sm text-secondary">{log.driverName}</td>
                   <td className="px-6 py-4 text-sm text-secondary">
                     <div>{log.vehicleNumber}</div>
                     {log.trailerNumber && <div className="text-xs text-secondary">{log.trailerNumber}</div>}
@@ -1096,7 +1096,7 @@ const TruckingOperations: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: CUSTOM_COLORS.background }}>
+    <div className="min-h-screen p-6 bg-main" >
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10000] space-y-2">
         {notifications.map(notification => (
@@ -1112,7 +1112,7 @@ const TruckingOperations: React.FC = () => {
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>
-            <h1 className="text-4xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
+            <h1 className="text-4xl font-bold mb-2 text-headings" >
               Trucking Operations
             </h1>
             <p className="text-lg text-secondary">
@@ -1129,8 +1129,8 @@ const TruckingOperations: React.FC = () => {
             </button>
             <button
               onClick={() => setShowModal(true)}
-              className="px-6 py-3 rounded-xl !text-white font-semibold shadow-lg hover:shadow-xl transition-all flex items-center space-x-2"
-              style={{ background: CUSTOM_COLORS.gradient }}
+              className="px-6 py-3 rounded-xl !text-white font-semibold shadow-lg hover:shadow-xl transition-all flex items-center space-x-2 bg-[var(--accent-navyblue)]"
+
             >
               <FaPlus />
               <span>New Log Entry</span>
@@ -1244,55 +1244,99 @@ const TruckingOperations: React.FC = () => {
               {activeTab === TABS.LOAD_SECUREMENT && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Date *</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Date *</label>
                     <input
                       type="date"
                       required
                       value={loadSecurementForm.date}
                       onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, date: e.target.value })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
+                      style={{ colorScheme: 'dark' }}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Time *</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Time *</label>
                     <input
                       type="time"
                       required
                       value={loadSecurementForm.time}
                       onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, time: e.target.value })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
+                      style={{ colorScheme: 'dark' }}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Driver Name *</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Driver Name *</label>
                     <select
                       required
                       value={loadSecurementForm.driverName}
-                      onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, driverName: e.target.value })}
-                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) =>
+                        setLoadSecurementForm({
+                          ...loadSecurementForm,
+                          driverName: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                     >
-                      <option value="">Select driver</option>
+                      <option
+                        value=""
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Select driver
+                      </option>
+
                       {drivers.map((d) => (
-                        <option key={d._id} value={d.name}>{d.name}</option>
+                        <option
+                          key={d._id}
+                          value={d.name}
+                          className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                        >
+                          {d.name}
+                        </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Vehicle Number *</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Vehicle Number *</label>
                     <select
                       required
                       value={loadSecurementForm.vehicleNumber}
-                      onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, vehicleNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) =>
+                        setLoadSecurementForm({
+                          ...loadSecurementForm,
+                          vehicleNumber: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                     >
-                      <option value="">Select vehicle</option>
+                      <option
+                        value=""
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
+                        Select vehicle
+                      </option>
+
                       {vehicles.map((v) => (
-                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                        <option
+                          key={v._id}
+                          value={v.unitNo}
+                          className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                        >
+                          {v.unitNo}
+                        </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Load Type *</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Load Type *</label>
                     <input
                       type="text"
                       required
@@ -1302,23 +1346,49 @@ const TruckingOperations: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Secured By *</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Secured By *</label>
                     <select
                       required
                       value={loadSecurementForm.securedBy}
-                      onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, securedBy: e.target.value as any })}
-                      className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) =>
+                        setLoadSecurementForm({
+                          ...loadSecurementForm,
+                          securedBy: e.target.value as any,
+                        })
+                      }
+                      className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                     >
-                      <option value="straps">Straps</option>
-                      <option value="chains">Chains</option>
-                      <option value="tarps">Tarps</option>
-                      <option value="combination">Combination</option>
-                      <option value="bulkhead">Bulkhead</option>
-                      <option value="other">Other</option>
+                      <option value="straps" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Straps
+                      </option>
+
+                      <option value="chains" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Chains
+                      </option>
+
+                      <option value="tarps" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Tarps
+                      </option>
+
+                      <option value="combination" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Combination
+                      </option>
+
+                      <option value="bulkhead" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Bulkhead
+                      </option>
+
+                      <option value="other" className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                        Other
+                      </option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-primary mb-1">Meets Standards</label>
+                    <label className="block text-sm font-medium text-headings mb-1">Meets Standards</label>
                     <input
                       type="checkbox"
                       checked={loadSecurementForm.meetsStandards}
@@ -1853,8 +1923,7 @@ const TruckingOperations: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ background: CUSTOM_COLORS.gradient }}
+                  className="px-6 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? 'Creating...' : 'Create Log Entry'}
                 </button>
