@@ -155,9 +155,9 @@ function Dashboard() {
       >
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-lg bg-card`}>
-            <Icon className="text-[#00D1FF]" size={18} />
+            <Icon className="text-headings" size={18} />
           </div>
-          <h3 className="text-lg font-bold text-primary">{title}</h3>
+          <h3 className="text-lg font-bold text-headings">{title}</h3>
         </div>
         {onClickHeader && <ChevronRight className="text-secondary" size={20} />}
       </div>
@@ -197,7 +197,7 @@ function Dashboard() {
 
   return (
     <>
-      <div className="min-h-screen pb-10" >
+      <div className="min-h-screen pb-10 bg-main" >
         <div className="relative w-full mx-auto p-2">
           {/* Gradient band - Matching Dispatch */}
           <div
@@ -211,7 +211,7 @@ function Dashboard() {
             {/* Header Section */}
             <div className="mb-4 relative z-10">
               <div className="flex items-center justify-between">
-                <h1 className="text-xl font-bold text-primary">Compliance Overview</h1>
+                <h1 className="text-xl font-bold text-headings">Compliance Overview</h1>
                 <div className="flex items-center gap-2 text-secondary">
                   <span className="text-xs">Compliance Dashboard</span>
 
@@ -226,9 +226,9 @@ function Dashboard() {
                 value={cvsaStats.total}
                 subtitle={`Pass: ${cvsaStats.pass} | Fail: ${cvsaStats.fail}`}
                 icon={FaClipboardCheck}
-                bgColor="bg-card"
-                iconColor="text-[#00D1FF]"
-                cardBg="bg-card"
+                bgColor=""
+                iconColor="text-[var(--accent-blue)]"
+                cardBg="bg-[var(--accent-blue)]/20"
                 onClick={() => navigate("/admin/compliance/cvsa-inspection")}
               />
               <StatCard
@@ -236,9 +236,9 @@ function Dashboard() {
                 value={ticketStats.total}
                 subtitle={`Paid: ${ticketStats.paid} | Unpaid: ${ticketStats.unpaid}`}
                 icon={FaFileInvoiceDollar}
-                bgColor="bg-purple-100"
-                iconColor="text-purple-600"
-                cardBg="bg-gradient-to-br from-purple-50 to-purple-100"
+                bgColor=""
+                iconColor="text-[var(--accent-purple)]"
+                cardBg="bg-[var(--accent-purple)]/20"
                 onClick={() => navigate("/admin/compliance/tickets")}
               />
               <StatCard
@@ -246,9 +246,9 @@ function Dashboard() {
                 value={incidentStats.total}
                 subtitle={`Open: ${incidentStats.open} | Closed: ${incidentStats.closed}`}
                 icon={FaCarCrash}
-                bgColor="bg-orange-100"
-                iconColor="text-[#F59E0B]"
-                cardBg="bg-gradient-to-br from-orange-50 to-orange-100"
+                bgColor=""
+                iconColor="text-[var(--accent-orange)]"
+                cardBg="bg-[var(--accent-orange)]/20"
                 onClick={() => navigate("/admin/compliance/incidents")}
               />
             </div>
@@ -372,10 +372,10 @@ function Dashboard() {
               >
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-card rounded-lg">
-                    <FaChartLine className="text-[#00D1FF]" size={20} />
+                    <FaChartLine className="text-headings" size={20} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-primary">Monthly Compliance Report</h3>
+                    <h3 className="font-bold text-headings">Monthly Compliance Report</h3>
                     <p className="text-sm text-secondary">View detailed reports and analytics</p>
                   </div>
                 </div>

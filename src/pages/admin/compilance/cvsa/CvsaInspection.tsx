@@ -837,7 +837,7 @@ const CvsaInspection: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF', ...ACCENT_VARS }}>
+    <div className="min-h-screen pb-10 bg-main" >
       {/* Toast Notifications Container - High z-index to be above modal */}
       <div className="fixed top-4 right-4 z-[10002] flex flex-col gap-3 max-w-md">
         {notifications.map(notification => (
@@ -858,7 +858,7 @@ const CvsaInspection: React.FC = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-black">CVSA Inspection Management</h1>
+                <h1 className="text-2xl font-bold text-headings">CVSA Inspection Management</h1>
                 <div className="flex items-center gap-2 text-black/90">
                   <span className="text-xs">Compliance / CVSA Inspections</span>
                 </div>
