@@ -148,20 +148,20 @@ const SlidePanel = ({ driver: d, onClose }: { driver: DriverData; onClose: () =>
       >
         <div
           className="flex items-center justify-between px-5 py-4 flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, var(--accent-blue) 0%, rgba(0,209,255,0.15) 100%)" }}
+
         >
           <div className="flex items-center gap-3">
             <DriverAvatar driver={d} size="md" />
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-white text-base">{driverFullName(d)}</span>
+                <span className="font-bold text-headings text-base">{driverFullName(d)}</span>
                 <StatusBadge status={d.status} />
               </div>
-              <p className="text-[11px] text-white/70 mt-0.5">{d.internalId || d.email || ""}</p>
+              <p className="text-[11px] text-headings/70 mt-0.5">{d.internalId || d.email || ""}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => exportToExcel([d])} className="flex items-center gap-1.5 px-3 py-1.5 bg-card/15 hover:bg-card/25 text-white text-xs font-medium rounded-lg">
+            <button onClick={() => exportToExcel([d])} className="flex items-center gap-1.5 px-3 py-1.5 bg-card/15 hover:bg-card/25 text-white text-xs font-medium rounded-lg  bg-[var(--accent-navyblue)]">
               <Download size={13} /> Export
             </button>
             <button onClick={onClose} className="p-1.5 hover:bg-card/20 rounded-lg text-white"><X size={18} /></button>
@@ -292,11 +292,11 @@ const DriversPage = () => {
               <thead className="bg-card border-b border-theme">
                 <tr>
                   {["Driver", "Email", "Phone", "Status", "Internal ID", "Licence #", "Licence Expiry", "Job Type", ""].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">{h}</th>
+                    <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-headings uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-theme divide-white/5">
                 {drivers.map((d) => (
                   <tr key={d._id} onClick={() => setSelected(d)} className="hover:bg-[var(--accent-blue)]/5 cursor-pointer group transition-colors">
                     <td className="px-4 py-3 whitespace-nowrap">

@@ -122,18 +122,18 @@ const SlidePanel = ({ trailer: t, onClose }: { trailer: TrailerData; onClose: ()
       >
         <div
           className="flex items-center justify-between px-5 py-4 flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, var(--accent-blue) 0%, rgba(0,209,255,0.15) 100%)" }}
+
         >
           <div>
             <div className="flex items-center gap-2">
-              <Package size={16} className="text-white" />
-              <span className="font-bold text-white text-base">{t.unitNumber || t.trailer || t.plateNumber}</span>
+              <Package size={16} className="text-headings" />
+              <span className="font-bold text-headings text-base">{t.unitNumber || t.trailer || t.plateNumber}</span>
               <StatusBadge status={t.status} />
             </div>
-            <p className="text-[11px] text-white/70 mt-0.5">{[t.make, t.model, t.year].filter(Boolean).join(" · ")}</p>
+            <p className="text-[11px] text-headings/70 mt-0.5">{[t.make, t.model, t.year].filter(Boolean).join(" · ")}</p>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => exportToExcel([t])} className="flex items-center gap-1.5 px-3 py-1.5 bg-card/15 hover:bg-card/25 text-white text-xs font-medium rounded-lg">
+            <button onClick={() => exportToExcel([t])} className="flex items-center gap-1.5 px-3 py-1.5 bg-card/15 hover:bg-card/25 text-white text-xs font-medium rounded-lg bg-[var(--accent-navyblue)]">
               <Download size={13} /> Export
             </button>
             <button onClick={onClose} className="p-1.5 hover:bg-card/20 rounded-lg text-white"><X size={18} /></button>
@@ -223,7 +223,7 @@ const TrailersPage = () => {
         <button
           onClick={async () => { setExporting(true); try { await exportToExcel(trailers); } finally { setExporting(false); } }}
           disabled={exporting || !trailers.length}
-          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] disabled:opacity-50 !text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] disabled:opacity-50 !text-white text-sm font-medium rounded-lg transition-colors  bg-[var(--accent-navyblue)]"
         >
           {exporting ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />} Export
         </button>
@@ -238,9 +238,24 @@ const TrailersPage = () => {
         </div>
         <div className="flex items-center gap-2">
           <Filter size={14} className="text-secondary" />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-sm border border-theme rounded-lg px-3 py-2 outline-none focus:border-[var(--accent-blue)] bg-card">
-            {statusOptions.map((s) => <option key={s} value={s}>{s || "All Statuses"}</option>)}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="text-sm border border-theme rounded-lg px-3 py-2
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  outline-none focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  cursor-pointer transition-all"
+          >
+            {statusOptions.map((s) => (
+              <option
+                key={s}
+                value={s}
+                className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+              >
+                {s || "All Statuses"}
+              </option>
+            ))}
           </select>
         </div>
         <button onClick={load} className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-secondary hover:text-[var(--accent-blue)] border border-theme">
@@ -269,11 +284,11 @@ const TrailersPage = () => {
               <thead className="bg-card border-b border-theme">
                 <tr>
                   {["Unit #", "Plate #", "Make / Model", "Year", "Type", "Status", "Ownership", "Attached", "Safety Expiry", ""].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">{h}</th>
+                    <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-headings uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-theme divide-white/5">
                 {trailers.map((t) => (
                   <tr key={t._id} onClick={() => setSelected(t)} className="hover:bg-[var(--accent-blue)]/5 cursor-pointer group transition-colors">
                     <td className="px-4 py-3 whitespace-nowrap">
