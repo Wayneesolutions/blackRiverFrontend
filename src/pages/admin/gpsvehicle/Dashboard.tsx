@@ -355,7 +355,7 @@ const Dashboard = () => {
             {/* Deliveries Today Listing */}
             <div id="deliveries-today-table" className="bg-card rounded-lg shadow-sm border border-theme mb-4">
               <div className="p-4 border-b border-theme">
-                <h2 className="text-lg font-bold text-[var(--accent-navyblue)]">Deliveries Today</h2>
+                <h2 className="text-lg font-bold text-white">Deliveries Today</h2>
                 <p className="text-sm text-secondary mt-1">Scheduled deliveries for today</p>
               </div>
               <div className="overflow-x-auto">
@@ -464,7 +464,7 @@ const Dashboard = () => {
             {/* Pickups Tomorrow Listing */}
             <div id="pickups-tomorrow-table" className="bg-card rounded-lg shadow-sm border border-theme">
               <div className="p-4 border-b border-theme">
-                <h2 className="text-lg font-bold text-[var(--accent-navyblue)]">Pickups Tomorrow</h2>
+                <h2 className="text-lg font-bold text-white">Pickups Tomorrow</h2>
                 <p className="text-sm text-secondary mt-1">Scheduled pickups for tomorrow</p>
               </div>
               <div className="overflow-x-auto">

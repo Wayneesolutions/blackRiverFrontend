@@ -534,7 +534,7 @@ const AdminHRTrainingView: React.FC = () => {
 
   return (
     <div className="p-6 bg-main min-h-screen">
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full mx-auto">
         <div className="mb-6">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-2xl shadow-lg bg-[rgba(17,131,224,0.1)]">
@@ -1048,9 +1048,9 @@ const AdminHRTrainingView: React.FC = () => {
                     disabled={uploading}
                     className="flex-1 px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                   >
-                    <option value="">Select Test Type</option>
+                    <option className="form-option" value="">Select Test Type</option>
                     {testTypes.map((type) => (
-                      <option key={type._id} value={type.name}>
+                      <option  className="form-option" key={type._id} value={type.name}>
                         {type.displayName}
                       </option>
                     ))}
@@ -1230,9 +1230,9 @@ const AdminHRTrainingView: React.FC = () => {
                     disabled={creatingQA}
                     className="flex-1 px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgba(0,209,255,0.15)] disabled:opacity-50"
                   >
-                    <option value="">Select Test Type</option>
+                    <option className="form-option" value="">Select Test Type</option>
                     {testTypes.map((type) => (
-                      <option key={type._id} value={type.name}>
+                      <option className="form-option" key={type._id} value={type.name}>
                         {type.displayName}
                       </option>
                     ))}

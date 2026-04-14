@@ -508,8 +508,8 @@ const TruckProfile = () => {
           {/* Compliance Section */}
           <section className="bg-card rounded-xl shadow-lg border border-theme p-6 mb-6">
             <div className="flex items-center gap-2 mb-6 border-b border-theme pb-4">
-              <FaShieldAlt className="w-5 h-5 text-[var(--accent-navyblue)]" />
-              <h3 className="text-lg font-bold text-headings">Compliance & Safety</h3>
+              <FaShieldAlt className="w-5 h-5 text-white" />
+              <h3 className="text-lg font-bold text-white">Compliance & Safety</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -600,8 +600,8 @@ const TruckProfile = () => {
           {/* Fleet Maintenance Section */}
           <section className="bg-card rounded-xl shadow-lg border border-theme p-6 mb-6">
             <div className="flex items-center gap-2 mb-6 border-b border-theme pb-4">
-              <FaWrench className="w-5 h-5 text-[var(--accent-navyblue)]" />
-              <h3 className="text-lg font-bold text-headings">Fleet Maintenance</h3>
+              <FaWrench className="w-5 h-5 text-white" />
+              <h3 className="text-lg font-bold text-white">Fleet Maintenance</h3>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -694,8 +694,8 @@ const TruckProfile = () => {
             <section className="bg-card rounded-xl shadow-lg border border-theme p-6">
               <div className="flex items-center justify-between mb-6 border-b border-theme pb-4">
                 <div className="flex items-center gap-2">
-                  <FaRoute className="w-5 h-5 text-[var(--accent-navyblue)]" />
-                  <h3 className="text-lg font-bold text-headings">Assignment History</h3>
+                  <FaRoute className="w-5 h-5 text-white" />
+                  <h3 className="text-lg font-bold text-white">Assignment History</h3>
                 </div>
                 <span className="text-xs font-medium text-secondary bg-[rgba(255,255,255,0.06)] px-3 py-1 rounded-full border border-theme">
                   {filteredData.assignmentHistory.length} assignments

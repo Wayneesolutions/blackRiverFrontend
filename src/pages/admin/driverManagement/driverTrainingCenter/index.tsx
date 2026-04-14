@@ -14,8 +14,8 @@ const DriverTrainingCenter = () => {
   ];
 
   return (
-    <div className="p-6 bg-main min-h-screen  ">
-      <div className="max-w-7xl mx-auto">
+    <div className="p-6 bg-main min-h-screen">
+      <div className="w-full mx-auto">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold  mb-2 text-[var(--accent-navyblue)]">

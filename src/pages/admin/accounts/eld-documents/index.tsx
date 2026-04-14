@@ -254,10 +254,7 @@ const ELDDocuments = () => {
                     </div>
                     <button
                         onClick={() => setShowUploadModal(true)}
-                        style={{
-                            background: 'linear-gradient(90deg, var(--accent-navyblue) 0%, var(--accent-navyblue) 40%, rgba(0,209,255,0.15) 100%)',
-                        }}
-                        className="flex items-center gap-2 px-6 py-3 !text-white font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-md"
+                        className="flex items-center  bg-[var(--accent-navyblue)] gap-2 px-6 py-3 !text-white font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-md"
                     >
                         <Upload size={20} />
                         Upload Document
@@ -327,10 +324,10 @@ const ELDDocuments = () => {
                             </thead>
                             <tbody className="divide-y divide-theme">
                                 {filteredDocuments.map((doc) => (
-                                    <tr key={doc._id} className="hover:bg-blue-50/30 transition-colors border-b border-theme">
+                                    <tr key={doc._id} className="hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 border-b border-theme">
                                         <td className="px-6 py-4 border-r border-theme">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center border border-theme">
+                                               <div className="w-10 h-10 bg-[rgba(0,209,255,0.08)] rounded-lg flex items-center justify-center border border-theme">
                                                     <FileText className="text-[#00D1FF]" size={20} />
                                                 </div>
                                                 <div>
@@ -352,7 +349,7 @@ const ELDDocuments = () => {
                                             <button
                                                 onClick={() => handleToggleActive(doc)}
                                                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${doc.isActive
-                                                    ? 'bg-[var(--accent-teal)]text-green-700 hover:bg-green-200 border border-green-200'
+                                                    ? 'bg-[var(--accent-teal)] text-green-900 border border-[rgba(0,209,255,0.3)]'
                                                     : 'bg-card text-secondary hover:bg-gray-200 border border-theme'
                                                     }`}
                                             >
@@ -363,14 +360,14 @@ const ELDDocuments = () => {
                                             <div className="flex items-center justify-center gap-2">
                                                 <button
                                                     onClick={() => handleDownload(doc)}
-                                                    className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-200"
+                                                    className="p-2 text-[#00D1FF] hover:bg-[rgba(0,209,255,0.12)] rounded-lg transition-all border border-transparent hover:border-[rgba(0,209,255,0.3)]"
                                                     title="Download"
                                                 >
                                                     <Download size={18} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleViewDocument(doc)}
-                                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors border border-transparent hover:border-green-200"
+                                                    className="p-2 text-green-400 hover:bg-[rgba(34,197,94,0.12)] rounded-lg transition-all border border-transparent hover:border-[rgba(34,197,94,0.3)]"
                                                     title="View"
                                                 >
                                                     <Eye size={18} />
@@ -381,7 +378,7 @@ const ELDDocuments = () => {
                                                         documentId: doc._id,
                                                         fileName: doc.fileName
                                                     })}
-                                                    className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200"
+                                                    className="p-2 text-red-400 hover:bg-[rgba(239,68,68,0.12)] rounded-lg transition-all border border-transparent hover:border-[rgba(239,68,68,0.3)]"
                                                     title="Delete"
                                                 >
                                                     <Trash2 size={18} />

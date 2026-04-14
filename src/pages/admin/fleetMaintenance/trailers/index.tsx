@@ -1930,8 +1930,8 @@ const TrailersPage: React.FC = () => {
                                             key={step}
                                             onClick={() => setActiveStep(step)}
                                             className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
-                                                ? 'bg-[var(--accent-blue)] !text-white shadow-sm'
-                                                : 'bg-card text-headings hover:bg-[rgba(255,255,255,0.03)] border border-theme'
+                                                ? 'bg-[var(--accent-navyblue)] !text-white shadow-sm'
+                                                : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                 }`}
                                         >
                                             {step}
@@ -2016,9 +2016,9 @@ const TrailersPage: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, registrationCountry: e.target.value, registrationProvince: '' })}
                                                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="">Select Registration Country</option>
+                                                    <option className="form-option" value="">Select Registration Country</option>
                                                     {countries.map((country) => (
-                                                        <option key={country.code} value={country.name}>
+                                                        <option className="form-option" key={country.code} value={country.name}>
                                                             {country.flag} {country.name}
                                                         </option>
                                                     ))}
@@ -2078,10 +2078,10 @@ const TrailersPage: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                                                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="">Select Type</option>
-                                                    <option value="RF">Reefer</option>
-                                                    <option value="DV">Dry Van</option>
-                                                    <option value="FB">Flatbed</option>
+                                                    <option className="form-option" value="">Select Type</option>
+                                                    <option className="form-option" value="RF">Reefer</option>
+                                                    <option className="form-option" value="DV">Dry Van</option>
+                                                    <option className="form-option" value="FB">Flatbed</option>
                                                 </select>
                                             </div>
                                             <div>
@@ -2105,8 +2105,8 @@ const TrailersPage: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, uom: e.target.value })}
                                                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="Kg">Kg</option>
-                                                    <option value="Lbs">Lbs</option>
+                                                    <option className="form-option" value="Kg">Kg</option>
+                                                    <option className="form-option" value="Lbs">Lbs</option>
                                                 </select>
                                             </div>
                                             <div>
@@ -2118,36 +2118,56 @@ const TrailersPage: React.FC = () => {
                                                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                                                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                 >
-                                                    <option value="In Service">In Service</option>
-                                                    <option value="Out of Service">Out of Service</option>
-                                                    <option value="Maintenance">Maintenance</option>
+                                                    <option className="form-option" value="In Service">In Service</option>
+                                                    <option className="form-option" value="Out of Service">Out of Service</option>
+                                                    <option className="form-option" value="Maintenance">Maintenance</option>
                                                 </select>
                                             </div>
                                         </div>
 
                                         <div className="mt-4">
-                                            <h3 className="text-base font-semibold text-headings mb-2">Ownership Information</h3>
+                                            <h3 className="text-base font-semibold text-headings mb-2">
+                                                Ownership Information
+                                            </h3>
+
                                             <div className="flex gap-2">
+
+                                                {/* Company Asset */}
                                                 <button
                                                     type="button"
-                                                    onClick={() => setFormData({ ...formData, ownership: 'COMPANY ASSET', subType: '' })}
-                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'COMPANY ASSET'
-                                                        ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-headings hover:bg-gray-300'
+                                                    onClick={() =>
+                                                        setFormData({
+                                                            ...formData,
+                                                            ownership: "COMPANY ASSET",
+                                                            subType: "",
+                                                        })
+                                                    }
+                                                    className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${formData.ownership === "COMPANY ASSET"
+                                                            ? "bg-[var(--accent-navyblue)] text-white shadow-md"
+                                                            : "bg-[rgba(255,255,255,0.05)] text-primary border border-theme hover:bg-[rgba(0,209,255,0.08)]"
                                                         }`}
                                                 >
                                                     COMPANY ASSET
                                                 </button>
+
+                                                {/* Third Party */}
                                                 <button
                                                     type="button"
-                                                    onClick={() => setFormData({ ...formData, ownership: 'THIRD PARTY ASSET', subType: '' })}
-                                                    className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'THIRD PARTY ASSET'
-                                                        ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-headings hover:bg-gray-300'
+                                                    onClick={() =>
+                                                        setFormData({
+                                                            ...formData,
+                                                            ownership: "THIRD PARTY ASSET",
+                                                            subType: "",
+                                                        })
+                                                    }
+                                                    className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${formData.ownership === "THIRD PARTY ASSET"
+                                                            ? "bg-[var(--accent-navyblue)] text-white shadow-md"
+                                                            : "bg-[rgba(255,255,255,0.05)] text-primary border border-theme hover:bg-[rgba(0,209,255,0.08)]"
                                                         }`}
                                                 >
                                                     THIRD PARTY ASSET
                                                 </button>
+
                                             </div>
                                         </div>
 
@@ -2158,9 +2178,9 @@ const TrailersPage: React.FC = () => {
                                                 onChange={(e) => setFormData({ ...formData, yard: e.target.value })}
                                                 className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                             >
-                                                <option value="">Select</option>
+                                                <option className="form-option" value="">Select</option>
                                                 {yards.filter(yard => yard.status === 'active').map((yard) => (
-                                                    <option key={yard._id} value={yard._id}>
+                                                    <option className="form-option" key={yard._id} value={yard._id}>
                                                         {yard.yardName} ({yard.yardCode})
                                                     </option>
                                                 ))}
@@ -2170,35 +2190,42 @@ const TrailersPage: React.FC = () => {
                                         {(formData.ownership === 'COMPANY ASSET' || formData.ownership === 'THIRD PARTY ASSET') && (
                                             <div className="mt-4">
                                                 <h3 className="text-base font-semibold text-headings mb-2">Sub-Type</h3>
-                                                <div className="flex gap-2">
+
+                                                <div className="flex gap-2 flex-wrap">
+
                                                     {formData.ownership === 'COMPANY ASSET' ? (
                                                         <>
+                                                            {/* HIGHWAY USE */}
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setFormData({ ...formData, subType: 'HIGHWAY USE' })}
-                                                                className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.subType === 'HIGHWAY USE'
-                                                                    ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-gray-200 text-headings hover:bg-gray-300'
+                                                                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${formData.subType === 'HIGHWAY USE'
+                                                                        ? 'bg-[var(--accent-navyblue)] text-white shadow-md'
+                                                                        : 'bg-[rgba(255,255,255,0.05)] text-primary border border-theme hover:bg-[rgba(0,209,255,0.08)]'
                                                                     }`}
                                                             >
                                                                 HIGHWAY USE
                                                             </button>
+
+                                                            {/* CITY USE */}
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setFormData({ ...formData, subType: 'CITY USE' })}
-                                                                className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.subType === 'CITY USE'
-                                                                    ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-gray-200 text-headings hover:bg-gray-300'
+                                                                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${formData.subType === 'CITY USE'
+                                                                        ? 'bg-[var(--accent-navyblue)] text-white shadow-md'
+                                                                        : 'bg-[rgba(255,255,255,0.05)] text-primary border border-theme hover:bg-[rgba(0,209,255,0.08)]'
                                                                     }`}
                                                             >
                                                                 CITY USE
                                                             </button>
+
+                                                            {/* STORAGE USE */}
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setFormData({ ...formData, subType: 'STORAGE USE' })}
-                                                                className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.subType === 'STORAGE USE'
-                                                                    ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-gray-200 text-headings hover:bg-gray-300'
+                                                                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${formData.subType === 'STORAGE USE'
+                                                                        ? 'bg-[var(--accent-navyblue)] text-white shadow-md'
+                                                                        : 'bg-[rgba(255,255,255,0.05)] text-primary border border-theme hover:bg-[rgba(0,209,255,0.08)]'
                                                                     }`}
                                                             >
                                                                 STORAGE USE
@@ -2206,22 +2233,25 @@ const TrailersPage: React.FC = () => {
                                                         </>
                                                     ) : (
                                                         <>
+                                                            {/* RENTAL */}
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setFormData({ ...formData, subType: 'RENTAL' })}
-                                                                className={`px-6 py-2 rounded-lg font-medium transition-colors ${formData.subType === 'RENTAL'
-                                                                    ? 'bg-gray-700 text-white'
-                                                                    : 'bg-gray-200 text-headings hover:bg-gray-300'
+                                                                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${formData.subType === 'RENTAL'
+                                                                        ? 'bg-[var(--accent-navyblue)] text-white shadow-md'
+                                                                        : 'bg-[rgba(255,255,255,0.05)] text-primary border border-theme hover:bg-[rgba(0,209,255,0.08)]'
                                                                     }`}
                                                             >
                                                                 RENTAL
                                                             </button>
+
+                                                            {/* OTHER */}
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setFormData({ ...formData, subType: 'OTHER' })}
-                                                                className={`px-6 py-2 rounded-lg font-medium transition-colors ${formData.subType === 'OTHER'
-                                                                    ? 'bg-gray-700 text-white'
-                                                                    : 'bg-gray-200 text-headings hover:bg-gray-300'
+                                                                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${formData.subType === 'OTHER'
+                                                                        ? 'bg-[var(--accent-navyblue)] text-white shadow-md'
+                                                                        : 'bg-[rgba(255,255,255,0.05)] text-primary border border-theme hover:bg-[rgba(0,209,255,0.08)]'
                                                                     }`}
                                                             >
                                                                 OTHER
@@ -2497,10 +2527,10 @@ const TrailersPage: React.FC = () => {
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, unit: e.target.value })}
                                                             className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                         >
-                                                            <option value="">Select Unit</option>
-                                                            <option value="Days">Days</option>
-                                                            <option value="Weeks">Weeks</option>
-                                                            <option value="Months">Months</option>
+                                                            <option className='form-option' value="">Select Unit</option>
+                                                            <option className='form-option' value="Days">Days</option>
+                                                            <option className='form-option' value="Weeks">Weeks</option>
+                                                            <option className='form-option' value="Months">Months</option>
                                                         </select>
                                                     </div>
                                                     <div className="flex-1">

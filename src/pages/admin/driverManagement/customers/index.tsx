@@ -1122,9 +1122,9 @@ const CustomersPage = () => {
                           onChange={(e) => setFormData({ ...formData, assignedSalesperson: e.target.value })}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         >
-                          <option value="">Select Salesperson</option>
-                          <option value="salesperson1">Salesperson 1</option>
-                          <option value="salesperson2">Salesperson 2</option>
+                          <option className="form-option" value="">Select Salesperson</option>
+                          <option className="form-option" value="salesperson1">Salesperson 1</option>
+                          <option className="form-option" value="salesperson2">Salesperson 2</option>
                         </select>
                       </div>
 
@@ -1431,9 +1431,9 @@ const CustomersPage = () => {
                           }}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 focus:border-transparent"
                         >
-                          <option value="">Select Country</option>
+                          <option className="form-option" value="">Select Country</option>
                           {countries.map((country) => (
-                            <option key={country.code} value={country.code}>
+                            <option className="form-option" key={country.code} value={country.code}>
                               {country.flag} {country.name}
                             </option>
                           ))}

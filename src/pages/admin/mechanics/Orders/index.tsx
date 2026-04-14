@@ -408,20 +408,20 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
     focus:ring-2 focus:ring-[var(--accent-blue)]/20
     outline-none cursor-pointer"
               >
-                <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="all">All Status</option>
-                <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="pending">Pending</option>
-                <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="completed">Completed</option>
-                <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="Created">Created</option>
-                <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="Assigned">Assigned</option>
-                <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="Shared">Shared</option>
-                <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="in-progress">In Progress</option>
+                <option className='form-option' value="all">All Status</option>
+                <option className='form-option' value="pending">Pending</option>
+                <option className='form-option' value="completed">Completed</option>
+                <option className='form-option' value="Created">Created</option>
+                <option className='form-option' value="Assigned">Assigned</option>
+                <option className='form-option' value="Shared">Shared</option>
+                <option className='form-option' value="in-progress">In Progress</option>
               </select>
             )}
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-theme">
+          <table className="min-w-full ">
             <thead className="bg-card">
               <tr>
                 <th className="w-8 px-2 py-3" />
@@ -445,7 +445,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-theme divide-white/5">
+            <tbody className="bg-card">
               {orders.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-secondary">
@@ -502,7 +502,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                           <button
                             type="button"
                             onClick={() => openCompleteModal(order)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-[var(--accent-blue)] !text-white hover:bg-[#359dd9]"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-[var(--accent-navyblue)] !text-white hover:bg-[#359dd9]"
                           >
                             Update
                           </button>
@@ -515,7 +515,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                       </td>
                     </tr>
                     {expandedId === order._id && (
-                      <tr className="bg-gray-50/80">
+                      <tr className="bg-gradient-to-r from-[rgba(15,27,45,0.95)] to-[rgba(15,27,45,0.75)] border-t border-[rgba(0,209,255,0.12)]">
                         <td colSpan={7} className="px-6 py-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                             {/* Vehicle details */}
@@ -701,9 +701,9 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                     disabled={sparePartsLoading}
                     className="flex-1 rounded-lg border border-theme px-3 py-2 text-sm focus:border-[var(--accent-blue)] focus:ring-2 focus:ring-[var(--accent-blue)]/20"
                   >
-                    <option value="">Select part from inventory...</option>
+                    <option className="form-option" value="">Select part from inventory...</option>
                     {spareParts.map((p) => (
-                      <option key={p._id} value={p._id}>
+                      <option className="form-option" key={p._id} value={p._id}>
                         {p.partName} ({p.partNumber}) — ${(p.sellingPrice ?? p.buyingPrice ?? 0).toFixed(2)}
                       </option>
                     ))}
@@ -712,7 +712,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                     type="button"
                     onClick={addPartFromDropdown}
                     disabled={!selectedPartId || sparePartsLoading}
-                    className="px-4 py-2 text-sm font-medium !text-white bg-[var(--accent-blue)] hover:bg-[#359dd9] rounded-lg disabled:opacity-50 transition"
+                    className="px-4 py-2 text-sm font-medium !text-white bg-[var(--accent-navyblue)] hover:bg-[#359dd9] rounded-lg disabled:opacity-50 transition"
                   >
                     Add
                   </button>
@@ -731,7 +731,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                     <p className="text-xs text-secondary mt-1">Select from dropdown above or add a custom part</p>
                   </div>
                 ) : (
-                  <div className="rounded-lg border border-theme overflow-hidden">
+                  <div className="rounded-lg  overflow-hidden">
                     <table className="min-w-full text-sm">
                       <thead className="bg-card">
                         <tr>
@@ -742,7 +742,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                           <th className="w-10" />
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
+                      <tbody>
                         {completeForm.parts.map((part) => (
                           <tr key={part.id} className="hover:bg-card">
                             <td className="px-4 py-2">
@@ -855,11 +855,11 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
             </div>
 
             {/* Footer */}
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-theme bg-gray-50/30">
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-theme">
               <button
                 type="button"
                 onClick={closeCompleteModal}
-                className="px-5 py-2.5 text-sm font-medium text-headings bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition"
+                className="px-5 py-2.5 text-sm font-medium text-white bg-card border border-theme hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition"
               >
                 Cancel
               </button>
@@ -867,7 +867,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                 type="button"
                 onClick={handleCompleteOrder}
                 disabled={submittingComplete}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold !text-white bg-[var(--accent-blue)] hover:bg-[#359dd9] rounded-lg disabled:opacity-50 transition"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold !text-white bg-[var(--accent-navyblue)] hover:bg-[#359dd9] rounded-lg disabled:opacity-50 transition"
               >
                 <CheckCircle size={18} />
                 {submittingComplete ? "Submitting…" : "Complete Order"}
@@ -1033,7 +1033,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                       setDetailsOrder(null);
                       openCompleteModal(detailsOrder);
                     }}
-                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium !text-white bg-[var(--accent-blue)] hover:bg-[#359dd9] rounded-lg"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium !text-white bg-[var(--accent-navyblue)] hover:bg-[#359dd9] rounded-lg"
                   >
                     <CheckCircle size={16} />
                     Complete Order

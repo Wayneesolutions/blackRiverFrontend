@@ -17,7 +17,7 @@ const UserProfilesPortfolio = lazy(() => import("../../pages/admin/driverManagem
 const DriverProfiles = lazy(() => import("../../pages/admin/driverManagement/driverportfolio/index"))
 const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"));
 const TrainingCertificates = lazy(() => import("../../pages/admin/driverManagement/trainingCertificates/index"));
-const DrugTest = lazy(() => import("../../pages/admin/driverManagement/drugTest/index"));
+// const DrugTest = lazy(() => import("../../pages/admin/driverManagement/drugTest/index"));
 const TrainingTestManagement = lazy(() => import("../../pages/admin/driverManagement/trainingTestManagement/index"));
 const DriverTrainingCenter = lazy(() => import("../../pages/admin/driverManagement/driverTrainingCenter/index"));
 const ELDDocuments = lazy(() => import("../../pages/admin/accounts/eld-documents/index"));
@@ -48,7 +48,7 @@ function DriverManagementRoutes() {
                     <Route path="/driver-training-center" element={<DriverTrainingCenter />} />
                     {/* Legacy routes - kept for backward compatibility, redirect to driver-training-center */}
                     <Route path="/training-certificates" element={<TrainingCertificates />} />
-                    <Route path="/drug-test" element={<DrugTest />} />
+                    {/* <Route path="/drug-test" element={<DrugTest />} /> */}
                     <Route path="/training-test-management" element={<TrainingTestManagement />} />
                     <Route path="/eld-documents" element={<ELDDocuments />} />
                     <Route path="/trucks" element={<Trucks />} />

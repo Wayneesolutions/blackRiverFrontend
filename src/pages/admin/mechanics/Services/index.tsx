@@ -467,10 +467,10 @@ const Services: React.FC = () => {
               }}
               className="px-3 py-2 text-sm border border-theme rounded-lg focus:border-[var(--accent-blue)] focus:ring-2 focus:ring-[var(--accent-blue)]/20"
             >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="in-progress">In Progress</option>
-              <option value="completed">Completed</option>
+              <option className='form-option' value="all">All Status</option>
+              <option className='form-option' value="pending">Pending</option>
+              <option className='form-option' value="in-progress">In Progress</option>
+              <option className='form-option' value="completed">Completed</option>
             </select>
             <select
               value={priorityFilter}
@@ -480,17 +480,17 @@ const Services: React.FC = () => {
               }}
               className="px-3 py-2 text-sm border border-theme rounded-lg focus:border-[var(--accent-blue)] focus:ring-2 focus:ring-[var(--accent-blue)]/20"
             >
-              <option value="all">All Priorities</option>
-              <option value="urgent">Urgent</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
+              <option className='form-option' value="all">All Priorities</option>
+              <option className='form-option' value="urgent">Urgent</option>
+              <option className='form-option' value="high">High</option>
+              <option className='form-option' value="medium">Medium</option>
+              <option className='form-option' value="low">Low</option>
             </select>
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-theme">
+          <table className="min-w-full">
             <thead className="bg-card">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
@@ -522,7 +522,7 @@ const Services: React.FC = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-theme divide-white/5">
+            <tbody className="bg-card  divide-white/5">
               {services.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-6 py-12 text-center text-secondary">
@@ -553,11 +553,15 @@ const Services: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {priorityBadge(service.priority)}
                     </td>
+
                     <td className="px-6 py-4 whitespace-nowrap">
                       {statusBadge(service.status)}
                     </td>
+
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
+
+                        {/* Start */}
                         {service.status !== "in-progress" && service.status !== "completed" && (
                           <button
                             onClick={(e) => {
@@ -565,12 +569,16 @@ const Services: React.FC = () => {
                               handleUpdateStatus(service._id, "in-progress");
                             }}
                             disabled={updatingStatus === service._id}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-card border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 
+        bg-[rgba(59,130,246,0.12)] text-[#60A5FA] border border-[rgba(59,130,246,0.3)] 
+        hover:bg-[rgba(59,130,246,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <Play size={14} />
                             Start
                           </button>
                         )}
+
+                        {/* Complete */}
                         {service.status !== "completed" && (
                           <button
                             onClick={(e) => {
@@ -578,22 +586,29 @@ const Services: React.FC = () => {
                               handleUpdateStatus(service._id, "completed");
                             }}
                             disabled={updatingStatus === service._id}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-card border border-green-200 rounded-lg hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-[var(--accent-teal)]"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 
+        bg-[rgba(16,185,129,0.12)] text-[#34D399] border border-[rgba(16,185,129,0.3)] 
+        hover:bg-[rgba(16,185,129,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <CheckCircle size={14} />
                             Complete
                           </button>
                         )}
+
+                        {/* View */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedService(service);
                           }}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-secondary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 
+      bg-[rgba(255,255,255,0.05)] text-secondary border border-theme 
+      hover:bg-[rgba(255,255,255,0.08)] hover:text-white"
                         >
                           <FileText size={14} />
                           View
                         </button>
+
                       </div>
                     </td>
                   </tr>
@@ -796,7 +811,7 @@ const Services: React.FC = () => {
   focus:ring-2 focus:ring-[var(--accent-blue)]/20
   outline-none"
                   >
-                    <option className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]" value="">
+                    <option className='form-option' value="">
                       Select a part...
                     </option>
 
@@ -804,7 +819,7 @@ const Services: React.FC = () => {
                       <option
                         key={part._id}
                         value={part._id}
-                        className="bg-[var(--accent-navyblue)] text-[var(--text-primary)]"
+                        className='form-option'
                       >
                         {part.partNumber} - {part.partName}{" "}
                         {part.stockQty !== undefined ? `(Stock: ${part.stockQty})` : ""}
@@ -815,7 +830,7 @@ const Services: React.FC = () => {
                     type="button"
                     onClick={addPart}
                     disabled={!selectedPartId || sparePartsLoading}
-                    className="px-4 py-2 text-sm font-medium text-white bg-[var(--accent-blue)] rounded-lg hover:bg-[var(--accent-blue)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 text-sm font-medium text-white bg-[var(--accent-navyblue)] rounded-lg hover:bg-[var(--accent-navyblue)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Add
                   </button>
@@ -894,7 +909,7 @@ const Services: React.FC = () => {
                   type="button"
                   onClick={handleCompleteService}
                   disabled={updatingStatus === completeModal._id}
-                  className="px-4 py-2 text-sm font-medium text-primary bg-[var(--accent-navyblue)] rounded-lg hover:bg-[var(--accent-green)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium text-primary bg-[var(--accent-navyblue)] rounded-lg hover:bg-[var(--accent-navyblue)]/90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {updatingStatus === completeModal._id ? "Completing..." : "Complete Service"}
                 </button>

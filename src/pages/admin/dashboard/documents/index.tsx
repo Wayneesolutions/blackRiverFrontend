@@ -1080,18 +1080,18 @@ const DocumentManagement: React.FC = () => {
                   className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30focus:ring-[var(--accent-blue)]/30"
                 >
                   {categories.filter((c) => c.key !== "all").length === 0 ? (
-                    <option value="" disabled>
+                    <option className="form-option" value="" disabled>
                       Create a category first
                     </option>
                   ) : (
                     <>
-                      <option value="" disabled>
+                      <option  className="form-option" value="" disabled>
                         Select category
                       </option>
                       {categories
                         .filter((c) => c.key !== "all")
                         .map((c) => (
-                          <option key={c.key} value={c.key}>
+                          <option className="form-option" key={c.key} value={c.key}>
                             {c.name}
                           </option>
                         ))}

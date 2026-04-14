@@ -256,7 +256,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">Select Vehicle/Trailer</option>
+              <option className='form-option' value="">Select Vehicle/Trailer</option>
               {units.map((unit) => {
                 // Extract make and model
                 let make = unit.make || '';
@@ -276,7 +276,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 const identifier = unit.plateNumber || unit.unitNo || unit._id;
 
                 return (
-                  <option key={unit._id} value={unit._id}>
+                  <option className='form-option' key={unit._id} value={unit._id}>
                     {vehicleName} ({identifier}) [{unit.unitType}]
                   </option>
                 );
@@ -297,10 +297,10 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 required
                 className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="maintanance">Maintenance</option>
-                <option value="operational">Operational</option>
-                <option value="accident">Accident</option>
-                <option value="compilance">Compliance</option>
+                <option className='form-option' value="maintanance">Maintenance</option>
+                <option className='form-option' value="operational">Operational</option>
+                <option className='form-option' value="accident">Accident</option>
+                <option className='form-option' value="compilance">Compliance</option>
               </select>
             </div>
 
@@ -315,10 +315,10 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 required
                 className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="engine">Engine</option>
-                <option value="fuel">Fuel</option>
-                <option value="paper-work">Paper Work</option>
-                <option value="minor-damage">Minor Damage</option>
+                <option className='form-option' value="engine">Engine</option>
+                <option className='form-option' value="fuel">Fuel</option>
+                <option className='form-option' value="paper-work">Paper Work</option>
+                <option className='form-option' value="minor-damage">Minor Damage</option>
               </select>
             </div>
           </div>
@@ -336,9 +336,9 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 required
                 className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option className='form-option' value="low">Low</option>
+                <option className='form-option' value="medium">Medium</option>
+                <option className='form-option' value="high">High</option>
               </select>
             </div>
 
@@ -353,9 +353,9 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 required
                 className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="open">Open</option>
-                <option value="in-progress">In Progress</option>
-                <option value="closed">Closed</option>
+                <option className='form-option' value="open">Open</option>
+                <option className='form-option' value="in-progress">In Progress</option>
+                <option className='form-option' value="closed">Closed</option>
               </select>
             </div>
           </div>

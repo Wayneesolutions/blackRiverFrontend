@@ -1187,13 +1187,13 @@ const ScheduledServicesLog: React.FC = () => {
                   onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                   onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                 >
-                  <option value="all">All Types</option>
+                  <option className='form-option' value="all">All Types</option>
                   {serviceTypeOptions.length > 0 ? (
                     serviceTypeOptions.map(type => (
-                      <option key={type.value} value={type.value}>{type.label}</option>
+                      <option className='form-option' key={type.value} value={type.value}>{type.label}</option>
                     ))
                   ) : (
-                    <option value="" disabled>No services configured</option>
+                    <option className='form-option' value="" disabled>No services configured</option>
                   )}
                 </select>
 
@@ -1449,7 +1449,7 @@ const ScheduledServicesLog: React.FC = () => {
                             </button>
                             <button
                               onClick={() => handleDeleteService(service)}
-                              className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-2 !text-red !hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1730,9 +1730,9 @@ const ScheduledServicesLog: React.FC = () => {
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                         >
-                          <option value="">Select Unit</option>
+                          <option className='form-option' value="">Select Unit</option>
                           {units.map(unit => (
-                            <option key={unit.unitNo} value={unit.unitNo}>
+                            <option className='form-option' key={unit.unitNo} value={unit.unitNo}>
                               {unit.unitNo} - {unit.makeModel} ({unit.unitType})
                             </option>
                           ))}
@@ -1764,9 +1764,9 @@ const ScheduledServicesLog: React.FC = () => {
                             onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                             required
                           >
-                            <option value="">Select Service Type</option>
+                            <option className='form-option' value="">Select Service Type</option>
                             {serviceTypeOptions.map(type => (
-                              <option key={type.value} value={type.value}>{type.label}</option>
+                              <option className='form-option' key={type.value} value={type.value}>{type.label}</option>
                             ))}
                           </select>
                         )}
@@ -1822,9 +1822,9 @@ const ScheduledServicesLog: React.FC = () => {
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                         >
-                          <option value="pending">Pending</option>
-                          <option value="in-progress">In Progress</option>
-                          <option value="completed">Completed</option>
+                          <option className='form-option' value="pending">Pending</option>
+                          <option className='form-option' value="in-progress">In Progress</option>
+                          <option className='form-option' value="completed">Completed</option>
                         </select>
                       </div>
                       <div className="col-span-2">
@@ -1856,12 +1856,12 @@ const ScheduledServicesLog: React.FC = () => {
                             onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                             onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                           >
-                            <option value="">Select a mechanic</option>
+                            <option className='form-option' value="">Select a mechanic</option>
                             {mechanics.length === 0 ? (
-                              <option value="" disabled>No mechanics found.</option>
+                              <option className='form-option' value="" disabled>No mechanics found.</option>
                             ) : (
                               mechanics.map((mechanic) => (
-                                <option key={mechanic._id} value={mechanic._id}>
+                                <option className='form-option' key={mechanic._id} value={mechanic._id}>
                                   {mechanic.name}
                                 </option>
                               ))
