@@ -998,7 +998,8 @@ const MonthlyReport: React.FC = () => {
     icon: Icon,
     onClick,
     bgColor,
-    iconColor
+    iconColor,
+    background
   }: {
     title: string;
     value: number | string;
@@ -1007,11 +1008,12 @@ const MonthlyReport: React.FC = () => {
     onClick?: () => void;
     bgColor: string;
     iconColor: string;
+    background?: string;
   }) => {
     return (
       <div
         onClick={onClick}
-        className="bg-card rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
+        className={`bg-[${background}]/20 rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
       >
         <div className="flex items-start justify-between mb-2">
           {/* Left side content */}
@@ -1112,8 +1114,8 @@ const MonthlyReport: React.FC = () => {
       {deleteMessage && (
         <div className="fixed top-4 right-4 z-50 animate-slide-in-right">
           <div className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-2xl ${deleteMessage.type === 'success'
-              ? 'bg-green-50 border-2 border-green-500'
-              : 'bg-card border-2 border-red-500'
+            ? 'bg-green-50 border-2 border-green-500'
+            : 'bg-card border-2 border-red-500'
             }`}>
             {deleteMessage.type === 'success' ? (
               <FaCheckCircle className="text-green-600 flex-shrink-0" size={24} />
@@ -1140,8 +1142,8 @@ const MonthlyReport: React.FC = () => {
       {uploadMessage && (
         <div className="fixed top-20 right-4 z-50 animate-slide-in-right">
           <div className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-2xl ${uploadMessage.type === 'success'
-              ? 'bg-green-50 border-2 border-green-500'
-              : 'bg-card border-2 border-red-500'
+            ? 'bg-green-50 border-2 border-green-500'
+            : 'bg-card border-2 border-red-500'
             }`}>
             {uploadMessage.type === 'success' ? (
               <FaCheckCircle className="text-green-600 flex-shrink-0" size={24} />
@@ -1388,9 +1390,9 @@ const MonthlyReport: React.FC = () => {
                               )}
                             </div>
                             <span className={`px-3 py-1 rounded text-xs font-semibold ${inspection.status === 'pass' ? 'bg-green-100 text-green-800' :
-                                inspection.status === 'fail' ? 'bg-red-100 text-red-800' :
-                                  inspection.status === 'out-of-service' ? 'bg-orange-100 text-orange-800' :
-                                    'bg-yellow-100 text-yellow-800'
+                              inspection.status === 'fail' ? 'bg-red-100 text-red-800' :
+                                inspection.status === 'out-of-service' ? 'bg-orange-100 text-orange-800' :
+                                  'bg-yellow-100 text-yellow-800'
                               }`}>
                               {inspection.status ? inspection.status.toUpperCase().replace('-', ' ') : 'UNKNOWN'}
                             </span>
@@ -1504,7 +1506,7 @@ const MonthlyReport: React.FC = () => {
         </div>
       )}
 
-      <div className="min-h-screen pb-10" >
+      <div className="min-h-screen pb-10 bg-main" >
         <div className="relative w-full mx-auto p-2">
 
 
@@ -1514,13 +1516,13 @@ const MonthlyReport: React.FC = () => {
             <div className="mb-4 relative z-10">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold text-black">Carrier Profile</h1>
-                  <div className="flex items-center gap-2 text-black/90">
+                  <h1 className="text-2xl font-bold text-headings">Carrier Profile</h1>
+                  <div className="flex items-center gap-2 text-secondary">
                     <span className="text-xs">Analytics and insights for CVSA inspections - Past 2 Years Performance</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm cursor-pointer">
+                  <label className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm cursor-pointer">
                     <FaUpload size={16} />
                     {isUploading ? 'Processing...' : 'Upload Carrier Profile'}
                     <input
@@ -1533,7 +1535,7 @@ const MonthlyReport: React.FC = () => {
                   </label>
                   <button
                     onClick={handleDownloadPDF}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
                   >
                     <FaDownload size={16} />
                     Download PDF
@@ -1542,8 +1544,8 @@ const MonthlyReport: React.FC = () => {
                     onClick={handleDeleteOldData}
                     disabled={!oldData || (oldData.inspections.total === 0 && oldData.tickets.total === 0)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors shadow-sm ${oldData && (oldData.inspections.total > 0 || oldData.tickets.total > 0)
-                        ? 'bg-red-600 text-white hover:bg-red-700'
-                        : 'bg-gray-300 text-secondary cursor-not-allowed'
+                      ? 'bg-red-600 text-white hover:bg-red-700'
+                      : 'bg-gray-300 text-secondary cursor-not-allowed'
                       }`}
                     title={
                       oldData && (oldData.inspections.total > 0 || oldData.tickets.total > 0)
@@ -1566,7 +1568,7 @@ const MonthlyReport: React.FC = () => {
                 <button
                   onClick={() => setSelectedCountry('all')}
                   className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${selectedCountry === 'all'
-                    ? 'bg-[#E0F2FE] text-[#0284C7]'
+                    ? 'bg-[var(--accent-navyblue)] text-white'
                     : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                     }`}
                 >
@@ -1575,21 +1577,21 @@ const MonthlyReport: React.FC = () => {
                 <button
                   onClick={() => setSelectedCountry('canada')}
                   className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${selectedCountry === 'canada'
-                    ? 'bg-[#E0F2FE] text-[#0284C7]'
+                    ? 'bg-[var(--accent-navyblue)] text-white'
                     : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                     }`}
                 >
-                  <FaFlag className="text-[#A855F7]" size={14} />
+                  <FaFlag className="text-primary" size={14} />
                   Canada
                 </button>
                 <button
                   onClick={() => setSelectedCountry('usa')}
                   className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${selectedCountry === 'usa'
-                    ? 'bg-[#E0F2FE] text-[#0284C7]'
+                    ? 'bg-[var(--accent-navyblue)] text-white'
                     : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                     }`}
                 >
-                  <FaFlagUsa className="text-[#00D1FF]" size={14} />
+                  <FaFlagUsa className="text-primary" size={14} />
                   USA
                 </button>
               </div>
@@ -1597,23 +1599,23 @@ const MonthlyReport: React.FC = () => {
 
             {/* Carrier Performance Dashboard - Auto-Tracked from Documents */}
             {carrierPerformance && (
-              <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm border border-blue-200 p-6">
+              <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 bg-blue-100 rounded-lg">
-                      <FaTachometerAlt className="text-[#00D1FF]" size={24} />
+                    <div className="p-3  rounded-lg">
+                      <FaTachometerAlt className="text-[var(--accent-navyblue)]" size={24} />
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-primary">Carrier Performance Dashboard</h2>
+                      <h2 className="text-xl font-bold text-headings">Carrier Performance Dashboard</h2>
                       <p className="text-sm text-secondary">Automatically tracked from carrier profile documents</p>
                     </div>
                   </div>
                   {carrierPerformance.trends && (
                     <div className={`px-4 py-2 rounded-lg font-semibold ${carrierPerformance.trends.isImproving
-                        ? 'bg-green-100 text-green-700'
-                        : carrierPerformance.trends.isDeclining
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-card text-primary'
+                      ? 'bg-green-100 text-green-700'
+                      : carrierPerformance.trends.isDeclining
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-card text-primary'
                       }`}>
                       {carrierPerformance.trends.isImproving && '↗ Improving'}
                       {carrierPerformance.trends.isDeclining && '↘ Declining'}
@@ -1646,9 +1648,9 @@ const MonthlyReport: React.FC = () => {
                     <div className="bg-card rounded-lg p-4 border border-theme">
                       <p className="text-xs text-secondary mb-1">Safety Rating</p>
                       <p className={`text-lg font-bold ${carrierPerformance.summary.latestRecord.safetyRating === 'Satisfactory' ? 'text-green-600' :
-                          carrierPerformance.summary.latestRecord.safetyRating === 'Conditional' ? 'text-[#00FFA3]' :
-                            carrierPerformance.summary.latestRecord.safetyRating === 'Unsatisfactory' ? 'text-[#A855F7]' :
-                              'text-secondary'
+                        carrierPerformance.summary.latestRecord.safetyRating === 'Conditional' ? 'text-[#00FFA3]' :
+                          carrierPerformance.summary.latestRecord.safetyRating === 'Unsatisfactory' ? 'text-[#A855F7]' :
+                            'text-secondary'
                         }`}>
                         {carrierPerformance.summary.latestRecord.safetyRating || 'N/A'}
                       </p>
@@ -1659,7 +1661,7 @@ const MonthlyReport: React.FC = () => {
                 {/* Performance Trends */}
                 {carrierPerformance.trends && (
                   <div className="bg-card rounded-lg p-4 border border-theme mb-4">
-                    <h3 className="text-sm font-bold text-primary mb-3">Performance Trend (Last 3 Months vs Previous 3 Months)</h3>
+                    <h3 className="text-sm font-bold text-headings mb-3">Performance Trend (Last 3 Months vs Previous 3 Months)</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div>
                         <p className="text-xs text-secondary">Recent Avg Pass Rate</p>
@@ -1672,8 +1674,8 @@ const MonthlyReport: React.FC = () => {
                       <div>
                         <p className="text-xs text-secondary">Change</p>
                         <p className={`text-lg font-bold ${carrierPerformance.trends.passRateTrend > 0 ? 'text-green-600' :
-                            carrierPerformance.trends.passRateTrend < 0 ? 'text-[#A855F7]' :
-                              'text-secondary'
+                          carrierPerformance.trends.passRateTrend < 0 ? 'text-[#A855F7]' :
+                            'text-secondary'
                           }`}>
                           {carrierPerformance.trends.passRateTrend > 0 ? '+' : ''}{carrierPerformance.trends.passRateTrend}%
                         </p>
@@ -1689,7 +1691,7 @@ const MonthlyReport: React.FC = () => {
                 {/* Monthly Performance Chart */}
                 {carrierPerformance.monthlyData && carrierPerformance.monthlyData.length > 0 && (
                   <div className="bg-card rounded-lg p-4 border border-theme">
-                    <h3 className="text-sm font-bold text-primary mb-4">12-Month Performance History</h3>
+                    <h3 className="text-sm font-bold text-headings mb-4">12-Month Performance History</h3>
                     <div className="space-y-2">
                       {carrierPerformance.monthlyData.slice(-6).map((month: any, index: number) => (
                         <div key={index} className="flex items-center gap-4">
@@ -1701,8 +1703,8 @@ const MonthlyReport: React.FC = () => {
                               <div className="flex-1 bg-gray-200 rounded-full h-6 relative overflow-hidden">
                                 <div
                                   className={`h-full rounded-full transition-all ${month.passRate >= 80 ? 'bg-green-500' :
-                                      month.passRate >= 60 ? 'bg-yellow-500' :
-                                        'bg-red-500'
+                                    month.passRate >= 60 ? 'bg-yellow-500' :
+                                      'bg-red-500'
                                     }`}
                                   style={{ width: `${Math.min(month.passRate, 100)}%` }}
                                 />
@@ -1743,11 +1745,11 @@ const MonthlyReport: React.FC = () => {
               <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-lg ${complianceScore.eligibleForAudit ? 'bg-green-100' : 'bg-yellow-100'}`}>
-                      <FaShieldAlt className={complianceScore.eligibleForAudit ? 'text-green-600' : 'text-[#00FFA3]'} size={24} />
+                    <div className={`p-3 rounded-lg ${complianceScore.eligibleForAudit ? '' : ''}`}>
+                      <FaShieldAlt className={complianceScore.eligibleForAudit ? 'text-headings' : 'text-headings'} size={24} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-primary">Audit Compliance Score</h3>
+                      <h3 className="text-lg font-bold text-headings">Audit Compliance Score</h3>
                       <p className="text-sm text-secondary">Based on inspections and violations from the past 2 years</p>
                     </div>
                   </div>
@@ -1789,9 +1791,10 @@ const MonthlyReport: React.FC = () => {
                   title="Total Inspections"
                   value={currentMonthData.totalInspections}
                   icon={<FaChartBar />}
-                  bgColor="bg-card"
-                  iconColor="text-[#00D1FF]"
+                  bgColor=""
+                  iconColor="text-headings"
                   subtitle={`${selectedMonth} ${currentMonthData.year}`}
+                  background="var(--accent-navyblue)"
                 />
                 <StatCard
                   title="Pass Rate"
@@ -1799,25 +1802,28 @@ const MonthlyReport: React.FC = () => {
                     ? Math.round((currentMonthData.passCount / currentMonthData.totalInspections) * 100)
                     : 0}%`}
                   icon={<FaCheckCircle />}
-                  bgColor="bg-green-50"
-                  iconColor="text-green-600"
+                  bgColor=""
+                  iconColor="text-[var(--accent-green)]"
                   subtitle={`${currentMonthData.passCount} passed`}
+                  background="var(--accent-green)"
                 />
                 <StatCard
                   title="Vehicles"
                   value={currentMonthData.vehiclesInspected}
                   icon={<FaTruck />}
-                  bgColor="bg-card"
-                  iconColor="text-purple-600"
+                  bgColor=""
+                  iconColor="text-[var(--accent-purple)]"
                   subtitle="Unique vehicles"
+                  background="var(--accent-purple)"
                 />
                 <StatCard
                   title="Drivers"
                   value={currentMonthData.driversInspected}
                   icon={<FaUser />}
-                  bgColor="bg-card"
-                  iconColor="text-[#F59E0B]"
+                  bgColor=""
+                  iconColor="text-[var(--accent-orange)]"
                   subtitle="Unique drivers"
+                  background="var(--accent-orange)"
                 />
               </div>
             )}
@@ -1829,7 +1835,7 @@ const MonthlyReport: React.FC = () => {
           {/* 2-Year Performance View - Static */}
           {twoYearData && (
             <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme p-6">
-              <h2 className="text-2xl font-bold text-primary mb-4">2-Year Performance Summary</h2>
+              <h2 className="text-2xl font-bold text-headings mb-4">2-Year Performance Summary</h2>
               <div className="space-y-6">
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -1837,33 +1843,37 @@ const MonthlyReport: React.FC = () => {
                     title="Total Inspections"
                     value={twoYearData.summary.totalInspections}
                     icon={<FaChartBar />}
-                    bgColor="bg-card"
-                    iconColor="text-[#00D1FF]"
+                    bgColor=""
+                    iconColor="text-[var(--accent-blue)]"
                     subtitle={twoYearData.summary.period}
+                    background="var(--accent-blue)"
                   />
                   <StatCard
                     title="Overall Pass Rate"
                     value={`${twoYearData.summary.overallPassRate}%`}
                     icon={<FaCheckCircle />}
-                    bgColor="bg-green-50"
-                    iconColor="text-green-600"
+                    bgColor=""
+                    iconColor="text-[var(--accent-green)]"
                     subtitle={`${twoYearData.summary.totalPass} passed`}
+                    background="var(--accent-green)"
                   />
                   <StatCard
                     title="Total Failures"
                     value={twoYearData.summary.totalFail}
                     icon={<FaTimesCircle />}
-                    bgColor="bg-card"
-                    iconColor="text-[#A855F7]"
+                    bgColor=""
+                    iconColor="text-[var(--accent-purple)]"
                     subtitle={`${twoYearData.summary.totalWarning} warnings`}
+                    background="var(--accent-purple)"
                   />
                   <StatCard
                     title="Out of Service"
                     value={twoYearData.summary.totalOutOfService}
                     icon={<FaBan />}
-                    bgColor="bg-red-100"
-                    iconColor="text-red-800"
+                    bgColor=""
+                    iconColor="text-[var(--accent-red)]"
                     subtitle="Critical violations"
+                    background="var(--accent-red)"
                   />
                 </div>
 
@@ -1871,7 +1881,7 @@ const MonthlyReport: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   {/* Year 1 */}
                   <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                    <h3 className="text-xl font-bold text-primary mb-4">Year {twoYearData.year1.year}</h3>
+                    <h3 className="text-xl font-bold text-headings mb-4">Year {twoYearData.year1.year}</h3>
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-secondary">Total Inspections:</span>
@@ -1902,7 +1912,7 @@ const MonthlyReport: React.FC = () => {
 
                   {/* Year 2 */}
                   <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                    <h3 className="text-xl font-bold text-primary mb-4">Year {twoYearData.year2.year}</h3>
+                    <h3 className="text-xl font-bold text-headings mb-4">Year {twoYearData.year2.year}</h3>
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-secondary">Total Inspections:</span>
@@ -1936,7 +1946,7 @@ const MonthlyReport: React.FC = () => {
                 {violationStats && (
                   <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
                     <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-xl font-bold text-primary">Driver Violations (Past 2 Years - Real Data)</h3>
+                      <h3 className="text-xl font-bold text-headings">Driver Violations (Past 2 Years - Real Data)</h3>
                       <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
                         {violationStats.bySource?.geotab ? 'Geotab Integrated' : 'Live Data'}
                       </span>
@@ -1944,23 +1954,23 @@ const MonthlyReport: React.FC = () => {
 
                     {/* Summary Stats */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                      <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg">
+                      <div className="bg-card p-4 rounded-lg border-2 border-theme">
                         <div className="text-2xl font-bold text-red-800">{violationStats.total || 0}</div>
-                        <div className="text-sm text-[#A855F7] mt-1">Total Violations</div>
+                        <div className="text-sm text-red-800 mt-1">Total Violations</div>
                       </div>
-                      <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg">
+                      <div className="bg-card p-4 rounded-lg border-2 border-theme">
                         <div className="text-2xl font-bold text-orange-800">{violationStats.byType?.speeding || 0}</div>
-                        <div className="text-sm text-[#F59E0B] mt-1">Speeding</div>
+                        <div className="text-sm text-orange-800 mt-1">Speeding</div>
                       </div>
-                      <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-lg">
+                      <div className="bg-card p-4 rounded-lg border-2 border-theme">
                         <div className="text-2xl font-bold text-yellow-800">
                           {(violationStats.byType?.['harsh-braking'] || 0) + (violationStats.byType?.['harsh-acceleration'] || 0)}
                         </div>
-                        <div className="text-sm text-[#00FFA3] mt-1">Harsh Driving</div>
+                        <div className="text-sm text-yellow-800 mt-1">Harsh Driving</div>
                       </div>
-                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
+                      <div className="bg-card p-4 rounded-lg border-2 border-theme">
                         <div className="text-2xl font-bold text-purple-800">{violationStats.byType?.other || 0}</div>
-                        <div className="text-sm text-purple-600 mt-1">Other</div>
+                        <div className="text-sm text-purple-800 mt-1">Other</div>
                       </div>
                     </div>
 
@@ -1968,14 +1978,14 @@ const MonthlyReport: React.FC = () => {
                       {/* Violation Types Breakdown */}
                       <div>
                         <div className="flex items-center gap-3 mb-4">
-                          <FaExclamationCircle className="text-[#A855F7]" size={20} />
-                          <h4 className="text-lg font-semibold text-primary">Violation Types</h4>
+                          <FaExclamationCircle className="text-[var(--accent-purple)]" size={20} />
+                          <h4 className="text-lg font-semibold text-[var(--accent-purple)]">Violation Types</h4>
                         </div>
                         <div className="space-y-2">
                           {Object.entries(violationStats.byType || {}).map(([type, count]) => (
                             <div key={type} className="flex justify-between p-3 bg-card rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition">
-                              <span className="font-medium text-primary capitalize">{type.replace(/-/g, ' ')}</span>
-                              <span className="font-bold text-primary">{count as number}</span>
+                              <span className="font-medium text-[var(--accent-purple)] capitalize">{type.replace(/-/g, ' ')}</span>
+                              <span className="font-bold text-[var(--accent-purple)]">{count as number}</span>
                             </div>
                           ))}
                         </div>
@@ -1984,8 +1994,8 @@ const MonthlyReport: React.FC = () => {
                       {/* Severity Breakdown */}
                       <div>
                         <div className="flex items-center gap-3 mb-4">
-                          <FaShieldAlt className="text-[#F59E0B]" size={20} />
-                          <h4 className="text-lg font-semibold text-primary">Severity Levels</h4>
+                          <FaShieldAlt className="text-[var(--accent-orange)]" size={20} />
+                          <h4 className="text-lg font-semibold text-[var(--accent-orange)]">Severity Levels</h4>
                         </div>
                         <div className="space-y-2">
                           <div className="flex justify-between p-3 bg-card rounded-lg">
@@ -2033,8 +2043,8 @@ const MonthlyReport: React.FC = () => {
                                   <td className="px-4 py-3 text-sm font-semibold text-primary">{violator.count}</td>
                                   <td className="px-4 py-3 text-sm">
                                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${violator.totalPoints > 20 ? 'bg-red-100 text-red-800' :
-                                        violator.totalPoints > 10 ? 'bg-orange-100 text-orange-800' :
-                                          'bg-yellow-100 text-yellow-800'
+                                      violator.totalPoints > 10 ? 'bg-orange-100 text-orange-800' :
+                                        'bg-yellow-100 text-yellow-800'
                                       }`}>
                                       {violator.totalPoints} pts
                                     </span>
@@ -2102,16 +2112,24 @@ const MonthlyReport: React.FC = () => {
             <div className="bg-card rounded-lg shadow-sm border border-theme p-6 mb-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">Select Year</label>
+                  <label className="block text-sm font-medium text-headings mb-2">Select Year</label>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all"
                   >
                     {Array.from({ length: 5 }, (_, i) => {
                       const year = new Date().getFullYear() - i;
                       return (
-                        <option key={year} value={year}>
+                        <option
+                          key={year}
+                          value={year}
+                          className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                        >
                           {year}
                         </option>
                       );
@@ -2119,23 +2137,38 @@ const MonthlyReport: React.FC = () => {
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-primary mb-2">Select Month</label>
+                  <label className="block text-sm font-medium text-headings mb-2">Select Month</label>
                   <select
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent"
                     disabled={loading || monthlyData.length === 0}
+                    className="w-full px-3 py-2 text-sm border border-theme rounded-lg
+  bg-[var(--bg-card)] text-[var(--text-primary)]
+  focus:ring-2 focus:ring-[var(--accent-blue)]
+  focus:border-[var(--accent-blue)]
+  outline-none cursor-pointer transition-all
+  disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    <option value="">Select a month</option>
+                    <option
+                      value=""
+                      className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                    >
+                      Select a month
+                    </option>
+
                     {monthlyData.map((month) => (
-                      <option key={month.month} value={month.month}>
+                      <option
+                        key={month.month}
+                        value={month.month}
+                        className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                      >
                         {month.month} {month.year}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-primary mb-2">Chart Type</label>
+                  <label className="block text-sm font-medium text-headings mb-2">Chart Type</label>
                   <div className="flex bg-card rounded-lg p-1">
                     <button
                       onClick={() => setChartType('pie')}
@@ -2208,35 +2241,35 @@ const MonthlyReport: React.FC = () => {
             {/* Detailed Breakdown */}
             {!loading && currentMonthData && (
               <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                <h3 className="text-xl font-bold text-primary mb-6">Detailed Breakdown - {selectedMonth} {currentMonthData.year}</h3>
+                <h3 className="text-xl font-bold text-headings mb-6">Detailed Breakdown - {selectedMonth} {currentMonthData.year}</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Status Breakdown */}
                   <div>
                     <h4 className="text-lg font-semibold text-primary mb-4">Status Breakdown</h4>
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                      <div className="flex items-center justify-between p-3 bg-card border-2 border-theme rounded-lg">
                         <div className="flex items-center gap-3">
                           <FaCheckCircle className="text-green-600" size={20} />
                           <span className="font-medium text-primary">Passed</span>
                         </div>
                         <span className="font-bold text-green-800">{currentMonthData.passCount}</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-card rounded-lg">
+                      <div className="flex items-center justify-between p-3 bg-card rounded-lg border-2 border-theme">
                         <div className="flex items-center gap-3">
-                          <FaTimesCircle className="text-[#A855F7]" size={20} />
+                          <FaTimesCircle className="text-red-600" size={20} />
                           <span className="font-medium text-primary">Failed</span>
                         </div>
                         <span className="font-bold text-red-800">{currentMonthData.failCount}</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-card rounded-lg">
+                      <div className="flex items-center justify-between p-3 bg-card rounded-lg border-2 border-theme">
                         <div className="flex items-center gap-3">
-                          <FaExclamationTriangle className="text-[#00FFA3]" size={20} />
+                          <FaExclamationTriangle className="text-yellow-600" size={20} />
                           <span className="font-medium text-primary">Warning</span>
                         </div>
                         <span className="font-bold text-yellow-800">{currentMonthData.warningCount}</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-red-100 rounded-lg">
+                      <div className="flex items-center justify-between p-3 bg-card rounded-lg border-2 border-theme">
                         <div className="flex items-center gap-3">
                           <FaBan className="text-red-800" size={20} />
                           <span className="font-medium text-primary">Out of Service</span>
@@ -2248,21 +2281,21 @@ const MonthlyReport: React.FC = () => {
 
                   {/* Country Breakdown */}
                   <div>
-                    <h4 className="text-lg font-semibold text-primary mb-4">Country Breakdown</h4>
+                    <h4 className="text-lg font-semibold text-headings mb-4">Country Breakdown</h4>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between p-3 bg-card rounded-lg">
                         <div className="flex items-center gap-3">
-                          <FaFlag className="text-[#A855F7]" size={20} />
+                          <FaFlag className="text-primary" size={20} />
                           <span className="font-medium text-primary">Canada</span>
                         </div>
-                        <span className="font-bold text-blue-800">{currentMonthData.canadaInspections}</span>
+                        <span className="font-bold text-primary">{currentMonthData.canadaInspections}</span>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-card rounded-lg">
                         <div className="flex items-center gap-3">
-                          <FaFlagUsa className="text-[#00D1FF]" size={20} />
+                          <FaFlagUsa className="text-primary" size={20} />
                           <span className="font-medium text-primary">USA</span>
                         </div>
-                        <span className="font-bold text-red-800">{currentMonthData.usaInspections}</span>
+                        <span className="font-bold text-primary">{currentMonthData.usaInspections}</span>
                       </div>
                     </div>
                   </div>
