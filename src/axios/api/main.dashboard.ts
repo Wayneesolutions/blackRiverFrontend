@@ -211,6 +211,7 @@ export interface AdminDashboardResponse {
 export const quickStats = async () => {
     try {
         const res: AxiosResponse = await apiClient.get("admin/stats");
+
         return res.data;
     } catch (error) {
         console.error(error);

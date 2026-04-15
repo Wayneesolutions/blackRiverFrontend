@@ -78,6 +78,11 @@ interface Alerts {
   delayedLoads: DelayedLoad[];
 }
 
+interface TripsPerMonth {
+  month: string;
+  total: number;
+}
+
 // ── Dark-theme chart tooltip ───────────────────────────────────────────────
 const DarkTooltip = ({
   active,
@@ -122,6 +127,7 @@ export default function QuickStatsUI() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [alertError, setAlertError] = useState<string | null>(null);
+  const [tripsPerMonth, setTripsPerMonth] = useState<TripsPerMonth[]>([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -132,14 +138,20 @@ export default function QuickStatsUI() {
       setLoading(true);
       setError(null);
       setAlertError(null);
+      const quickStatsData = await quickStats();
+
+
+      setTripsPerMonth(quickStatsData.data.tripsPerMonth);
+      console.log("quickStatsData.data.tripsPerMonth", quickStatsData.data.tripsPerMonth)
 
       const results = await Promise.allSettled([
-        quickStats(),
+        quickStatsData,
         loadsPerMonth(),
         revenueTrend(),
         fuelEfficiency(),
         recentAlerts(),
       ]);
+
 
       // Quick Stats
       if (results[0].status === "fulfilled" && results[0].value?.success) {
@@ -266,7 +278,7 @@ export default function QuickStatsUI() {
   }
 
   return (
-    <div className="p-5 space-y-5 bg-main min-h-screen relative overflow-hidden">
+    <div className="p-5 space-y-5 bg-main min-h-screen relative overflow-hidden ">
       {/* Ambient glow orbs */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-[#06377a]/8 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#A855F7]/5 rounded-full blur-3xl pointer-events-none" />
@@ -285,7 +297,10 @@ export default function QuickStatsUI() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-10">
 
         {/* Trips per Month — Bar Chart */}
-        <DashCard className="lg:col-span-2 cursor-pointer" onClick={() => navigate("/admin/dispatch/trips")}>
+        <DashCard
+          className="lg:col-span-2 cursor-pointer"
+          onClick={() => navigate("/admin/dispatch/trips")}
+        >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
               <span className="p-1.5 rounded-lg bg-[#06377a]/25">
@@ -293,33 +308,74 @@ export default function QuickStatsUI() {
               </span>
               Trips per Month
             </h3>
+
             <span className="flex items-center gap-1.5 text-xs text-[#8B9BB4]">
               <span className="w-2 h-2 rounded-full bg-[#00FFA3] animate-pulse shadow-[0_0_6px_#00FFA3]" />
               Live
             </span>
           </div>
 
-          {loadsData.length > 0 ? (
-            <div style={{ width: "100%", height: 220 }}>
-              <ResponsiveContainer>
-                <BarChart data={loadsData} barCategoryGap="20%">
-                  <defs>
-                    <linearGradient id="tripBarGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#42aeec" stopOpacity={0.9} />
-                      <stop offset="100%" stopColor="#06377a" stopOpacity={0.6} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="name" stroke="#8B9BB4" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis stroke="#8B9BB4" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} width={28} />
-                  <Tooltip content={<DarkTooltip />} cursor={{ fill: "rgba(6,55,122,0.15)" }} />
-                  <Bar dataKey="value" fill="url(#tripBarGrad)" name="Trips" radius={[6, 6, 0, 0]} maxBarSize={48} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <EmptyState icon={<Package className="h-10 w-10" />} label="No trip data available" />
-          )}
+          {
+
+            (tripsPerMonth?.length || 0) > 0 ? (
+              <div style={{ width: "100%", height: 220 }}>
+                <ResponsiveContainer>
+                  <BarChart data={tripsPerMonth} barCategoryGap="20%">
+
+                    <defs>
+                      <linearGradient id="tripBarGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#42aeec" stopOpacity={0.9} />
+                        <stop offset="100%" stopColor="#06377a" stopOpacity={0.6} />
+                      </linearGradient>
+                    </defs>
+
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="rgba(255,255,255,0.05)"
+                      vertical={false}
+                    />
+
+                    {/* ✅ use month */}
+                    <XAxis
+                      dataKey="month"
+                      stroke="#8B9BB4"
+                      tick={{ fontSize: 11 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+
+                    {/* Y axis */}
+                    <YAxis
+                      stroke="#8B9BB4"
+                      tick={{ fontSize: 11 }}
+                      axisLine={false}
+                      tickLine={false}
+                      allowDecimals={false}
+                      width={28}
+                    />
+
+                    <Tooltip
+                      content={<DarkTooltip />}
+                      cursor={{ fill: "rgba(6,55,122,0.15)" }}
+                    />
+
+                    {/* ✅ use total */}
+                    <Bar
+                      dataKey="total"
+                      fill="url(#tripBarGrad)"
+                      name="Trips"
+                      radius={[6, 6, 0, 0]}
+                      maxBarSize={48}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <EmptyState
+                icon={<Package className="h-10 w-10" />}
+                label="No trip data available"
+              />
+            )}
         </DashCard>
 
         {/* Revenue Trend — Area Chart */}
