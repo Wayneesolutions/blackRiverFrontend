@@ -552,7 +552,7 @@ const InsuranceClaims: React.FC = () => {
           </div>
           <button
             onClick={handleAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[rgba(0,209,255,0.15)] transition-colors font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 transition-colors font-medium"
           >
             <FaPlus size={16} />
             Add Claim
@@ -861,7 +861,7 @@ const InsuranceClaims: React.FC = () => {
                               </button>
                               <button
                                 onClick={() => handleEdit(claim)}
-                                className="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded transition-colors"
+                                className="text-[#00D1FF] hover:text-blue-400 p-2 hover:bg-blue-50 rounded transition-colors"
                                 title="Edit"
                               >
                                 <FaEdit size={16} />
@@ -1274,7 +1274,7 @@ const InsuranceClaims: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2 bg-[var(--accent-blue)] !text-white rounded-lg hover:bg-[rgba(0,209,255,0.15)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Saving...' : (showEditModal ? 'Update' : 'Create')} Claim
                 </button>
@@ -1409,7 +1409,7 @@ const InsuranceClaims: React.FC = () => {
                     setShowViewModal(false);
                     handleEdit(selectedClaim);
                   }}
-                  className="px-6 py-2 bg-[var(--accent-blue)] text-white rounded-lg hover:bg-[rgba(0,209,255,0.15)] transition-colors"
+                  className="px-6 py-2 bg-[var(--accent-navyblue)] text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 transition-colors"
                 >
                   Edit Claim
                 </button>

@@ -1,27 +1,22 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { FaUser, FaSignOutAlt, FaBars, FaChevronDown } from "react-icons/fa";
+import { FaSignOutAlt, FaBars } from "react-icons/fa";
 import { Search, X, LogOut, ArrowLeft, ArrowRight } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
-import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "../../hooks/usePageTitle";
-import type { RootState } from "../../redux/store";
 import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
 
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { logout } = useLogout();
-  const { userInfo } = useSelector((state: RootState) => state.userAuth);
   const navigate = useNavigate();
   const userRole = getUserRole();
   const isHR = userRole === 'hr';
@@ -31,12 +26,9 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const filteredActions = filterActions(searchQuery, (isHR || isAccountant) ? (isAccountant ? 'accountant' : 'hr') : 'admin');
   const pageTitle = usePageTitle();
 
-  // Close dropdowns on outside click
+  // Close search on outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsDropdownOpen(false);
-      }
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setIsSearchOpen(false);
       }
@@ -52,7 +44,6 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
         setIsSearchOpen(false);
         setSearchQuery('');
         setSelectedIndex(0);
-        setIsDropdownOpen(false);
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
@@ -69,22 +60,11 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   }, [isSearchOpen]);
 
   const handleLogoutClick = useCallback(() => {
-    setIsDropdownOpen(false);
     setShowLogoutModal(true);
   }, []);
 
   const confirmLogout = useCallback(() => { setShowLogoutModal(false); logout(); }, [logout]);
   const cancelLogout = useCallback(() => { setShowLogoutModal(false); }, []);
-
-  const getProfilePath = useCallback(() => {
-    const basePath = (isHR || isAccountant) ? '/accounts' : '/admin/accounts';
-    return `${basePath}/profile`;
-  }, [isHR, isAccountant]);
-
-  const handleProfileClick = useCallback(() => {
-    setIsDropdownOpen(false);
-    navigate(getProfilePath());
-  }, [navigate, getProfilePath]);
 
   const handleActionSelect = useCallback((action: any) => {
     if (action.path) {
@@ -155,60 +135,6 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
             <span className="text-sm hidden sm:block">Search...</span>
             <kbd className="text-xs bg-[rgba(255,255,255,0.06)] px-2 py-0.5 rounded text-secondary font-mono hidden sm:block">Ctrl K</kbd>
           </button>
-
-          {/* Profile Dropdown */}
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-card)] border border-[rgba(255,255,255,0.08)] hover:border-[#42aeec]/40 text-secondary hover:text-primary transition-all"
-              title="Profile"
-            >
-              <div className="w-7 h-7 rounded-full bg-[#42aeec]/20 flex items-center justify-center text-[#42aeec]">
-                <FaUser size={12} />
-              </div>
-              <span className="hidden sm:block text-sm font-medium text-primary">
-                {userInfo?.userData?.name?.split(" ")[0] || "User"}
-              </span>
-              <FaChevronDown
-                size={11}
-                className={`text-secondary transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
-              />
-            </button>
-
-            {/* Dropdown Menu */}
-            {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-52 bg-[var(--bg-card)] border border-[rgba(255,255,255,0.08)] rounded-xl shadow-2xl overflow-hidden z-50">
-                {/* User Info */}
-                <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.06)]">
-                  <p className="text-sm font-semibold text-primary truncate">
-                    {userInfo?.userData?.name || "User"}
-                  </p>
-                  <p className="text-xs text-secondary truncate mt-0.5">
-                    {userInfo?.userData?.email || "user@example.com"}
-                  </p>
-                </div>
-
-                {/* Actions */}
-                <div className="py-1">
-                  <button
-                    onClick={handleProfileClick}
-                    className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-secondary hover:text-primary hover-accent transition-all"
-                  >
-                    <FaUser size={13} />
-                    Profile
-                  </button>
-                  <div className="border-t border-[rgba(255,255,255,0.06)] my-1" />
-                  <button
-                    onClick={handleLogoutClick}
-                    className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-400 hover:bg-[rgba(255,77,79,0.08)] transition-all"
-                  >
-                    <FaSignOutAlt size={13} />
-                    Logout
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
 
           {/* Logout shortcut */}
           <button onClick={handleLogoutClick} className="header-btn" title="Logout">

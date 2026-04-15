@@ -719,7 +719,7 @@ const VehicleEldMonitor = () => {
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key as any)}
                             className={`pb-3 px-2 text-sm font-bold border-b-2 transition-colors ${activeTab === tab.key
-                                ? 'border-blue-500 text-[#00D1FF]'
+                                ? 'border-[var(--accent-blue)] text-[var(--accent-blue)]'
                                 : 'border-transparent text-secondary hover:text-secondary'
                                 }`}
                         >
@@ -742,7 +742,7 @@ const VehicleEldMonitor = () => {
                             </div>
                             <div className="bg-card p-5 rounded-xl border-l-4 border-red-500 shadow-sm">
                                 <p className="text-xs text-secondary font-bold uppercase">Active Violations</p>
-                                <h3 className="text-2xl font-bold text-[#A855F7]">{summary.activeViolations}</h3>
+                                <h3 className="text-2xl font-bold text-red-500">{summary.activeViolations}</h3>
                                 <p className="text-xs text-secondary mt-1">Requires immediate audit</p>
                             </div>
                             <div className="bg-card p-5 rounded-xl border-l-4 border-amber-500 shadow-sm">
@@ -761,7 +761,7 @@ const VehicleEldMonitor = () => {
                                         onClick={handleSyncHOS}
                                         disabled={syncing}
 
-                                        className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--accent-navyblue)]">
+                                        className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--accent-navyblue)]">
                                         <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} />
                                         {syncing ? 'Syncing...' : 'Sync from Samsara'}
                                     </button>
@@ -769,7 +769,7 @@ const VehicleEldMonitor = () => {
                                         style={{
                                             background: 'var(--accent-navyblue)',
                                         }}
-                                        className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                        className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:opacity-90">
                                         <Download size={16} /> Export HOS Report
                                     </button>
                                 </div>
@@ -802,19 +802,19 @@ const VehicleEldMonitor = () => {
                                             <td colSpan={7} className="px-6 py-8 text-center">
                                                 <p className="text-secondary mb-2">No HOS logs found.</p>
                                                 <p className="text-sm text-secondary">
-                                                    Submit an <button type="button" onClick={() => setActiveTab('audit-form')} className="text-[#00D1FF] hover:underline font-medium">HOS Audit Form</button> to add manual logs, or click &quot;Sync from Samsara&quot; if you have ELD integration.
+                                                    Submit an <button type="button" onClick={() => setActiveTab('audit-form')} className="text-[var(--accent-blue)] hover:underline font-medium">HOS Audit Form</button> to add manual logs, or click &quot;Sync from Samsara&quot; if you have ELD integration.
                                                 </p>
                                             </td>
                                         </tr>
                                     ) : (
                                         auditLogs.map((log) => (
-                                            <tr key={log.id} className="hover:bg-blue-50/30">
+                                            <tr key={log.id} className="hover:bg-[rgba(1,106,178,0.05)]">
                                                 <td className="px-6 py-4 font-bold text-primary">{log.driver}</td>
                                                 <td className="px-6 py-4 text-secondary">{log.date}</td>
                                                 <td className="px-6 py-4 font-mono text-primary">{log.driveUsed}</td>
                                                 <td className="px-6 py-4 font-mono text-primary">{log.dutyUsed}</td>
                                                 <td className="px-6 py-4">
-                                                    <span className={`font-medium ${log.violation !== 'None' ? 'text-[#A855F7]' : 'text-secondary'}`}>
+                                                    <span className={`font-medium ${log.violation !== 'None' ? 'text-red-500' : 'text-secondary'}`}>
                                                         {log.violation}
                                                     </span>
                                                 </td>
@@ -832,7 +832,7 @@ const VehicleEldMonitor = () => {
                                                             setSelectedHosLog(log);
                                                             setViewLogModalOpen(true);
                                                         }}
-                                                        className="text-[#00D1FF] font-bold hover:underline"
+                                                        className="text-[var(--accent-blue)] font-bold hover:underline"
                                                     >
                                                         View Log
                                                     </button>
@@ -893,7 +893,7 @@ const VehicleEldMonitor = () => {
                                             </div>
                                             <div>
                                                 <p className="text-xs text-secondary font-medium uppercase">Violation</p>
-                                                <p className={`font-medium ${selectedHosLog.violation !== 'None' ? 'text-[#A855F7]' : 'text-secondary'}`}>
+                                                <p className={`font-medium ${selectedHosLog.violation !== 'None' ? 'text-red-500' : 'text-secondary'}`}>
                                                     {selectedHosLog.violation}
                                                 </p>
                                             </div>
@@ -922,7 +922,7 @@ const VehicleEldMonitor = () => {
                                                             return (
                                                                 <tr key={idx} className="hover:bg-[rgba(255,255,255,0.03)]">
                                                                     <td className="px-4 py-2">
-                                                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${entry.status === 'Driving' ? 'bg-blue-100 text-blue-700' :
+                                                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${entry.status === 'Driving' ? 'bg-[rgba(1,106,178,0.1)] text-[var(--accent-blue)]' :
                                                                             entry.status === 'OnDuty' ? 'bg-amber-100 text-amber-700' :
                                                                                 'bg-card text-primary'
                                                                             }`}>
@@ -968,7 +968,7 @@ const VehicleEldMonitor = () => {
                     <div className="space-y-6">
                         <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
                             <h2 className="text-xl font-bold text-primary mb-6 flex items-center gap-2">
-                                <FileCheck size={24} className="text-[#00D1FF]" />
+                                <FileCheck size={24} className="text-[var(--accent-blue)]" />
                                 HOS Audit Form
                             </h2>
 
@@ -989,12 +989,12 @@ const VehicleEldMonitor = () => {
                                                 driverIdDisplay: selectedDriver ? (selectedDriver.internalId || selectedDriver._id) : ''
                                             });
                                         }}
-                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                         required
                                     >
-                                        <option value="">Select a driver</option>
+                                        <option className='form-option' value="">Select a driver</option>
                                         {drivers.map((driver) => (
-                                            <option key={driver._id} value={driver._id}>
+                                            <option className='form-option' key={driver._id} value={driver._id}>
                                                 {driver.name}
                                             </option>
                                         ))}
@@ -1008,7 +1008,7 @@ const VehicleEldMonitor = () => {
                                         type="text"
                                         value={auditFormData.driverIdDisplay}
                                         onChange={(e) => setAuditFormData({ ...auditFormData, driverIdDisplay: e.target.value })}
-                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                         placeholder="e.g. DRV-001"
                                     />
                                 </div>
@@ -1020,7 +1020,7 @@ const VehicleEldMonitor = () => {
                                         type="text"
                                         value={auditFormData.reportingTo}
                                         onChange={(e) => setAuditFormData({ ...auditFormData, reportingTo: e.target.value })}
-                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                         placeholder="Name or role of person reported to"
                                     />
                                 </div>
@@ -1034,7 +1034,7 @@ const VehicleEldMonitor = () => {
                                         type="date"
                                         value={auditFormData.auditDate}
                                         onChange={(e) => setAuditFormData({ ...auditFormData, auditDate: e.target.value })}
-                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                         required
                                     />
                                 </div>
@@ -1046,7 +1046,7 @@ const VehicleEldMonitor = () => {
                                         type="date"
                                         value={auditFormData.incidentDate}
                                         onChange={(e) => setAuditFormData({ ...auditFormData, incidentDate: e.target.value })}
-                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                         placeholder="Date when incident occurred"
                                     />
                                     <p className="text-xs text-secondary mt-1">Date the incident occurred (may differ from audit date)</p>
@@ -1059,7 +1059,7 @@ const VehicleEldMonitor = () => {
                                         type="time"
                                         value={auditFormData.incidentTime}
                                         onChange={(e) => setAuditFormData({ ...auditFormData, incidentTime: e.target.value })}
-                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                     />
                                 </div>
 
@@ -1070,7 +1070,7 @@ const VehicleEldMonitor = () => {
                                         type="text"
                                         value={auditFormData.incidentLocation}
                                         onChange={(e) => setAuditFormData({ ...auditFormData, incidentLocation: e.target.value })}
-                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                         placeholder="Location where incident occurred"
                                     />
                                 </div>
@@ -1091,7 +1091,7 @@ const VehicleEldMonitor = () => {
                                                             setAuditFormData({ ...auditFormData, incidentTypes: auditFormData.incidentTypes.filter(t => t !== option) });
                                                         }
                                                     }}
-                                                    className="w-4 h-4 text-[#00D1FF] border-theme rounded focus:ring-blue-500"
+                                                    className="w-4 h-4 text-[var(--accent-blue)] border-theme rounded focus:ring-[var(--accent-blue)]"
                                                 />
                                                 <span className="text-sm text-primary">{option}</span>
                                             </label>
@@ -1103,7 +1103,7 @@ const VehicleEldMonitor = () => {
                                             value={newIncidentTypeOption}
                                             onChange={(e) => setNewIncidentTypeOption(e.target.value)}
                                             placeholder="Add custom option"
-                                            className="flex-1 max-w-xs px-3 py-1.5 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="flex-1 max-w-xs px-3 py-1.5 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') {
                                                     e.preventDefault();
@@ -1130,7 +1130,7 @@ const VehicleEldMonitor = () => {
                                                     setNewIncidentTypeOption('');
                                                 }
                                             }}
-                                            className="flex items-center gap-1 text-sm text-[#00D1FF] hover:text-blue-800 font-medium"
+                                            className="flex items-center gap-1 text-sm text-[var(--accent-blue)] hover:opacity-80 font-medium"
                                         >
                                             <Plus size={16} /> Add option
                                         </button>
@@ -1147,7 +1147,7 @@ const VehicleEldMonitor = () => {
                                                 name="priorCounseling"
                                                 checked={auditFormData.priorCounseling === 'yes'}
                                                 onChange={() => setAuditFormData({ ...auditFormData, priorCounseling: 'yes' })}
-                                                className="w-4 h-4 text-[#00D1FF] border-theme focus:ring-blue-500"
+                                                className="w-4 h-4 text-[var(--accent-blue)] border-theme focus:ring-[var(--accent-blue)]"
                                             />
                                             <span className="text-sm text-primary">Yes</span>
                                         </label>
@@ -1157,7 +1157,7 @@ const VehicleEldMonitor = () => {
                                                 name="priorCounseling"
                                                 checked={auditFormData.priorCounseling === 'no'}
                                                 onChange={() => setAuditFormData({ ...auditFormData, priorCounseling: 'no' })}
-                                                className="w-4 h-4 text-[#00D1FF] border-theme focus:ring-blue-500"
+                                                className="w-4 h-4 text-[var(--accent-blue)] border-theme focus:ring-[var(--accent-blue)]"
                                             />
                                             <span className="text-sm text-primary">No</span>
                                         </label>
@@ -1171,11 +1171,11 @@ const VehicleEldMonitor = () => {
                                         <select
                                             value={auditFormData.correctiveActionType}
                                             onChange={(e) => setAuditFormData({ ...auditFormData, correctiveActionType: e.target.value })}
-                                            className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+                                            className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]min-w-[200px]"
                                         >
-                                            <option value="">Select corrective action</option>
+                                            <option className='form-option' value="">Select corrective action</option>
                                             {[...defaultCorrectiveActionOptions, ...auditFormData.correctiveActionCustomOptions].map((opt) => (
-                                                <option key={opt} value={opt}>{opt}</option>
+                                                <option className='form-option' key={opt} value={opt}>{opt}</option>
                                             ))}
                                         </select>
                                         <input
@@ -1183,7 +1183,7 @@ const VehicleEldMonitor = () => {
                                             value={newCorrectiveActionOption}
                                             onChange={(e) => setNewCorrectiveActionOption(e.target.value)}
                                             placeholder="Add new action type"
-                                            className="px-3 py-1.5 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[180px]"
+                                            className="px-3 py-1.5 text-sm border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]max-w-[180px]"
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') {
                                                     e.preventDefault();
@@ -1212,7 +1212,7 @@ const VehicleEldMonitor = () => {
                                                     setNewCorrectiveActionOption('');
                                                 }
                                             }}
-                                            className="flex items-center gap-1 text-sm text-[#00D1FF] hover:text-blue-800 font-medium"
+                                            className="flex items-center gap-1 text-sm text-[var(--accent-blue)] hover:opacity-80 font-medium"
                                         >
                                             <Plus size={16} /> Add
                                         </button>
@@ -1243,7 +1243,7 @@ const VehicleEldMonitor = () => {
                                                             });
                                                         }
                                                     }}
-                                                    className="w-4 h-4 text-[#00D1FF] border-theme rounded focus:ring-blue-500"
+                                                    className="w-4 h-4 text-[var(--accent-blue)] border-theme rounded focus:ring-[var(--accent-blue)]"
                                                 />
                                                 <span className="text-sm text-primary">{violation}</span>
                                             </label>
@@ -1260,7 +1260,7 @@ const VehicleEldMonitor = () => {
                                         type="text"
                                         value={auditFormData.auditorName}
                                         onChange={(e) => setAuditFormData({ ...auditFormData, auditorName: e.target.value })}
-                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                         placeholder="Enter auditor name"
                                     />
                                 </div>
@@ -1274,7 +1274,7 @@ const VehicleEldMonitor = () => {
                                         value={auditFormData.notes}
                                         onChange={(e) => setAuditFormData({ ...auditFormData, notes: e.target.value })}
                                         rows={4}
-                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                         placeholder="Enter any additional notes or observations..."
                                     />
                                 </div>
@@ -1322,7 +1322,7 @@ const VehicleEldMonitor = () => {
                                                     {auditFormDocuments.map((file, index) => (
                                                         <li key={`doc-${index}-${file.name}-${file.size}-${file.lastModified}`} className="flex items-center justify-between px-3 py-2 bg-card rounded-lg text-sm border border-theme">
                                                             <span className="flex items-center gap-2 text-primary flex-1 min-w-0">
-                                                                <FileText size={16} className="text-blue-500 flex-shrink-0" />
+                                                                <FileText size={16} className="text-[var(--accent-blue)] flex-shrink-0" />
                                                                 <span className="truncate" title={file.name}>{file.name}</span>
                                                                 <span className="text-secondary text-xs flex-shrink-0">({(file.size / 1024).toFixed(1)} KB)</span>
                                                             </span>
@@ -1380,10 +1380,8 @@ const VehicleEldMonitor = () => {
                                     <button
                                         type="submit"
                                         disabled={submittingAudit}
-                                        style={{
-                                            background: submittingAudit ? '#9CA3AF' : 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
-                                        }}
-                                        className="px-6 py-2 !text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                      
+                                        className="px-6 py-2 !text-white bg-[var(--accent-navyblue)] font-semibold rounded-lg hover:bg-[var(--accent-navyblue)]/80 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {submittingAudit ? 'Submitting...' : 'Submit Audit'}
                                     </button>
@@ -1399,7 +1397,7 @@ const VehicleEldMonitor = () => {
                                     type="button"
                                     onClick={fetchAuditForms}
                                     disabled={auditTableLoading}
-                                    className="text-sm font-medium text-[#00D1FF] hover:text-blue-800 disabled:opacity-50 flex items-center gap-1"
+                                    className="text-sm font-medium text-[var(--accent-blue)] hover:opacity-80 disabled:opacity-50 flex items-center gap-1"
                                 >
                                     <RefreshCw size={16} className={auditTableLoading ? 'animate-spin' : ''} />
                                     Refresh
@@ -1437,7 +1435,7 @@ const VehicleEldMonitor = () => {
                                             </tr>
                                         ) : (
                                             auditTableData.map((row) => (
-                                                <tr key={row.id} className="hover:bg-blue-50/30">
+                                                <tr key={row.id} className="hover:bg-[rgba(1,106,178,0.05)]">
                                                     <td className="px-6 py-4 font-medium text-primary">{row.driverName}</td>
                                                     <td className="px-6 py-4 text-secondary">{row.driverId || '—'}</td>
                                                     <td className="px-6 py-4 text-secondary">{row.reportingTo || '—'}</td>
@@ -1470,7 +1468,7 @@ const VehicleEldMonitor = () => {
                                                                         setDetailSidebarOpen(true);
                                                                     }
                                                                 }}
-                                                                className="text-[#00D1FF] hover:text-blue-800 underline cursor-pointer text-sm font-medium"
+                                                                className="text-[var(--accent-blue)] hover:opacity-80 underline cursor-pointer text-sm font-medium"
                                                                 title={row.documents.length === 1 ? `Open ${row.documents[0].name}` : `Click to view ${row.documents.length} files`}
                                                             >
                                                                 {row.documents.length} file(s)
@@ -1485,7 +1483,7 @@ const VehicleEldMonitor = () => {
                                                                     e.stopPropagation();
                                                                     openDownloadForm(row);
                                                                 }}
-                                                                className="flex items-center gap-1 text-[#00D1FF] hover:text-blue-800 font-medium"
+                                                                className="flex items-center gap-1 text-[var(--accent-blue)] hover:opacity-80 font-medium"
                                                                 title="Download HOS Progressive Disciplinary Action form"
                                                             >
                                                                 <Download size={16} /> Download form
@@ -1497,7 +1495,7 @@ const VehicleEldMonitor = () => {
                                                                     setSelectedAuditDetail(row);
                                                                     setDetailSidebarOpen(true);
                                                                 }}
-                                                                className="flex items-center gap-1 text-[#00D1FF] hover:text-blue-800 font-medium"
+                                                                className="flex items-center gap-1 text-[var(--accent-blue)] hover:opacity-80 font-medium"
                                                             >
                                                                 <Eye size={16} /> View details
                                                             </button>
@@ -1632,18 +1630,18 @@ const VehicleEldMonitor = () => {
                                                                             }
                                                                         }}
                                                                         className={`flex items-center gap-2 flex-1 text-left transition-colors ${hasUrl
-                                                                            ? 'text-[#00D1FF] hover:text-blue-800 cursor-pointer hover:underline'
+                                                                            ? 'text-[var(--accent-blue)] hover:opacity-80 cursor-pointer hover:underline'
                                                                             : 'text-secondary cursor-not-allowed'
                                                                             }`}
                                                                         disabled={!hasUrl}
                                                                         title={hasUrl ? `Click to open ${d.name}` : `File "${d.name}" is not available`}
                                                                     >
-                                                                        <FileText size={16} className={`flex-shrink-0 ${hasUrl ? 'text-blue-500' : 'text-secondary'}`} />
+                                                                        <FileText size={16} className={`flex-shrink-0 ${hasUrl ? 'text-[var(--accent-blue)]' : 'text-secondary'}`} />
                                                                         <span className="truncate">{d.name}</span>
                                                                         <span className="text-secondary text-xs flex-shrink-0">({(d.size / 1024).toFixed(1)} KB)</span>
                                                                     </button>
                                                                     {hasUrl && (
-                                                                        <Download size={14} className="text-blue-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                                        <Download size={14} className="text-[var(--accent-blue)] flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                                                                     )}
                                                                 </li>
                                                             );
@@ -1801,7 +1799,7 @@ const VehicleEldMonitor = () => {
                                                         value={editableFormState.managerSignature}
                                                         onChange={(e) => setEditableFormState(prev => ({ ...prev, managerSignature: e.target.value }))}
                                                         placeholder="Manager name or signature"
-                                                        className="flex-1 min-w-[200px] px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        className="flex-1 min-w-[200px] px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     />
                                                     <label className="flex items-center gap-2">
                                                         <span className="font-semibold text-secondary">Date:</span>
@@ -1809,7 +1807,7 @@ const VehicleEldMonitor = () => {
                                                             type="date"
                                                             value={editableFormState.managerDate}
                                                             onChange={(e) => setEditableFormState(prev => ({ ...prev, managerDate: e.target.value }))}
-                                                            className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                         />
                                                     </label>
                                                 </div>
@@ -1822,7 +1820,7 @@ const VehicleEldMonitor = () => {
                                                     value={editableFormState.noticeToEmployee}
                                                     onChange={(e) => setEditableFormState(prev => ({ ...prev, noticeToEmployee: e.target.value }))}
                                                     rows={4}
-                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]text-primary"
                                                 />
                                             </div>
 
@@ -1833,7 +1831,7 @@ const VehicleEldMonitor = () => {
                                                     value={editableFormState.employeeComments}
                                                     onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeComments: e.target.value }))}
                                                     rows={4}
-                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
+                                                    className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]text-primary"
                                                 />
                                             </div>
 
@@ -1846,7 +1844,7 @@ const VehicleEldMonitor = () => {
                                                         value={editableFormState.employeeSignature}
                                                         onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeSignature: e.target.value }))}
                                                         placeholder="Employee name or signature"
-                                                        className="flex-1 min-w-[200px] px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        className="flex-1 min-w-[200px] px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                     />
                                                     <label className="flex items-center gap-2">
                                                         <span className="font-semibold text-secondary">Date:</span>
@@ -1854,7 +1852,7 @@ const VehicleEldMonitor = () => {
                                                             type="date"
                                                             value={editableFormState.employeeDate}
                                                             onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeDate: e.target.value }))}
-                                                            className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                         />
                                                     </label>
                                                 </div>
@@ -1873,7 +1871,7 @@ const VehicleEldMonitor = () => {
                         {/* Upload Section */}
                         <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
                             <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
-                                <Upload size={24} className="text-[#00D1FF]" />
+                                <Upload size={24} className="text-[var(--accent-blue)]" />
                                 Upload E-Log File
                             </h2>
 
@@ -1886,11 +1884,11 @@ const VehicleEldMonitor = () => {
                                     <select
                                         value={selectedDriverForLog}
                                         onChange={(e) => setSelectedDriverForLog(e.target.value)}
-                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                     >
-                                        <option value="">All Drivers</option>
+                                        <option className='form-option' value="">All Drivers</option>
                                         {drivers.map((driver) => (
-                                            <option key={driver._id} value={driver._id}>
+                                            <option className='form-option' key={driver._id} value={driver._id}>
                                                 {driver.name}
                                             </option>
                                         ))}
@@ -1912,7 +1910,7 @@ const VehicleEldMonitor = () => {
                                             />
                                             <div className="px-4 py-3 border border-theme rounded-lg border-dashed hover:bg-[rgba(255,255,255,0.03)] text-center">
                                                 {selectedFile ? (
-                                                    <div className="flex items-center justify-center gap-2 text-[#00D1FF]">
+                                                    <div className="flex items-center justify-center gap-2 text-[var(--accent-blue)]">
                                                         <FileText size={20} />
                                                         <span className="font-medium">{selectedFile.name}</span>
                                                         <button
@@ -1945,7 +1943,7 @@ const VehicleEldMonitor = () => {
                                         style={{
                                             background: (!selectedFile || uploadingFile) ? '#9CA3AF' : 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
                                         }}
-                                        className="px-6 py-2 !text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                        className="px-6 py-2 !text-white font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                     >
                                         {uploadingFile ? (
                                             <>
@@ -1967,7 +1965,7 @@ const VehicleEldMonitor = () => {
                         <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
                             <div className="px-6 py-4 border-b bg-card">
                                 <h3 className="font-bold text-primary flex items-center gap-2">
-                                    <FileText size={20} className="text-[#00D1FF]" />
+                                    <FileText size={20} className="text-[var(--accent-blue)]" />
                                     Uploaded E-Logs
                                 </h3>
                             </div>
@@ -1994,7 +1992,7 @@ const VehicleEldMonitor = () => {
                                         </thead>
                                         <tbody className="divide-y divide-gray-100">
                                             {eLogs.map((log) => (
-                                                <tr key={log._id} className="hover:bg-blue-50/30">
+                                                <tr key={log._id} className="hover:bg-[rgba(1,106,178,0.05)]">
                                                     <td className="px-6 py-4 font-medium text-primary">
                                                         {editingELogId === log._id ? (
                                                             <div className="flex items-center gap-2">
@@ -2006,7 +2004,7 @@ const VehicleEldMonitor = () => {
                                                                         if (e.key === 'Enter') saveRenameELog(log._id);
                                                                         if (e.key === 'Escape') cancelRenameELog();
                                                                     }}
-                                                                    className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-theme rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                    className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-theme rounded focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                                                     autoFocus
                                                                 />
                                                                 <button
@@ -2028,12 +2026,12 @@ const VehicleEldMonitor = () => {
                                                             </div>
                                                         ) : (
                                                             <div className="flex items-center gap-2">
-                                                                <FileText size={16} className="text-blue-500 flex-shrink-0" />
+                                                                <FileText size={16} className="text-[var(--accent-blue)] flex-shrink-0" />
                                                                 <span className="min-w-0 truncate">{getELogDisplayName(log)}</span>
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => startRenameELog(log)}
-                                                                    className="p-1 text-secondary hover:text-[#00D1FF] hover:bg-blue-50 rounded flex-shrink-0"
+                                                                    className="p-1 text-secondary hover:text-[var(--accent-blue)] hover:bg-[rgba(1,106,178,0.05)]rounded flex-shrink-0"
                                                                     title="Rename"
                                                                 >
                                                                     <Pencil size={14} />
@@ -2056,13 +2054,13 @@ const VehicleEldMonitor = () => {
                                                         <div className="flex items-center gap-2">
                                                             <button
                                                                 onClick={() => handleDownloadELog(log._id, log.fileName)}
-                                                                className="text-[#00D1FF] hover:text-blue-800 font-medium"
+                                                                className="text-[var(--accent-blue)] hover:opacity-80 font-medium"
                                                             >
                                                                 <Download size={16} />
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDeleteELog(log._id)}
-                                                                className="text-[#A855F7] hover:text-red-800 font-medium"
+                                                                className="text-red-500 hover:text-red-700 font-medium"
                                                             >
                                                                 <X size={16} />
                                                             </button>

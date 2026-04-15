@@ -1522,7 +1522,7 @@ const MonthlyReport: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm cursor-pointer">
+                  <label className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 transition-colors shadow-sm cursor-pointer">
                     <FaUpload size={16} />
                     {isUploading ? 'Processing...' : 'Upload Carrier Profile'}
                     <input
@@ -1535,7 +1535,7 @@ const MonthlyReport: React.FC = () => {
                   </label>
                   <button
                     onClick={handleDownloadPDF}
-                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 transition-colors shadow-sm"
                   >
                     <FaDownload size={16} />
                     Download PDF
@@ -1611,11 +1611,11 @@ const MonthlyReport: React.FC = () => {
                     </div>
                   </div>
                   {carrierPerformance.trends && (
-                    <div className={`px-4 py-2 rounded-lg font-semibold ${carrierPerformance.trends.isImproving
-                      ? 'bg-green-100 text-green-700'
+                    <div className={`px-4 py-2 rounded-lg font-semibold border ${carrierPerformance.trends.isImproving
+                      ? 'bg-green-500/10 text-green-400 border-green-500/30'
                       : carrierPerformance.trends.isDeclining
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-card text-primary'
+                        ? 'bg-red-500/10 text-red-400 border-red-500/30'
+                        : 'bg-blue-500/10 text-blue-400 border-blue-500/30'
                       }`}>
                       {carrierPerformance.trends.isImproving && '↗ Improving'}
                       {carrierPerformance.trends.isDeclining && '↘ Declining'}
@@ -1635,21 +1635,21 @@ const MonthlyReport: React.FC = () => {
                     </div>
                     <div className="bg-card rounded-lg p-4 border border-theme">
                       <p className="text-xs text-secondary mb-1">Pass Rate</p>
-                      <p className={`text-2xl font-bold ${carrierPerformance.summary.latestRecord.passRate >= 80 ? 'text-green-600' : carrierPerformance.summary.latestRecord.passRate >= 60 ? 'text-[#00FFA3]' : 'text-[#A855F7]'}`}>
+                      <p className={`text-2xl font-bold ${carrierPerformance.summary.latestRecord.passRate >= 80 ? 'text-green-400' : carrierPerformance.summary.latestRecord.passRate >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
                         {carrierPerformance.summary.latestRecord.passRate}%
                       </p>
                     </div>
                     <div className="bg-card rounded-lg p-4 border border-theme">
                       <p className="text-xs text-secondary mb-1">OOS Rate</p>
-                      <p className={`text-2xl font-bold ${carrierPerformance.summary.latestRecord.ossRate <= 10 ? 'text-green-600' : carrierPerformance.summary.latestRecord.ossRate <= 20 ? 'text-[#00FFA3]' : 'text-[#A855F7]'}`}>
+                      <p className={`text-2xl font-bold ${carrierPerformance.summary.latestRecord.ossRate <= 10 ? 'text-green-400' : carrierPerformance.summary.latestRecord.ossRate <= 20 ? 'text-yellow-400' : 'text-red-400'}`}>
                         {carrierPerformance.summary.latestRecord.ossRate}%
                       </p>
                     </div>
                     <div className="bg-card rounded-lg p-4 border border-theme">
                       <p className="text-xs text-secondary mb-1">Safety Rating</p>
-                      <p className={`text-lg font-bold ${carrierPerformance.summary.latestRecord.safetyRating === 'Satisfactory' ? 'text-green-600' :
-                        carrierPerformance.summary.latestRecord.safetyRating === 'Conditional' ? 'text-[#00FFA3]' :
-                          carrierPerformance.summary.latestRecord.safetyRating === 'Unsatisfactory' ? 'text-[#A855F7]' :
+                      <p className={`text-lg font-bold ${carrierPerformance.summary.latestRecord.safetyRating === 'Satisfactory' ? 'text-green-400' :
+                        carrierPerformance.summary.latestRecord.safetyRating === 'Conditional' ? 'text-yellow-400' :
+                          carrierPerformance.summary.latestRecord.safetyRating === 'Unsatisfactory' ? 'text-red-400' :
                             'text-secondary'
                         }`}>
                         {carrierPerformance.summary.latestRecord.safetyRating || 'N/A'}
@@ -1673,8 +1673,8 @@ const MonthlyReport: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-xs text-secondary">Change</p>
-                        <p className={`text-lg font-bold ${carrierPerformance.trends.passRateTrend > 0 ? 'text-green-600' :
-                          carrierPerformance.trends.passRateTrend < 0 ? 'text-[#A855F7]' :
+                        <p className={`text-lg font-bold ${carrierPerformance.trends.passRateTrend > 0 ? 'text-green-400' :
+                          carrierPerformance.trends.passRateTrend < 0 ? 'text-red-400' :
                             'text-secondary'
                           }`}>
                           {carrierPerformance.trends.passRateTrend > 0 ? '+' : ''}{carrierPerformance.trends.passRateTrend}%
@@ -1700,11 +1700,11 @@ const MonthlyReport: React.FC = () => {
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <div className="flex-1 bg-gray-200 rounded-full h-6 relative overflow-hidden">
+                              <div className="flex-1 bg-gray-700/40 rounded-full h-6 relative overflow-hidden">
                                 <div
-                                  className={`h-full rounded-full transition-all ${month.passRate >= 80 ? 'bg-green-500' :
-                                    month.passRate >= 60 ? 'bg-yellow-500' :
-                                      'bg-red-500'
+                                  className={`h-full rounded-full transition-all ${month.passRate >= 80 ? 'bg-green-500/80' :
+                                    month.passRate >= 60 ? 'bg-yellow-500/80' :
+                                      'bg-red-500/80'
                                     }`}
                                   style={{ width: `${Math.min(month.passRate, 100)}%` }}
                                 />

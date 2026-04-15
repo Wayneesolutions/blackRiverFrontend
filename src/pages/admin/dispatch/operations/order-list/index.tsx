@@ -194,15 +194,15 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
   };
 
   const bgColors = {
-    success: 'bg-card border-[var(--accent-green)]/20',
-    error: 'bg-card border-red-500/20',
-    warning: 'bg-card border-[var(--accent-orange)]/20',
-    chat: 'bg-card border-[var(--accent-blue)]/20',
-    document_upload: 'bg-card border-[var(--accent-green)]/20',
+    success: 'bg-card border-green-500',
+    error: 'bg-card border-red-500',
+    warning: 'bg-card border-yellow-500',
+    chat: 'bg-card border-blue-500',
+    document_upload: 'bg-card border-green-500',
   };
 
   return (
-    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in min-w-[300px] max-w-[500px] border-2 border-red-700`}>
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in min-w-[300px] max-w-[500px]`}>
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
@@ -1334,7 +1334,7 @@ const OrderList = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-card divide-y divide-theme">
+            <tbody className="bg-card">
               {loading ? (
                 <tr>
                   <td colSpan={25} className="px-6 py-12 text-center text-secondary">

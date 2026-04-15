@@ -810,8 +810,7 @@ const HazardControl = () => {
                                                     <FaEye size={12} />
                                                 </button>
                                                 <button
-                                                    className="p-1.5 hover:bg-[var(--accent-navyblue)]/20 rounded-lg transition border border-transparent "
-                                                    style={{ color: CUSTOM_COLORS.primary }}
+                                                    className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition border border-transparent "
                                                     title="Edit"
                                                     onClick={(e) => {
                                                         e.stopPropagation();

@@ -1571,8 +1571,8 @@ const Tickets: React.FC = () => {
                       onChange={(e) => setTicketForm(prev => ({ ...prev, country: e.target.value as 'usa' | 'canada' }))}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
-                      <option value="usa">USA</option>
-                      <option value="canada">Canada</option>
+                      <option className='form-option' value="usa">USA</option>
+                      <option className='form-option' value="canada">Canada</option>
                     </select>
                   </div>
                   <div>
@@ -1646,9 +1646,9 @@ const Tickets: React.FC = () => {
                       onChange={(e) => setTicketForm(prev => ({ ...prev, driver: e.target.value }))}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
-                      <option value="">Select Driver</option>
+                      <option className='form-option' value="">Select Driver</option>
                       {drivers.map((driver) => (
-                        <option key={driver._id} value={driver._id}>{driver.name}</option>
+                        <option className='form-option' key={driver._id} value={driver._id}>{driver.name}</option>
                       ))}
                     </select>
                   </div>
@@ -1659,9 +1659,9 @@ const Tickets: React.FC = () => {
                       onChange={(e) => setTicketForm(prev => ({ ...prev, vehicle: e.target.value }))}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
-                      <option value="">Select Vehicle</option>
+                      <option className='form-option' value="">Select Vehicle</option>
                       {vehicles.map((vehicle) => (
-                        <option key={vehicle._id} value={vehicle._id}>
+                        <option className='form-option' key={vehicle._id} value={vehicle._id}>
                           {(() => {
                             const vehicleName = [vehicle.make, vehicle.model].filter(Boolean).join(' ').trim() || vehicle.makeModel || 'Vehicle';
                             const identifier = vehicle.plateNumber || vehicle.licensePlate || vehicle.internalId || 'N/A';
@@ -1688,9 +1688,9 @@ const Tickets: React.FC = () => {
                       onChange={(e) => setTicketForm(prev => ({ ...prev, trailerNumber: e.target.value }))}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
-                      <option value="">Select Trailer</option>
+                      <option className='form-option' value="">Select Trailer</option>
                       {trailers.map((trailer) => (
-                        <option key={trailer._id} value={trailer.unitNo || trailer.trailer || trailer._id}>
+                        <option className='form-option' key={trailer._id} value={trailer.unitNo || trailer.trailer || trailer._id}>
                           {trailer.unitNo || trailer.trailer || trailer.plateNumber || trailer.licensePlate || trailer.internalId || 'N/A'}
                         </option>
                       ))}
@@ -1713,11 +1713,11 @@ const Tickets: React.FC = () => {
                       onChange={(e) => setTicketForm(prev => ({ ...prev, status: e.target.value as 'paid' | 'unpaid' | 'fight' | 'dismissed' | 'reduced' }))}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
-                      <option value="unpaid">Unpaid</option>
-                      <option value="paid">Paid</option>
-                      <option value="fight">On Fight</option>
-                      <option value="dismissed">Dismissed</option>
-                      <option value="reduced">Reduced</option>
+                      <option className='form-option' value="unpaid">Unpaid</option>
+                      <option className='form-option' value="paid">Paid</option>
+                      <option className='form-option' value="fight">On Fight</option>
+                      <option className='form-option' value="dismissed">Dismissed</option>
+                      <option className='form-option' value="reduced">Reduced</option>
                     </select>
                   </div>
                   <div>
@@ -1727,11 +1727,11 @@ const Tickets: React.FC = () => {
                       onChange={(e) => setTicketForm(prev => ({ ...prev, outcome: e.target.value as 'paid' | 'reduced' | 'dismissed' | 'on fight' | 'unpaid' }))}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
-                      <option value="unpaid">Unpaid</option>
-                      <option value="paid">Paid</option>
-                      <option value="reduced">Reduced</option>
-                      <option value="dismissed">Dismissed</option>
-                      <option value="on fight">On Fight</option>
+                      <option className='form-option' value="unpaid">Unpaid</option>
+                      <option className='form-option' value="paid">Paid</option>
+                      <option className='form-option' value="reduced">Reduced</option>
+                      <option className='form-option' value="dismissed">Dismissed</option>
+                      <option className='form-option' value="on fight">On Fight</option>
                     </select>
                   </div>
                   <div>
@@ -1751,9 +1751,9 @@ const Tickets: React.FC = () => {
                       onChange={(e) => setTicketForm(prev => ({ ...prev, fightingBy: e.target.value as 'company' | 'lawyer' | undefined }))}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
-                      <option value="">Select Option</option>
-                      <option value="company">Company</option>
-                      <option value="lawyer">Lawyer</option>
+                      <option className='form-option' value="">Select Option</option>
+                      <option className='form-option' value="company">Company</option>
+                      <option className='form-option' value="lawyer">Lawyer</option>
                     </select>
                   </div>
                   {ticketForm.status === 'reduced' && (
@@ -1992,7 +1992,7 @@ const Tickets: React.FC = () => {
 
               <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
                 <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors" disabled={loading}>Cancel</button>
-                <button onClick={saveNewTicket} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+                <button onClick={saveNewTicket} className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                   {loading ? 'Saving...' : 'Save Ticket'}
                 </button>
               </div>
@@ -2216,9 +2216,9 @@ const Tickets: React.FC = () => {
                       onChange={(e) => setTicketForm(prev => ({ ...prev, trailerNumber: e.target.value }))}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                     >
-                      <option value="">Select Trailer</option>
+                      <option className='form-option' value="">Select Trailer</option>
                       {trailers.map((trailer) => (
-                        <option key={trailer._id} value={trailer.unitNo || trailer.trailer || trailer._id}>
+                        <option className='form-option' key={trailer._id} value={trailer.unitNo || trailer.trailer || trailer._id}>
                           {trailer.unitNo || trailer.trailer || trailer.plateNumber || trailer.licensePlate || trailer.internalId || 'N/A'}
                         </option>
                       ))}
@@ -2416,12 +2416,12 @@ const Tickets: React.FC = () => {
                           onChange={(e) => setTicketForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         >
-                          <option value="">Select Payment Method</option>
-                          <option value="cash">Cash</option>
-                          <option value="credit_card">Credit Card</option>
-                          <option value="check">Check</option>
-                          <option value="online">Online Payment</option>
-                          <option value="other">Other</option>
+                          <option className='form-option' value="">Select Payment Method</option>
+                          <option className='form-option' value="cash">Cash</option>
+                          <option className='form-option' value="credit_card">Credit Card</option>
+                          <option className='form-option' value="check">Check</option>
+                          <option className='form-option' value="online">Online Payment</option>
+                          <option className='form-option' value="other">Other</option>
                         </select>
                       </div>
                       <div className="col-span-2">
@@ -2614,7 +2614,7 @@ const Tickets: React.FC = () => {
 
               <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
                 <button onClick={() => { setShowEditModal(false); setSelectedTicket(null); resetForm(); }} className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors" disabled={loading}>Cancel</button>
-                <button onClick={updateTicketData} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+                <button onClick={updateTicketData} className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                   {loading ? 'Updating...' : 'Update Ticket'}
                 </button>
               </div>

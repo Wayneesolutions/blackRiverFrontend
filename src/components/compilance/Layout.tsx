@@ -12,7 +12,7 @@ const Layout = () => {
     };
 
     return (
-        <div className="flex h-screen bg-[#eeeeee]">
+        <div className="flex h-screen">
             {/* Sidebar with independent scroll */}
             <div className="flex-shrink-0 h-screen overflow-hidden">
                 <CompilanceSidebar

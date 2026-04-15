@@ -446,7 +446,7 @@ const SafetyBulletins: React.FC = () => {
                       <FaEye />
                     </button>
                     {bulletin.status === 'draft' && (
-                      <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="Edit">
+                      <button className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition" title="Edit">
                         <FaEdit />
                       </button>
                     )}

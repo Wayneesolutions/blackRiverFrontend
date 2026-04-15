@@ -30,9 +30,9 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
     };
 
     const bgColors = {
-        success: 'bg-green-50 border-green-200',
-        error: 'bg-card border-red-200',
-        warning: 'bg-card border-yellow-200',
+        success: 'bg-card border-green-500',
+        error: 'bg-card border-red-500',
+        warning: 'bg-card border-yellow-500',
     };
 
     useEffect(() => {
@@ -1221,6 +1221,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const receiverCustomerDropdownRef = useRef<HTMLDivElement>(null);
     const equipmentDropdownRef = useRef<HTMLDivElement>(null);
     const packagesDropdownRef = useRef<HTMLDivElement>(null);
+    const scrollableContentRef = useRef<HTMLDivElement>(null);
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -1689,12 +1690,14 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const nextStep = () => {
         if (currentStep < 8) {
             setCurrentStep(currentStep + 1);
+            setTimeout(() => { scrollableContentRef.current?.scrollTo({ top: 0 }); }, 0);
         }
     };
 
     const prevStep = () => {
         if (currentStep > 1) {
             setCurrentStep(currentStep - 1);
+            setTimeout(() => { scrollableContentRef.current?.scrollTo({ top: 0 }); }, 0);
         }
     };
 
@@ -2670,7 +2673,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-auto px-4 py-4">
+            <div ref={scrollableContentRef} className="flex-1 overflow-auto px-4 py-4">
                 <div className="w-full mx-auto space-y-6 min-w-0">
                     {/* Step 1: Details Section */}
                     {currentStep === 1 && (

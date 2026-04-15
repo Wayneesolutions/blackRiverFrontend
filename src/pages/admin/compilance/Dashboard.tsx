@@ -171,7 +171,7 @@ function Dashboard() {
   const InnerGridCard = ({ label, value, colorClass, onClick, icon: Icon }: { label: string, value: string | number, colorClass: string, onClick?: () => void, icon: any }) => (
     <div
       onClick={onClick}
-      className={`bg-card border rounded-lg p-4 flex items-center justify-between shadow-sm hover:shadow transition-all ${onClick ? 'cursor-pointer hover:border-blue-200' : 'border-theme'}`}
+      className={`bg-card border border-theme rounded-lg p-4 flex items-center justify-between shadow-sm hover:shadow transition-all ${onClick ? 'cursor-pointer hover:border-[rgba(255,255,255,0.15)]' : ''}`}
     >
       <div>
         <p className="text-xs text-secondary font-medium uppercase tracking-wider">{label}</p>
@@ -249,7 +249,7 @@ function Dashboard() {
                 bgColor=""
                 iconColor="text-[var(--accent-orange)]"
                 cardBg="bg-[var(--accent-orange)]/20"
-                onClick={() => navigate("/admin/compliance/incidents")}
+                onClick={() => navigate("/admin/compliance/accidents")}
               />
             </div>
 
@@ -327,7 +327,7 @@ function Dashboard() {
                       <p className="text-xs text-secondary font-medium uppercase tracking-wider">Total Amount</p>
                       <p className="text-xl font-bold mt-1 text-primary">${ticketStats.totalAmount.toLocaleString()}</p>
                     </div>
-                    <div className="p-2 bg-gray-200 rounded-full">
+                    <div className="p-2 bg-card border border-theme rounded-full">
                       <FaFileInvoiceDollar className="text-secondary" size={16} />
                     </div>
                   </div>
@@ -338,7 +338,7 @@ function Dashboard() {
               <DetailSection
                 title="Incidents Breakdown"
                 icon={FaCarCrash}
-                onClickHeader={() => navigate("/admin/compliance/incidents")}
+                onClickHeader={() => navigate("/admin/compliance/accidents")}
               >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <InnerGridCard
@@ -346,21 +346,21 @@ function Dashboard() {
                     value={incidentStats.open}
                     colorClass="text-[#A855F7]"
                     icon={FaExclamationTriangle}
-                    onClick={() => navigate("/admin/compliance/incidents?status=open")}
+                    onClick={() => navigate("/admin/compliance/accidents?status=open")}
                   />
                   <InnerGridCard
                     label="Under Review"
                     value={incidentStats.underReview}
                     colorClass="text-[#00FFA3]"
                     icon={FaClipboardCheck}
-                    onClick={() => navigate("/admin/compliance/incidents?status=under-review")}
+                    onClick={() => navigate("/admin/compliance/accidents?status=under-review")}
                   />
                   <InnerGridCard
                     label="Closed Cases"
                     value={incidentStats.closed}
                     colorClass="text-green-600"
                     icon={FaCheckCircle}
-                    onClick={() => navigate("/admin/compliance/incidents?status=closed")}
+                    onClick={() => navigate("/admin/compliance/accidents?status=closed")}
                   />
                 </div>
               </DetailSection>
