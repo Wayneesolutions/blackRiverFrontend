@@ -810,8 +810,7 @@ const HazardControl = () => {
                                                     <FaEye size={12} />
                                                 </button>
                                                 <button
-                                                    className="p-1.5 hover:bg-[var(--accent-navyblue)]/20 rounded-lg transition border border-transparent "
-                                                    style={{ color: CUSTOM_COLORS.primary }}
+                                                    className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition border border-transparent "
                                                     title="Edit"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -1291,9 +1290,9 @@ const HazardControl = () => {
                                         }}
                                         className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     >
-                                        <option value="">Select Type</option>
+                                        <option className='form-option' value="">Select Type</option>
                                         {hazardTypes.map(t => (
-                                            <option key={t} value={t}>{t}</option>
+                                            <option className='form-option' key={t} value={t}>{t}</option>
                                         ))}
                                     </select>
                                     <div className="mt-2 flex gap-2 items-center">
@@ -1381,9 +1380,9 @@ const HazardControl = () => {
                                             onChange={(e) => setNewHazard({ ...newHazard, reporter: e.target.value })}
                                             className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                         >
-                                            <option value="">Select driver</option>
+                                            <option className='form-option' value="">Select driver</option>
                                             {drivers.map(d => (
-                                                <option key={d._id} value={d.name || d.internalId || d._id}>{d.name || d.internalId || d._id}</option>
+                                                <option className='form-option' key={d._id} value={d.name || d.internalId || d._id}>{d.name || d.internalId || d._id}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -1430,11 +1429,11 @@ const HazardControl = () => {
                                             onChange={(e) => setEditingHazard({ ...(editingHazard as Hazard), status: e.target.value as any })}
                                             className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                         >
-                                            <option value="identified">Identified</option>
-                                            <option value="assessed">Assessed</option>
-                                            <option value="controlled">Controlled</option>
-                                            <option value="monitored">Monitored</option>
-                                            <option value="resolved">Resolved</option>
+                                            <option className='form-option' value="identified">Identified</option>
+                                            <option className='form-option' value="assessed">Assessed</option>
+                                            <option className='form-option' value="controlled">Controlled</option>
+                                            <option className='form-option' value="monitored">Monitored</option>
+                                            <option className='form-option' value="resolved">Resolved</option>
                                         </select>
                                     </div>
                                 )}
@@ -1502,9 +1501,9 @@ const HazardControl = () => {
                                             onChange={(e) => setNewObservation({ ...newObservation, driver: e.target.value })}
                                             className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
-                                            <option value="">Select driver</option>
+                                            <option className='form-option' value="">Select driver</option>
                                             {drivers.map(d => (
-                                                <option key={d._id} value={d.name || d.internalId || d._id}>{d.name || d.internalId || d._id}</option>
+                                                <option className='form-option' key={d._id} value={d.name || d.internalId || d._id}>{d.name || d.internalId || d._id}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -1515,10 +1514,10 @@ const HazardControl = () => {
                                             onChange={(e) => setNewObservation({ ...newObservation, observer: e.target.value })}
                                             className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
-                                            <option value="">Select observer (employee)</option>
+                                            <option className='form-option' value="">Select observer (employee)</option>
                                             {employees.map(emp => {
                                                 const name = emp.name || [emp.firstName, emp.lastName].filter(Boolean).join(' ') || emp._id;
-                                                return <option key={emp._id} value={name}>{name}</option>;
+                                                return <option className='form-option' key={emp._id} value={name}>{name}</option>;
                                             })}
                                         </select>
                                     </div>
@@ -1531,8 +1530,8 @@ const HazardControl = () => {
                                             onChange={(e) => setNewObservation({ ...newObservation, observationType: e.target.value as 'on-road' | 'yard-driving' })}
                                             className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
-                                            <option value="on-road">On-Road</option>
-                                            <option value="yard-driving">Yard Driving</option>
+                                            <option className='form-option' value="on-road">On-Road</option>
+                                            <option className='form-option' value="yard-driving">Yard Driving</option>
                                         </select>
                                     </div>
                                     <div>
@@ -1607,9 +1606,9 @@ const HazardControl = () => {
                                         }}
                                         className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     >
-                                        <option value="">Select Type</option>
+                                        <option className='form-option' value="">Select Type</option>
                                         {truckingHazardTypes.map(t => (
-                                            <option key={t} value={t}>{t}</option>
+                                            <option className='form-option' key={t} value={t}>{t}</option>
                                         ))}
                                     </select>
                                     <div className="mt-2 flex gap-2 items-center">
@@ -1697,9 +1696,9 @@ const HazardControl = () => {
                                             onChange={(e) => setNewTruckingHazard({ ...newTruckingHazard, reporter: e.target.value })}
                                             className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                         >
-                                            <option value="">Select driver</option>
+                                            <option className='form-option' value="">Select driver</option>
                                             {drivers.map(d => (
-                                                <option key={d._id} value={d.name || d.internalId || d._id}>{d.name || d.internalId || d._id}</option>
+                                                <option className='form-option' key={d._id} value={d.name || d.internalId || d._id}>{d.name || d.internalId || d._id}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -1717,10 +1716,10 @@ const HazardControl = () => {
                                         }}
                                         className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     >
-                                        <option value="Low">Low</option>
-                                        <option value="Medium">Medium</option>
-                                        <option value="High">High</option>
-                                        <option value="Critical">Critical</option>
+                                        <option className='form-option' value="Low">Low</option>
+                                        <option className='form-option' value="Medium">Medium</option>
+                                        <option className='form-option' value="High">High</option>
+                                        <option className='form-option' value="Critical">Critical</option>
                                     </select>
                                 </div>
                                 <div className="flex gap-2">

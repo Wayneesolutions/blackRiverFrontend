@@ -6,19 +6,14 @@ import { useNavigate } from "react-router-dom";
 import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
 import { usePageTitle } from "../../hooks/usePageTitle";
-import { useNotifications } from "../../hooks/useNotifications";
-import { NotificationBell } from "../common/NotificationPanel";
-
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const notificationRef = useRef<HTMLDivElement>(null);
 
   const { logout } = useLogout();
   const navigate = useNavigate();
@@ -28,21 +23,11 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const filteredActions = filterActions(searchQuery, isComplianceManager ? 'compliance' : 'admin');
   const pageTitle = usePageTitle();
 
-  const basePath = isComplianceManager ? '/compliance' : '/admin/compliance';
-
-  const { notifications, loading: notifLoading, totalCount } = useNotifications({
-    categories: ['employee_doc', 'driver_doc', 'vehicle_doc', 'test_approval'],
-    basePath,
-  });
-
-  // Close search/notification on click outside
+  // Close search on click outside
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setIsSearchOpen(false);
-      }
-      if (notificationRef.current && !notificationRef.current.contains(e.target as Node)) {
-        setIsNotificationOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClick);
@@ -56,7 +41,6 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
         setIsSearchOpen(false);
         setSearchQuery('');
         setSelectedIndex(0);
-        setIsNotificationOpen(false);
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
@@ -123,16 +107,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
 
         {/* RIGHT: Notification + Search + Logout */}
         <div className="flex items-center gap-4">
-          {/* Notification Bell */}
-          <NotificationBell
-            notifications={notifications}
-            loading={notifLoading}
-            totalCount={totalCount}
-            isOpen={isNotificationOpen}
-            onToggle={() => setIsNotificationOpen(o => !o)}
-            onClose={() => setIsNotificationOpen(false)}
-            containerRef={notificationRef}
-          />
+       
 
           {/* Search Button */}
           <button

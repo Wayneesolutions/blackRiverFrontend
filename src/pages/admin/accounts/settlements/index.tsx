@@ -974,10 +974,10 @@ export default function SettlementSystem() {
                     className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     required
                   >
-                    <option value="">Select Driver</option>
+                    <option className='form-option' value="">Select Driver</option>
                     {Array.isArray(drivers) && drivers.length > 0 ? (
                       drivers.map(driver => (
-                        <option key={driver._id} value={driver._id}>
+                        <option className='form-option' key={driver._id} value={driver._id}>
                           {driver.name || driver.email || `Driver ${driver._id}`}
                         </option>
                       ))
@@ -1063,10 +1063,10 @@ export default function SettlementSystem() {
                     onChange={(e) => setSettlementForm({ ...settlementForm, status: e.target.value as any })}
                     className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="Pending">Pending</option>
-                    <option value="Processing">Processing</option>
-                    <option value="Paid">Paid</option>
-                    <option value="Cancelled">Cancelled</option>
+                    <option className='form-option' value="Pending">Pending</option>
+                    <option className='form-option' value="Processing">Processing</option>
+                    <option className='form-option' value="Paid">Paid</option>
+                    <option className='form-option' value="Cancelled">Cancelled</option>
                   </select>
                 </div>
                 <div className="flex gap-3 pt-4">
@@ -1164,8 +1164,8 @@ export default function SettlementSystem() {
                       className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     >
-                      <option value="Deduction">Deduction</option>
-                      <option value="Addition">Addition</option>
+                      <option className='form-option' value="Deduction">Deduction</option>
+                      <option className='form-option' value="Addition">Addition</option>
                     </select>
                   </div>
                   <div>
@@ -1176,12 +1176,12 @@ export default function SettlementSystem() {
                       className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     >
-                      <option value="One-time">One-time</option>
-                      <option value="Weekly">Weekly</option>
-                      <option value="Bi-weekly">Bi-weekly</option>
-                      <option value="Monthly">Monthly</option>
-                      <option value="Quarterly">Quarterly</option>
-                      <option value="Yearly">Yearly</option>
+                      <option className='form-option' value="One-time">One-time</option>
+                      <option className='form-option' value="Weekly">Weekly</option>
+                      <option className='form-option' value="Bi-weekly">Bi-weekly</option>
+                      <option className='form-option' value="Monthly">Monthly</option>
+                      <option className='form-option' value="Quarterly">Quarterly</option>
+                      <option className='form-option' value="Yearly">Yearly</option>
                     </select>
                   </div>
                 </div>
@@ -1206,9 +1206,9 @@ export default function SettlementSystem() {
                       className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                       required
                     >
-                      <option value="">Select Driver</option>
+                      <option className='form-option' value="">Select Driver</option>
                       {drivers.map(driver => (
-                        <option key={driver._id} value={driver._id}>{driver.name}</option>
+                        <option className='form-option' key={driver._id} value={driver._id}>{driver.name}</option>
                       ))}
                     </select>
                   </div>

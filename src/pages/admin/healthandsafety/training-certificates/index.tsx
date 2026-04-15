@@ -572,12 +572,12 @@ const TrainingCertificates = () => {
                   }}
                   className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="">Select Employee...</option>
+                  <option className='form-option' value="">Select Employee...</option>
                   {employees.length === 0 ? (
                     <option disabled>No employees available</option>
                   ) : (
                     employees.map(emp => (
-                      <option key={emp._id} value={emp._id}>
+                      <option className='form-option' key={emp._id} value={emp._id}>
                         {emp.name || 'Unknown'} {emp.role ? `(${emp.role})` : ''}
                       </option>
                     ))
@@ -595,9 +595,9 @@ const TrainingCertificates = () => {
                   onChange={(e) => setType(e.target.value)}
                   className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="">Select Training...</option>
+                  <option className='form-option' value="">Select Training...</option>
                   {REQUIRED_TRAININGS.map(t => (
-                    <option key={t.name} value={t.name}>{t.name} ({t.renewalMonths} months renewal)</option>
+                    <option className='form-option' key={t.name} value={t.name}>{t.name} ({t.renewalMonths} months renewal)</option>
                   ))}
                 </select>
               </div>
@@ -699,7 +699,7 @@ const TrainingCertificates = () => {
                   setIssuingAuthority('');
                   setNotes('');
                 }}
-                className="px-6 py-3 bg-gray-200 text-primary rounded-lg font-semibold hover:bg-gray-300 transition"
+                className="px-6 py-3 bg-gray-200 !text-black rounded-lg font-semibold hover:bg-gray-300 transition"
               >
                 Cancel
               </button>
@@ -1279,10 +1279,10 @@ const TrainingCertificates = () => {
                   onChange={(e) => setContentType(e.target.value)}
                   className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="Video">Video</option>
-                  <option value="Document">Document</option>
-                  <option value="Interactive">Interactive</option>
-                  <option value="Quiz">Quiz</option>
+                  <option className='form-option' value="Video">Video</option>
+                  <option className='form-option' value="Document">Document</option>
+                  <option className='form-option' value="Interactive">Interactive</option>
+                  <option className='form-option' value="Quiz">Quiz</option>
                 </select>
               </div>
 
@@ -1357,7 +1357,7 @@ const TrainingCertificates = () => {
                   setSelectedRoles([]);
                   setTrainingFile(null);
                 }}
-                className="px-6 py-3 bg-gray-200 text-primary rounded-lg font-semibold hover:bg-gray-300 transition"
+                className="px-6 py-3 bg-gray-200 !text-black rounded-lg font-semibold hover:bg-gray-300 transition"
               >
                 Cancel
               </button>

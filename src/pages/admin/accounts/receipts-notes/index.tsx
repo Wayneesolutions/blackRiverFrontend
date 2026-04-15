@@ -818,7 +818,7 @@ export default function ReceiptsFinancialNotes() {
                             </button>
                             <button
                               onClick={() => handleEditReceipt(receipt)}
-                              className="p-1 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded"
+                              className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
                               title="Edit"
                             >
                               <Edit className="w-4 h-4" />
@@ -911,10 +911,10 @@ export default function ReceiptsFinancialNotes() {
                             </button>
                             <button
                               onClick={() => handleEditNote(note)}
-                              className="p-1 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded"
+                              className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
                               title="Edit"
                             >
-                              <Edit className="w-4 h-4 text-headings" />
+                              <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteNote(note._id)}
@@ -1005,7 +1005,7 @@ export default function ReceiptsFinancialNotes() {
                     required
                   >
                     {expenseTypes.filter(t => t !== 'All').map(type => (
-                      <option key={type} value={type}>{type}</option>
+                      <option className='form-option' key={type} value={type}>{type}</option>
                     ))}
                   </select>
                 </div>

@@ -584,9 +584,9 @@ const SafetyInspections: React.FC = () => {
                   onChange={(e) => setSelectedType(e.target.value)}
                   className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="">Select Type...</option>
+                  <option className='form-option' value="">Select Type...</option>
                   {INSPECTION_TYPES.map(type => (
-                    <option key={type.value} value={type.value}>
+                    <option className='form-option' key={type.value} value={type.value}>
                       {type.icon} {type.value} - {type.description}
                     </option>
                   ))}
@@ -642,10 +642,10 @@ const SafetyInspections: React.FC = () => {
                   onChange={(e) => setPriority(e.target.value as any)}
                   className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
+                  <option className='form-option' value="low">Low</option>
+                  <option className='form-option' value="medium">Medium</option>
+                  <option className='form-option' value="high">High</option>
+                  <option className='form-option' value="critical">Critical</option>
                 </select>
               </div>
 
@@ -721,8 +721,8 @@ const SafetyInspections: React.FC = () => {
                   }
                 }}
                 disabled={saving || !selectedType || !selectedLocation || !selectedInspector || !scheduledDate}
-                className="flex-1 px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ background: CUSTOM_COLORS.gradient }}
+                className="bg-[var(--accent-navyblue)] flex-1 px-6 py-3 !text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                
               >
                 {saving ? (
                   <>
@@ -748,7 +748,7 @@ const SafetyInspections: React.FC = () => {
                   setPriority('medium');
                   setNotes('');
                 }}
-                className="px-6 py-3 bg-gray-200 text-primary rounded-lg font-semibold hover:bg-gray-300 transition"
+                className="px-6 py-3 bg-gray-200 !text-black rounded-lg font-semibold hover:bg-gray-300 transition"
               >
                 Cancel
               </button>
@@ -1013,9 +1013,9 @@ const SafetyInspections: React.FC = () => {
             onChange={(e) => setFilterType(e.target.value)}
             className="px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
           >
-            <option value="all">All Types</option>
+            <option className='form-option' value="all">All Types</option>
             {INSPECTION_TYPES.map(type => (
-              <option key={type.value} value={type.value}>{type.value}</option>
+              <option className='form-option' key={type.value} value={type.value}>{type.value}</option>
             ))}
           </select>
 
@@ -1024,12 +1024,12 @@ const SafetyInspections: React.FC = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-indigo-500"
           >
-            <option value="all">All Status</option>
-            <option value="scheduled">Scheduled</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
-            <option value="overdue">Overdue</option>
-            <option value="action-required">Action Required</option>
+            <option className='form-option' value="all">All Status</option>
+            <option className='form-option' value="scheduled">Scheduled</option>
+            <option className='form-option' value="in-progress">In Progress</option>
+            <option className='form-option' value="completed">Completed</option>
+            <option className='form-option' value="overdue">Overdue</option>
+            <option className='form-option' value="action-required">Action Required</option>
           </select>
 
           <button

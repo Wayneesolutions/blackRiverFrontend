@@ -1825,15 +1825,7 @@ const PayrollManagement = () => {
                         <p className="text-secondary mt-2">Manage employee salaries and payroll records</p>
                     </div>
                     <div className="flex gap-3">
-                        <button
-                            onClick={() => setShowDeleteAllModal(true)}
-                            disabled={payrollData.length === 0}
-                            className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                            style={{ background: 'linear-gradient(90deg, #ef4444 0%, #dc2626 40%, #b91c1c 100%)' }}
-                        >
-                            <Trash2 size={16} />
-                            Delete All
-                        </button>
+                     
                         <button
                             onClick={() => setShowBulkAIModal(true)}
                             className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 !text-white rounded-lg transition-all font-medium flex items-center gap-2"
@@ -4137,7 +4129,7 @@ const PayrollManagement = () => {
                                                                 <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Actions</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody className="divide-y divide-theme">
+                                                        <tbody className="divide-theme">
                                                             {bulkAIPayrolls.map((payroll, index) => (
                                                                 <tr key={index} className="hover:bg-[rgba(255,255,255,0.03)]">
                                                                     <td className="px-4 py-3">
@@ -4331,20 +4323,20 @@ const PayrollManagement = () => {
 
                                             {/* Action Buttons */}
                                             <div className="flex gap-3 pt-4 border-t border-theme">
-                                                <button
-                                                    onClick={() => {
-                                                        setShowBulkAIModal(false);
-                                                        setBulkAIPayrolls([]);
-                                                        setBulkAIDateRange({
-                                                            startDate: '',
-                                                            endDate: '',
-                                                            payDate: new Date().toISOString().split('T')[0]
-                                                        });
-                                                    }}
-                                                    className="flex-1 px-4 py-2 bg-card hover:bg-gray-200 text-headings rounded-lg transition-colors font-medium"
-                                                >
-                                                    Cancel
-                                                </button>
+                                               <button
+  onClick={() => {
+    setShowBulkAIModal(false);
+    setBulkAIPayrolls([]);
+    setBulkAIDateRange({
+      startDate: '',
+      endDate: '',
+      payDate: new Date().toISOString().split('T')[0]
+    });
+  }}
+className="flex-1 px-4 py-2 bg-card hover:bg-gray-200 text-headings border border-gray-300 dark:border-gray-600 rounded-lg transition-colors font-medium"
+>
+  Cancel
+</button>
                                                 <button
                                                     onClick={handleCreateAllBulkPayrolls}
                                                     disabled={loading || bulkAIPayrolls.length === 0}

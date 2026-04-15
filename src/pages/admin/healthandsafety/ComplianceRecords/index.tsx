@@ -302,7 +302,7 @@ const EnhancedComplianceRecords: React.FC = () => {
 
   const getComplianceColor = (level: string) => {
     const levelMap: Record<string, string> = {
-      'compliant': 'bg-green-100 text-green-800',
+      'compliant': 'bg-blue-100 text-green-800',
       'non-compliant': 'bg-red-100 text-red-800',
       'at-risk': 'bg-yellow-100 text-yellow-800',
       'pending': 'bg-blue-100 text-blue-800'
@@ -773,7 +773,7 @@ const EnhancedComplianceRecords: React.FC = () => {
 
               <div className="p-6 space-y-6">
                 {/* Status Banner */}
-                <div className={`p-4 rounded-xl flex items-center justify-between ${selectedRecord.complianceLevel === 'compliant' ? 'bg-green-50 border border-green-200' :
+                <div className={`p-4 rounded-xl flex items-center justify-between ${selectedRecord.complianceLevel === 'compliant' ? 'bg-white/5 border border-white/10' :
                   selectedRecord.complianceLevel === 'at-risk' ? 'bg-card border border-orange-200' :
                     'bg-card border border-red-200'
                   }`}>

@@ -1511,8 +1511,8 @@ const Incidents: React.FC = () => {
                         }))}
                         className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
-                        <option value="usa">USA</option>
-                        <option value="canada">Canada</option>
+                        <option className='form-option' value="usa">USA</option>
+                        <option className='form-option' value="canada">Canada</option>
                       </select>
                     </div>
                     <div>
@@ -1573,9 +1573,9 @@ const Incidents: React.FC = () => {
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentStatus: e.target.value as 'open' | 'under-review' | 'closed' }))}
                         className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
-                        <option value="open">Open</option>
-                        <option value="under-review">Under Review</option>
-                        <option value="closed">Closed</option>
+                        <option className='form-option' value="open">Open</option>
+                        <option className='form-option' value="under-review">Under Review</option>
+                        <option className='form-option' value="closed">Closed</option>
                       </select>
                     </div>
                     <div className="col-span-2">
@@ -1718,9 +1718,9 @@ const Incidents: React.FC = () => {
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, driver: e.target.value }))}
                         className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
-                        <option value="">Select Driver</option>
+                        <option className='form-option' value="">Select Driver</option>
                         {drivers.map((driver) => (
-                          <option key={driver._id} value={driver._id}>{driver.name}</option>
+                          <option className='form-option' key={driver._id} value={driver._id}>{driver.name}</option>
                         ))}
                       </select>
                     </div>
@@ -1731,11 +1731,11 @@ const Incidents: React.FC = () => {
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, coDriver: e.target.value }))}
                         className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
-                        <option value="">Select Co-Driver</option>
+                        <option className='form-option' value="">Select Co-Driver</option>
                         {drivers
                           .filter((driver) => driver._id !== incidentForm.driver) // Exclude the selected driver
                           .map((driver) => (
-                            <option key={driver._id} value={driver._id}>{driver.name}</option>
+                            <option className='form-option' key={driver._id} value={driver._id}>{driver.name}</option>
                           ))}
                       </select>
                     </div>
@@ -1793,9 +1793,9 @@ const Incidents: React.FC = () => {
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, unitNumber: e.target.value }))}
                         className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
-                        <option value="">Select Truck</option>
+                        <option className='form-option' value="">Select Truck</option>
                         {vehicles.map((vehicle) => (
-                          <option key={vehicle._id} value={vehicle.unitNo}>
+                          <option className='form-option' key={vehicle._id} value={vehicle.unitNo}>
                             {vehicle.unitNo} - {vehicle.makeModel} ({vehicle.licensePlate})
                           </option>
                         ))}
@@ -1808,12 +1808,12 @@ const Incidents: React.FC = () => {
                         onChange={(e) => setIncidentForm(prev => ({ ...prev, trailerNumber: e.target.value }))}
                         className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       >
-                        <option value="">Select Trailer</option>
+                        <option className='form-option' value="">Select Trailer</option>
                         {trailers.map((trailer) => {
                           const identifier = trailer.plateNumber || trailer.internalId || trailer.trailer || 'N/A';
                           const displayName = trailer.trailer || trailer.plateNumber || trailer.internalId || 'Trailer';
                           return (
-                            <option key={trailer._id} value={trailer.trailer || trailer.internalId || trailer._id}>
+                            <option className='form-option' key={trailer._id} value={trailer.trailer || trailer.internalId || trailer._id}>
                               {displayName} {identifier !== displayName ? `(${identifier})` : ''}
                             </option>
                           );
@@ -1971,7 +1971,7 @@ const Incidents: React.FC = () => {
                 <button onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors" disabled={loading}>
                   Cancel
                 </button>
-                <button onClick={saveNewIncident} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+                <button onClick={saveNewIncident} className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                   {loading ? 'Saving...' : 'Save Incident'}
                 </button>
               </div>
@@ -2057,7 +2057,7 @@ const Incidents: React.FC = () => {
                 <button onClick={() => { setShowEditModal(false); setSelectedIncident(null); resetForm(); }} className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors" disabled={loading}>
                   Cancel
                 </button>
-                <button onClick={saveEditedIncident} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+                <button onClick={saveEditedIncident} className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                   {loading ? 'Updating...' : 'Update Incident'}
                 </button>
               </div>

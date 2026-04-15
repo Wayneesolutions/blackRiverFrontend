@@ -1077,8 +1077,7 @@ const FuelReports = () => {
               </div>
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 !text-white rounded-lg shadow-sm transition-all font-bold text-sm hover:opacity-90"
-                style={{ background: FLEET_COLORS.gradient }}
+                className="flex items-center gap-2 px-4 py-2 !text-white rounded-lg shadow-sm transition-all font-bold text-sm hover:opacity-90 bg-[var(--accent-navyblue)]"
               >
                 <Plus className="w-4 h-4" />
                 Create Fuel Report

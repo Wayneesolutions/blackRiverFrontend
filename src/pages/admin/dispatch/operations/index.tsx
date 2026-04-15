@@ -1115,7 +1115,7 @@ const Index = () => {
                 className="overflow-x-auto table-container-hidden-scrollbar"
               >
                 <table className="w-full">
-                  <thead className="bg-card border-b border-theme">
+                  <thead className="bg-card">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                         Order ID
@@ -1152,7 +1152,7 @@ const Index = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-card divide-y divide-theme">
+                  <tbody className="bg-card">
                     {filteredOrders.length === 0 ? (
                       <tr>
                         <td colSpan={10} className="px-6 py-8 text-center text-secondary">

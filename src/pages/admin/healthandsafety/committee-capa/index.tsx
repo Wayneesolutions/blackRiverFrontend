@@ -1036,11 +1036,11 @@ const EnhancedCommitteeCAPA = () => {
         </div>
       )}
 
-      <div className="mt-6 bg-green-50 border-2 border-green-200 rounded-xl p-5">
-        <h3 className="font-bold text-green-900 mb-2 flex items-center gap-2">
+      <div className="mt-6 bg-white/5 border border-white/10 rounded-xl p-5">
+        <h3 className="font-bold text-white mb-2 flex items-center gap-2">
           <CheckCircle className="w-5 h-5" /> CAPA System Features
         </h3>
-        <ul className="text-sm text-green-800 space-y-1">
+        <ul className="text-sm text-white space-y-1">
           <li>✅ Automated reminder system with email tracking</li>
           <li>✅ Escalation rules with automatic triggers</li>
           <li>✅ Verification checklists for quality assurance</li>
@@ -1256,8 +1256,8 @@ const EnhancedCommitteeCAPA = () => {
                       required
                       className="w-full border border-theme p-2 rounded-lg"
                     >
-                      <option value="corrective">Corrective</option>
-                      <option value="preventive">Preventive</option>
+                      <option className='form-option' value="corrective">Corrective</option>
+                      <option className='form-option' value="preventive">Preventive</option>
                     </select>
                   </div>
                   <div>
@@ -1268,10 +1268,10 @@ const EnhancedCommitteeCAPA = () => {
                       required
                       className="w-full border border-theme p-2 rounded-lg"
                     >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                      <option value="critical">Critical</option>
+                      <option className='form-option' value="low">Low</option>
+                      <option className='form-option' value="medium">Medium</option>
+                      <option className='form-option' value="high">High</option>
+                      <option className='form-option' value="critical">Critical</option>
                     </select>
                   </div>
                 </div>
@@ -1317,10 +1317,10 @@ const EnhancedCommitteeCAPA = () => {
                       required
                       className="w-full border border-theme p-2 rounded-lg"
                     >
-                      <option value="open">Open</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="completed">Completed</option>
-                      <option value="overdue">Overdue</option>
+                      <option className='form-option' value="open">Open</option>
+                      <option className='form-option' value="in-progress">In Progress</option>
+                      <option className='form-option' value="completed">Completed</option>
+                      <option className='form-option' value="overdue">Overdue</option>
                     </select>
                   </div>
                   <div>
@@ -1331,16 +1331,16 @@ const EnhancedCommitteeCAPA = () => {
                       required
                       className="w-full border border-theme p-2 rounded-lg"
                     >
-                      <option value="">Select Employee</option>
+                      <option className='form-option' value="">Select Employee</option>
                       {employees.map((emp) => (
-                        <option key={emp._id} value={emp._id}>
+                        <option className='form-option' key={emp._id} value={emp._id}>
                           {emp.name}
                         </option>
                       ))}
                     </select>
                   </div>
                 </div>
-                <div className="flex justify-end gap-4 pt-4 border-t">
+                <div className="flex justify-end gap-4 !pt-4 ">
                   <button
                     type="button"
                     onClick={() => {
@@ -1367,8 +1367,8 @@ const EnhancedCommitteeCAPA = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-lg !text-white"
-                    style={{ background: CUSTOM_COLORS.gradient }}
+                    className="px-4 py-2 rounded-lg !text-white bg-[var(--accent-navyblue)]"
+                   
                   >
                     {editingCAPA ? 'Update' : 'Create'}
                   </button>

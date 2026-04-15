@@ -758,13 +758,13 @@ const EmergencyProcedures: React.FC = () => {
                   onChange={(e) => setNewProcedure({ ...newProcedure, type: e.target.value as any })}
                   className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-orange-500"
                 >
-                  <option value="medical">Medical</option>
-                  <option value="fire">Fire</option>
-                  <option value="spill">Spill</option>
-                  <option value="collision">Collision</option>
-                  <option value="breakdown">Breakdown</option>
-                  <option value="violence">Violence</option>
-                  <option value="other">Other</option>
+                  <option className='form-option' value="medical">Medical</option>
+                  <option className='form-option' value="fire">Fire</option>
+                  <option className='form-option' value="spill">Spill</option>
+                  <option className='form-option' value="collision">Collision</option>
+                  <option className='form-option' value="breakdown">Breakdown</option>
+                  <option className='form-option' value="violence">Violence</option>
+                  <option className='form-option' value="other">Other</option>
                 </select>
               </div>
 
@@ -812,7 +812,7 @@ const EmergencyProcedures: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setNewProcedure({ ...newProcedure, quickReferenceSteps: [...newProcedure.quickReferenceSteps, ''] })}
-                  className="mt-2 px-4 py-2 bg-[var(--accent-navyblue)] text-primary rounded-lg hover:bg-gray-300 flex items-center gap-2"
+                  className="mt-2 px-4 py-2 bg-[var(--accent-navyblue)] text-primary rounded-lg hover:bg-[var(--accent-navyblue)]/80 flex items-center gap-2"
                 >
                   <FaPlus /> Add Step
                 </button>
@@ -858,7 +858,7 @@ const EmergencyProcedures: React.FC = () => {
           </h2>
           <button
             onClick={() => setShowFirstAidForm(true)}
-            className="px-6 py-3 bg-[var(--accent-navyblue)] !text-white rounded-xl font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
+            className="px-6 py-3 bg-[var(--accent-navyblue)] !text-white rounded-xl font-semibold hover:bg-[var(--accent-navyblue)]/80  transition-colors flex items-center gap-2"
           >
             <FaPlus /> New First Aid Log
           </button>
@@ -1220,10 +1220,10 @@ const EmergencyProcedures: React.FC = () => {
 
         {/* Info Panel */}
         <div className="mt-6 bg-card border-2 border-theme rounded-xl p-6">
-          <h3 className="text-lg font-bold text-red-900 mb-3 flex items-center gap-2">
+          <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
             <FaExclamationTriangle /> Emergency Procedures Compliance
           </h3>
-          <ul className="text-sm text-red-800 space-y-1">
+          <ul className="text-sm text-white space-y-1">
             <li>✅ All emergency contacts accessible 24/7</li>
             <li>✅ Response procedures documented and up-to-date</li>
             <li>✅ First aid logs maintained for audit compliance</li>

@@ -845,8 +845,8 @@ export default function TaxConfigurationPage() {
                           className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           required
                         >
-                          <option value="Destination">Destination</option>
-                          <option value="Origin">Origin</option>
+                          <option className='form-option' value="Destination">Destination</option>
+                          <option className='form-option' value="Origin">Origin</option>
                         </select>
                       </div>
                       <div>
@@ -895,8 +895,8 @@ export default function TaxConfigurationPage() {
                           className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           required
                         >
-                          <option value="Employee">Employee</option>
-                          <option value="Owner-Operator">Owner-Operator</option>
+                          <option className='form-option' value="Employee">Employee</option>
+                          <option className='form-option' value="Owner-Operator">Owner-Operator</option>
                         </select>
                       </div>
                     </>

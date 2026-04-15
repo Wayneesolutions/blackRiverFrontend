@@ -1539,7 +1539,7 @@ const CvsaInspection: React.FC = () => {
 
                 {/* Driver & Carrier Information */}
                 {(selectedInspection.driverLicenseNumber || selectedInspection.carrierUSDOTNumber || selectedInspection.carrierMotorCarrierNumber) && (
-                  <div className="bg-green-50 rounded-lg p-3">
+                  <div className="rounded-lg p-3">
                     <h4 className="text-xs font-bold text-primary mb-2">Driver & Carrier</h4>
                     <div className="grid grid-cols-1 gap-2">
                       {selectedInspection.driverLicenseNumber && (
@@ -1703,7 +1703,7 @@ const CvsaInspection: React.FC = () => {
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] transition-all duration-500" onClick={() => setShowAddModal(false)} />
             <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-card shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-theme">
               <div className="h-full flex flex-col">
-                <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between" style={{ background: `linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)`, }}>
+                <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between bg-[var(--accent-navyblue)]">
                   <h3 className="text-xl font-bold text-white">Add Inspection</h3>
                   <button onClick={() => setShowAddModal(false)} className="text-white hover:bg-card/20 p-2 rounded-lg transition-colors">
                     <FaTimes size={20} />
@@ -1720,9 +1720,9 @@ const CvsaInspection: React.FC = () => {
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         >
                           {activeTab === 'canada' ? (
-                            <option value="canada">Canada</option>
+                            <option className='form-option' value="canada">Canada</option>
                           ) : (
-                            <option value="usa">USA</option>
+                            <option className='form-option' value="usa">USA</option>
                           )}
                         </select>
                       </div>
@@ -1762,10 +1762,10 @@ const CvsaInspection: React.FC = () => {
                           onChange={(e) => setInspectionForm(prev => ({ ...prev, status: e.target.value as Inspection['status'] }))}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         >
-                          <option value="pass">Pass</option>
-                          <option value="fail">Fail</option>
-                          <option value="warning">Warning</option>
-                          <option value="out-of-service">Out of Service</option>
+                          <option className='form-option' value="pass">Pass</option>
+                          <option className='form-option' value="fail">Fail</option>
+                          <option className='form-option' value="warning">Warning</option>
+                          <option className='form-option' value="out-of-service">Out of Service</option>
                         </select>
                       </div>
                       <div>
@@ -1785,9 +1785,9 @@ const CvsaInspection: React.FC = () => {
                           onChange={(e) => setInspectionForm(prev => ({ ...prev, driver: e.target.value }))}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         >
-                          <option value="">Select Driver</option>
+                          <option className='form-option' value="">Select Driver</option>
                           {drivers.map((driver) => (
-                            <option key={driver._id} value={driver._id}>{driver.name}</option>
+                            <option className='form-option' key={driver._id} value={driver._id}>{driver.name}</option>
                           ))}
                         </select>
                       </div>
@@ -1798,9 +1798,9 @@ const CvsaInspection: React.FC = () => {
                           onChange={(e) => setInspectionForm(prev => ({ ...prev, vehicle: e.target.value }))}
                           className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         >
-                          <option value="">Select Vehicle</option>
+                          <option className='form-option' value="">Select Vehicle</option>
                           {vehicles.map((vehicle) => (
-                            <option key={vehicle._id} value={vehicle._id}>
+                            <option className='form-option' key={vehicle._id} value={vehicle._id}>
                               {(() => {
                                 const vehicleName = [vehicle.make, vehicle.model].filter(Boolean).join(' ').trim() || vehicle.makeModel || 'Vehicle';
                                 const identifier = vehicle.plateNumber || vehicle.licensePlate || vehicle.internalId || 'N/A';
@@ -1843,11 +1843,11 @@ const CvsaInspection: React.FC = () => {
                             onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectionLevel: e.target.value as 'I' | 'II' | 'III' | 'IV' | 'V' }))}
                             className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                           >
-                            <option value="I">Level I</option>
-                            <option value="II">Level II</option>
-                            <option value="III">Level III</option>
-                            <option value="IV">Level IV</option>
-                            <option value="V">Level V</option>
+                            <option className='form-option' value="I">Level I</option>
+                            <option className='form-option' value="II">Level II</option>
+                            <option className='form-option' value="III">Level III</option>
+                            <option className='form-option' value="IV">Level IV</option>
+                            <option className='form-option' value="V">Level V</option>
                           </select>
                         </div>
                         <div>
@@ -2004,7 +2004,7 @@ const CvsaInspection: React.FC = () => {
                 </div>
                 <div className="flex-shrink-0 bg-card px-6 py-4 flex justify-end gap-3 border-t">
                   <button type="button" onClick={() => setShowAddModal(false)} className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors">Cancel</button>
-                  <button type="button" onClick={saveNewInspection} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+                  <button type="button" onClick={saveNewInspection} className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                     {loading ? 'Saving...' : 'Save Inspection'}
                   </button>
                 </div>
@@ -2019,7 +2019,7 @@ const CvsaInspection: React.FC = () => {
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] transition-all duration-500" onClick={() => setShowEditModal(false)} />
             <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-card shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-theme">
               <div className="h-full flex flex-col">
-                <div className="flex-shrink-0  px-6 py-4 flex items-center justify-between" style={{ background: `linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)`, }}>
+                <div className="flex-shrink-0  px-6 py-4 flex items-center justify-between bg-[var(--accent-navyblue)]">
                   <h3 className="text-xl font-bold text-white">Edit Inspection: {selectedInspection.inspectionId}</h3>
                   <button onClick={() => setShowEditModal(false)} className="text-white hover:bg-card/20 p-2 rounded-lg transition-colors">
                     <FaTimes size={20} />
@@ -2283,7 +2283,7 @@ const CvsaInspection: React.FC = () => {
                 </div>
                 <div className="flex-shrink-0 bg-card px-6 py-4 flex justify-end gap-3 border-t">
                   <button onClick={() => setShowEditModal(false)} className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors">Cancel</button>
-                  <button onClick={updateInspection} className="px-6 py-2.5 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
+                  <button onClick={updateInspection} className="px-6 py-2.5 bg-[var(--accent-navyblue)] !text-white rounded-lg hover:bg-[var(--accent-navyblue)]/80 font-medium transition-colors disabled:opacity-60" disabled={!validateForm() || loading}>
                     {loading ? 'Updating...' : 'Update Inspection'}
                   </button>
                 </div>
