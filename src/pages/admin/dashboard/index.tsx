@@ -118,6 +118,30 @@ interface FeatureCard {
     color: "blue" | "green" | "purple" | "orange" | "cyan" | "emerald" | "rose" | "indigo" | "amber";
 }
 
+
+interface RecentTrips {
+    _id: string,
+    tripNo: string,
+    driver: {
+        name: string
+    },
+    status: string,
+    deliveryLocation: {
+        place: string,
+        latitude: number,
+        longitude: number,
+
+    },
+    createdAt: string,
+    driverAcceptanceStatus: string
+}
+
+
+
+
+
+
+
 const Index = () => {
     const navigate = useNavigate();
 
@@ -126,9 +150,15 @@ const Index = () => {
         stats: DashboardStats;
         trips: Trip[];
         trucks: Truck[];
+        recentTrips: RecentTrips[];
+
     } | null>(null);
     const [activeOrders, setActiveOrders] = useState<ActiveOrderGroup[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const [showAllTrips, setShowAllTrips] = useState(false);
+    const [showAllDrivers, setShowAllDrivers] = useState(false);
+
+    const drivers = dashboardData?.recentTrips || [];
 
     useEffect(() => {
         fetchDashboardData();
@@ -146,8 +176,13 @@ const Index = () => {
         setLoading(true);
         setError(null);
         try {
+            console.log('............fetchdashboardData...............')
             const response = await getAdminDashboard();
+
+
+
             if (response.success && response.data) {
+
                 // Ensure stats are properly formatted with default values
                 const stats = response.data.stats || {};
                 const filteredData = {
@@ -163,7 +198,8 @@ const Index = () => {
                         maintenanceOrdersCount: Number(stats.maintenanceOrdersCount) || 0
                     },
                     trips: response.data.trips || [],
-                    trucks: response.data.trucks || []
+                    trucks: response.data.trucks || [],
+                    recentTrips: response.data.recentTrips || []
                 };
                 console.log('📊 Dashboard data received:', {
                     stats: filteredData.stats,
@@ -629,52 +665,87 @@ const Index = () => {
                             {/* ================= MIDDLE: DISPATCH ================= */}
                             <div className="col-span-3 bg-card border border-theme rounded-2xl p-4 shadow-[0_0_30px_rgba(0,209,255,0.05)]">
 
+                                {/* Header */}
                                 <div className="flex justify-between mb-4">
                                     <h2 className="text-sm font-semibold text-primary">Dispatch Center</h2>
-                                    <button className="text-xs !text-[var(--accent-navyblue)]">View All</button>
+
+                                    {(dashboardData?.recentTrips?.length || 0) > 3 && (
+                                        <button
+                                            onClick={() => setShowAllTrips(!showAllTrips)}
+                                            className="text-xs !text-[var(--accent-navyblue)] hover:underline"
+                                        >
+                                            {showAllTrips ? "Show Less" : "View All"}
+                                        </button>
+                                    )}
                                 </div>
 
-                                {[{
-                                    id: "TRIP-001",
-                                    route: "Calgary, AB → Winnipeg, MB",
-                                    name: "John D.",
-                                    status: "In Progress",
-                                    color: "blue"
-                                },
-                                {
-                                    id: "TRIP-002",
-                                    route: "Edmonton → Regina",
-                                    name: "Sarah M.",
-                                    status: "Scheduled",
-                                    color: "green"
-                                },
-                                {
-                                    id: "TRIP-003",
-                                    route: "Vancouver → Seattle",
-                                    name: "Mike T.",
-                                    status: "Pending",
-                                    color: "orange"
-                                }].map((trip, i) => (
+                                {/* Trips List */}
+                                {(dashboardData?.recentTrips || [])
+                                    .slice(
+                                        0,
+                                        showAllTrips
+                                            ? (dashboardData?.recentTrips?.length || 0) // ✅ fix here
+                                            : 3
+                                    )
+                                    .map((trip, i) => {
 
-                                    <div key={i} className="mb-3 p-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-theme">
+                                        // ✅ Status Mapping
+                                        const statusMap: Record<string, { label: string; color: string }> = {
+                                            "in-progress": { label: "In Progress", color: "blue" },
+                                            "in-delivery": { label: "In Progress", color: "blue" },
+                                            "planned": { label: "Scheduled", color: "green" },
+                                            "quoted": { label: "Pending", color: "orange" },
+                                            "completed": { label: "Completed", color: "gray" }
+                                        };
 
-                                        <div className="flex justify-between text-xs mb-1">
-                                            <span className="text-[var(--accent-navyblue)] font-semibold">{trip.id}</span>
-                                            <span className={`
-  px-2 py-0.5 rounded-full text-xs
-  ${trip.color === "blue" && "bg-[rgba(0,209,255,0.1)] text-[var(--accent-blue)]"}
-  ${trip.color === "green" && "bg-[rgba(0,255,163,0.1)] text-[var(--accent-green)]"}
-  ${trip.color === "orange" && "bg-[rgba(245,158,11,0.1)] text-[var(--accent-orange)]"}
-`}>
-                                                {trip.status}
-                                            </span>
-                                        </div>
+                                        const current = statusMap[trip.status] || { label: "Pending", color: "orange" };
 
-                                        <div className="text-sm text-primary">{trip.route}</div>
-                                        <div className="text-xs text-secondary mt-1">{trip.name}</div>
+                                        const route = trip.deliveryLocation?.place || "Unknown Location";
+                                        const driverName = trip.driver?.name || "Unassigned";
 
+                                        return (
+                                            <div
+                                                key={trip._id || i}
+                                                className="mb-3 p-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-theme"
+                                            >
+                                                {/* Top Row */}
+                                                <div className="flex justify-between text-xs mb-1">
+                                                    <span className="text-[var(--accent-navyblue)] font-semibold">
+                                                        {trip.tripNo || "N/A"}
+                                                    </span>
+
+                                                    <span
+                                                        className={`
+                px-2 py-0.5 rounded-full text-xs
+                ${current.color === "blue" && "bg-[rgba(0,209,255,0.1)] text-[var(--accent-blue)]"}
+                ${current.color === "green" && "bg-[rgba(0,255,163,0.1)] text-[var(--accent-green)]"}
+                ${current.color === "orange" && "bg-[rgba(245,158,11,0.1)] text-[var(--accent-orange)]"}
+                ${current.color === "gray" && "bg-gray-500/20 text-gray-300"}
+              `}
+                                                    >
+                                                        {current.label}
+                                                    </span>
+                                                </div>
+
+                                                {/* Route */}
+                                                <div className="text-sm text-primary">
+                                                    {route}
+                                                </div>
+
+                                                {/* Driver */}
+                                                <div className="text-xs text-secondary mt-1">
+                                                    {driverName}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+
+                                {/* Empty State */}
+                                {(dashboardData?.recentTrips || []).length === 0 && (
+                                    <div className="text-center text-gray-400 text-sm py-6">
+                                        No recent trips found
                                     </div>
-                                ))}
+                                )}
                             </div>
 
                             {/* ================= RIGHT: ALERTS ================= */}
@@ -751,116 +822,174 @@ const Index = () => {
                                             <th className="px-5 py-3 text-left">Driver</th>
                                             <th className="px-5 py-3 text-left">Status</th>
                                             <th className="px-5 py-3 text-left">Departed</th>
-                                            <th className="px-5 py-3 text-left">ETA</th>
+
                                         </tr>
                                     </thead>
 
                                     <tbody>
-                                        {[
-                                            {
-                                                id: "TRIP-001",
-                                                route: "Calgary → Winnipeg",
-                                                driver: "John D.",
-                                                status: "In Progress",
-                                                time: "2h ago",
-                                                eta: "4h"
-                                            },
-                                            {
-                                                id: "TRIP-002",
-                                                route: "Edmonton → Regina",
-                                                driver: "Sarah M.",
-                                                status: "Scheduled",
-                                                time: "5h ago",
-                                                eta: "8h"
-                                            },
-                                            {
-                                                id: "TRIP-003",
-                                                route: "Vancouver → Seattle",
-                                                driver: "Mike T.",
-                                                status: "Pending",
-                                                time: "1d ago",
-                                                eta: "12h"
-                                            },
-                                            {
-                                                id: "TRIP-004",
-                                                route: "Dallas → Houston",
-                                                driver: "Alex R.",
-                                                status: "Completed",
-                                                time: "2d ago",
-                                                eta: "6h"
-                                            }
-                                        ].map((trip, i) => {
+                                        {(dashboardData?.recentTrips || []).length > 0 ? (
+                                            dashboardData?.recentTrips?.map((trip, i) => {
 
-                                            const statusStyles: Record<string, string> = {
-                                                "In Progress": "bg-blue-500/20 text-blue-400",
-                                                "Scheduled": "bg-green-500/20 text-green-400",
-                                                "Pending": "bg-yellow-500/20 text-yellow-400",
-                                                "Completed": "bg-gray-500/20 text-gray-300"
-                                            };
+                                                // ✅ Status Mapping (backend → UI)
+                                                const statusMap: Record<string, string> = {
+                                                    "in-progress": "In Progress",
+                                                    "in-delivery": "In Progress",
+                                                    "planned": "Scheduled",
+                                                    "quoted": "Pending",
+                                                    "completed": "Completed"
+                                                };
 
-                                            return (
-                                                <tr key={i} className="border-b border-theme hover:bg-[rgba(0,209,255,0.04)]">
-                                                    <td className="px-5 py-4 text-primary">{trip.id}</td>
-                                                    <td className="px-5 py-4 text-secondary">{trip.route}</td>
-                                                    <td className="px-5 py-4 text-primary">{trip.driver}</td>
+                                                const statusStyles: Record<string, string> = {
+                                                    "In Progress": "bg-blue-500/20 text-blue-400",
+                                                    "Scheduled": "bg-green-500/20 text-green-400",
+                                                    "Pending": "bg-yellow-500/20 text-yellow-400",
+                                                    "Completed": "bg-gray-500/20 text-gray-300"
+                                                };
 
-                                                    <td className="px-5 py-4">
-                                                        <span className={`px-2 py-1 rounded-full text-xs ${statusStyles[trip.status]}`}>
-                                                            {trip.status}
-                                                        </span>
-                                                    </td>
+                                                const formattedStatus = statusMap[trip.status] || "Pending";
 
-                                                    <td className="px-5 py-4 text-secondary">{trip.time}</td>
-                                                    <td className="px-5 py-4 text-secondary">{trip.eta}</td>
-                                                </tr>
-                                            );
-                                        })}
+                                                // ✅ Route (you only have deliveryLocation)
+                                                const route = trip.deliveryLocation?.place || "Unknown Location";
+
+                                                // ✅ Driver Name
+                                                const driverName = trip.driver?.name || "Unassigned";
+
+                                                // ✅ Time (if createdAt exists)
+                                                const departed = trip.createdAt
+                                                    ? new Date(trip.createdAt).toLocaleString()
+                                                    : "--";
+
+                                                return (
+                                                    <tr
+                                                        key={trip._id || i}
+                                                        className="border-b border-theme hover:bg-[rgba(0,209,255,0.04)]"
+                                                    >
+                                                        {/* Trip ID */}
+                                                        <td className="px-5 py-4 text-primary">
+                                                            {trip.tripNo || "N/A"}
+                                                        </td>
+
+                                                        {/* Route */}
+                                                        <td className="px-5 py-4 text-secondary">
+                                                            {route}
+                                                        </td>
+
+                                                        {/* Driver */}
+                                                        <td className="px-5 py-4 text-primary">
+                                                            {driverName}
+                                                        </td>
+
+                                                        {/* Status */}
+                                                        <td className="px-5 py-4">
+                                                            <span
+                                                                className={`px-2 py-1 rounded-full text-xs ${statusStyles[formattedStatus]}`}
+                                                            >
+                                                                {formattedStatus}
+                                                            </span>
+                                                        </td>
+
+                                                        {/* Departed */}
+                                                        <td className="px-5 py-4 text-secondary">
+                                                            {departed}
+                                                        </td>
+
+
+                                                    </tr>
+                                                );
+                                            })
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={6} className="text-center py-6 text-gray-400">
+                                                    No recent trips found
+                                                </td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
 
                             {/* ================= RIGHT: DRIVER STATUS ================= */}
+
+
+
+
                             <div className="col-span-4 bg-card border border-theme rounded-2xl p-4 shadow-[0_0_40px_rgba(0,209,255,0.08)]">
 
+                                {/* Header */}
                                 <div className="flex justify-between mb-4">
                                     <h2 className="text-sm font-semibold text-primary">Driver Status</h2>
-                                    <button className="text-xs text-[var(--accent-blue)]">View All</button>
+
+                                    {drivers.length > 5 && (
+                                        <button
+                                            onClick={() => setShowAllDrivers(!showAllDrivers)}
+                                            className="text-xs text-[var(--accent-blue)] hover:underline"
+                                        >
+                                            {showAllDrivers ? "Show Less" : "View All"}
+                                        </button>
+                                    )}
                                 </div>
 
-                                {[
-                                    { name: "John D.", status: "Driving", time: "4h 30m left", color: "green" },
-                                    { name: "Sarah M.", status: "On Break", time: "1h 15m left", color: "yellow" },
-                                    { name: "Mike T.", status: "Off Duty", time: "10h 00m", color: "gray" },
-                                    { name: "Alex R.", status: "Driving", time: "3h 45m left", color: "green" },
-                                    { name: "David L.", status: "Violation", time: "HOS Alert", color: "red" }
-                                ].map((driver, i) => (
+                                {/* Driver List */}
+                                {drivers
+                                    .slice(0, showAllDrivers ? drivers.length : 5)
+                                    .map((trip, i) => {
 
-                                    <div key={i} className="flex items-center justify-between mb-4">
+                                        const name = trip.driver?.name || "Unknown";
 
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.1)] flex items-center justify-center text-xs text-primary">
-                                                {driver.name[0]}
-                                            </div>
+                                        // ✅ Use driverAcceptanceStatus ONLY
+                                        const statusMap: Record<string, { label: string; color: string }> = {
+                                            accepted: { label: "Accepted", color: "green" },
+                                            pending: { label: "Pending", color: "yellow" },
+                                            rejected: { label: "Rejected", color: "red" }
+                                        };
 
-                                            <div>
-                                                <p className="text-sm text-primary">{driver.name}</p>
-                                                <div className="flex items-center gap-2 text-xs text-secondary">
-                                                    <span className={`w-2 h-2 rounded-full
-                ${driver.color === "green" && "bg-green-400"}
-                ${driver.color === "yellow" && "bg-yellow-400"}
-                ${driver.color === "gray" && "bg-gray-500"}
-                ${driver.color === "red" && "bg-red-500"}
-              `} />
-                                                    {driver.status}
+                                        const current = statusMap[trip.driverAcceptanceStatus] || {
+                                            label: "Unknown",
+                                            color: "gray"
+                                        };
+
+                                        return (
+                                            <div key={trip._id || i} className="flex items-center justify-between mb-4">
+
+                                                {/* Left */}
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.1)] flex items-center justify-center text-xs text-primary">
+                                                        {name[0]}
+                                                    </div>
+
+                                                    <div>
+                                                        <p className="text-sm text-primary">{name}</p>
+
+                                                        <div className="flex items-center gap-2 text-xs text-secondary">
+                                                            <span
+                                                                className={`w-2 h-2 rounded-full
+                    ${current.color === "green" && "bg-green-400"}
+                    ${current.color === "yellow" && "bg-yellow-400"}
+                    ${current.color === "red" && "bg-red-500"}
+                    ${current.color === "gray" && "bg-gray-500"}
+                  `}
+                                                            />
+                                                            {current.label}
+                                                        </div>
+                                                    </div>
                                                 </div>
+
+                                                {/* Right (Time from createdAt) */}
+                                                <span className="text-xs text-secondary">
+                                                    {trip.createdAt
+                                                        ? new Date(trip.createdAt).toLocaleTimeString()
+                                                        : "--"}
+                                                </span>
                                             </div>
-                                        </div>
+                                        );
+                                    })}
 
-                                        <span className="text-xs text-secondary">{driver.time}</span>
-
+                                {/* Empty State */}
+                                {drivers.length === 0 && (
+                                    <div className="text-center text-gray-400 text-sm py-6">
+                                        No driver data available
                                     </div>
-                                ))}
-
+                                )}
                             </div>
 
                         </div>

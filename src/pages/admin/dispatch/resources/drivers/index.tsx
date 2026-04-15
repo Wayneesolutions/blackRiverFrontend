@@ -326,7 +326,7 @@ const DriversTable = () => {
 
     if (loading && drivers.length === 0) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center min-h-screen ">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
             </div>
         );
@@ -342,7 +342,7 @@ const DriversTable = () => {
     );
 
     return (
-        <div className="min-h-screen bg-main">
+        <div className="min-h-screen bg-main border-2 border-red-700">
             <div className="flex-1">
                 <div className="px-6 py-4">
                     <div className="flex items-center justify-between">

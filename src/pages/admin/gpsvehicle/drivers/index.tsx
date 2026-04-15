@@ -501,7 +501,7 @@ const DriverList = () => {
     }
 
     return (
-        <div className="min-h-screen p-4 bg-main px-6">
+        <div className="min-h-screen p-4 bg-main px-6 ">
             <div className="w-full mx-auto p-2">
                 {/* Header */}
                 <div className="mb-8">
@@ -840,11 +840,10 @@ const DriverList = () => {
                                         <button
                                             key={idx}
                                             onClick={() => setCurrentPage(page)}
-                                            className={`min-w-[32px] h-8 px-2 text-xs font-medium rounded-md border transition-colors ${
-                                                currentPage === page
+                                            className={`min-w-[32px] h-8 px-2 text-xs font-medium rounded-md border transition-colors ${currentPage === page
                                                     ? 'bg-[var(--accent-blue)] border-[var(--accent-blue)] text-white'
                                                     : 'border-theme text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.05)]'
-                                            }`}
+                                                }`}
                                         >
                                             {page}
                                         </button>

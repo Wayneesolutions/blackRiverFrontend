@@ -41,7 +41,7 @@ const DriversTable: React.FC = () => {
   }, [assignmentFilter]);
 
   return (
-    <div className="bg-card bg-opacity-95 backdrop-blur-lg rounded-xl border border-white border-opacity-50 shadow-xl overflow-hidden">
+    <div className=" bg-card bg-opacity-95 backdrop-blur-lg rounded-xl border border-white border-opacity-50 shadow-xl overflow-hidden">
       <div className="p-4 flex items-center gap-3">
         <button
           onClick={() => setAssignmentFilter('assigned')}

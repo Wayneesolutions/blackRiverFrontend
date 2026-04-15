@@ -183,12 +183,27 @@ export interface Truck {
     } | null;
 }
 
+export interface deliverLocation {
+    placeId: string,
+    place: string,
+    latitude: number,
+    longitude: number
+}
+
+export interface RecentTrips {
+    TripNo: string,
+    Driver: string,
+    deliveryLocation: [];
+    status: string
+}
+
 export interface AdminDashboardResponse {
     success: boolean;
     data?: {
         stats: DashboardStats;
         trips: Trip[];
         trucks: Truck[];
+        recentTrips: RecentTrips[]
     };
     message?: string;
 }

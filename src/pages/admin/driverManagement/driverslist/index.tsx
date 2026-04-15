@@ -3591,7 +3591,7 @@ const DriverManagement = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-main p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-main p-6 flex items-center justify-center border-2 border-red-700">
         <div className="text-center">
           <RefreshCw className="w-8 h-8 animate-spin text-[var(--accent-navyblue)] mx-auto mb-4" />
           <p className="text-secondary">Loading drivers...</p>

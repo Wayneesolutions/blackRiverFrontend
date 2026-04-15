@@ -247,8 +247,8 @@ const Tickets: React.FC = () => {
     location: '',
     amount: 0,
     finalAmount: undefined,
-    status: "paid" | "unpaid" | "on-fight" | "dismissed" | "reduced",
-    outcome: "paid" | "unpaid" | "on-fight" | "dismissed" | "reduced",
+    status: 'unpaid',
+    outcome: 'unpaid',
     driver: '',
     vehicle: '',
     unitNumber: '',
@@ -498,6 +498,7 @@ const Tickets: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
+
         await refreshData(currentPage, pageSize);
       } catch (error) {
         console.error('Error fetching tickets:', error);

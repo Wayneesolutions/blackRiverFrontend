@@ -314,7 +314,7 @@ const DriverDocumentsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-card p-8">
+    <div className="min-h-screen bg-card p-8 ">
       {/* Notifications */}
       <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-md">
         {notifications.map(notification => (
