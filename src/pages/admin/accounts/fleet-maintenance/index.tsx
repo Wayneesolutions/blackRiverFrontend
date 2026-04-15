@@ -1160,12 +1160,12 @@ export default function FleetMaintenanceFinance() {
                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
-                    <option value="">Select Vehicle</option>
+                    <option className='form-option' value="">Select Vehicle</option>
                     {fleetUnits.map(unit => {
                       const displayName = unit.internalId || unit.unitNo || unit._id;
                       const displayText = `${displayName}${unit.makeModel ? ` - ${unit.makeModel}` : ''}`;
                       return (
-                        <option key={unit._id} value={unit._id}>
+                        <option className='form-option' key={unit._id} value={unit._id}>
                           {displayText}
                         </option>
                       );
@@ -1332,12 +1332,12 @@ export default function FleetMaintenanceFinance() {
                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
-                    <option value="">Select Vehicle</option>
+                    <option className='form-option' value="">Select Vehicle</option>
                     {fleetUnits.map(unit => {
                       const displayName = unit.internalId || unit.unitNo || unit._id;
                       const displayText = `${displayName}${unit.makeModel ? ` - ${unit.makeModel}` : ''}`;
                       return (
-                        <option key={unit._id} value={unit._id}>
+                        <option className='form-option' key={unit._id} value={unit._id}>
                           {displayText}
                         </option>
                       );
@@ -1374,10 +1374,10 @@ export default function FleetMaintenanceFinance() {
                     onChange={(e) => setPlanFormData({ ...planFormData, status: e.target.value })}
                     className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="Scheduled">Scheduled</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Cancelled">Cancelled</option>
+                    <option className='form-option' value="Scheduled">Scheduled</option>
+                    <option className='form-option' value="In Progress">In Progress</option>
+                    <option className='form-option' value="Completed">Completed</option>
+                    <option className='form-option' value="Cancelled">Cancelled</option>
                   </select>
                 </div>
                 <div className="flex justify-end gap-3 pt-4">

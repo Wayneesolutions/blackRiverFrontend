@@ -2208,6 +2208,23 @@ const DriverPayrollManagement = () => {
     setDriverPayrollSummary(null);
   };
 
+  // Count payroll records per driver type (for tab badges)
+  const companyDriverPayrollCount = payrollData.filter(payroll => {
+    const payrollDriver = typeof payroll.userId === 'object' ? payroll.userId : null;
+    if (!payrollDriver) return false;
+    const driver = drivers.find(d => d._id === payrollDriver._id?.toString() || d._id === payrollDriver.toString());
+    if (!driver) return false;
+    return driver.companyFlag ?? driver.details?.companyFlag ?? false;
+  }).length;
+
+  const ownerOperatorPayrollCount = payrollData.filter(payroll => {
+    const payrollDriver = typeof payroll.userId === 'object' ? payroll.userId : null;
+    if (!payrollDriver) return false;
+    const driver = drivers.find(d => d._id === payrollDriver._id?.toString() || d._id === payrollDriver.toString());
+    if (!driver) return false;
+    return !(driver.companyFlag ?? driver.details?.companyFlag ?? false);
+  }).length;
+
   // Filter drivers based on type (owner operator vs company driver)
   const filteredDriversByType = drivers.filter(driver => {
     const isCompanyDriver = driver.companyFlag ?? driver.details?.companyFlag ?? false;
@@ -2364,27 +2381,27 @@ const DriverPayrollManagement = () => {
         <div className="bg-card rounded-xl border-theme shadow-sm border mb-6">
           <div className="flex border-b border-theme">
             <button
-              onClick={() => setDriverTypeTab('ownerOperator')}
-              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${driverTypeTab === 'ownerOperator'
-                ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] bg-card'
-                : 'text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)]'
-                }`}
-            >
-              Company Drivers
-              <span className="ml-2 text-xs text-secondary">
-                ({drivers.filter(d => !(d.companyFlag ?? d.details?.companyFlag ?? false)).length})
-              </span>
-            </button>
-            <button
               onClick={() => setDriverTypeTab('companyDriver')}
               className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${driverTypeTab === 'companyDriver'
                 ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] bg-card'
                 : 'text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
             >
+              Company Drivers
+              <span className="ml-2 text-xs text-secondary">
+                ({companyDriverPayrollCount})
+              </span>
+            </button>
+            <button
+              onClick={() => setDriverTypeTab('ownerOperator')}
+              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${driverTypeTab === 'ownerOperator'
+                ? 'text-[var(--accent-blue)] border-b-2 border-[var(--accent-blue)] bg-card'
+                : 'text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)]'
+                }`}
+            >
               Owner Operators
               <span className="ml-2 text-xs text-secondary">
-                ({drivers.filter(d => d.companyFlag ?? d.details?.companyFlag ?? false).length})
+                ({ownerOperatorPayrollCount})
               </span>
             </button>
           </div>
@@ -2393,7 +2410,7 @@ const DriverPayrollManagement = () => {
         <div className="bg-card border-theme rounded-xl shadow-sm border">
           <div className="p-6 border-b border-theme">
             <h2 className="text-xl font-bold text-headings">
-              {driverTypeTab === 'ownerOperator' ? 'Company Driver' : 'Owner Operator'} Payroll Records
+              {driverTypeTab === 'companyDriver' ? 'Company Driver' : 'Owner Operator'} Payroll Records
             </h2>
           </div>
 
@@ -2573,8 +2590,8 @@ const DriverPayrollManagement = () => {
               <div className="bg-card rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-green-100">
-                      <Truck className="text-green-600" size={20} />
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--accent-green)]/20">
+                      <Truck className="text-[var(--accent-green)]" size={20} />
                     </div>
                     <div>
                       <h4 className="text-xl font-bold text-primary">
@@ -2607,7 +2624,7 @@ const DriverPayrollManagement = () => {
                           name="userId"
                           value={formData.userId}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-green)] bg-[var(--bg-card)] text-primary"
                         >
                           <option value="">Choose a driver...</option>
                           {filteredDriversByType.map((driver) => (
@@ -2620,7 +2637,7 @@ const DriverPayrollManagement = () => {
                         </select>
                       </div>
 
-                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <div className="bg-[var(--accent-green)]/10 p-4 rounded-lg border border-[var(--accent-green)]/30">
                         <h5 className="text-sm font-medium text-primary mb-3 flex items-center gap-2">
                           <Calendar size={16} />
                           Trip Period
@@ -2635,7 +2652,9 @@ const DriverPayrollManagement = () => {
                               name="startDate"
                               value={formData.startDate}
                               onChange={(e) => handleDateRangeChange(e.target.value, formData.endDate)}
-                              className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                              onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
+                              className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-green)] cursor-pointer"
+                              style={{ colorScheme: 'light', color: 'var(--text-primary)', backgroundColor: 'var(--bg-input, var(--bg-card))' }}
                             />
                           </div>
                           <div>
@@ -2647,7 +2666,9 @@ const DriverPayrollManagement = () => {
                               name="endDate"
                               value={formData.endDate}
                               onChange={(e) => handleDateRangeChange(formData.startDate, e.target.value)}
-                              className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                              onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
+                              className="w-full px-4 py-3 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-green)] cursor-pointer"
+                              style={{ colorScheme: 'light', color: 'var(--text-primary)', backgroundColor: 'var(--bg-input, var(--bg-card))' }}
                             />
                           </div>
                         </div>
@@ -2655,7 +2676,7 @@ const DriverPayrollManagement = () => {
 
                       {/* Trip Summary */}
                       {driverPayrollSummary && (
-                        <div className="bg-gradient-to-r from-green-500 to-green-600 text-primary p-6 rounded-lg">
+                        <div className="bg-[var(--accent-navyblue)] text-white p-6 rounded-lg">
                           <div className="flex justify-between items-start mb-4">
                             <div>
                               <h5 className="text-lg font-bold flex items-center gap-2">
@@ -2666,12 +2687,12 @@ const DriverPayrollManagement = () => {
                             <button
                               onClick={handleAICalculation}
                               disabled={loadingAI || !formData.userId || !formData.startDate || !formData.endDate}
-                              className="px-4 py-2 bg-card !text-green-600 rounded-lg font-medium hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+                              className="px-4 py-2 bg-card !text-[var(--accent-green)] rounded-lg font-medium hover:bg-[var(--accent-green)]/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
                               title="Calculate bonus and deductions using AI"
                             >
                               {loadingAI ? (
                                 <>
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--accent-green)]"></div>
                                   Analyzing...
                                 </>
                               ) : (
@@ -2687,31 +2708,31 @@ const DriverPayrollManagement = () => {
                           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                             <div className="text-center">
                               <div className="text-3xl font-bold">{driverPayrollSummary.totalTrips}</div>
-                              <div className="text-sm text-green-100">Total Trips</div>
+                              <div className="text-sm text-white/70">Total Trips</div>
                             </div>
                             <div className="text-center">
                               <div className="text-3xl font-bold">{driverPayrollSummary.totalDistanceMiles.toLocaleString()}</div>
-                              <div className="text-sm text-green-100">Total Miles</div>
+                              <div className="text-sm text-white/70">Total Miles</div>
                             </div>
                             <div className="text-center">
                               <div className="text-3xl font-bold">${(driverPayrollSummary.baseRate || driverPayrollSummary.ratePerMile || 0).toFixed(2)}</div>
-                              <div className="text-sm text-green-100">Base Rate/mi</div>
+                              <div className="text-sm text-white/70">Base Rate/mi</div>
                             </div>
                             {(driverPayrollSummary.snowRate && driverPayrollSummary.snowRate > 0) && (
                               <div className="text-center">
                                 <div className="text-2xl font-bold">+${driverPayrollSummary.snowRate}</div>
-                                <div className="text-xs text-green-100">Snow Premium/mi</div>
+                                <div className="text-xs text-white/70">Snow Premium/mi</div>
                               </div>
                             )}
                             {(driverPayrollSummary.highTempRate && driverPayrollSummary.highTempRate > 0) && (
                               <div className="text-center">
                                 <div className="text-2xl font-bold">+${driverPayrollSummary.highTempRate}</div>
-                                <div className="text-xs text-green-100">High Temp Premium/mi</div>
+                                <div className="text-xs text-white/70">High Temp Premium/mi</div>
                               </div>
                             )}
                             <div className="text-center">
                               <div className="text-3xl font-bold">${driverPayrollSummary.totalEarnings.toFixed(2)}</div>
-                              <div className="text-sm text-green-100">Total Earnings</div>
+                              <div className="text-sm text-white/70">Total Earnings</div>
                             </div>
                           </div>
                         </div>
@@ -2727,7 +2748,7 @@ const DriverPayrollManagement = () => {
                           <div className="p-4 space-y-4">
                             {driverAdditions.length > 0 && (
                               <div>
-                                <h6 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
+                                <h6 className="text-sm font-semibold text-[var(--accent-green)] mb-2 flex items-center gap-2">
                                   <TrendingUp size={16} />
                                   Additions ({driverAdditions.length})
                                 </h6>
@@ -2761,7 +2782,7 @@ const DriverPayrollManagement = () => {
                                       })();
 
                                     return (
-                                      <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
+                                      <div key={addition._id} className="bg-[var(--accent-green)]/10 p-3 rounded-lg border border-[var(--accent-green)]/30">
                                         <div className="flex justify-between items-start gap-4">
                                           <div className="flex-1">
                                             <p className="text-sm font-medium text-primary">{addition.name || addition.description || 'Addition'}</p>
@@ -2789,9 +2810,9 @@ const DriverPayrollManagement = () => {
                                               }}
                                               step="0.01"
                                               min="0"
-                                              className="w-24 px-2 py-1 text-sm border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-card"
+                                              className="w-24 px-2 py-1 text-sm border border-[var(--accent-green)]/40 rounded focus:outline-none focus:ring-1 focus:ring-[var(--accent-green)] bg-card"
                                             />
-                                            <span className="text-sm font-semibold text-green-700">+${calculatedAmount.toFixed(2)}</span>
+                                            <span className="text-sm font-semibold text-[var(--accent-green)]">+${calculatedAmount.toFixed(2)}</span>
                                           </div>
                                         </div>
                                       </div>
@@ -2802,7 +2823,7 @@ const DriverPayrollManagement = () => {
                             )}
                             {driverDeductions.length > 0 && (
                               <div>
-                                <h6 className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-2">
+                                <h6 className="text-sm font-semibold text-red-500 mb-2 flex items-center gap-2">
                                   <TrendingUp size={16} className="rotate-180" />
                                   Deductions ({driverDeductions.length})
                                 </h6>
@@ -2837,7 +2858,7 @@ const DriverPayrollManagement = () => {
                                       })();
 
                                     return (
-                                      <div key={deduction._id} className="bg-card p-3 rounded-lg border border-red-200">
+                                      <div key={deduction._id} className="bg-card p-3 rounded-lg border border-red-500/30">
                                         <div className="flex justify-between items-start gap-4">
                                           <div className="flex-1">
                                             <p className="text-sm font-medium text-primary">{deduction.name || deduction.description || 'Deduction'}</p>
@@ -2865,9 +2886,9 @@ const DriverPayrollManagement = () => {
                                               }}
                                               step="0.01"
                                               min="0"
-                                              className="w-24 px-2 py-1 text-sm border border-red-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500 bg-card"
+                                              className="w-24 px-2 py-1 text-sm border border-red-500/40 rounded focus:outline-none focus:ring-1 focus:ring-red-500 bg-card"
                                             />
-                                            <span className="text-sm font-semibold text-red-700">-${calculatedAmount.toFixed(2)}</span>
+                                            <span className="text-sm font-semibold text-red-500">-${calculatedAmount.toFixed(2)}</span>
                                           </div>
                                         </div>
                                       </div>
@@ -2888,7 +2909,7 @@ const DriverPayrollManagement = () => {
                             <div className="flex gap-2">
                               <button
                                 onClick={selectAllTrips}
-                                className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+                                className="px-3 py-1 text-xs bg-[var(--accent-green)]/20 text-[var(--accent-green)] rounded hover:bg-[var(--accent-green)]/30"
                               >
                                 Select All
                               </button>
@@ -2917,13 +2938,13 @@ const DriverPayrollManagement = () => {
                               </thead>
                               <tbody className="divide-y divide-theme">
                                 {driverTrips.map((trip) => (
-                                  <tr key={trip._id} className={`hover:bg-[rgba(255,255,255,0.03)] ${trip.selected ? 'bg-green-50' : ''}`}>
+                                  <tr key={trip._id} className={`hover:bg-[rgba(255,255,255,0.03)] ${trip.selected ? 'bg-[var(--accent-green)]/10' : ''}`}>
                                     <td className="px-3 py-2">
                                       <input
                                         type="checkbox"
                                         checked={trip.selected || false}
                                         onChange={() => toggleTripSelection(trip._id)}
-                                        className="w-4 h-4 text-green-600 bg-card border-theme rounded focus:ring-green-500"
+                                        className="w-4 h-4 text-[var(--accent-green)] bg-card border-theme rounded focus:ring-[var(--accent-green)]"
                                       />
                                     </td>
                                     <td className="px-3 py-2 text-sm font-medium text-primary">
@@ -2974,11 +2995,11 @@ const DriverPayrollManagement = () => {
                                     </td>
                                     <td className="px-3 py-2 text-sm">
                                       {trip.driverRole === 'coDriver' ? (
-                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[var(--accent-blue)]/20 text-[var(--accent-blue)]">
                                           Co-Driver
                                         </span>
                                       ) : (
-                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[var(--accent-green)]/20 text-[var(--accent-green)]">
                                           Driver
                                         </span>
                                       )}
@@ -3024,7 +3045,7 @@ const DriverPayrollManagement = () => {
                                         <div className="text-xs text-secondary mt-1">+ ${trip.highTempRate} (high temp)</div>
                                       ) : null}
                                     </td>
-                                    <td className="px-3 py-2 text-sm font-bold text-green-600">
+                                    <td className="px-3 py-2 text-sm font-bold text-[var(--accent-green)]">
                                       ${(() => {
                                         const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
                                         return earnings.toFixed(2);
@@ -3033,7 +3054,7 @@ const DriverPayrollManagement = () => {
                                   </tr>
                                 ))}
                               </tbody>
-                              <tfoot className="bg-green-50 sticky bottom-0">
+                              <tfoot className="bg-[var(--accent-green)]/10 sticky bottom-0">
                                 <tr>
                                   <td colSpan={6} className="px-3 py-3 text-sm font-medium text-primary text-right">
                                     Selected Totals:
@@ -3042,7 +3063,7 @@ const DriverPayrollManagement = () => {
                                     {getSelectedTripsTotals().totalMiles.toLocaleString()} mi
                                   </td>
                                   <td className="px-3 py-3 text-sm text-secondary">-</td>
-                                  <td className="px-3 py-3 text-sm font-bold text-green-600">
+                                  <td className="px-3 py-3 text-sm font-bold text-[var(--accent-green)]">
                                     ${getSelectedTripsTotals().totalEarnings.toFixed(2)}
                                   </td>
                                 </tr>
@@ -3053,9 +3074,9 @@ const DriverPayrollManagement = () => {
                       )}
 
                       {loadingTrips && (
-                        <div className="bg-green-50 p-4 rounded-lg border border-green-200 text-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
-                          <p className="text-sm text-green-600 font-medium mt-2">Loading trips...</p>
+                        <div className="bg-[var(--accent-green)]/10 p-4 rounded-lg border border-[var(--accent-green)]/30 text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-green)] mx-auto"></div>
+                          <p className="text-sm text-[var(--accent-green)] font-medium mt-2">Loading trips...</p>
                         </div>
                       )}
 
@@ -3075,10 +3096,10 @@ const DriverPayrollManagement = () => {
 
                   {/* AI Analysis Results */}
                   {aiAnalysis && (
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+                    <div className="bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)]/30 rounded-lg p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                          <div className="w-10 h-10 bg-[var(--accent-blue)] rounded-lg flex items-center justify-center">
                             <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                             </svg>
@@ -3097,13 +3118,13 @@ const DriverPayrollManagement = () => {
                       </div>
 
                       <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div className="bg-card rounded-lg p-4 border border-green-200">
+                        <div className="bg-card rounded-lg p-4 border border-[var(--accent-green)]/30">
                           <div className="text-sm text-secondary mb-1">Recommended Bonus</div>
-                          <div className="text-2xl font-bold text-green-600">${aiAnalysis.recommendedBonus.toFixed(2)}</div>
+                          <div className="text-2xl font-bold text-[var(--accent-green)]">${aiAnalysis.recommendedBonus.toFixed(2)}</div>
                         </div>
-                        <div className="bg-card rounded-lg p-4 border border-red-200">
+                        <div className="bg-card rounded-lg p-4 border border-red-500/30">
                           <div className="text-sm text-secondary mb-1">Recommended Deductions</div>
-                          <div className="text-2xl font-bold text-[#A855F7]">${aiAnalysis.recommendedDeductions.toFixed(2)}</div>
+                          <div className="text-2xl font-bold text-[var(--accent-purple)]">${aiAnalysis.recommendedDeductions.toFixed(2)}</div>
                         </div>
                       </div>
 
@@ -3191,11 +3212,11 @@ const DriverPayrollManagement = () => {
                                     </td>
                                     <td className="px-3 py-2 text-sm">
                                       {trip.driverRole === 'coDriver' ? (
-                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[var(--accent-blue)]/20 text-[var(--accent-blue)]">
                                           Co-Driver
                                         </span>
                                       ) : (
-                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[var(--accent-green)]/20 text-[var(--accent-green)]">
                                           Driver
                                         </span>
                                       )}
@@ -3239,7 +3260,7 @@ const DriverPayrollManagement = () => {
                                         )}
                                       </div>
                                     </td>
-                                    <td className="px-3 py-2 text-sm font-bold text-green-600">
+                                    <td className="px-3 py-2 text-sm font-bold text-[var(--accent-green)]">
                                       ${(() => {
                                         const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
                                         return earnings.toFixed(2);
@@ -3248,7 +3269,7 @@ const DriverPayrollManagement = () => {
                                   </tr>
                                 ))}
                               </tbody>
-                              <tfoot className="bg-green-50 sticky bottom-0">
+                              <tfoot className="bg-[var(--accent-green)]/10 sticky bottom-0">
                                 <tr>
                                   <td colSpan={5} className="px-3 py-3 text-sm font-medium text-primary text-right">
                                     Selected Totals:
@@ -3263,7 +3284,7 @@ const DriverPayrollManagement = () => {
                                     })()} mi
                                   </td>
                                   <td className="px-3 py-3 text-sm text-secondary">-</td>
-                                  <td className="px-3 py-3 text-sm font-bold text-green-600">
+                                  <td className="px-3 py-3 text-sm font-bold text-[var(--accent-green)]">
                                     ${(() => {
                                       const totalEarnings = aiAnalysis.trips?.reduce((sum, trip) => {
                                         const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
@@ -3617,16 +3638,16 @@ const DriverPayrollManagement = () => {
                     const netPay = grossEarnings - totalDeductions - totalTax;
 
                     return (
-                      <div className="bg-gradient-to-r from-green-600 to-green-700 text-primary p-6 rounded-lg">
+                      <div className="bg-[var(--accent-navyblue)] text-white p-6 rounded-lg">
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
-                            <p className="text-sm text-green-100">Gross Earnings</p>
+                            <p className="text-sm text-white/70">Gross Earnings</p>
                             <p className="text-lg font-semibold">
                               ${grossEarnings.toFixed(2)}
                             </p>
                           </div>
                           {(totalAdditions > 0 || manualBonus > 0) && (
-                            <div className="pl-4 text-xs text-green-200">
+                            <div className="pl-4 text-xs text-white/60">
                               {tripsTotals.totalEarnings > 0 && (
                                 <div className="flex justify-between">
                                   <span>Trips Earnings:</span>
@@ -3648,11 +3669,11 @@ const DriverPayrollManagement = () => {
                             </div>
                           )}
                           <div className="flex justify-between items-center text-sm">
-                            <p className="text-green-100">Deductions</p>
-                            <p className="text-red-200">-${totalDeductions.toFixed(2)}</p>
+                            <p className="text-white/70">Deductions</p>
+                            <p className="text-red-300">-${totalDeductions.toFixed(2)}</p>
                           </div>
                           {calculatedDeductions > 0 && (
-                            <div className="pl-4 text-xs text-red-200">
+                            <div className="pl-4 text-xs text-red-300">
                               <div className="flex justify-between">
                                 <span>Deductions ({driverDeductions.length}):</span>
                                 <span>-${calculatedDeductions.toFixed(2)}</span>
@@ -3660,19 +3681,19 @@ const DriverPayrollManagement = () => {
                             </div>
                           )}
                           <div className="flex justify-between items-center text-sm">
-                            <p className="text-green-100">Taxes</p>
-                            <p className="text-red-200">-${totalTax.toFixed(2)}</p>
+                            <p className="text-white/70">Taxes</p>
+                            <p className="text-red-300">-${totalTax.toFixed(2)}</p>
                           </div>
-                          <div className="pt-2 border-t border-green-500 flex justify-between items-center">
-                            <p className="text-sm font-bold text-green-100">Net Pay</p>
+                          <div className="pt-2 border-t border-white/20 flex justify-between items-center">
+                            <p className="text-sm font-bold text-white/70">Net Pay</p>
                             <p className="text-4xl font-bold mt-1">
                               ${netPay.toFixed(2)}
                             </p>
                           </div>
                           <div className="text-right mt-2">
-                            <p className="text-xs text-green-100">Based on</p>
+                            <p className="text-xs text-white/70">Based on</p>
                             <p className="text-sm font-bold">{tripsTotals.count} trips</p>
-                            <p className="text-xs text-green-100">{tripsTotals.totalMiles.toLocaleString()} miles</p>
+                            <p className="text-xs text-white/70">{tripsTotals.totalMiles.toLocaleString()} miles</p>
                           </div>
                         </div>
                       </div>
@@ -3745,22 +3766,22 @@ const DriverPayrollManagement = () => {
 
                 <div className="p-6 space-y-6">
                   {/* Driver Info */}
-                  <div className="bg-gradient-to-r from-green-500 to-green-600 text-primary p-6 rounded-xl">
+                  <div className="bg-[var(--accent-navyblue)] text-white p-6 rounded-xl">
                     <h5 className="text-lg font-bold mb-4 flex items-center gap-2">
                       <Truck size={20} />
                       Driver Information
                     </h5>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <label className="text-sm text-green-100">Driver Name</label>
+                        <label className="text-sm text-white/70">Driver Name</label>
                         <div className="text-xl font-bold mt-1">{selectedPayroll.userId.name}</div>
                       </div>
                       <div>
-                        <label className="text-sm text-green-100">Total Trips</label>
+                        <label className="text-sm text-white/70">Total Trips</label>
                         <div className="text-xl font-bold mt-1">{selectedPayroll.trips?.length || 0}</div>
                       </div>
                       <div>
-                        <label className="text-sm text-green-100">Pay Period</label>
+                        <label className="text-sm text-white/70">Pay Period</label>
                         <div className="text-sm font-medium mt-1">
                           {new Date(selectedPayroll.startDate).toLocaleDateString()} - {new Date(selectedPayroll.endDate).toLocaleDateString()}
                         </div>
@@ -3837,11 +3858,11 @@ const DriverPayrollManagement = () => {
                                 </td>
                                 <td className="px-3 py-2 text-sm">
                                   {trip.driverRole === 'coDriver' ? (
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[var(--accent-blue)]/20 text-[var(--accent-blue)]">
                                       Co-Driver
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[var(--accent-green)]/20 text-[var(--accent-green)]">
                                       Driver
                                     </span>
                                   )}
@@ -3861,7 +3882,7 @@ const DriverPayrollManagement = () => {
                                     return miles || 0;
                                   })()} mi
                                 </td>
-                                <td className="px-3 py-2 text-sm font-bold text-green-600">
+                                <td className="px-3 py-2 text-sm font-bold text-[var(--accent-green)]">
                                   {(() => {
                                     // Calculate earnings from miles and rate, or use stored value
                                     let earnings: number = 0;
@@ -3898,21 +3919,21 @@ const DriverPayrollManagement = () => {
                       Earnings Breakdown
                     </h5>
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 bg-card rounded-lg">
+                      <div className="flex justify-between items-center p-3 bg-card rounded-lg border border-theme">
                         <span className="text-sm font-medium text-primary">Trip Earnings ({selectedPayroll.totalMiles?.toLocaleString()} miles @ ${(selectedPayroll.ratePerMile || 0).toFixed(2)}/mi)</span>
                         <span className="text-lg font-bold text-primary">${selectedPayroll.baseSalary.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-card rounded-lg">
+                      <div className="flex justify-between items-center p-3 bg-card rounded-lg border border-theme">
                         <span className="text-sm font-medium text-primary">Bonus</span>
-                        <span className="text-lg font-bold text-green-600">+${selectedPayroll.bonus.toLocaleString()}</span>
+                        <span className="text-lg font-bold text-[var(--accent-green)]">+${selectedPayroll.bonus.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-card rounded-lg">
+                      <div className="flex justify-between items-center p-3 bg-card rounded-lg border border-theme">
                         <span className="text-sm font-medium text-primary">Deductions</span>
-                        <span className="text-lg font-bold text-[#A855F7]">-${selectedPayroll.deductions.toLocaleString()}</span>
+                        <span className="text-lg font-bold text-red-500">-${selectedPayroll.deductions.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-card rounded-lg">
+                      <div className="flex justify-between items-center p-3 bg-card rounded-lg border border-theme">
                         <span className="text-sm font-medium text-primary">Taxes</span>
-                        <span className="text-lg font-bold text-[#A855F7]">
+                        <span className="text-lg font-bold text-red-500">
                           -${(() => {
                             let totalTax = 0;
                             const country = selectedPayroll.country || 'USA';
@@ -3936,9 +3957,9 @@ const DriverPayrollManagement = () => {
                           })()}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-600 to-green-700 rounded-lg">
-                        <span className="text-sm font-medium text-primary">Net Pay</span>
-                        <span className="text-2xl font-bold text-primary">${selectedPayroll.totalSalary.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <div className="flex justify-between items-center p-4 bg-[var(--accent-navyblue)] rounded-lg">
+                        <span className="text-sm font-medium text-white/80">Net Pay</span>
+                        <span className="text-2xl font-bold text-white">${selectedPayroll.totalSalary.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
                     </div>
                   </div>
@@ -3961,7 +3982,7 @@ const DriverPayrollManagement = () => {
 
                     if (totalTaxes > 0) {
                       return (
-                        <div className="bg-card p-6 rounded-xl border border-purple-200">
+                        <div className="bg-card p-6 rounded-xl border border-[var(--accent-purple)]/30">
                           <h5 className="text-lg font-bold text-[var(--accent-purple)] mb-4 flex items-center gap-2">
                             <DollarSign size={20} className="text-[var(--accent-purple)]" />
                             Tax Information ({country})
@@ -4017,9 +4038,9 @@ const DriverPayrollManagement = () => {
                               </div>
                             </div>
                           )}
-                          <div className="mt-3 pt-3 border-t border-purple-300 flex justify-between items-center">
+                          <div className="mt-3 pt-3 border-t border-[var(--accent-purple)]/30 flex justify-between items-center">
                             <span className="text-sm font-semibold text-primary">Total Taxes:</span>
-                            <span className="text-lg font-bold text-purple-600">${totalTaxes.toFixed(2)}</span>
+                            <span className="text-lg font-bold text-[var(--accent-purple)]">${totalTaxes.toFixed(2)}</span>
                           </div>
                         </div>
                       );
@@ -4053,7 +4074,7 @@ const DriverPayrollManagement = () => {
                 <div className="p-6 border-t border-theme">
                   <button
                     onClick={() => setShowViewModal(false)}
-                    className="w-full px-6 py-3 bg-card hover:bg-gray-200 text-primary rounded-lg font-medium flex items-center justify-center gap-2"
+                    className="w-full px-6 py-3 bg-card hover:bg-[rgba(255,255,255,0.05)] border border-theme text-primary rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
                   >
                     <X size={18} />
                     Close
@@ -5052,11 +5073,11 @@ const DriverPayrollManagement = () => {
                                     </td>
                                     <td className="px-3 py-2 text-sm">
                                       {trip.driverRole === 'coDriver' ? (
-                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[var(--accent-blue)]/20 text-[var(--accent-blue)]">
                                           Co-Driver
                                         </span>
                                       ) : (
-                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[var(--accent-green)]/20 text-[var(--accent-green)]">
                                           Driver
                                         </span>
                                       )}

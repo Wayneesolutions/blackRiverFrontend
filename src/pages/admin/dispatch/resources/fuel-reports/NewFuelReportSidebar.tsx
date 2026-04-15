@@ -448,7 +448,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={handleClose}></div>
 
             <div className="fixed right-0 top-0 h-full w-full sm:w-[600px] bg-card border-l border-theme shadow-lg z-[101] flex flex-col">
-                <div className="p-4 border-b border-theme flex-shrink-0" style={{ background: FLEET_COLORS.gradient }}>
+                <div className="p-4 border-b border-theme flex-shrink-0 bg-[var(--accent-navyblue)]">
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-white">New Fuel Report</h2>
                         <button onClick={handleClose} className="text-white/80 hover:text-white">
@@ -595,12 +595,12 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                     >
-                                        <option value="">Select Unit</option>
+                                        <option className='form-option' value="">Select Unit</option>
                                         {unitsLoading ? (
                                             <option>Loading units...</option>
                                         ) : (
                                             units?.map(unit => (
-                                                <option key={unit.id} value={unit.id}>
+                                                <option className='form-option' key={unit.id} value={unit.id}>
                                                     {formatUnitLabel(unit)}
                                                 </option>
                                             ))
@@ -621,12 +621,12 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                             className="flex-1 px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                             style={focusRingStyle}
                                         >
-                                            <option value="">Select Product</option>
-                                            <option value="Truck Diesel">Truck Diesel</option>
-                                            <option value="Reefer Diesel">Reefer Diesel</option>
-                                            <option value="DEF">DEF</option>
+                                            <option className='form-option' value="">Select Product</option>
+                                            <option className='form-option' value="Truck Diesel">Truck Diesel</option>
+                                            <option className='form-option' value="Reefer Diesel">Reefer Diesel</option>
+                                            <option className='form-option' value="DEF">DEF</option>
                                             {fuelTypes.filter(ft => !['Truck Diesel', 'Reefer Diesel', 'DEF'].includes(ft.name)).map((ft) => (
-                                                <option key={ft._id} value={ft.name}>{ft.name}</option>
+                                                <option className='form-option' key={ft._id} value={ft.name}>{ft.name}</option>
                                             ))}
                                         </select>
                                         <button
@@ -635,7 +635,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                                 setShowAddTypeModal(true);
                                                 setNewTypeName('');
                                             }}
-                                            className="px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors whitespace-nowrap"
+                                            className="px-3 py-2 bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] rounded-md hover:bg-[var(--accent-blue)]/20 transition-colors whitespace-nowrap"
                                             title="Add new fuel type"
                                         >
                                             <Plus className="w-4 h-4" />
@@ -680,12 +680,12 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                             className="flex-1 px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                             style={focusRingStyle}
                                         >
-                                            <option value="">Select Unit</option>
+                                            <option className='form-option' value="">Select Unit</option>
                                             {loadingMeasurementUnits ? (
-                                                <option disabled>Loading...</option>
+                                                <option className='form-option' disabled>Loading...</option>
                                             ) : (
                                                 measurementUnits.map((u) => (
-                                                    <option key={u._id} value={u.name}>
+                                                    <option className='form-option' key={u._id} value={u.name}>
                                                         {u.name}
                                                     </option>
                                                 ))
@@ -697,7 +697,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                                 setShowAddUnitModal(true);
                                                 setNewUnitName('');
                                             }}
-                                            className="px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors whitespace-nowrap"
+                                            className="px-3 py-2 bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] rounded-md hover:bg-[var(--accent-blue)]/20 transition-colors whitespace-nowrap"
                                             title="Add new unit"
                                         >
                                             <Plus className="w-4 h-4" />
@@ -714,8 +714,8 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                     >
-                                        <option value="USA">USA</option>
-                                        <option value="CAD">CAD</option>
+                                        <option className='form-option' value="USA">USA</option>
+                                        <option className='form-option' value="CAD">CAD</option>
                                     </select>
                                 </div>
 
@@ -741,12 +741,12 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                             className="flex-1 px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                             style={focusRingStyle}
                                         >
-                                            <option value="">Select Fuel Vendor</option>
+                                            <option className='form-option' value="">Select Fuel Vendor</option>
                                             {loadingFuelVendors ? (
-                                                <option disabled>Loading...</option>
+                                                <option className='form-option' disabled>Loading...</option>
                                             ) : (
                                                 fuelVendors.map((v) => (
-                                                    <option key={v._id} value={v.name}>
+                                                    <option className='form-option' key={v._id} value={v.name}>
                                                         {v.name}
                                                     </option>
                                                 ))
@@ -758,7 +758,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                                 setShowAddVendorModal(true);
                                                 setNewVendorName('');
                                             }}
-                                            className="px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors whitespace-nowrap"
+                                            className="px-3 py-2 bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] rounded-md hover:bg-[var(--accent-blue)]/20 transition-colors whitespace-nowrap"
                                             title="Add new fuel vendor"
                                         >
                                             <Plus className="w-4 h-4" />
@@ -843,9 +843,9 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         className="w-full px-3 py-2 border border-theme rounded-md focus:ring-2 focus:border-transparent"
                                         style={focusRingStyle}
                                     >
-                                        <option value="pending">Pending</option>
-                                        <option value="approved">Approved</option>
-                                        <option value="rejected">Rejected</option>
+                                        <option className='form-option' value="pending">Pending</option>
+                                        <option className='form-option' value="approved">Approved</option>
+                                        <option className='form-option' value="rejected">Rejected</option>
                                     </select>
                                 </div>
                             </div>
@@ -864,8 +864,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                     <button
                         onClick={handleSubmit}
                         disabled={loadingSubmit}
-                        className="px-6 py-2 rounded-lg !text-white font-semibold transition-colors disabled:opacity-60"
-                        style={{ background: FLEET_COLORS.gradient }}
+                        className="px-6 py-2 rounded-lg !text-white font-semibold transition-colors disabled:opacity-60 bg-[var(--accent-navyblue)]"
                     >
                         {loadingSubmit ? 'Saving...' : 'Submit Fuel Report'}
                     </button>
@@ -913,8 +912,8 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                     <button
                                         onClick={handleAddNewType}
                                         disabled={addingType || !newTypeName.trim()}
-                                        className="px-4 py-2 rounded-lg !text-white transition-colors disabled:opacity-60"
-                                        style={{ background: FLEET_COLORS.gradient }}
+                                        className="px-4 py-2 rounded-lg !text-white transition-colors disabled:opacity-60 bg-[var(--accent-navyblue)]"
+                                        
                                     >
                                         {addingType ? 'Adding...' : 'Add Type'}
                                     </button>
@@ -966,8 +965,8 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                     <button
                                         onClick={handleAddNewUnit}
                                         disabled={addingUnit || !newUnitName.trim()}
-                                        className="px-4 py-2 rounded-lg !text-white transition-colors disabled:opacity-60"
-                                        style={{ background: FLEET_COLORS.gradient }}
+                                        className="px-4 py-2 rounded-lg !text-white transition-colors disabled:opacity-60 bg-[var(--accent-navyblue)]"
+                                    
                                     >
                                         {addingUnit ? 'Adding...' : 'Add Unit'}
                                     </button>
@@ -1019,8 +1018,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                     <button
                                         onClick={handleAddNewVendor}
                                         disabled={addingVendor || !newVendorName.trim()}
-                                        className="px-4 py-2 rounded-lg !text-white transition-colors disabled:opacity-60"
-                                        style={{ background: FLEET_COLORS.gradient }}
+                                        className="px-4 py-2 rounded-lg !text-white transition-colors disabled:opacity-60 bg-[var(--accent-navyblue)]"
                                     >
                                         {addingVendor ? 'Adding...' : 'Add Vendor'}
                                     </button>

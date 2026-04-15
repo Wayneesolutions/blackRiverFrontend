@@ -333,7 +333,7 @@ const PolicyManagementModule = () => {
     const policyCategoriesCount = uniqueCategories.size;
 
     return (
-      <div className="space-y-6 border-2 border-red-700">
+      <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 
           <div className="bg-card p-5 rounded-xl shadow-md border-l-4 border-purple-500">
@@ -492,7 +492,7 @@ const PolicyManagementModule = () => {
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 >
-                  {ALL_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                  {ALL_CATEGORIES.map(cat => <option className='form-option' key={cat} value={cat}>{cat}</option>)}
                 </select>
               </div>
 
@@ -503,10 +503,10 @@ const PolicyManagementModule = () => {
                   value={formData.documentType}
                   onChange={(e) => setFormData({ ...formData, documentType: e.target.value })}
                 >
-                  <option value="Policy">Policy</option>
-                  <option value="SOP">SOP</option>
-                  <option value="Procedure">Procedure</option>
-                  <option value="Form">Form</option>
+                  <option className='form-option' value="Policy">Policy</option>
+                  <option className='form-option' value="SOP">SOP</option>
+                  <option className='form-option' value="Procedure">Procedure</option>
+                  <option className='form-option' value="Form">Form</option>
                 </select>
               </div>
 
@@ -548,15 +548,15 @@ const PolicyManagementModule = () => {
   focus:border-[var(--accent-blue)]
   outline-none cursor-pointer transition-all"
                 >
-                  <option value={12} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  <option  value={12} className='form-option'>
                     12 months
                   </option>
 
-                  <option value={24} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  <option value={24} className='form-option'>
                     24 months
                   </option>
 
-                  <option value={36} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  <option value={36} className='form-option'>
                     36 months
                   </option>
                 </select>
@@ -577,28 +577,28 @@ const PolicyManagementModule = () => {
                 >
                   <option
                     value=""
-                    className="bg-[var(--bg-card)] text-[var(--text-primary)]"
+                    className='form-option'
                   >
                     Select Owner
                   </option>
 
-                  <option className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  <option className='form-option'>
                     Safety Manager
                   </option>
 
-                  <option className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  <option className='form-option'>
                     HR Manager
                   </option>
 
-                  <option className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  <option className='form-option'>
                     Operations Manager
                   </option>
 
-                  <option className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  <option className='form-option'>
                     Fleet Manager
                   </option>
 
-                  <option className="bg-[var(--bg-card)] text-[var(--text-primary)]">
+                  <option className='form-option'>
                     Yard Supervisor
                   </option>
                 </select>

@@ -467,12 +467,12 @@ export default function AccountsSetup() {
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
-                      <option value="">Select Type</option>
-                      <option value="Asset">Asset</option>
-                      <option value="Liability">Liability</option>
-                      <option value="Equity">Equity</option>
-                      <option value="Revenue">Revenue</option>
-                      <option value="Expense">Expense</option>
+                      <option className='form-option' value="">Select Type</option>
+                      <option className='form-option' value="Asset">Asset</option>
+                      <option className='form-option' value="Liability">Liability</option>
+                      <option className='form-option' value="Equity">Equity</option>
+                      <option className='form-option' value="Revenue">Revenue</option>
+                      <option className='form-option' value="Expense">Expense</option>
                     </select>
                   </div>
                   <div>
@@ -591,10 +591,10 @@ export default function AccountsSetup() {
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
-                      <option value="">Select Type</option>
-                      <option value="Driver">Driver</option>
-                      <option value="Vendor">Vendor</option>
-                      <option value="Carrier">Carrier</option>
+                      <option className='form-option' value="">Select Type</option>
+                      <option  className='form-option' value="Driver">Driver</option>
+                      <option className='form-option' value="Vendor">Vendor</option>
+                      <option className='form-option' value="Carrier">Carrier</option>
                     </select>
                   </div>
                 </>

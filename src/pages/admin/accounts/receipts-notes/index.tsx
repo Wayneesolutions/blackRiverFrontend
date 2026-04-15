@@ -1005,7 +1005,7 @@ export default function ReceiptsFinancialNotes() {
                     required
                   >
                     {expenseTypes.filter(t => t !== 'All').map(type => (
-                      <option key={type} value={type}>{type}</option>
+                      <option className='form-option' key={type} value={type}>{type}</option>
                     ))}
                   </select>
                 </div>

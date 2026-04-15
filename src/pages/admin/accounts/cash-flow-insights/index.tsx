@@ -379,7 +379,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                     </h3>
                                     <div className="space-y-3">
                                         {insightsData.aiInsights.risks.map((risk, index) => (
-                                            <div key={index} className={`p-4 rounded-lg border ${getSeverityColor(risk.severity)}`}>
+                                            <div key={index} className={`p-4 rounded-lg  border border-gray-700`}>
                                                 <div className="flex items-start justify-between mb-2">
                                                     <span className="text-xs font-medium uppercase">{risk.severity} Risk</span>
                                                     <span className="text-xs font-medium">{risk.category}</span>
@@ -402,7 +402,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                     </h3>
                                     <div className="space-y-3">
                                         {insightsData.aiInsights.recommendations.map((rec, index) => (
-                                            <div key={index} className={`p-4 rounded-lg border ${getPriorityColor(rec.priority)}`}>
+                                            <div key={index} className={`p-4 rounded-lg  border border-gray-700`}>
                                                 <div className="flex items-start justify-between mb-2">
                                                     <span className="text-xs font-medium uppercase">{rec.priority} Priority</span>
                                                     <span className="text-xs font-medium">{rec.category}</span>

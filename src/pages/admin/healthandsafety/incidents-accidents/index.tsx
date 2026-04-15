@@ -891,11 +891,11 @@ const IncidentManagement: React.FC = () => {
               onChange={(e) => setSelectedIncidentId(e.target.value)}
               className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
-              <option value="">Select Incident to Investigate...</option>
+              <option className='form-option' value="">Select Incident to Investigate...</option>
               {incidents
                 .filter((i) => i.status !== 'resolved' && i.status !== 'closed')
                 .map((i) => (
-                  <option key={i._id} value={i._id}>
+                  <option className='form-option' key={i._id} value={i._id}>
                     {i.incidentNumber} - {i.type}
                   </option>
                 ))}
@@ -935,7 +935,7 @@ const IncidentManagement: React.FC = () => {
                   onChange={(e) => setRootCauseType(e.target.value as '5-why')}
                   className="w-5 h-5 text-purple-600 focus:ring-purple-500"
                 />
-                <span className="font-medium text-primary">5-Why Analysis</span>
+                <span className="!ml-2 font-medium text-primary">5-Why Analysis</span>
               </label>
               <label className="flex items-center space-x-3 cursor-pointer">
                 <input
@@ -945,7 +945,7 @@ const IncidentManagement: React.FC = () => {
                   onChange={(e) => setRootCauseType(e.target.value as 'fishbone')}
                   className="w-5 h-5 text-purple-600 focus:ring-purple-500"
                 />
-                <span className="font-medium text-primary">
+                <span className=" !ml-2 font-medium text-primary">
                   Fishbone (Ishikawa) Diagram
                 </span>
               </label>
@@ -1095,7 +1095,7 @@ const IncidentManagement: React.FC = () => {
           <button
             type="button"
             onClick={() => setCurrentTab(TABS.INCIDENT_LIST)}
-            className="px-6 py-3 bg-gray-200 text-primary rounded-xl font-semibold hover:bg-gray-300 transition-colors"
+            className="px-6 py-3 bg-gray-200 !text-black rounded-xl font-semibold hover:bg-gray-300 transition-colors"
           >
             Cancel
           </button>
@@ -1330,8 +1330,8 @@ const IncidentManagement: React.FC = () => {
               <div className="border-t-2 border-theme pt-6">
                 <h3 className="text-lg font-bold mb-4 text-primary">Progress Notes</h3>
                 {progressNotes.map((note, idx) => (
-                  <div key={idx} className="mb-4 p-4 bg-card rounded-xl">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div key={idx} className="!mb-4 p-4 bg-card rounded-xl">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 !mb-4">
                       <input
                         type="date"
                         value={note.date}
@@ -1435,7 +1435,7 @@ const IncidentManagement: React.FC = () => {
                     setProgressNotes([{ date: '', note: '', enteredBy: '' }]);
                     setSelectedWcbFiles([]);
                   }}
-                  className="px-6 py-3 bg-gray-200 text-primary rounded-xl font-semibold hover:bg-gray-300 transition-colors"
+                  className="px-6 py-3 bg-gray-200 !text-black rounded-xl font-semibold hover:bg-gray-300 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1788,7 +1788,7 @@ const IncidentManagement: React.FC = () => {
             <div className="flex justify-end gap-3 pt-6 border-t-2 border-theme">
               <button
                 onClick={() => setSelectedIncidentForDetail(null)}
-                className="px-6 py-3 bg-gray-200 text-primary rounded-xl font-semibold hover:bg-gray-300 transition-colors"
+                className="px-6 py-3 bg-gray-200 !text-black rounded-xl font-semibold hover:bg-gray-300 transition-colors"
               >
                 Close
               </button>
@@ -1838,11 +1838,23 @@ const IncidentManagement: React.FC = () => {
             </button>
 
             {showNewReportMenu && (
-              <div className="absolute right-0 mt-2 w-64 bg-card rounded-lg shadow-xl z-50 border border-theme overflow-hidden">
-                <p className="px-4 py-2 text-[10px] font-bold text-secondary border-b bg-card uppercase tracking-wider">Select Report Type</p>
-                <div className="py-1">
+              <div className="absolute right-0 mt-2 w-64 bg-card rounded-lg shadow-xl z-50 
+                border border-white/10 overflow-hidden backdrop-blur-sm">
+
+                {/* Header */}
+                <p className="px-4 py-2 text-[10px] font-bold text-secondary 
+                border-b border-white/10 bg-card uppercase tracking-wider">
+                  Select Report Type
+                </p>
+
+                {/* Options */}
+                <div className="py-1 divide-y divide-white/5">
+
                   <button
-                    className="block w-full text-left px-4 py-2 text-xs text-primary hover:bg-blue-50 hover:text-[#00D1FF] transition"
+                    className="w-full text-left px-4 py-2 text-xs text-primary
+                 hover:bg-white/10 hover:text-[#00D1FF]
+                 active:bg-white/20
+                 transition-all duration-150"
                     onClick={() => {
                       setShowNewReportMenu(false);
                       setIncidentFormType('Driver Injury');
@@ -1851,8 +1863,12 @@ const IncidentManagement: React.FC = () => {
                   >
                     Driver Injury Report
                   </button>
+
                   <button
-                    className="block w-full text-left px-4 py-2 text-xs text-primary hover:bg-blue-50 hover:text-[#00D1FF] transition"
+                    className="w-full text-left px-4 py-2 text-xs text-primary
+                 hover:bg-white/10 hover:text-[#00D1FF]
+                 active:bg-white/20
+                 transition-all duration-150"
                     onClick={() => {
                       setShowNewReportMenu(false);
                       setIncidentFormType('Vehicle Accident');
@@ -1861,8 +1877,12 @@ const IncidentManagement: React.FC = () => {
                   >
                     Vehicle Accident Report
                   </button>
+
                   <button
-                    className="block w-full text-left px-4 py-2 text-xs text-primary hover:bg-blue-50 hover:text-[#00D1FF] transition"
+                    className="w-full text-left px-4 py-2 text-xs text-primary
+                 hover:bg-white/10 hover:text-[#00D1FF]
+                 active:bg-white/20
+                 transition-all duration-150"
                     onClick={() => {
                       setShowNewReportMenu(false);
                       setIncidentFormType('Workplace Incident');
@@ -1871,8 +1891,12 @@ const IncidentManagement: React.FC = () => {
                   >
                     Workplace Incident
                   </button>
+
                   <button
-                    className="block w-full text-left px-4 py-2 text-xs text-primary hover:bg-blue-50 hover:text-[#00D1FF] transition"
+                    className="w-full text-left px-4 py-2 text-xs text-primary
+                 hover:bg-white/10 hover:text-[#00D1FF]
+                 active:bg-white/20
+                 transition-all duration-150"
                     onClick={() => {
                       setShowNewReportMenu(false);
                       setIncidentFormType('Near Miss');
@@ -1881,6 +1905,7 @@ const IncidentManagement: React.FC = () => {
                   >
                     Near Miss Reporting
                   </button>
+
                 </div>
               </div>
             )}
@@ -2022,11 +2047,11 @@ const IncidentManagement: React.FC = () => {
                       required
                       className="w-full border border-theme p-2 rounded-lg"
                     >
-                      <option value="warehouse">Warehouse</option>
-                      <option value="yard">Yard</option>
-                      <option value="shop">Shop</option>
-                      <option value="highway">Highway</option>
-                      <option value="other">Other</option>
+                      <option className='form-option' value="warehouse">Warehouse</option>
+                      <option className='form-option' value="yard">Yard</option>
+                      <option className='form-option' value="shop">Shop</option>
+                      <option className='form-option' value="highway">Highway</option>
+                      <option className='form-option' value="other">Other</option>
                     </select>
                   </div>
                 </div>
@@ -2039,10 +2064,10 @@ const IncidentManagement: React.FC = () => {
                       required
                       className="w-full border border-theme p-2 rounded-lg"
                     >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                      <option value="critical">Critical</option>
+                      <option className='form-option' value="low">Low</option>
+                      <option className='form-option' value="medium">Medium</option>
+                      <option className='form-option' value="high">High</option>
+                      <option className='form-option' value="critical">Critical</option>
                     </select>
                   </div>
                   <div>
@@ -2130,7 +2155,7 @@ const IncidentManagement: React.FC = () => {
                       setSelectedPhotoFiles([]);
                       setSelectedVideoFiles([]);
                     }}
-                    className="px-4 py-2 bg-gray-200 text-primary rounded-lg hover:bg-gray-300"
+                    className="px-4 py-2 bg-gray-200 !text-black rounded-lg hover:bg-gray-300"
                   >
                     Cancel
                   </button>
@@ -2157,7 +2182,7 @@ const IncidentManagement: React.FC = () => {
 
         {/* Modal for Detailed Incident View */}
         {selectedIncidentForDetail && createPortal(
-          <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black/50 backdrop-blur-md">
+          <div className="fixed inset-0 flex justify-center items-center  p-4 bg-black/50 backdrop-blur-md">
             <div className="bg-card rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6">
               <div className="flex justify-between items-center border-b pb-3 mb-4">
                 <h3 className="text-xl font-bold text-headings">Incident Detail: {selectedIncidentForDetail.incidentNumber}</h3>

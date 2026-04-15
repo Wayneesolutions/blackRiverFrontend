@@ -1429,9 +1429,9 @@ const TruckingOperations: React.FC = () => {
                       onChange={(e) => setReeferForm({ ...reeferForm, driverName: e.target.value })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select driver</option>
+                      <option className='form-option' value="">Select driver</option>
                       {drivers.map((d) => (
-                        <option key={d._id} value={d.name}>{d.name}</option>
+                        <option className='form-option' key={d._id} value={d.name}>{d.name}</option>
                       ))}
                     </select>
                   </div>
@@ -1443,9 +1443,9 @@ const TruckingOperations: React.FC = () => {
                       onChange={(e) => setReeferForm({ ...reeferForm, vehicleNumber: e.target.value })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select vehicle</option>
+                      <option className='form-option' value="">Select vehicle</option>
                       {vehicles.map((v) => (
-                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                        <option className='form-option' key={v._id} value={v.unitNo}>{v.unitNo}</option>
                       ))}
                     </select>
                   </div>
@@ -1457,9 +1457,9 @@ const TruckingOperations: React.FC = () => {
                       onChange={(e) => setReeferForm({ ...reeferForm, trailerNumber: e.target.value })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select trailer</option>
+                      <option className='form-option' value="">Select trailer</option>
                       {trailers.map((t) => (
-                        <option key={t._id} value={t.unitNo}>{t.unitNo}</option>
+                        <option className='form-option' key={t._id} value={t.unitNo}>{t.unitNo}</option>
                       ))}
                     </select>
                   </div>
@@ -1491,10 +1491,10 @@ const TruckingOperations: React.FC = () => {
                       onChange={(e) => setReeferForm({ ...reeferForm, interiorCleanliness: e.target.value as any })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="excellent">Excellent</option>
-                      <option value="good">Good</option>
-                      <option value="fair">Fair</option>
-                      <option value="poor">Poor</option>
+                      <option className='form-option' value="excellent">Excellent</option>
+                      <option className='form-option' value="good">Good</option>
+                      <option className='form-option' value="fair">Fair</option>
+                      <option className='form-option' value="poor">Poor</option>
                     </select>
                   </div>
                 </div>
@@ -1530,9 +1530,9 @@ const TruckingOperations: React.FC = () => {
                       onChange={(e) => setWinterForm({ ...winterForm, performedBy: e.target.value })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select driver</option>
+                      <option className='form-option' value="">Select driver</option>
                       {drivers.map((d) => (
-                        <option key={d._id} value={d.name}>{d.name}</option>
+                        <option className='form-option' key={d._id} value={d.name}>{d.name}</option>
                       ))}
                     </select>
                   </div>
@@ -1543,9 +1543,9 @@ const TruckingOperations: React.FC = () => {
                       onChange={(e) => setWinterForm({ ...winterForm, vehicleNumber: e.target.value })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select vehicle</option>
+                      <option className='form-option' value="">Select vehicle</option>
                       {vehicles.map((v) => (
-                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                        <option className='form-option' key={v._id} value={v.unitNo}>{v.unitNo}</option>
                       ))}
                     </select>
                   </div>
@@ -1613,9 +1613,9 @@ const TruckingOperations: React.FC = () => {
                       onChange={(e) => setFuelingForm({ ...fuelingForm, performedBy: e.target.value })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select driver</option>
+                      <option className='form-option' value="">Select driver</option>
                       {drivers.map((d) => (
-                        <option key={d._id} value={d.name}>{d.name}</option>
+                        <option className='form-option' key={d._id} value={d.name}>{d.name}</option>
                       ))}
                     </select>
                   </div>
@@ -1626,9 +1626,9 @@ const TruckingOperations: React.FC = () => {
                       onChange={(e) => setFuelingForm({ ...fuelingForm, vehicleNumber: e.target.value })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select vehicle</option>
+                      <option className='form-option' value="">Select vehicle</option>
                       {vehicles.map((v) => (
-                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                        <option className='form-option' key={v._id} value={v.unitNo}>{v.unitNo}</option>
                       ))}
                     </select>
                   </div>
@@ -1640,11 +1640,11 @@ const TruckingOperations: React.FC = () => {
                       onChange={(e) => setFuelingForm({ ...fuelingForm, fuelType: e.target.value as any })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="diesel">Diesel</option>
-                      <option value="gasoline">Gasoline</option>
-                      <option value="DEF">DEF</option>
-                      <option value="propane">Propane</option>
-                      <option value="natural-gas">Natural Gas</option>
+                      <option className='form-option' value="diesel">Diesel</option>
+                      <option className='form-option' value="gasoline">Gasoline</option>
+                      <option className='form-option' value="DEF">DEF</option>
+                      <option className='form-option' value="propane">Propane</option>
+                      <option className='form-option' value="natural-gas">Natural Gas</option>
                     </select>
                   </div>
                   <div className="col-span-2">
@@ -1711,9 +1711,9 @@ const TruckingOperations: React.FC = () => {
                       onChange={(e) => setTdgForm({ ...tdgForm, driverName: e.target.value })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select driver</option>
+                      <option className='form-option' value="">Select driver</option>
                       {drivers.map((d) => (
-                        <option key={d._id} value={d.name}>{d.name}</option>
+                        <option className='form-option' key={d._id} value={d.name}>{d.name}</option>
                       ))}
                     </select>
                   </div>
@@ -1724,9 +1724,9 @@ const TruckingOperations: React.FC = () => {
                       onChange={(e) => setTdgForm({ ...tdgForm, vehicleNumber: e.target.value })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select vehicle</option>
+                      <option className='form-option' value="">Select vehicle</option>
                       {vehicles.map((v) => (
-                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                        <option className='form-option' key={v._id} value={v.unitNo}>{v.unitNo}</option>
                       ))}
                     </select>
                   </div>
@@ -1737,9 +1737,9 @@ const TruckingOperations: React.FC = () => {
                       onChange={(e) => setTdgForm({ ...tdgForm, trailerNumber: e.target.value })}
                       className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select trailer</option>
+                      <option className='form-option' value="">Select trailer</option>
                       {trailers.map((t) => (
-                        <option key={t._id} value={t.unitNo}>{t.unitNo}</option>
+                        <option className='form-option' key={t._id} value={t.unitNo}>{t.unitNo}</option>
                       ))}
                     </select>
                   </div>

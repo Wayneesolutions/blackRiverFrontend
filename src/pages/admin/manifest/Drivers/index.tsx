@@ -244,7 +244,7 @@ const DriversPage = () => {
         <button
           onClick={async () => { setExporting(true); try { await exportToExcel(drivers); } finally { setExporting(false); } }}
           disabled={exporting || !drivers.length}
-          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue)] disabled:opacity-50 !text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] hover:bg-[var(--accent-blue)] disabled:opacity-50 !text-white text-sm font-medium rounded-lg transition-colors"
         >
           {exporting ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />} Export
         </button>

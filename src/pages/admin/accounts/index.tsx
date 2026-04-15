@@ -164,7 +164,7 @@ const Dashboard = () => {
       value: `$${totalRevenue.toLocaleString()}`,
       subtitle: `${dashboardStats.invoiceCount} invoices`,
       icon: DollarSign,
-      bgColor: 'bg-[var-accent-green]',
+      bgColor: 'bg-[rgba(0,255,163,0.1)]',
       iconColor: 'text-[var(--accent-green)]',
       cardBg: 'bg-card'
     },
@@ -174,7 +174,7 @@ const Dashboard = () => {
       value: `$${totalExpenses.toLocaleString()}`,
       subtitle: `${dashboardStats.expenseCount} transactions`,
       icon: TrendingDown,
-      bgColor: 'bg-red-100',
+      bgColor: 'bg-[rgba(244,63,94,0.1)]',
       iconColor: 'text-[var(--accent-red)]',
       cardBg: 'bg-card'
     },
@@ -184,8 +184,8 @@ const Dashboard = () => {
       value: `$${netProfit.toLocaleString()}`,
       subtitle: 'Revenue - Expenses - Payroll',
       icon: TrendingUp,
-      bgColor: 'bg-purple-100',
-      iconColor: 'text-purple-700',
+      bgColor: 'bg-[rgba(168,85,247,0.1)]',
+      iconColor: 'text-[var(--accent-purple)]',
       cardBg: 'bg-card'
     }
   ];
@@ -208,7 +208,7 @@ const Dashboard = () => {
       value: `$${dashboardStats.paidInvoices.toLocaleString()}`,
       subtitle: 'Total paid amount',
       icon: CheckCircle,
-      bgColor: 'bg-emerald-100',
+      bgColor: 'bg-[rgba(0,255,163,0.1)]',
       iconColor: 'text-[var(--accent-green)]',
       cardBg: 'bg-card'
     },
@@ -218,7 +218,7 @@ const Dashboard = () => {
       value: `$${dashboardStats.unpaidOverdue.toLocaleString()}`,
       subtitle: 'Overdue payments',
       icon: XCircle,
-      bgColor: 'bg-rose-100',
+      bgColor: 'bg-[rgba(244,63,94,0.1)]',
       iconColor: 'text-[var(--accent-red)]',
       cardBg: 'bg-card'
     }
@@ -330,7 +330,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen p-4 bg-main px-6 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-[var(--accent-blue)]"></div>
       </div>
     );
   }
@@ -351,10 +351,8 @@ const Dashboard = () => {
             {/* Header Section */}
             <div className="mb-4 relative z-10">
               <div className="flex items-center justify-between">
-                <h1 className="text-xl font-bold ">Accounts Management</h1>
-                <div className="flex items-center gap-2 /90">
-                  <span className="text-xs">Financial Overview</span>
-                </div>
+                <h1 className="text-lg font-semibold text-[var(--text-primary)]">Accounts Management</h1>
+                <span className="text-xs text-secondary">Financial Overview</span>
               </div>
             </div>
 
@@ -374,25 +372,16 @@ const Dashboard = () => {
                           navigate(`${routePrefix}/expenses`);
                         }
                       }}
-                      className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                      className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-[rgba(255,255,255,0.04)] hover:border-[rgba(0,209,255,0.15)] hover:scale-[1.02] active:scale-[0.98]`}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        {/* Left side content */}
                         <div className="flex-1">
-                          <h3 className={`text-sm font-bold  mb-1 ${feature.iconColor}`}>
-                            {feature.title}
-                          </h3>
-
-                          <div className="flex items-baseline gap-2 mb-0.5">
-                            <span className="text-xl font-bold text-headings">{feature.value}</span>
-                          </div>
-
-                          <p className="text-xs text-secondary">{feature.subtitle}</p>
+                          <p className="text-xs text-secondary font-medium mb-1 uppercase tracking-wide">{feature.title}</p>
+                          <span className="text-xl font-bold text-[var(--text-primary)]">{feature.value}</span>
+                          <p className="text-xs text-secondary mt-1">{feature.subtitle}</p>
                         </div>
-
-                        {/* Right side icon */}
-                        <div className={` rounded-lg p-2 shadow-sm`}>
-                          <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                        <div className={`${feature.bgColor} rounded-lg p-2`}>
+                          <Icon className={feature.iconColor} size={20} strokeWidth={1.8} />
                         </div>
                       </div>
                     </div>
@@ -414,25 +403,16 @@ const Dashboard = () => {
                           navigate(`${routePrefix}/payroll`);
                         }
                       }}
-                      className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                      className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-[rgba(255,255,255,0.04)] hover:border-[rgba(0,209,255,0.15)] hover:scale-[1.02] active:scale-[0.98]`}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        {/* Left side content */}
                         <div className="flex-1">
-                          <h3 className={`text-sm font-bold  mb-1 ${feature.iconColor}`}>
-                            {feature.title}
-                          </h3>
-
-                          <div className="flex items-baseline gap-2 mb-0.5">
-                            <span className="text-xl font-bold text-headings">{feature.value}</span>
-                          </div>
-
-                          <p className="text-xs text-secondary">{feature.subtitle}</p>
+                          <p className="text-xs text-secondary font-medium mb-1 uppercase tracking-wide">{feature.title}</p>
+                          <span className="text-xl font-bold text-[var(--text-primary)]">{feature.value}</span>
+                          <p className="text-xs text-secondary mt-1">{feature.subtitle}</p>
                         </div>
-
-                        {/* Right side icon */}
-                        <div className={` rounded-lg p-2 shadow-sm`}>
-                          <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                        <div className={`${feature.bgColor} rounded-lg p-2`}>
+                          <Icon className={feature.iconColor} size={20} strokeWidth={1.8} />
                         </div>
                       </div>
                     </div>
@@ -448,41 +428,33 @@ const Dashboard = () => {
                   return (
                     <div
                       key={feature.id}
-                      onClick={() => {
-                        navigate(`${routePrefix}/payroll`);
-                      }}
-                      className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                      onClick={() => navigate(`${routePrefix}/payroll`)}
+                      className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-[rgba(255,255,255,0.04)] hover:border-[rgba(0,209,255,0.15)] hover:scale-[1.02] active:scale-[0.98]`}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        {/* Left side content */}
                         <div className="flex-1">
-                          <h3 className={`text-sm font-bold  mb-1 ${feature.iconColor}`}>
-                            {feature.title}
-                          </h3>
-
-                          <div className="flex items-center gap-4 mb-1">
+                          <p className="text-xs text-secondary font-medium mb-2 uppercase tracking-wide">{feature.title}</p>
+                          <div className="flex items-center gap-5 mb-1">
                             <div className="flex items-center gap-2">
-                              <UserCheck className="text-emerald-600" size={18} />
+                              <UserCheck className="text-[var(--accent-green)]" size={16} />
                               <div>
-                                <span className="text-lg font-bold text-headings">{feature.paidCount}</span>
+                                <span className="text-lg font-bold text-[var(--text-primary)]">{feature.paidCount}</span>
                                 <p className="text-xs text-secondary">Paid</p>
                               </div>
                             </div>
+                            <div className="w-px h-8 bg-[rgba(255,255,255,0.06)]" />
                             <div className="flex items-center gap-2">
-                              <UserX className="text-amber-600" size={18} />
+                              <UserX className="text-[var(--accent-amber)]" size={16} />
                               <div>
-                                <span className="text-lg font-bold text-headings">{feature.unpaidCount}</span>
+                                <span className="text-lg font-bold text-[var(--text-primary)]">{feature.unpaidCount}</span>
                                 <p className="text-xs text-secondary">Unpaid</p>
                               </div>
                             </div>
                           </div>
-
                           <p className="text-xs text-secondary">Total: {feature.totalCount} employees</p>
                         </div>
-
-                        {/* Right side icon */}
-                        <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
-                          <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                        <div className="rounded-lg p-2">
+                          <Icon className={feature.iconColor} size={20} strokeWidth={1.8} />
                         </div>
                       </div>
                     </div>
@@ -495,41 +467,33 @@ const Dashboard = () => {
                   return (
                     <div
                       key={feature.id}
-                      onClick={() => {
-                        navigate(`${routePrefix}/driverpayroll`);
-                      }}
-                      className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                      onClick={() => navigate(`${routePrefix}/driverpayroll`)}
+                      className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-[rgba(255,255,255,0.04)] hover:border-[rgba(0,209,255,0.15)] hover:scale-[1.02] active:scale-[0.98]`}
                     >
                       <div className="flex items-start justify-between mb-2">
-                        {/* Left side content */}
                         <div className="flex-1">
-                          <h3 className={`text-sm font-bold  mb-1 ${feature.iconColor}`}>
-                            {feature.title}
-                          </h3>
-
-                          <div className="flex items-center gap-4 mb-1">
+                          <p className="text-xs text-secondary font-medium mb-2 uppercase tracking-wide">{feature.title}</p>
+                          <div className="flex items-center gap-5 mb-1">
                             <div className="flex items-center gap-2">
-                              <CheckCircle className="text-emerald-600" size={18} />
+                              <CheckCircle className="text-[var(--accent-green)]" size={16} />
                               <div>
-                                <span className="text-lg font-bold text-headings">{feature.paidCount}</span>
+                                <span className="text-lg font-bold text-[var(--text-primary)]">{feature.paidCount}</span>
                                 <p className="text-xs text-secondary">Paid</p>
                               </div>
                             </div>
+                            <div className="w-px h-8 bg-[rgba(255,255,255,0.06)]" />
                             <div className="flex items-center gap-2">
-                              <Clock className="text-amber-600" size={18} />
+                              <Clock className="text-[var(--accent-amber)]" size={16} />
                               <div>
-                                <span className="text-lg font-bold text-headings">{feature.unpaidCount}</span>
+                                <span className="text-lg font-bold text-[var(--text-primary)]">{feature.unpaidCount}</span>
                                 <p className="text-xs text-secondary">Unpaid</p>
                               </div>
                             </div>
                           </div>
-
                           <p className="text-xs text-secondary">Total: {feature.totalCount} drivers</p>
                         </div>
-
-                        {/* Right side icon */}
-                        <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
-                          <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                        <div className="rounded-lg p-2">
+                          <Icon className={feature.iconColor} size={20} strokeWidth={1.8} />
                         </div>
                       </div>
                     </div>
@@ -540,7 +504,7 @@ const Dashboard = () => {
 
             {/* Quick Actions Section */}
             <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6 mb-4">
-              <h2 className="text-lg font-bold text-headings mb-4">Quick Actions & Modules</h2>
+              <h2 className="text-sm font-semibold text-secondary uppercase tracking-widest mb-4">Quick Actions & Modules</h2>
 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
                 {quickActions.map((action) => {
@@ -549,18 +513,18 @@ const Dashboard = () => {
                     <div
                       key={action.id}
                       onClick={() => navigate(action.path)}
-                      className="group p-4 rounded-xl border border-theme card-premium transition-all cursor-pointer"
+                      className="group p-4 rounded-xl border border-[rgba(255,255,255,0.04)] hover:border-[rgba(0,209,255,0.15)] bg-[var(--bg-card-light)] hover:bg-[rgba(0,209,255,0.04)] transition-all cursor-pointer"
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <div className={`${action.bgColor} group-hover:bg-card p-2 rounded-lg transition-colors`}>
-                          <Icon className={`h-5 w-5 ${action.iconColor}`} />
+                        <div className="p-2 rounded-lg bg-[rgba(255,255,255,0.04)] group-hover:bg-[rgba(0,209,255,0.08)] transition-colors">
+                          <Icon className={`h-4 w-4 ${action.iconColor}`} />
                         </div>
-                        <span className={`text-lg font-bold ${action.iconColor} group-hover:text-blue-700`}>
+                        <span className="text-base font-bold text-[var(--text-primary)]">
                           {action.value}
                         </span>
                       </div>
-                      <p className="text-sm font-medium text-headings group-hover:text-blue-800">{action.title}</p>
-                      <p className="text-xs text-secondary mt-1 group-hover:text-[#00D1FF]">{action.subtitle}</p>
+                      <p className="text-sm font-medium text-[var(--text-primary)]">{action.title}</p>
+                      <p className="text-xs text-secondary mt-0.5">{action.subtitle}</p>
                     </div>
                   );
                 })}
@@ -570,21 +534,21 @@ const Dashboard = () => {
             {/* Module Highlights */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
               {/* Settlement Module */}
-              <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
-                <div className="p-4 border-b border-theme" >
+              <div className="bg-card rounded-lg shadow-sm border border-[rgba(255,255,255,0.04)] overflow-hidden">
+                <div className="p-4 border-b border-[rgba(255,255,255,0.04)]">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-card bg-opacity-20 rounded-lg">
-                        <Calculator className="text-[#00D1FF]" size={20} />
+                      <div className="p-2 bg-[rgba(0,209,255,0.08)] rounded-lg">
+                        <Calculator className="text-[var(--accent-blue)]" size={18} />
                       </div>
                       <div>
-                        <h3 className="text-base font-semibold text-primary">Settlement Module</h3>
-                        <p className="text-xs text-primary text-opacity-90">Driver & Owner-Operator Pay</p>
+                        <h3 className="text-sm font-semibold text-[var(--text-primary)]">Settlement Module</h3>
+                        <p className="text-xs text-secondary">Driver & Owner-Operator Pay</p>
                       </div>
                     </div>
                     <button
                       onClick={() => navigate(`${routePrefix}/settlements`)}
-                      className="px-3 py-1.5 bg-card bg-opacity-20 hover:bg-opacity-30 text-primary rounded-lg text-xs font-medium transition-all"
+                      className="px-3 py-1.5 border border-[rgba(0,209,255,0.2)] text-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] rounded-lg text-xs font-medium transition-all"
                     >
                       View →
                     </button>
@@ -592,17 +556,17 @@ const Dashboard = () => {
                 </div>
                 <div className="p-4">
                   <div className="space-y-2">
-                    <div className="flex items-start gap-2 p-2 bg-card rounded-lg">
-                      <CheckCircle2 className="text-green-600 mt-0.5" size={16} />
+                    <div className="flex items-start gap-2 p-2 bg-[rgba(255,255,255,0.02)] rounded-lg">
+                      <CheckCircle2 className="text-[var(--accent-green)] mt-0.5 shrink-0" size={14} />
                       <div>
-                        <p className="text-xs font-semibold text-headings">Trip-wise Calculations</p>
+                        <p className="text-xs font-medium text-[var(--text-primary)]">Trip-wise Calculations</p>
                         <p className="text-xs text-secondary">Miles, Rate, FSC, Accessorials</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-2 p-2 bg-card rounded-lg">
-                      <CheckCircle2 className="text-green-600 mt-0.5" size={16} />
+                    <div className="flex items-start gap-2 p-2 bg-[rgba(255,255,255,0.02)] rounded-lg">
+                      <CheckCircle2 className="text-[var(--accent-green)] mt-0.5 shrink-0" size={14} />
                       <div>
-                        <p className="text-xs font-semibold text-headings">Auto-Generated</p>
+                        <p className="text-xs font-medium text-[var(--text-primary)]">Auto-Generated</p>
                         <p className="text-xs text-secondary">Ready-to-approve settlement sheets</p>
                       </div>
                     </div>
@@ -611,21 +575,21 @@ const Dashboard = () => {
               </div>
 
               {/* Expense Management */}
-              <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
-                <div className="p-4 border-b border-theme" >
+              <div className="bg-card rounded-lg shadow-sm border border-[rgba(255,255,255,0.04)] overflow-hidden">
+                <div className="p-4 border-b border-[rgba(255,255,255,0.04)]">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-card bg-opacity-20 rounded-lg">
-                        <Receipt className="text-[#00D1FF]" size={20} />
+                      <div className="p-2 bg-[rgba(244,63,94,0.08)] rounded-lg">
+                        <Receipt className="text-[var(--accent-red)]" size={18} />
                       </div>
                       <div>
-                        <h3 className="text-base font-semibold text-primary">Expense Management</h3>
-                        <p className="text-xs text-primary text-opacity-90">Track All Company Expenses</p>
+                        <h3 className="text-sm font-semibold text-[var(--text-primary)]">Expense Management</h3>
+                        <p className="text-xs text-secondary">Track All Company Expenses</p>
                       </div>
                     </div>
                     <button
                       onClick={() => navigate(`${routePrefix}/expenses`)}
-                      className="px-3 py-1.5 bg-card bg-opacity-20 hover:bg-opacity-30 text-primary rounded-lg text-xs font-medium transition-all"
+                      className="px-3 py-1.5 border border-[rgba(0,209,255,0.2)] text-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] rounded-lg text-xs font-medium transition-all"
                     >
                       View →
                     </button>
@@ -633,22 +597,22 @@ const Dashboard = () => {
                 </div>
                 <div className="p-4">
                   <div className="grid grid-cols-2 gap-2 mb-3">
-                    <div className="p-2 bg-card rounded-lg border border-orange-100">
-                      <CreditCard className="text-[#F59E0B] mb-1" size={16} />
-                      <p className="text-xs font-semibold text-headings">Fuel Receipts</p>
+                    <div className="p-2 bg-[rgba(255,255,255,0.02)] rounded-lg border border-[rgba(245,158,11,0.15)]">
+                      <CreditCard className="text-[var(--accent-orange)] mb-1" size={14} />
+                      <p className="text-xs font-medium text-[var(--text-primary)]">Fuel Receipts</p>
                     </div>
-                    <div className="p-2 bg-card rounded-lg border border-blue-100">
-                      <FileText className="text-[#00D1FF] mb-1" size={16} />
-                      <p className="text-xs font-semibold text-headings">Repairs</p>
+                    <div className="p-2 bg-[rgba(255,255,255,0.02)] rounded-lg border border-[rgba(0,209,255,0.15)]">
+                      <FileText className="text-[var(--accent-blue)] mb-1" size={14} />
+                      <p className="text-xs font-medium text-[var(--text-primary)]">Repairs</p>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-xs text-headings">
-                      <CheckCircle2 className="text-green-600" size={14} />
+                    <div className="flex items-center gap-2 text-xs text-secondary">
+                      <CheckCircle2 className="text-[var(--accent-green)] shrink-0" size={13} />
                       <span>Upload receipts with images</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-headings">
-                      <CheckCircle2 className="text-green-600" size={14} />
+                    <div className="flex items-center gap-2 text-xs text-secondary">
+                      <CheckCircle2 className="text-[var(--accent-green)] shrink-0" size={13} />
                       <span>Auto-reflect in P&L & settlements</span>
                     </div>
                   </div>
@@ -658,16 +622,16 @@ const Dashboard = () => {
 
             {/* Alerts */}
             {pendingRevenue > 0 && (
-              <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
-                <h3 className="text-base font-semibold text-headings mb-3">Alerts & Notifications</h3>
+              <div className="bg-card rounded-lg shadow-sm border border-[rgba(255,255,255,0.04)] p-4">
+                <h3 className="text-xs font-semibold text-secondary uppercase tracking-widest mb-3">Alerts & Notifications</h3>
                 <div
                   onClick={() => navigate(`${routePrefix}/invoice`)}
-                  className="flex items-center p-3 bg-card border border-yellow-200 rounded-lg cursor-pointer hover:bg-yellow-100 transition-colors"
+                  className="flex items-center p-3 bg-[rgba(255,255,255,0.02)] border border-[rgba(251,191,36,0.2)] rounded-lg cursor-pointer hover:bg-[rgba(251,191,36,0.05)] transition-colors"
                 >
-                  <AlertCircle className="text-[#00FFA3] mr-3" size={20} />
+                  <AlertCircle className="text-[var(--accent-amber)] mr-3 shrink-0" size={18} />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-yellow-800">Pending Invoices</p>
-                    <p className="text-xs text-[#00FFA3]">${pendingRevenue.toLocaleString()} in pending payments</p>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">Pending Invoices</p>
+                    <p className="text-xs text-secondary mt-0.5">${pendingRevenue.toLocaleString()} in pending payments</p>
                   </div>
                 </div>
               </div>

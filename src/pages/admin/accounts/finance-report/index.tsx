@@ -668,11 +668,11 @@ const FinanceReport = () => {
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      completed: 'bg-green-100 text-green-800 border-green-200',
-      'in-progress': 'bg-blue-100 text-blue-800 border-blue-200',
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      completed:    'bg-[rgba(0,255,163,0.1)]  text-[var(--accent-green)] border-[rgba(0,255,163,0.2)]',
+      'in-progress':'bg-[rgba(0,209,255,0.1)]  text-[var(--accent-blue)]  border-[rgba(0,209,255,0.2)]',
+      pending:      'bg-[rgba(251,191,36,0.1)] text-[var(--accent-amber)] border-[rgba(251,191,36,0.2)]'
     };
-    return styles[status as keyof typeof styles] || 'bg-card text-headings border-theme';
+    return styles[status as keyof typeof styles] || 'bg-card text-secondary border-theme';
   };
 
   // Calculate totals from actual data
@@ -730,7 +730,7 @@ const FinanceReport = () => {
       value: formatCurrency(totalRevenue),
       subtitle: 'From all trucks',
       icon: DollarSign,
-      iconColor: 'text-green-500',
+      iconColor: 'text-[var(--accent-green)]',
       cardBg: 'bg-card',
       trend: '—'
     },
@@ -739,7 +739,7 @@ const FinanceReport = () => {
       value: formatCurrency(totalExpenses),
       subtitle: 'Operating costs',
       icon: TrendingDown,
-      iconColor: 'text-red-500',
+      iconColor: 'text-[var(--accent-red)]',
       cardBg: 'bg-card',
       trend: '—'
     },
@@ -748,7 +748,7 @@ const FinanceReport = () => {
       value: formatCurrency(totalPayroll),
       subtitle: 'Driver & employee costs',
       icon: Users,
-      iconColor: 'text-blue-500',
+      iconColor: 'text-[var(--accent-blue)]',
       cardBg: 'bg-card',
       trend: '—'
     },
@@ -757,7 +757,7 @@ const FinanceReport = () => {
       value: formatCurrency(totalNetProfit),
       subtitle: 'Revenue - Expenses - Payroll',
       icon: TrendingUp,
-      iconColor: 'text-purple-500',
+      iconColor: 'text-[var(--accent-purple)]',
       cardBg: 'bg-card',
       trend: '—'
     },
@@ -775,7 +775,7 @@ const FinanceReport = () => {
       value: (overview.activeTrucks || truckFinancialData.length).toString(),
       subtitle: 'Fleet size',
       icon: Truck,
-      iconColor: 'text-orange-500',
+      iconColor: 'text-[var(--accent-orange)]',
       cardBg: 'bg-card',
       trend: '—'
     }
@@ -792,8 +792,8 @@ const FinanceReport = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl font-bold text-headings">Finance Report</h1>
-                <p className="text-xs text-headings/90 mt-1">Comprehensive financial insights and analysis</p>
+                <h1 className="text-xl font-bold text-[var(--text-primary)]">Finance Report</h1>
+                <p className="text-xs text-secondary mt-1">Comprehensive financial insights and analysis</p>
               </div>
 
             </div>
@@ -845,11 +845,11 @@ const FinanceReport = () => {
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
-                          <h3 className={`text-sm font-bold  mb-1 ${stat.iconColor}`}>{stat.title}</h3>
+                          <p className="text-xs text-secondary uppercase tracking-wide mb-1">{stat.title}</p>
                           <div className="flex items-baseline gap-2 mb-0.5">
                             <span className="text-xl font-bold text-primary">{stat.value}</span>
                             {stat.trend !== '—' && (
-                              <span className={`text-xs font-medium flex items-center gap-1 ${stat.trend.startsWith('+') ? 'text-green-600' : 'text-[#A855F7]'
+                              <span className={`text-xs font-medium flex items-center gap-1 ${stat.trend.startsWith('+') ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'
                                 }`}>
                                 {stat.trend.startsWith('+') ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                                 {stat.trend}
@@ -869,7 +869,7 @@ const FinanceReport = () => {
 
               {/* Consolidated Financial Summary */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                <h2 className="text-lg font-bold text-headings mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                   <PieChart size={20} className="text-[var(--accent-navyblue)]" />
                   Consolidated Financial Summary
                 </h2>
@@ -898,7 +898,7 @@ const FinanceReport = () => {
 
                 {/* Overall Comparison Chart */}
                 <div className="mt-6">
-                  <h3 className="text-base font-semibold text-headings mb-4">Revenue vs Expenses vs Net Profit Comparison</h3>
+                  <h3 className="text-base font-semibold text-[var(--text-primary)] mb-4">Revenue vs Expenses vs Net Profit Comparison</h3>
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
@@ -961,7 +961,7 @@ const FinanceReport = () => {
 
                 {/* Financial Health Analysis */}
                 <div className="mt-6 bg-card rounded-xl border border-theme p-5">
-                  <h3 className="text-sm font-semibold text-headings mb-4 flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                     <PieChart size={15} className="text-[var(--accent-blue)]" />
                     Financial Health Analysis
                   </h3>
@@ -982,13 +982,13 @@ const FinanceReport = () => {
                         <div>
                           <div className="flex justify-between items-center mb-1.5 border border-theme">
                             <div className="flex items-center gap-2">
-                              <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                              <div className="w-2.5 h-2.5 rounded-full bg-[rgba(0,255,163,0.06)]0"></div>
                               <span className="text-xs font-medium text-secondary">Revenue (Baseline)</span>
                             </div>
-                            <span className="text-xs font-bold text-green-600">{formatCurrency(totalRevenue)}</span>
+                            <span className="text-xs font-bold text-[var(--accent-green)]">{formatCurrency(totalRevenue)}</span>
                           </div>
                           <div className="h-7 bg-[var(--accent-navyblue)]/20 rounded-lg overflow-hidden border border-theme">
-                            <div className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-lg flex items-center px-3 transition-all"
+                            <div className="h-full bg-gradient-to-r from-[var(--accent-green)] to-[var(--accent-green)] rounded-lg flex items-center px-3 transition-all"
                               style={{ width: `${revWidth}%`, minWidth: totalRevenue > 0 ? '30px' : '0' }}>
                               <span className="text-xs font-bold text-headings drop-shadow">100%</span>
                             </div>
@@ -998,22 +998,22 @@ const FinanceReport = () => {
                         <div>
                           <div className="flex justify-between items-center mb-1.5">
                             <div className="flex items-center gap-2">
-                              <div className={`w-2.5 h-2.5 rounded-full ${isOverBudget ? 'bg-red-600' : 'bg-red-400'}`}></div>
+                              <div className={`w-2.5 h-2.5 rounded-full ${isOverBudget ? 'bg-[var(--accent-red)]' : 'bg-[var(--accent-red)]'}`}></div>
                               <span className="text-xs font-medium text-secondary">Total Costs <span className="text-secondary">(Expenses + Payroll)</span></span>
                             </div>
                             <div className="flex items-center gap-2 border border-theme">
-                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isOverBudget ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isOverBudget ? 'bg-[rgba(244,63,94,0.1)] text-[var(--accent-red)]' : 'bg-[rgba(245,158,11,0.1)] text-[var(--accent-orange)]'}`}>
                                 {costPct.toFixed(1)}% of revenue
                               </span>
-                              <span className="text-xs font-bold text-[#A855F7]">{formatCurrency(totalCosts)}</span>
+                              <span className="text-xs font-bold text-[var(--text-primary)]">{formatCurrency(totalCosts)}</span>
                             </div>
                           </div>
-                          <div className="h-7 bg-gray-200 rounded-lg overflow-hidden relative border border-theme">
+                          <div className="h-7 bg-[rgba(255,255,255,0.07)] rounded-lg overflow-hidden relative border border-theme">
                             {/* Revenue limit marker */}
                             {isOverBudget && totalRevenue > 0 && (
-                              <div className="absolute inset-y-0 border-r-2 border-dashed border-green-600 z-10"
+                              <div className="absolute inset-y-0 border-r-2 border-dashed border-[var(--accent-green)] z-10"
                                 style={{ left: `${revWidth}%` }}>
-                                <span className="absolute -top-5 -translate-x-1/2 text-[9px] font-bold text-green-700 whitespace-nowrap">Revenue limit</span>
+                                <span className="absolute -top-5 -translate-x-1/2 text-[9px] font-bold text-[var(--accent-green)] whitespace-nowrap">Revenue limit</span>
                               </div>
                             )}
                             <div className="h-full rounded-lg flex items-center px-3 transition-all bg-[var(--accent-red)]/80"
@@ -1023,17 +1023,17 @@ const FinanceReport = () => {
                           </div>
                         </div>
                         {/* Net result */}
-                        <div className={`flex items-center justify-between p-3 rounded-lg border ${totalNetProfit >= 0 ? 'bg-green-50 border-green-200' : 'bg-card border-red-200'}`}>
+                        <div className={`flex items-center justify-between p-3 rounded-lg border ${totalNetProfit >= 0 ? 'bg-[rgba(0,255,163,0.06)] border-[rgba(0,255,163,0.2)]' : 'bg-card border-[rgba(244,63,94,0.2)]'}`}>
                           <div className="flex items-center gap-2">
                             {totalNetProfit >= 0
-                              ? <TrendingUp size={16} className="text-green-600" />
-                              : <TrendingDown size={16} className="text-[#A855F7]" />}
-                            <span className="text-xs font-semibold text-headings">
+                              ? <TrendingUp size={16} className="text-[var(--accent-green)]" />
+                              : <TrendingDown size={16} className="text-[var(--accent-red)]" />}
+                            <span className="text-xs font-semibold text-[var(--text-primary)]">
                               Net {totalNetProfit >= 0 ? 'Profit' : 'Loss'}
                             </span>
                           </div>
                           <div className="text-right">
-                            <span className={`text-sm font-bold ${totalNetProfit >= 0 ? 'text-green-600' : 'text-[#A855F7]'}`}>
+                            <span className={`text-sm font-bold ${totalNetProfit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
                               {totalNetProfit < 0 ? '-' : ''}{formatCurrency(Math.abs(totalNetProfit))}
                             </span>
                             <span className="text-xs text-secondary ml-2">
@@ -1045,17 +1045,17 @@ const FinanceReport = () => {
                         <div className="grid grid-cols-3 gap-3 pt-1">
                           <div className="text-center p-2 bg-card rounded-lg border border-theme shadow-sm">
                             <div className="text-xs text-secondary mb-0.5">Expenses</div>
-                            <div className="text-sm font-bold text-[#A855F7]">{formatCurrency(totalExpenses)}</div>
+                            <div className="text-sm font-bold text-[var(--accent-red)]">{formatCurrency(totalExpenses)}</div>
                             <div className="text-xs text-secondary">{totalRevenue > 0 ? ((totalExpenses / totalRevenue) * 100).toFixed(1) : '0'}%</div>
                           </div>
                           <div className="text-center p-2 bg-card rounded-lg border border-theme shadow-sm">
                             <div className="text-xs text-secondary mb-0.5">Payroll</div>
-                            <div className="text-sm font-bold text-[#00D1FF]">{formatCurrency(totalPayroll)}</div>
+                            <div className="text-sm font-bold text-[var(--accent-blue)]">{formatCurrency(totalPayroll)}</div>
                             <div className="text-xs text-secondary">{totalRevenue > 0 ? ((totalPayroll / totalRevenue) * 100).toFixed(1) : '0'}%</div>
                           </div>
                           <div className="text-center p-2 bg-card rounded-lg border border-theme shadow-sm">
                             <div className="text-xs text-secondary mb-0.5">Profit Margin</div>
-                            <div className={`text-sm font-bold ${profitPct >= 0 ? 'text-green-600' : 'text-[#A855F7]'}`}>
+                            <div className={`text-sm font-bold ${profitPct >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
                               {profitPct >= 0 ? '+' : ''}{profitPct.toFixed(1)}%
                             </div>
                             <div className="text-xs text-secondary">{totalNetProfit >= 0 ? 'Profitable' : 'At Loss'}</div>
@@ -1070,7 +1070,7 @@ const FinanceReport = () => {
               {/* Quick Insights */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                  <h3 className="text-base font-bold text-headings mb-4 flex items-center gap-2">
+                  <h3 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                     <FileText size={18} className="text-[var(--accent-navyblue)]" />
                     Invoice Summary
                   </h3>
@@ -1094,7 +1094,7 @@ const FinanceReport = () => {
                 </div>
 
                 <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                  <h3 className="text-base font-bold text-headings mb-4 flex items-center gap-2">
+                  <h3 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                     <Receipt size={18} className="text-[var(--accent-navyblue)]" />
                     Expense Breakdown
                   </h3>
@@ -1126,7 +1126,7 @@ const FinanceReport = () => {
               {/* Period Selector for Truck-wise */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
                 <div className="flex items-center gap-4 flex-wrap">
-                  <label className="text-sm font-medium text-headings">Timeline:</label>
+                  <label className="text-sm font-medium text-secondary">Timeline:</label>
                   <div className="flex gap-2 flex-wrap">
                     {(['2weeks', '1month', 'monthly', 'quarterly', 'half-yearly', 'yearly'] as TimePeriod[]).map((period) => {
                       const getPeriodLabel = (p: TimePeriod) => {
@@ -1146,8 +1146,8 @@ const FinanceReport = () => {
                           onClick={() => setTimePeriod(period)}
                           disabled={loading}
                           className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${timePeriod === period
-                            ? 'bg-[var(--accent-navyblue)] !text-headings shadow-md'
-                            : 'bg-card text-headings hover:bg-gray-200'
+                            ? 'bg-[var(--accent-navyblue)] text-[var(--text-primary)] shadow-md'
+                            : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--text-primary)]'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
@@ -1160,7 +1160,7 @@ const FinanceReport = () => {
 
               {/* Truck-wise Comparison Chart - Grouped by Time Period */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                <h2 className="text-lg font-bold text-headings mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                   <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                   Truck-wise Revenue vs Expenses vs Net Profit (Grouped by {(() => {
                     switch (timePeriod) {
@@ -1307,11 +1307,11 @@ const FinanceReport = () => {
 
               <div className="bg-card rounded-xl shadow-sm border border-theme">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
-                  <h2 className="text-base font-bold text-headings flex items-center gap-2">
+                  <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
                     <Truck size={18} className="text-[var(--accent-navyblue)]" />
                     Truck-wise Financial Performance
                   </h2>
-                  <button className="px-3 py-1.5 bg-card hover:bg-gray-200 text-headings rounded-lg text-xs font-medium transition-all flex items-center gap-2">
+                  <button className="px-3 py-1.5 bg-card hover:bg-[rgba(255,255,255,0.06)] text-secondary rounded-lg text-xs font-medium transition-all flex items-center gap-2">
                     <Filter size={13} />
                     Filter
                   </button>
@@ -1320,20 +1320,20 @@ const FinanceReport = () => {
                   <table className="w-full" style={{ minWidth: '1100px' }}>
                     <thead>
                       <tr >
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Truck ID</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Truck #</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Revenue</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Expenses</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Payroll</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Net Profit</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap" style={{ minWidth: '100px' }}>Margin</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Trips</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Miles</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Rev/Mile</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Fleet Invoice</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Truck ID</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Truck #</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Revenue</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Expenses</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Payroll</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Net Profit</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap" style={{ minWidth: '100px' }}>Margin</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Trips</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Miles</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Rev/Mile</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Fleet Invoice</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-theme divide-white/5">
@@ -1345,27 +1345,27 @@ const FinanceReport = () => {
                         const costPerMile = hasMiles ? totalCost / truck.miles : null;
                         const profitPerMile = hasMiles ? truck.netProfit / truck.miles : null;
                         const shortId = truck.id ? truck.id.slice(-6).toUpperCase() : '—';
-                        const dash = <span className="text-gray-300 font-light">—</span>;
+                        const dash = <span className="text-secondary font-light">—</span>;
                         return (
                           <tr key={truck.id} className={`transition-colors ${idx % 2 === 0 ? 'bg-card' : 'bg-[var(--accent-navyblue)]/20'}`}>
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <span className="text-xs font-mono bg-card text-[#00D1FF] border border-blue-200 px-2 py-0.5 rounded">#{shortId}</span>
+                              <span className="text-xs font-mono bg-card text-[#00D1FF] border border-[rgba(0,209,255,0.2)] px-2 py-0.5 rounded">#{shortId}</span>
                             </td>
-                            <td className="px-4 py-3 text-sm font-bold text-headings whitespace-nowrap">{truck.truckNumber}</td>
-                            <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 whitespace-nowrap">{formatCurrency(truck.revenue)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-red-500 whitespace-nowrap">{formatCurrency(truck.expenses)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-blue-500 whitespace-nowrap">{formatCurrency(truck.payroll)}</td>
-                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${truck.netProfit >= 0 ? 'text-green-700' : 'text-[#A855F7]'}`}>
+                            <td className="px-4 py-3 text-sm font-bold text-[var(--text-primary)] whitespace-nowrap">{truck.truckNumber}</td>
+                            <td className="px-4 py-3 text-sm text-right font-semibold text-[var(--accent-green)] whitespace-nowrap">{formatCurrency(truck.revenue)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] whitespace-nowrap">{formatCurrency(truck.expenses)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] whitespace-nowrap">{formatCurrency(truck.payroll)}</td>
+                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${truck.netProfit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
                               {truck.netProfit < 0 ? '-' : ''}{formatCurrency(Math.abs(truck.netProfit))}
                             </td>
                             <td className="px-4 py-3 text-sm text-center whitespace-nowrap">
                               <div className="flex flex-col items-center gap-1">
-                                <span className={`text-xs font-bold ${profitMargin > 30 ? 'text-green-600' : profitMargin > 0 ? 'text-[#00FFA3]' : 'text-red-500'}`}>
+                                <span className={`text-xs font-bold ${profitMargin > 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
                                   {profitMargin.toFixed(1)}%
                                 </span>
-                                <div className="w-16 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                <div className="w-16 bg-[rgba(255,255,255,0.07)] rounded-full h-1.5 overflow-hidden">
                                   <div
-                                    className={`h-1.5 rounded-full transition-all ${profitMargin > 30 ? 'bg-green-500' : profitMargin > 0 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                                    className={`h-1.5 rounded-full transition-all ${profitMargin > 0 ? 'bg-[var(--accent-green)]' : 'bg-[var(--accent-red)]'}`}
                                     style={{ width: `${Math.min(Math.max(profitMargin, 0), 100)}%` }}
                                   />
                                 </div>
@@ -1376,16 +1376,16 @@ const FinanceReport = () => {
                                 {truck.trips}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-sm text-right text-headings whitespace-nowrap">{hasMiles ? truck.miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
-                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{revPerMile !== null ? <span className="text-emerald-600 font-medium">${revPerMile.toFixed(2)}</span> : dash}</td>
-                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{costPerMile !== null ? <span className="text-red-500">${costPerMile.toFixed(2)}</span> : dash}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] whitespace-nowrap">{hasMiles ? truck.miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
+                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{revPerMile !== null ? <span className="text-[var(--text-primary)]">${revPerMile.toFixed(2)}</span> : dash}</td>
+                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{costPerMile !== null ? <span className="text-[var(--text-primary)]">${costPerMile.toFixed(2)}</span> : dash}</td>
                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
                               {profitPerMile !== null
-                                ? <span className={profitPerMile >= 0 ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>{profitPerMile < 0 ? '-' : ''}${Math.abs(profitPerMile).toFixed(2)}</span>
+                                ? <span className={profitPerMile >= 0 ? 'text-[var(--accent-green)] font-medium' : 'text-[var(--accent-red)] font-medium'}>{profitPerMile < 0 ? '-' : ''}${Math.abs(profitPerMile).toFixed(2)}</span>
                                 : dash}
                             </td>
-                            <td className="px-4 py-3 text-sm text-right text-orange-500 whitespace-nowrap">{formatCurrency(truck.fuelCost)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-purple-500 whitespace-nowrap">{formatCurrency(truck.fleetInvoiceCost)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] whitespace-nowrap">{formatCurrency(truck.fuelCost)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] whitespace-nowrap">{formatCurrency(truck.fleetInvoiceCost)}</td>
                           </tr>
                         );
                       })}
@@ -1404,19 +1404,19 @@ const FinanceReport = () => {
                         const totMargin = totRev > 0 ? (totProfit / totRev) * 100 : 0;
                         return (
                           <tr className="font-bold border-t-2 border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/5">
-                            <td colSpan={2} className="px-4 py-3 text-sm text-headings font-bold">Fleet Total</td>
-                            <td className="px-4 py-3 text-sm text-right text-green-700 font-bold whitespace-nowrap">{formatCurrency(totRev)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-[#A855F7] font-bold whitespace-nowrap">{formatCurrency(totExp)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-[#00D1FF] font-bold whitespace-nowrap">{formatCurrency(totPay)}</td>
-                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-700' : 'text-[#A855F7]'}`}>{formatCurrency(totProfit)}</td>
-                            <td className="px-4 py-3 text-sm text-center font-bold text-headings whitespace-nowrap">{totMargin.toFixed(1)}%</td>
-                            <td className="px-4 py-3 text-sm text-center font-bold text-headings whitespace-nowrap">{totTrips}</td>
-                            <td className="px-4 py-3 text-sm text-right text-headings font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : <span className="text-gray-300 font-light">—</span>}</td>
-                            <td className="px-4 py-3 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totRev / totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
-                            <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totCost / totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
-                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>{hasTotMiles ? `$${(totProfit / totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
-                            <td className="px-4 py-3 text-sm text-right text-orange-500 font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s, t) => s + t.fuelCost, 0))}</td>
-                            <td className="px-4 py-3 text-sm text-right text-purple-500 font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s, t) => s + t.fleetInvoiceCost, 0))}</td>
+                            <td colSpan={2} className="px-4 py-3 text-sm text-[var(--text-primary)] font-bold">Fleet Total</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--accent-green)] font-bold whitespace-nowrap">{formatCurrency(totRev)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{formatCurrency(totExp)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{formatCurrency(totPay)}</td>
+                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>{formatCurrency(totProfit)}</td>
+                            <td className="px-4 py-3 text-sm text-center font-bold text-[var(--text-primary)] whitespace-nowrap">{totMargin.toFixed(1)}%</td>
+                            <td className="px-4 py-3 text-sm text-center font-bold text-[var(--text-primary)] whitespace-nowrap">{totTrips}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : <span className="text-secondary font-light">—</span>}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{hasTotMiles ? `${(totRev / totMiles).toFixed(2)}` : <span className="text-secondary font-light">—</span>}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{hasTotMiles ? `${(totCost / totMiles).toFixed(2)}` : <span className="text-secondary font-light">—</span>}</td>
+                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>{hasTotMiles ? `$${(totProfit / totMiles).toFixed(2)}` : <span className="text-secondary font-light">—</span>}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s, t) => s + t.fuelCost, 0))}</td>
+                            <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s, t) => s + t.fleetInvoiceCost, 0))}</td>
                           </tr>
                         );
                       })()}
@@ -1433,7 +1433,7 @@ const FinanceReport = () => {
               {/* Period Selector for Trip-wise */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
                 <div className="flex items-center gap-4 flex-wrap">
-                  <label className="text-sm font-medium text-headings">Timeline:</label>
+                  <label className="text-sm font-medium text-secondary">Timeline:</label>
                   <div className="flex gap-2 flex-wrap">
                     {(['2weeks', '1month', 'monthly', 'quarterly', 'half-yearly', 'yearly'] as TimePeriod[]).map((period) => {
                       const getPeriodLabel = (p: TimePeriod) => {
@@ -1453,8 +1453,8 @@ const FinanceReport = () => {
                           onClick={() => setTimePeriod(period)}
                           disabled={loading}
                           className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${timePeriod === period
-                            ? 'bg-[var(--accent-navyblue)] !text-headings shadow-md'
-                            : 'bg-card text-headings hover:bg-gray-200'
+                            ? 'bg-[var(--accent-navyblue)] text-[var(--text-primary)] shadow-md'
+                            : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--text-primary)]'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
@@ -1467,7 +1467,7 @@ const FinanceReport = () => {
 
               {/* Trip-wise Comparison Chart - Grouped by Time Period */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                <h2 className="text-lg font-bold text-headings mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                   <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                   Trip-wise Revenue vs Expenses vs Net Profit (Grouped by {(() => {
                     switch (timePeriod) {
@@ -1599,11 +1599,11 @@ const FinanceReport = () => {
 
               <div className="bg-card rounded-xl shadow-sm border border-theme">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
-                  <h2 className="text-base font-bold text-headings flex items-center gap-2">
+                  <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
                     <MapPin size={18} className="text-[var(--accent-blue)]" />
                     Trip-wise Financial Details
                   </h2>
-                  <button className="px-3 py-1.5 bg-card hover:bg-gray-200 text-headings rounded-lg text-xs font-medium transition-all flex items-center gap-2">
+                  <button className="px-3 py-1.5 bg-card hover:bg-[rgba(255,255,255,0.06)] text-secondary rounded-lg text-xs font-medium transition-all flex items-center gap-2">
                     <Filter size={13} />
                     Filter
                   </button>
@@ -1669,24 +1669,24 @@ const FinanceReport = () => {
                     <table className="w-full" style={{ minWidth: '1400px' }}>
                       <thead>
                         <tr >
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Trip ID</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Trip #</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Truck</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Driver</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider" style={{ minWidth: '180px' }}>Route</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Miles</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Start Date</th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">End Date</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Revenue</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Other Exp</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Driver Pay</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Net Profit</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Rev/Mile</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
-                          <th className="px-4 py-3 text-right text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
-                          <th className="px-4 py-3 text-center text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap" style={{ minWidth: '100px' }}>Margin</th>
-                          <th className="px-4 py-3 text-center text-xs font-semibold text-headings uppercase tracking-wider whitespace-nowrap">Status</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Trip ID</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Trip #</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Truck</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Driver</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider" style={{ minWidth: '180px' }}>Route</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Miles</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Start Date</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">End Date</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Revenue</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Other Exp</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Driver Pay</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Net Profit</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Rev/Mile</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap" style={{ minWidth: '100px' }}>Margin</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Status</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-theme divide-white/5">
@@ -1704,7 +1704,7 @@ const FinanceReport = () => {
                           const costPerMile = hasMiles ? totalCost / miles : null;
                           const profitPerMile = hasMiles ? netProfit / miles : null;
                           const shortId = trip.id ? trip.id.slice(-6).toUpperCase() : '—';
-                          const dash = <span className="text-gray-300 font-light">—</span>;
+                          const dash = <span className="text-secondary font-light">—</span>;
                           let formattedStartDate = '—';
                           let formattedEndDate = '—';
                           try { if (trip.startDate) formattedStartDate = new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }); } catch { }
@@ -1713,18 +1713,18 @@ const FinanceReport = () => {
                             ? `${trip.origin} → ${trip.destination}`
                             : trip.origin !== 'N/A' ? trip.origin : trip.destination !== 'N/A' ? trip.destination : '—';
                           return (
-                            <tr key={trip.id} className={`hover:bg-[var(--accent-blue)]/20 transition-colors ${idx % 2 === 0 ? 'bg-card' : 'bg-[var(--accent-navyblue)]/20'}`}>
+                            <tr key={trip.id} className={`hover:bg-[rgba(255,255,255,0.03)] transition-colors ${idx % 2 === 0 ? 'bg-card' : 'bg-[var(--accent-navyblue)]/20'}`}>
                               <td className="px-4 py-3 whitespace-nowrap">
-                                <span className="text-xs font-mono bg-card text-purple-600 border border-purple-200 px-2 py-0.5 rounded">#{shortId}</span>
+                                <span className="text-xs font-mono bg-card text-[var(--accent-blue)] border border-[rgba(0,209,255,0.2)] px-2 py-0.5 rounded">#{shortId}</span>
                               </td>
                               <td className="px-4 py-3 text-sm font-bold text-secondary whitespace-nowrap">{trip.tripNumber || '—'}</td>
                               <td className="px-4 py-3 text-sm font-semibold text-secondary whitespace-nowrap">{trip.truckNumber || '—'}</td>
-                              <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{trip.driverName || <span className="text-gray-300">—</span>}</td>
+                              <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{trip.driverName || <span className="text-secondary">—</span>}</td>
                               <td className="px-4 py-3 text-sm text-secondary">
                                 <div className="relative group inline-flex items-center gap-1 min-w-0 cursor-default">
-                                  <span className="text-secondary font-medium truncate" style={{ maxWidth: '80px' }}>{trip.origin && trip.origin !== 'N/A' ? trip.origin : <span className="text-gray-300">—</span>}</span>
+                                  <span className="text-secondary font-medium truncate" style={{ maxWidth: '80px' }}>{trip.origin && trip.origin !== 'N/A' ? trip.origin : <span className="text-secondary">—</span>}</span>
                                   <ArrowUpRight size={12} className="text-[var(--accent-blue)] flex-shrink-0" />
-                                  <span className="text-secondary font-medium truncate" style={{ maxWidth: '80px' }}>{trip.destination && trip.destination !== 'N/A' ? trip.destination : <span className="text-gray-300">—</span>}</span>
+                                  <span className="text-secondary font-medium truncate" style={{ maxWidth: '80px' }}>{trip.destination && trip.destination !== 'N/A' ? trip.destination : <span className="text-secondary">—</span>}</span>
                                   {routeText !== '—' && (
                                     <div className="absolute z-50 bottom-full left-0 mb-1.5 px-2.5 py-1.5 bg-gray-900 text-secondary text-xs rounded-lg whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150">
                                       {trip.origin && trip.origin !== 'N/A' ? trip.origin : '—'}
@@ -1737,27 +1737,27 @@ const FinanceReport = () => {
                               <td className="px-4 py-3 text-sm text-right text-secondary whitespace-nowrap">{hasMiles ? miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
                               <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{formattedStartDate}</td>
                               <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{formattedEndDate}</td>
-                              <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 whitespace-nowrap">{formatCurrency(revenue)}</td>
-                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{fuelCost > 0 ? <span className="text-orange-500">{formatCurrency(fuelCost)}</span> : dash}</td>
-                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{otherExp > 0 ? <span className="text-red-500">{formatCurrency(otherExp)}</span> : dash}</td>
-                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{driverPay > 0 ? <span className="text-blue-500">{formatCurrency(driverPay)}</span> : dash}</td>
-                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${netProfit >= 0 ? 'text-green-700' : 'text-[#A855F7]'}`}>
+                              <td className="px-4 py-3 text-sm text-right font-semibold text-[var(--accent-green)] whitespace-nowrap">{formatCurrency(revenue)}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{fuelCost > 0 ? <span className="text-[var(--text-primary)]">{formatCurrency(fuelCost)}</span> : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{otherExp > 0 ? <span className="text-[var(--text-primary)]">{formatCurrency(otherExp)}</span> : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{driverPay > 0 ? <span className="text-[var(--text-primary)]">{formatCurrency(driverPay)}</span> : dash}</td>
+                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${netProfit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
                                 {netProfit < 0 ? '-' : ''}{formatCurrency(Math.abs(netProfit))}
                               </td>
-                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{revPerMile !== null ? <span className="text-emerald-600 font-medium">${revPerMile.toFixed(2)}</span> : dash}</td>
-                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{costPerMile !== null ? <span className="text-red-500">${costPerMile.toFixed(2)}</span> : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{revPerMile !== null ? <span className="text-[var(--text-primary)]">${revPerMile.toFixed(2)}</span> : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{costPerMile !== null ? <span className="text-[var(--text-primary)]">${costPerMile.toFixed(2)}</span> : dash}</td>
                               <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
                                 {profitPerMile !== null
-                                  ? <span className={profitPerMile >= 0 ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>{profitPerMile < 0 ? '-' : ''}${Math.abs(profitPerMile).toFixed(2)}</span>
+                                  ? <span className={profitPerMile >= 0 ? 'text-[var(--accent-green)] font-medium' : 'text-[var(--accent-red)] font-medium'}>{profitPerMile < 0 ? '-' : ''}${Math.abs(profitPerMile).toFixed(2)}</span>
                                   : dash}
                               </td>
                               <td className="px-4 py-3 text-sm text-center whitespace-nowrap">
                                 <div className="flex flex-col items-center gap-1">
-                                  <span className={`text-xs font-bold ${profitMargin > 30 ? 'text-green-600' : profitMargin > 0 ? 'text-[#00FFA3]' : 'text-red-500'}`}>
+                                  <span className={`text-xs font-bold ${profitMargin > 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
                                     {isNaN(profitMargin) ? '0.0' : profitMargin.toFixed(1)}%
                                   </span>
-                                  <div className="w-14 bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                                    <div className={`h-1.5 rounded-full ${profitMargin > 30 ? 'bg-green-500' : profitMargin > 0 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                                  <div className="w-14 bg-[rgba(255,255,255,0.07)] rounded-full h-1.5 overflow-hidden">
+                                    <div className={`h-1.5 rounded-full ${profitMargin > 0 ? 'bg-[var(--accent-green)]' : 'bg-[var(--accent-red)]'}`}
                                       style={{ width: `${Math.min(Math.max(profitMargin, 0), 100)}%` }} />
                                   </div>
                                 </div>
@@ -1783,21 +1783,21 @@ const FinanceReport = () => {
                           const totCost = totFuelCost + totOtherExp + totPay;
                           const hasTotMiles = totMiles > 0;
                           const totMargin = totRev > 0 ? (totProfit / totRev) * 100 : 0;
-                          const dash = <span className="text-gray-300 font-light">—</span>;
+                          const dash = <span className="text-secondary font-light">—</span>;
                           return (
                             <tr className="font-bold border-t-2 border-[var(--accent-blue)]/30 bg-[var(--accent-blue)]/5">
                               <td colSpan={4} className="px-4 py-3 text-sm text-secondary font-bold whitespace-nowrap">All Trips Total</td>
                               <td className="px-4 py-3 whitespace-nowrap"></td>
                               <td className="px-4 py-3 text-sm text-right text-secondary font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
                               <td colSpan={2} className="px-4 py-3 whitespace-nowrap"></td>
-                              <td className="px-4 py-3 text-sm text-right text-green-700 font-bold whitespace-nowrap">{formatCurrency(totRev)}</td>
-                              <td className="px-4 py-3 text-sm text-right text-orange-500 font-bold whitespace-nowrap">{totFuelCost > 0 ? formatCurrency(totFuelCost) : dash}</td>
-                              <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{totOtherExp > 0 ? formatCurrency(totOtherExp) : dash}</td>
-                              <td className="px-4 py-3 text-sm text-right text-blue-500 font-bold whitespace-nowrap">{totPay > 0 ? formatCurrency(totPay) : dash}</td>
-                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-700' : 'text-[#A855F7]'}`}>{formatCurrency(totProfit)}</td>
-                              <td className="px-4 py-3 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totRev / totMiles).toFixed(2)}` : dash}</td>
-                              <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totCost / totMiles).toFixed(2)}` : dash}</td>
-                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>{hasTotMiles ? `$${(totProfit / totMiles).toFixed(2)}` : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-[var(--accent-green)] font-bold whitespace-nowrap">{formatCurrency(totRev)}</td>
+                              <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{totFuelCost > 0 ? formatCurrency(totFuelCost) : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{totOtherExp > 0 ? formatCurrency(totOtherExp) : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{totPay > 0 ? formatCurrency(totPay) : dash}</td>
+                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>{formatCurrency(totProfit)}</td>
+                              <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{hasTotMiles ? `${(totRev / totMiles).toFixed(2)}` : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)] font-bold whitespace-nowrap">{hasTotMiles ? `${(totCost / totMiles).toFixed(2)}` : dash}</td>
+                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>{hasTotMiles ? `$${(totProfit / totMiles).toFixed(2)}` : dash}</td>
                               <td className="px-4 py-3 text-sm text-center font-bold text-secondary whitespace-nowrap">{totMargin.toFixed(1)}%</td>
                               <td className="px-4 py-3 whitespace-nowrap"></td>
                             </tr>
@@ -1817,7 +1817,7 @@ const FinanceReport = () => {
               {/* Period Selector */}
               <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
                 <div className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-headings">Report Period:</label>
+                  <label className="text-sm font-medium text-secondary">Report Period:</label>
                   <div className="flex gap-2 flex-wrap">
                     {(['2weeks', '1month', 'monthly', 'quarterly', 'half-yearly', 'yearly'] as TimePeriod[]).map((period) => {
                       const getPeriodLabel = (p: TimePeriod) => {
@@ -1837,8 +1837,8 @@ const FinanceReport = () => {
                           }}
                           disabled={loading}
                           className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${timePeriod === period
-                            ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] !text-headings shadow-md'
-                            : 'bg-card text-headings hover:bg-gray-200'
+                            ? 'bg-gradient-to-r from-[var(--accent-blue)] to-[rgba(0,209,255,0.15)] text-[var(--text-primary)] shadow-md'
+                            : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--text-primary)]'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           {getPeriodLabel(period)}
@@ -1860,7 +1860,7 @@ const FinanceReport = () => {
               {!loading && getCurrentReports().length === 0 && dataLoaded && (
                 <div className="bg-card rounded-lg shadow-sm border border-theme p-8 text-center">
                   <Calendar size={48} className="mx-auto text-secondary mb-4" />
-                  <h3 className="text-lg font-semibold text-headings mb-2">No Data Available</h3>
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">No Data Available</h3>
                   <p className="text-secondary mb-4">No financial data found for the selected period ({timePeriod}).</p>
                   <p className="text-sm text-secondary">Try selecting a different period or check if you have invoices, expenses, or payroll records.</p>
                 </div>
@@ -1872,7 +1872,7 @@ const FinanceReport = () => {
 
                   {/* Time-based Comparison Chart */}
                   <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                    <h2 className="text-lg font-bold text-headings mb-4 flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                       <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                       {(() => {
                         switch (timePeriod) {
@@ -1954,7 +1954,7 @@ const FinanceReport = () => {
 
                   {/* Time-based Comparison Bar Chart */}
                   <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                    <h2 className="text-lg font-bold text-headings mb-4 flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                       <BarChart3 size={20} className="text-[var(--accent-blue)]" />
                       {(() => {
                         switch (timePeriod) {
@@ -2021,7 +2021,7 @@ const FinanceReport = () => {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
                       <div className="text-sm text-secondary mb-1">Average Revenue</div>
-                      <div className="text-2xl font-bold text-green-600">
+                      <div className="text-2xl font-bold text-[var(--accent-green)]">
                         {formatCurrency(
                           getCurrentReports().length > 0
                             ? getCurrentReports().reduce((sum, r) => sum + (Number(r.revenue) || 0), 0) / getCurrentReports().length
@@ -2034,7 +2034,7 @@ const FinanceReport = () => {
                     </div>
                     <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
                       <div className="text-sm text-secondary mb-1">Average Expenses</div>
-                      <div className="text-2xl font-bold text-[#A855F7]">
+                      <div className="text-2xl font-bold text-[var(--accent-red)]">
                         {formatCurrency(
                           getCurrentReports().length > 0
                             ? getCurrentReports().reduce((sum, r) => sum + (Number(r.expenses) || 0), 0) / getCurrentReports().length
@@ -2047,7 +2047,7 @@ const FinanceReport = () => {
                     </div>
                     <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
                       <div className="text-sm text-secondary mb-1">Average Profit</div>
-                      <div className="text-2xl font-bold text-purple-600">
+                      <div className="text-2xl font-bold text-[var(--accent-purple)]">
                         {formatCurrency(
                           getCurrentReports().length > 0
                             ? getCurrentReports().reduce((sum, r) => sum + (Number(r.netProfit) || 0), 0) / getCurrentReports().length
@@ -2079,21 +2079,21 @@ const FinanceReport = () => {
           {/* ── Payables Tab ── */}
           {activeView === 'payable' && (() => {
             const PAYABLE_META: Record<Exclude<PayableSubCategory, 'all'>, { label: string; color: string; bg: string; textColor: string; icon: React.ReactNode }> = {
-              expense: { label: 'Expense', color: '#ef4444', bg: 'bg-card', textColor: 'text-red-700', icon: <Receipt size={13} /> },
-              'employee-payroll': { label: 'Employee Payroll', color: '#3b82f6', bg: 'bg-card', textColor: 'text-blue-700', icon: <Users size={13} /> },
-              'driver-payroll': { label: 'Driver Payroll', color: '#10b981', bg: 'bg-emerald-50', textColor: 'text-emerald-700', icon: <IdCard size={13} /> },
-              fuel: { label: 'Fuel Cost', color: '#f59e0b', bg: 'bg-amber-50', textColor: 'text-amber-700', icon: <Fuel size={13} /> },
-              'fleet-invoice': { label: 'Fleet Invoice', color: '#8b5cf6', bg: 'bg-violet-50', textColor: 'text-violet-700', icon: <DollarSign size={13} /> },
+              expense: { label: 'Expense', color: '#ef4444', bg: 'bg-card', textColor: 'text-[var(--accent-red)]', icon: <Receipt size={13} /> },
+              'employee-payroll': { label: 'Employee Payroll', color: '#3b82f6', bg: 'bg-card', textColor: 'text-[var(--accent-blue)]', icon: <Users size={13} /> },
+              'driver-payroll': { label: 'Driver Payroll', color: '#10b981', bg: 'bg-[rgba(0,255,163,0.08)]', textColor: 'text-[var(--accent-green)]', icon: <IdCard size={13} /> },
+              fuel: { label: 'Fuel Cost', color: '#f59e0b', bg: 'bg-[rgba(251,191,36,0.08)]', textColor: 'text-[var(--accent-amber)]', icon: <Fuel size={13} /> },
+              'fleet-invoice': { label: 'Fleet Invoice', color: '#8b5cf6', bg: 'bg-[rgba(168,85,247,0.08)]', textColor: 'text-[var(--accent-purple)]', icon: <DollarSign size={13} /> },
             };
 
             const STATUS_META: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
-              paid: { bg: 'bg-green-100', text: 'text-green-700', icon: <CheckCircle2 size={11} /> },
-              unpaid: { bg: 'bg-red-100', text: 'text-red-700', icon: <XCircle size={11} /> },
-              pending: { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: <Clock size={11} /> },
-              overdue: { bg: 'bg-orange-100', text: 'text-orange-700', icon: <AlertCircle size={11} /> },
-              completed: { bg: 'bg-green-100', text: 'text-green-700', icon: <CheckCircle2 size={11} /> },
-              approved: { bg: 'bg-green-100', text: 'text-green-700', icon: <CheckCircle2 size={11} /> },
-              active: { bg: 'bg-blue-100', text: 'text-blue-700', icon: <Clock size={11} /> },
+              paid: { bg: 'bg-[rgba(0,255,163,0.1)]', text: 'text-[var(--accent-green)]', icon: <CheckCircle2 size={11} /> },
+              unpaid: { bg: 'bg-[rgba(244,63,94,0.1)]', text: 'text-[var(--accent-red)]', icon: <XCircle size={11} /> },
+              pending: { bg: 'bg-[rgba(251,191,36,0.1)]', text: 'text-[var(--accent-amber)]', icon: <Clock size={11} /> },
+              overdue: { bg: 'bg-[rgba(245,158,11,0.1)]', text: 'text-[var(--accent-orange)]', icon: <AlertCircle size={11} /> },
+              completed: { bg: 'bg-[rgba(0,255,163,0.1)]', text: 'text-[var(--accent-green)]', icon: <CheckCircle2 size={11} /> },
+              approved: { bg: 'bg-[rgba(0,255,163,0.1)]', text: 'text-[var(--accent-green)]', icon: <CheckCircle2 size={11} /> },
+              active: { bg: 'bg-[rgba(0,209,255,0.1)]', text: 'text-[var(--accent-blue)]', icon: <Clock size={11} /> },
             };
 
             const fmtCur = (n: number) =>
@@ -2145,7 +2145,7 @@ const FinanceReport = () => {
             const SortIcon = ({ k }: { k: PayableSortKey }) =>
               payableSortKey === k
                 ? (payableSortDir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)
-                : <ChevronsUpDown size={12} className="text-gray-300" />;
+                : <ChevronsUpDown size={12} className="text-secondary" />;
 
             return (
               <div className="space-y-4">
@@ -2168,31 +2168,31 @@ const FinanceReport = () => {
                       <CreditCard size={15} className="text-[var(--accent-blue)]" />
                       <span className="text-xs text-secondary font-medium uppercase tracking-wide">Total Payables</span>
                     </div>
-                    <div className="text-2xl font-bold text-headings">{fmtCur(totalPayable)}</div>
+                    <div className="text-2xl font-bold text-[var(--text-primary)]">{fmtCur(totalPayable)}</div>
                     <div className="text-xs text-secondary mt-1">{filtered.length} records</div>
                   </div>
                   <div className="bg-card rounded-xl border border-theme p-4">
                     <div className="flex items-center gap-2 mb-1">
-                      <CheckCircle2 size={15} className="text-emerald-500" />
+                      <CheckCircle2 size={15} className="text-[var(--accent-green)]" />
                       <span className="text-xs text-secondary font-medium uppercase tracking-wide">Paid / Settled</span>
                     </div>
-                    <div className="text-2xl font-bold text-emerald-600">{fmtCur(totalPaid)}</div>
+                    <div className="text-2xl font-bold text-[var(--accent-green)]">{fmtCur(totalPaid)}</div>
                     <div className="text-xs text-secondary mt-1">{totalPayable > 0 ? Math.round((totalPaid / totalPayable) * 100) : 0}% of total</div>
                   </div>
                   <div className="bg-card rounded-xl border border-theme p-4">
                     <div className="flex items-center gap-2 mb-1">
-                      <TrendingDown size={15} className="text-red-400" />
+                      <TrendingDown size={15} className="text-[var(--accent-red)]" />
                       <span className="text-xs text-secondary font-medium uppercase tracking-wide">Outstanding</span>
                     </div>
-                    <div className="text-2xl font-bold text-red-500">{fmtCur(totalOutstanding)}</div>
+                    <div className="text-2xl font-bold text-[var(--accent-red)]">{fmtCur(totalOutstanding)}</div>
                     <div className="text-xs text-secondary mt-1">{totalPayable > 0 ? Math.round((totalOutstanding / totalPayable) * 100) : 0}% unpaid</div>
                   </div>
                   <div className="bg-card rounded-xl border border-theme p-4">
                     <div className="flex items-center gap-2 mb-1">
-                      <AlertCircle size={15} className="text-orange-400" />
+                      <AlertCircle size={15} className="text-[var(--accent-orange)]" />
                       <span className="text-xs text-secondary font-medium uppercase tracking-wide">Overdue Items</span>
                     </div>
-                    <div className="text-2xl font-bold text-orange-500">{overdueCount}</div>
+                    <div className="text-2xl font-bold text-[var(--accent-orange)]">{overdueCount}</div>
                     <div className="text-xs text-secondary mt-1">Need attention</div>
                   </div>
                 </div>
@@ -2214,7 +2214,7 @@ const FinanceReport = () => {
                           </span>
                           {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-blue)]" />}
                         </div>
-                        <div className="text-sm font-bold text-headings truncate">{fmtCur(total)}</div>
+                        <div className="text-sm font-bold text-[var(--text-primary)] truncate">{fmtCur(total)}</div>
                         <div className="text-xs text-secondary mt-0.5 truncate">{meta.label}</div>
                         <div className="text-xs text-secondary">{count} items</div>
                       </button>
@@ -2283,7 +2283,7 @@ const FinanceReport = () => {
                 <div className="bg-card rounded-xl border border-theme">
                   <div className="flex items-center justify-between px-4 py-3 border-b border-theme">
                     <div>
-                      <h2 className="text-sm font-semibold text-headings">Payables List</h2>
+                      <h2 className="text-sm font-semibold text-[var(--text-primary)]">Payables List</h2>
                       <p className="text-xs text-secondary">Showing {Math.min(pageRows.length, PAYABLE_PAGE_SIZE)} of {filtered.length} records</p>
                     </div>
                   </div>
@@ -2299,24 +2299,24 @@ const FinanceReport = () => {
                         <thead>
                           <tr className="bg-card text-xs text-secondary uppercase tracking-wide">
                             <th className="text-left px-4 py-2.5 font-medium">
-                              <button onClick={() => handlePayableSort('subCategory')} className="flex items-center gap-1 text-headings">
+                              <button onClick={() => handlePayableSort('subCategory')} className="flex items-center gap-1 text-secondary">
                                 Category <SortIcon k="subCategory" />
                               </button>
                             </th>
-                            <th className="text-left px-4 py-2.5 font-medium text-headings">Description</th>
-                            <th className="text-left px-4 py-2.5 font-medium text-headings">Reference</th>
+                            <th className="text-left px-4 py-2.5 font-medium text-secondary">Description</th>
+                            <th className="text-left px-4 py-2.5 font-medium text-secondary">Reference</th>
                             <th className="text-right px-4 py-2.5 font-medium">
                               <button onClick={() => handlePayableSort('amount')} className="flex items-center gap-1 text-headings ml-auto">
                                 Amount <SortIcon k="amount" />
                               </button>
                             </th>
                             <th className="text-left px-4 py-2.5 font-medium">
-                              <button onClick={() => handlePayableSort('date')} className="flex items-center gap-1 text-headings">
+                              <button onClick={() => handlePayableSort('date')} className="flex items-center gap-1 text-secondary">
                                 Date <SortIcon k="date" />
                               </button>
                             </th>
                             <th className="text-left px-4 py-2.5 font-medium">
-                              <button onClick={() => handlePayableSort('status')} className="flex items-center gap-1 text-headings">
+                              <button onClick={() => handlePayableSort('status')} className="flex items-center gap-1 text-secondary">
                                 Status <SortIcon k="status" />
                               </button>
                             </th>

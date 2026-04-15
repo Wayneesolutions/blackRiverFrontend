@@ -2455,9 +2455,10 @@ const InvoiceManagement: React.FC = () => {
                                     type="date"
                                     value={newInvoice.dueDate}
                                     onChange={(e) => handleInputChange('dueDate', e.target.value)}
-                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
+                                    className="w-full border border-theme rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
                                     min={new Date().toISOString().split('T')[0]}
-                                    style={{ colorScheme: 'dark' }}
+                                    style={{ colorScheme: 'light', color: 'var(--text-primary, #e2e8f0)', backgroundColor: 'var(--bg-input, #1e293b)' }}
                                     required
                                 />
                             </div>
