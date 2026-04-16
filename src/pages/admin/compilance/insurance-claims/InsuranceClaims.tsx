@@ -854,21 +854,21 @@ const InsuranceClaims: React.FC = () => {
                             <div className="flex items-center justify-end gap-2">
                               <button
                                 onClick={() => handleView(claim)}
-                                className="text-[#00D1FF] hover:text-blue-900 p-2 hover:bg-blue-50 rounded transition-colors"
+                                className="text-[#00D1FF] hover:text-[var(--accent-blue)] p-2 hover:bg-[var(--accent-blue)]/15 rounded transition-colors"
                                 title="View Details"
                               >
                                 <FaEye size={16} />
                               </button>
                               <button
                                 onClick={() => handleEdit(claim)}
-                                className="text-[#00D1FF] hover:text-blue-400 p-2 hover:bg-blue-50 rounded transition-colors"
+                                className="text-[#00D1FF] hover:text-[var(--accent-blue)] p-2 hover:bg-[var(--accent-blue)]/15 rounded transition-colors"
                                 title="Edit"
                               >
                                 <FaEdit size={16} />
                               </button>
                               <button
                                 onClick={() => handleDelete(claim)}
-                                className="text-[#A855F7] hover:text-red-900 p-2 hover:bg-red-50 rounded transition-colors"
+                                className="text-red-400 hover:text-red-500 p-2 hover:bg-red-500/15 rounded transition-colors"
                                 title="Delete"
                               >
                                 <FaTrash size={16} />

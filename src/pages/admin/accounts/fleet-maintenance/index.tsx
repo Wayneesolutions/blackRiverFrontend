@@ -850,10 +850,10 @@ export default function FleetMaintenanceFinance() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
-                              <button className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded" title="View Details">
+                              <button className="p-1 text-[#00D1FF] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/15 rounded transition-colors" title="View Details">
                                 <FileText className="w-4 h-4" />
                               </button>
-                              <button className="p-1 text-green-600 hover:bg-green-50 rounded" title="Download Report">
+                              <button className="p-1 text-green-400 hover:text-[var(--accent-green)] hover:bg-[var(--accent-green)]/15 rounded transition-colors" title="Download Report">
                                 <Download className="w-4 h-4" />
                               </button>
                             </div>
@@ -913,10 +913,10 @@ export default function FleetMaintenanceFinance() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
-                              <button onClick={() => handleEditParts(part)} className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded">
+                              <button onClick={() => handleEditParts(part)} className="p-1 text-[#00D1FF] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/15 rounded transition-colors">
                                 <Edit className="w-4 h-4" />
                               </button>
-                              <button onClick={() => handleDeleteParts(part._id!)} className="p-1 text-[#A855F7] hover:bg-red-50 rounded">
+                              <button onClick={() => handleDeleteParts(part._id!)} className="p-1 text-red-400 hover:text-red-500 hover:bg-red-500/15 rounded">
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
@@ -971,10 +971,10 @@ export default function FleetMaintenanceFinance() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
-                              <button onClick={() => handleEditLabor(rate)} className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded">
+                              <button onClick={() => handleEditLabor(rate)} className="p-1 text-[#00D1FF] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/15 rounded transition-colors">
                                 <Edit className="w-4 h-4" />
                               </button>
-                              <button onClick={() => handleDeleteLabor(rate._id!)} className="p-1 text-[#A855F7] hover:bg-red-50 rounded">
+                              <button onClick={() => handleDeleteLabor(rate._id!)} className="p-1 text-red-400 hover:text-red-500 hover:bg-red-500/15 rounded">
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
@@ -1045,13 +1045,13 @@ export default function FleetMaintenanceFinance() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
-                              <button className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded" title="View Report">
+                              <button className="p-1 text-[#00D1FF] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/15 rounded transition-colors" title="View Report">
                                 <FileText className="w-4 h-4" />
                               </button>
-                              <button onClick={() => handleEditPlan(plan)} className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded" title="Edit">
+                              <button onClick={() => handleEditPlan(plan)} className="p-1 text-[#00D1FF] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/15 rounded transition-colors" title="Edit">
                                 <Edit className="w-4 h-4" />
                               </button>
-                              <button onClick={() => handleDeletePlan(plan._id!)} className="p-1 text-[#A855F7] hover:bg-red-50 rounded" title="Delete">
+                              <button onClick={() => handleDeletePlan(plan._id!)} className="p-1 text-red-400 hover:text-red-500 hover:bg-red-500/15 rounded" title="Delete">
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>

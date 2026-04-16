@@ -804,28 +804,28 @@ export default function ReceiptsFinancialNotes() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleViewReceipt(receipt)}
-                              className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                              className="p-1 text-[#00D1FF] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/15 rounded transition-colors"
                               title="View Receipt"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDownloadReceipt(receipt)}
-                              className="p-1 text-green-600 hover:bg-green-50 rounded"
+                              className="p-1 text-green-400 hover:text-[var(--accent-green)] hover:bg-[var(--accent-green)]/15 rounded transition-colors"
                               title="Download"
                             >
                               <Download className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleEditReceipt(receipt)}
-                              className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                              className="p-1 text-[#00D1FF] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/15 rounded transition-colors"
                               title="Edit"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteReceipt(receipt._id)}
-                              className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
+                              className="p-1 text-red-400 hover:text-red-500 hover:bg-red-500/15 rounded"
                               title="Delete"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -904,14 +904,14 @@ export default function ReceiptsFinancialNotes() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleViewNote(note)}
-                              className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                              className="p-1 text-[#00D1FF] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/15 rounded transition-colors"
                               title="View Note"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleEditNote(note)}
-                              className="p-1 text-[#00D1FF] hover:bg-blue-50 rounded"
+                              className="p-1 text-[#00D1FF] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/15 rounded transition-colors"
                               title="Edit"
                             >
                               <Edit className="w-4 h-4" />

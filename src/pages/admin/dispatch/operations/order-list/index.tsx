@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle, File, Download } from "lucide-react";
+import { Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle, File, Download, ChevronDown } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import NewOrderSidebar from "./NewOrderSidebar";
@@ -1451,109 +1451,99 @@ const OrderList = () => {
                         {rate}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <select
-                          value={order.status || 'quoted'}
-                          style={{
-                            backgroundColor: "#0F1F2E",
-                            color: "#fff"
-                          }}
-                          onChange={async (e) => {
-                            e.stopPropagation();
-                            const newStatus = e.target.value;
-                            const previousStatus = order.status || 'quoted';
-
-                            try {
-                              const res = await updateOrder(order.id, { status: newStatus });
-                              if (res?.success) {
-                                addNotification('success', 'Order status updated');
-                                fetchOrders();
-                              } else {
-                                addNotification('error', res?.message || 'Failed to update status');
-                                // Revert dropdown to previous status if update failed
+                        <div className="relative inline-flex items-center">
+                          <select
+                            value={order.status || 'quoted'}
+                            onChange={async (e) => {
+                              e.stopPropagation();
+                              const newStatus = e.target.value;
+                              const previousStatus = order.status || 'quoted';
+                              try {
+                                const res = await updateOrder(order.id, { status: newStatus });
+                                if (res?.success) {
+                                  addNotification('success', 'Order status updated');
+                                  fetchOrders();
+                                } else {
+                                  addNotification('error', res?.message || 'Failed to update status');
+                                  e.target.value = previousStatus;
+                                }
+                              } catch (err: any) {
+                                console.error('Error updating status:', err);
+                                addNotification('error', err?.response?.data?.message || err?.message || 'Error updating status');
                                 e.target.value = previousStatus;
                               }
-                            } catch (err: any) {
-                              console.error('Error updating status:', err);
-                              addNotification('error', err?.response?.data?.message || err?.message || 'Error updating status');
-                              // Revert dropdown to previous status on error
-                              e.target.value = previousStatus;
-                            }
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          className={`text-xs font-medium rounded-full px-3 py-1.5 border 
-bg-[#0F1F2E] text-white 
-border-white/20 
-focus:ring-2 focus:ring-blue-500 
-cursor-pointer outline-none appearance-none
-${order.status?.toLowerCase() === 'quoted' ? 'text-yellow-400 border-yellow-400/30' :
-                              order.status?.toLowerCase() === 'planned' ? 'text-blue-400 border-blue-400/30' :
-                                order.status?.toLowerCase() === 'completed' ? 'text-green-400 border-green-400/30' :
-                                  order.status?.toLowerCase() === 'delivered' ? 'text-purple-400 border-purple-400/30' :
-                                    order.status?.toLowerCase() === 'in-delivery' ? 'text-blue-400 border-blue-400/30' :
-                                      order.status?.toLowerCase() === 'pending_review' || order.status?.toLowerCase() === 'verification_pending'
-                                        ? 'text-orange-400 border-orange-400/30' :
-                                        order.status?.toLowerCase() === 'canceled'
-                                          ? 'text-red-400 border-red-400/30' :
-                                          'text-white border-white/20'
-                            }`}
-                        >
-                          <option value="planned" className="bg-[#0F1F2E] text-white">Planned</option>
-                          <option value="quoted" className="bg-[#0F1F2E] text-white">Quoted</option>
-                          <option value="in-delivery" className="bg-[#0F1F2E] text-white">In Delivery</option>
-                          <option value="delivered" className="bg-[#0F1F2E] text-white">Delivered</option>
-                          <option value="pending_review" className="bg-[#0F1F2E] text-white">Pending Review</option>
-                          <option value="verification_pending" className="bg-[#0F1F2E] text-white">Verification Pending</option>
-                          <option value="completed" className="bg-[#0F1F2E] text-white">Completed</option>
-                          <option value="canceled" className="bg-[#0F1F2E] text-red-400">Canceled</option>
-                        </select>
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className={`appearance-none text-xs font-semibold rounded-full pl-3 pr-7 py-1.5 border cursor-pointer outline-none focus:ring-2 focus:ring-[var(--accent-blue)] transition-colors bg-card
+                              ${order.status?.toLowerCase() === 'quoted' ? 'text-yellow-400 border-yellow-400/40 bg-yellow-400/10' :
+                                order.status?.toLowerCase() === 'planned' ? 'text-blue-400 border-blue-400/40 bg-blue-400/10' :
+                                  order.status?.toLowerCase() === 'completed' ? 'text-green-400 border-green-400/40 bg-green-400/10' :
+                                    order.status?.toLowerCase() === 'delivered' ? 'text-purple-400 border-purple-400/40 bg-purple-400/10' :
+                                      order.status?.toLowerCase() === 'in-delivery' ? 'text-[var(--accent-blue)] border-[var(--accent-blue)]/40 bg-[var(--accent-blue)]/10' :
+                                        order.status?.toLowerCase() === 'pending_review' || order.status?.toLowerCase() === 'verification_pending'
+                                          ? 'text-orange-400 border-orange-400/40 bg-orange-400/10' :
+                                          order.status?.toLowerCase() === 'canceled'
+                                            ? 'text-red-400 border-red-400/40 bg-red-400/10' :
+                                            'text-primary border-theme'
+                              }`}
+                          >
+                            <option value="planned" className="bg-card text-primary">Planned</option>
+                            <option value="quoted" className="bg-card text-primary">Quoted</option>
+                            <option value="in-delivery" className="bg-card text-primary">In Delivery</option>
+                            <option value="delivered" className="bg-card text-primary">Delivered</option>
+                            <option value="pending_review" className="bg-card text-primary">Pending Review</option>
+                            <option value="verification_pending" className="bg-card text-primary">Verification Pending</option>
+                            <option value="completed" className="bg-card text-primary">Completed</option>
+                            <option value="canceled" className="bg-card text-red-400">Canceled</option>
+                          </select>
+                          <ChevronDown className={`pointer-events-none absolute right-2 w-3 h-3 opacity-60
+                            ${order.status?.toLowerCase() === 'quoted' ? 'text-yellow-400' :
+                              order.status?.toLowerCase() === 'planned' ? 'text-blue-400' :
+                                order.status?.toLowerCase() === 'completed' ? 'text-green-400' :
+                                  order.status?.toLowerCase() === 'canceled' ? 'text-red-400' :
+                                    'text-primary'
+                            }`} />
+                        </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <select
-                          value={order.accountingStatus || 'pending'}
-                          onChange={async (e) => {
-                            e.stopPropagation();
-                            const newStatus = e.target.value;
-                            try {
-                              const res = await updateOrder(order.id, { accountingStatus: newStatus });
-                              if (res?.success) {
-                                addNotification('success', 'Payment status updated');
-                                fetchOrders();
-                              } else {
-                                addNotification('error', 'Failed to update payment status');
+                        <div className="relative inline-flex items-center">
+                          <select
+                            value={order.accountingStatus || 'pending'}
+                            onChange={async (e) => {
+                              e.stopPropagation();
+                              const newStatus = e.target.value;
+                              try {
+                                const res = await updateOrder(order.id, { accountingStatus: newStatus });
+                                if (res?.success) {
+                                  addNotification('success', 'Payment status updated');
+                                  fetchOrders();
+                                } else {
+                                  addNotification('error', 'Failed to update payment status');
+                                }
+                              } catch (err) {
+                                console.error('Error updating payment status:', err);
+                                addNotification('error', 'Error updating payment status');
                               }
-                            } catch (err) {
-                              console.error('Error updating payment status:', err);
-                              addNotification('error', 'Error updating payment status');
-                            }
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          style={{
-                            backgroundColor: "#0F1F2E",
-                            color: "#fff"
-                          }}
-                          className={`
-      text-xs font-medium rounded-full px-3 py-1.5 border
-      bg-[#0F1F2E] border-white/20
-      focus:ring-2 focus:ring-blue-500
-      cursor-pointer outline-none appearance-none
-      ${(order.accountingStatus || 'pending') === 'paid'
-                              ? 'text-green-400 border-green-400/30'
-                              : (order.accountingStatus || 'pending') === 'unpaid'
-                                ? 'text-purple-400 border-purple-400/30'
-                                : 'text-orange-400 border-orange-400/30'
-                            }
-    `}
-                        >
-                          <option value="pending" className="bg-[#0F1F2E] text-orange-400">
-                            Pending
-                          </option>
-                          <option value="paid" className="bg-[#0F1F2E] text-green-400">
-                            Paid
-                          </option>
-                          <option value="unpaid" className="bg-[#0F1F2E] text-purple-400">
-                            Unpaid
-                          </option>
-                        </select>
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className={`appearance-none text-xs font-semibold rounded-full pl-3 pr-7 py-1.5 border cursor-pointer outline-none focus:ring-2 focus:ring-[var(--accent-blue)] transition-colors bg-card
+                              ${(order.accountingStatus || 'pending') === 'paid'
+                                ? 'text-green-400 border-green-400/40 bg-green-400/10'
+                                : (order.accountingStatus || 'pending') === 'unpaid'
+                                  ? 'text-red-400 border-red-400/40 bg-red-400/10'
+                                  : 'text-orange-400 border-orange-400/40 bg-orange-400/10'
+                              }`}
+                          >
+                            <option value="pending" className="bg-card text-primary">Pending</option>
+                            <option value="paid" className="bg-card text-primary">Paid</option>
+                            <option value="unpaid" className="bg-card text-primary">Unpaid</option>
+                          </select>
+                          <ChevronDown className={`pointer-events-none absolute right-2 w-3 h-3 opacity-60
+                            ${(order.accountingStatus || 'pending') === 'paid' ? 'text-green-400' :
+                              (order.accountingStatus || 'pending') === 'unpaid' ? 'text-red-400' :
+                                'text-orange-400'
+                            }`} />
+                        </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {truncateText(order.customerName || '-', 15)}
