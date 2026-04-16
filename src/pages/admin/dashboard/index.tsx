@@ -14,7 +14,7 @@ import {
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getAdminDashboard, type Trip, type Truck, type DashboardStats } from '../../../axios/api/main.dashboard';
+import { getAdminDashboard, type Trip, type Truck, type DashboardStats,recentAlerts } from '../../../axios/api/main.dashboard';
 import { getActiveOrdersWithTracking } from '../../../axios/api/distapcher';
 import Card from '../../../components/admin/Card';
 
@@ -136,6 +136,20 @@ interface RecentTrips {
     driverAcceptanceStatus: string
 }
 
+interface RecentAlerts {
+    _id: string;
+    documentType: string;
+    name:string;
+    expiryDate: string;
+    lisence:{
+        expiryDate: string;
+    }
+}
+
+
+
+
+
 
 
 
@@ -157,8 +171,14 @@ const Index = () => {
     const [error, setError] = useState<string | null>(null);
     const [showAllTrips, setShowAllTrips] = useState(false);
     const [showAllDrivers, setShowAllDrivers] = useState(false);
+    const [recentAlert, setRecentAlerts] = useState<RecentAlerts[]>([]);
+    const [showAllAlerts, setShowAllAlerts] = useState(false);
 
     const drivers = dashboardData?.recentTrips || [];
+  const displayedAlerts = Array.isArray(recentAlert)
+  ? (showAllAlerts ? recentAlert : recentAlert.slice(0, 5))
+  : [];
+    console.log('🚨 Displayed alerts:', displayedAlerts);
 
     useEffect(() => {
         fetchDashboardData();
@@ -178,6 +198,14 @@ const Index = () => {
         try {
             console.log('............fetchdashboardData...............')
             const response = await getAdminDashboard();
+            const alertResponse = await recentAlerts();
+            console.log("------------------------------alert Response----------------------------------");
+            console.log(typeof(alertResponse.alerts.expiringDocs));
+            console.log("isArray:", Array.isArray(recentAlert));
+            console.log(
+  "API expiringDocs is array:",
+  Array.isArray(alertResponse?.alerts?.expiringDocs)
+);
 
 
 
@@ -210,6 +238,13 @@ const Index = () => {
                 setDashboardData(filteredData);
             } else {
                 setError(response.message || 'Failed to fetch dashboard data');
+
+            }
+
+            if(alertResponse.success && alertResponse.alerts) {
+                console.log('📢 Recent alerts received:', alertResponse.alerts);
+                 setRecentAlerts(alertResponse.alerts.expiringDocs || []);
+
             }
         } catch (err: any) {
             console.error('Error fetching dashboard data:', err);
@@ -749,56 +784,57 @@ const Index = () => {
                             </div>
 
                             {/* ================= RIGHT: ALERTS ================= */}
-                            <div className="col-span-2 bg-card border border-theme rounded-2xl p-4 shadow-[0_0_30px_rgba(0,209,255,0.05)]">
+<div className="col-span-2 bg-card border border-theme rounded-2xl p-4 shadow-[0_0_30px_rgba(0,209,255,0.05)]">
 
-                                <div className="flex justify-between mb-4">
-                                    <h2 className="text-sm font-semibold text-primary">Alerts</h2>
-                                    <button className="text-xs !text-[var(--accent-navyblue)]">View All</button>
-                                </div>
+  <div className="flex justify-between mb-4">
+    <h2 className="text-sm font-semibold text-primary">Expiring Documents</h2>
 
-                                {[
-                                    {
-                                        title: "Vehicle Maintenance",
-                                        desc: "2 vehicles need attention",
-                                        color: "orange"
-                                    },
-                                    {
-                                        title: "Compliance",
-                                        desc: "3 documents expiring soon",
-                                        color: "red"
-                                    },
-                                    {
-                                        title: "Driver Hours",
-                                        desc: "1 driver near HOS limit",
-                                        color: "blue"
-                                    },
-                                    {
-                                        title: "Safety",
-                                        desc: "All systems operational",
-                                        color: "green"
-                                    }
-                                ].map((alert, i) => (
+    <button
+      onClick={() => setShowAllAlerts(prev => !prev)}
+      className="text-xs !text-[var(--accent-navyblue)]"
+    >
+      {showAllAlerts ? "Show Less" : "View All"}
+    </button>
+  </div>
 
-                                    <div key={i} className="flex gap-3 mb-4 items-start">
+  {displayedAlerts.length > 0 ? (
+    displayedAlerts.map((doc) => {
+      const expiry = new Date(doc.expiryDate).toLocaleDateString();
+      const licenseExpiry = doc.lisence?.expiryDate
+        ? new Date(doc.lisence.expiryDate).toLocaleDateString()
+        : null;
 
-                                        <div className={`
-          p-2 rounded-lg
-          ${alert.color === "orange" && "bg-yellow-500/20 text-yellow-400"}
-          ${alert.color === "red" && "bg-red-500/20 text-red-400"}
-          ${alert.color === "blue" && "bg-blue-500/20 text-blue-400"}
-          ${alert.color === "green" && "bg-green-500/20 text-green-400"}
-        `}>
-                                            ⚠
-                                        </div>
+      return (
+        <div key={doc._id} className="flex gap-3 mb-4 items-start">
 
-                                        <div>
-                                            <p className="text-sm text-primary">{alert.title}</p>
-                                            <p className="text-xs text-secondary">{alert.desc}</p>
-                                        </div>
+          <div className="p-2 rounded-lg bg-red-500/20 text-red-400">
+            ⚠
+          </div>
 
-                                    </div>
-                                ))}
-                            </div>
+          <div>
+            <p className="text-sm text-primary">
+              {doc.name} ({doc.documentType})
+            </p>
+
+            <p className="text-xs text-secondary">
+              Doc Expiry: {expiry}
+            </p>
+
+            {licenseExpiry && (
+              <p className="text-xs text-secondary">
+                License Expiry: {licenseExpiry}
+              </p>
+            )}
+          </div>
+
+        </div>
+      );
+    })
+  ) : (
+    <p className="text-xs text-secondary">No expiring documents 🎉</p>
+  )}
+
+</div>
 
                         </div>
 

@@ -152,6 +152,8 @@ export default function QuickStatsUI() {
         recentAlerts(),
       ]);
 
+      console.log("..................results.................", results)
+
 
       // Quick Stats
       if (results[0].status === "fulfilled" && results[0].value?.success) {
