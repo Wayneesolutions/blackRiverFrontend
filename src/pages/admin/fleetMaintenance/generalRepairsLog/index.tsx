@@ -1019,14 +1019,14 @@ const GeneralRepairsLog: React.FC = () => {
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => handleEditRepair(repair)}
-                                className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
+                                className="p-2 text-[#00D1FF] hover:bg-[#00D1FF]/10 rounded-lg transition-colors"
                                 title="Edit"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleDeleteRepair(repair)}
-                                className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
+                                className="p-2 text-[#A855F7] hover:bg-[#A855F7]/10 rounded-lg transition-colors"
                                 title="Delete"
                               >
                                 <Trash2 className="w-4 h-4" />

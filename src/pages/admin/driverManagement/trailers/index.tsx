@@ -1852,15 +1852,15 @@ const TrailersPage: React.FC = () => {
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-2">
                                                     <button
-                                                        onClick={() => handleEditTrailer(trailer._id || trailer.id || '')}
-                                                        className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
+                                                        onClick={(e) => { e.stopPropagation(); handleEditTrailer(trailer._id || trailer.id || ''); }}
+                                                        className="p-1.5 text-[#00D1FF] hover:bg-[#00D1FF]/10 rounded-lg transition-colors"
                                                         title="Edit"
                                                     >
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDeleteClick(trailer._id || trailer.id || '')}
-                                                        className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
+                                                        onClick={(e) => { e.stopPropagation(); handleDeleteClick(trailer._id || trailer.id || ''); }}
+                                                        className="p-1.5 text-[#A855F7] hover:bg-[#A855F7]/10 rounded-lg transition-colors"
                                                         title="Delete"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
