@@ -152,7 +152,7 @@ export default function QuickStatsUI() {
         recentAlerts(),
       ]);
 
-      console.log("..................results.................", results)
+    
 
 
       // Quick Stats

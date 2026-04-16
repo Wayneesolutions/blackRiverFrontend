@@ -119,6 +119,22 @@ interface FeatureCard {
 }
 
 
+interface RecentTrips {
+    _id: string,
+    tripNo: string,
+    driver: {
+        name: string
+    },
+    status: string,
+    deliveryLocation: {
+        place: string,
+        latitude: number,
+        longitude: number,
+
+    },
+    createdAt: string,
+    driverAcceptanceStatus: string
+}
 
 interface RecentAlerts {
     _id: string;
@@ -183,13 +199,7 @@ const Index = () => {
             console.log('............fetchdashboardData...............')
             const response = await getAdminDashboard();
             const alertResponse = await recentAlerts();
-            console.log("------------------------------alert Response----------------------------------");
-            console.log(typeof(alertResponse.alerts.expiringDocs));
-            console.log("isArray:", Array.isArray(recentAlert));
-            console.log(
-  "API expiringDocs is array:",
-  Array.isArray(alertResponse?.alerts?.expiringDocs)
-);
+
 
 
 
@@ -217,7 +227,8 @@ const Index = () => {
                     stats: filteredData.stats,
                     tripsCount: filteredData.trips.length,
                     trucksCount: filteredData.trucks.length,
-                    trips: filteredData.trips.map(t => ({ id: t.id, tripNumber: t.tripNumber, status: t.status }))
+                    trips: filteredData.trips.map(t => ({ id: t.id, tripNumber: t.tripNumber, status: t.status })),
+                    recentTrips: filteredData.recentTrips
                 });
                 setDashboardData(filteredData);
             } else {
@@ -724,13 +735,13 @@ const Index = () => {
 
                                         return (
                                             <div
-                                                key={trip._id || i}
+                                                key={trip.customerOrderNo || i}
                                                 className="mb-3 p-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-theme"
                                             >
                                                 {/* Top Row */}
                                                 <div className="flex justify-between text-xs mb-1">
                                                     <span className="text-[var(--accent-navyblue)] font-semibold">
-                                                        {trip.tripNo || "N/A"}
+                                                        {trip.customerOrderNo || "N/A"}
                                                     </span>
 
                                                     <span
@@ -886,7 +897,7 @@ const Index = () => {
                                                     >
                                                         {/* Trip ID */}
                                                         <td className="px-5 py-4 text-primary">
-                                                            {trip.tripNo || "N/A"}
+                                                            {trip.customerOrderNo || "N/A"}
                                                         </td>
 
                                                         {/* Route */}
