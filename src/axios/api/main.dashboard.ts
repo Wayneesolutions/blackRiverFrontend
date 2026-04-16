@@ -193,6 +193,7 @@ export interface deliverLocation {
 export interface RecentTrips {
     _id: string;
     tripNo: string;
+    customerOrderNo?: string;
     driver: {
         name: string;
     };

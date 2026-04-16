@@ -14,7 +14,7 @@ import {
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getAdminDashboard, type Trip, type Truck, type DashboardStats, type RecentTrips, recentAlerts } from '../../../axios/api/main.dashboard';
+import { getAdminDashboard, type Trip, type Truck, type DashboardStats, recentAlerts } from '../../../axios/api/main.dashboard';
 import { getActiveOrdersWithTracking } from '../../../axios/api/distapcher';
 import Card from '../../../components/admin/Card';
 
@@ -122,6 +122,7 @@ interface FeatureCard {
 interface RecentTrips {
     _id: string,
     tripNo: string,
+    customerOrderNo?: string,
     driver: {
         name: string
     },
