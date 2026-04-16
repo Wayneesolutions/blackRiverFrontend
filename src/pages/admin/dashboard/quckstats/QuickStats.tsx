@@ -117,7 +117,7 @@ export default function QuickStatsUI() {
     pendingWorkOrders: 0,
     pendingInvoices: 0,
   });
-  const [loadsData, setLoadsData] = useState<LoadData[]>([]);
+  const [_loadsData, setLoadsData] = useState<LoadData[]>([]);
   const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
   const [alerts, setAlerts] = useState<Alerts>({
     maintenanceDue: [],

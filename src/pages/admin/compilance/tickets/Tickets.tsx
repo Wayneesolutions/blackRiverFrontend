@@ -38,7 +38,6 @@ import { listDriver } from '../../../../axios/api/distapcher';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
-const ACCENT_DARK = FLEET_COLORS.dark;
 const hexToRgba = (hex: string, alpha = 1) => {
   const parsed = hex.replace('#', '');
   const bigint = parseInt(parsed, 16);
@@ -49,12 +48,7 @@ const hexToRgba = (hex: string, alpha = 1) => {
 };
 const ACCENT_SOFT = hexToRgba(ACCENT_PRIMARY, 0.1);
 const ACCENT_SOFT_BORDER = hexToRgba(ACCENT_PRIMARY, 0.25);
-const ACCENT_VARS = {
-  '--accent-color': ACCENT_PRIMARY,
-  '--accent-dark': ACCENT_DARK,
-  '--accent-soft': ACCENT_SOFT,
-  '--accent-soft-border': ACCENT_SOFT_BORDER
-} as CSSProperties;
+
 
 // Types
 interface Ticket {
@@ -2245,7 +2239,7 @@ const Tickets: React.FC = () => {
                           status: e.target.value as
                             | "paid"
                             | "unpaid"
-                            | "on-fight"
+                            | "fight"
                             | "dismissed"
                             | "reduced",
                         }))
@@ -2288,7 +2282,7 @@ const Tickets: React.FC = () => {
                             | "paid"
                             | "reduced"
                             | "dismissed"
-                            | "on-fight"
+                            | "on fight"
                             | "unpaid",
                         }))
                       }

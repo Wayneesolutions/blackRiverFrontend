@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { CSSProperties } from 'react';
 import {
   FaClipboardCheck,
   FaMapMarkerAlt,
@@ -34,7 +33,6 @@ import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 import AddressSearch from '../../../../components/common/AddressSearch';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
-const ACCENT_DARK = FLEET_COLORS.dark;
 
 const hexToRgba = (hex: string, alpha = 1) => {
   const parsed = hex.replace('#', '');
@@ -47,12 +45,7 @@ const hexToRgba = (hex: string, alpha = 1) => {
 
 const ACCENT_SOFT = hexToRgba(ACCENT_PRIMARY, 0.1);
 const ACCENT_SOFT_BORDER = hexToRgba(ACCENT_PRIMARY, 0.25);
-const ACCENT_VARS = {
-  '--accent-color': ACCENT_PRIMARY,
-  '--accent-dark': ACCENT_DARK,
-  '--accent-soft': ACCENT_SOFT,
-  '--accent-soft-border': ACCENT_SOFT_BORDER
-} as CSSProperties;
+
 
 // Types
 interface Inspection {

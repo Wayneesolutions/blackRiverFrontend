@@ -11,22 +11,15 @@ import {
   Wrench,
   Activity
 } from 'lucide-react';
-import { FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
+import {  FaCheckCircle } from 'react-icons/fa';
 import { getUserRole } from '../../../../utils/auth';
 import {
   type ComplianceDashboardResponse,
-  type ComplianceSafetyAlert,
   type CompliancePmUnit,
-  type ComplianceDocument,
   fetchComplianceDashboard
 } from '../../../../axios/api/complianceDashboard';
 
-const formatDate = (value?: string) => {
-  if (!value) return 'N/A';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return 'N/A';
-  return parsed.toLocaleDateString();
-};
+
 
 const formatCurrency = (amount: number) => {
   return `CA$${new Intl.NumberFormat('en-US', {
@@ -385,7 +378,7 @@ const ComplianceDashboard: React.FC = () => {
     setLoading(false);
   }, []); */
 
-  const safetyAlerts = useMemo<ComplianceSafetyAlert[]>(() => data?.safetyAlerts || [], [data]);
+
   const pmStatus = useMemo<CompliancePmUnit[]>(() => data?.pmStatus || [], [data]);
   const invoiceSummary = useMemo(() => data?.invoiceSummary || null, [data]);
   const inactiveUnits = data?.inactiveUnits || 0;
@@ -395,7 +388,7 @@ const ComplianceDashboard: React.FC = () => {
     vehiclesUnderRepair: 0,
     vehiclesWithPendingService: 0
   };
-  const complianceDocuments = useMemo<ComplianceDocument[]>(() => data?.complianceDocuments || [], [data]);
+
 
   const currentInvoices =
     selectedPeriod === 'month' ? invoiceSummary?.month : invoiceSummary?.ytd;
@@ -737,7 +730,7 @@ const ComplianceDashboard: React.FC = () => {
                   <div
                     key={serviceCard.id}
                     onClick={serviceCard.onClick}
-                    className={`${serviceCard.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                    className={`${serviceCard.bgColor} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">

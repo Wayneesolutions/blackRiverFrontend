@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Calendar, AlertTriangle, CheckCircle, Lightbulb, Target, RefreshCw, Sparkles } from 'lucide-react';
 import { getCashFlowInsights, type CashFlowInsightsResponse } from '../../../../axios/api/account.cashflow';
-import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
 interface CashFlowInsightsPageProps { }
 
@@ -12,12 +11,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
     const [period, setPeriod] = useState<number>(90);
     const [customDateRange, setCustomDateRange] = useState<{ start?: string; end?: string }>({});
 
-    const primaryButtonStyle: React.CSSProperties = {
-        background: FLEET_COLORS.gradient,
-        color: '#fff',
-        border: 'none',
-        boxShadow: `0 12px 25px ${FLEET_COLORS.focusRing}`,
-    };
+
 
     const fetchInsights = async () => {
         setLoading(true);
@@ -68,31 +62,8 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
         }
     };
 
-    const getPriorityColor = (priority: string) => {
-        switch (priority) {
-            case 'high':
-                return 'bg-red-100 text-red-800 border-red-200';
-            case 'medium':
-                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-            case 'low':
-                return 'bg-blue-100 text-blue-800 border-blue-200';
-            default:
-                return 'bg-card text-primary border-theme';
-        }
-    };
-
-    const getSeverityColor = (severity: string) => {
-        switch (severity) {
-            case 'high':
-                return 'bg-red-100 text-red-800 border-red-200';
-            case 'medium':
-                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-            case 'low':
-                return 'bg-green-100 text-green-800 border-green-200';
-            default:
-                return 'bg-card text-primary border-theme';
-        }
-    };
+ 
+ 
 
     return (
         <div className="min-h-screen p-6 bg-main">

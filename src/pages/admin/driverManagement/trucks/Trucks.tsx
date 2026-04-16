@@ -11,15 +11,7 @@ import { getAllYards, type Yard } from '../../../../axios/api/fleet.yards';
 import apiClient from '../../../../axios/apiClient';
 import ConfirmationModal from '../../../../components/common/ConfirmationModal';
 
-type StepType =
-  | 'Details'
-  | 'Inspections'
-  | 'Documents'
-  | 'Invoice'
-  | 'Notes'
-  | 'Payroll'
-  | 'Deductions'
-  | 'Additions';
+
 
 interface Truck {
     _id?: string;
@@ -1629,14 +1621,14 @@ const Trucks: React.FC = () => {
     const handleNext = () => {
         const next = getNextStep();
         if (next) {
-            setActiveStep(next);
+            setActiveStep(next as typeof activeStep);
         }
     };
 
     const handlePrevious = () => {
         const previous = getPreviousStep();
         if (previous) {
-            setActiveStep(previous);
+            setActiveStep(previous as typeof activeStep);
         }
     };
 

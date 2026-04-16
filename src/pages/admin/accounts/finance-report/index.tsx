@@ -975,7 +975,7 @@ const FinanceReport = () => {
                     // Scale so max(revenue, costs) = 100%
                     const maxVal = Math.max(totalRevenue, totalCosts);
                     const revWidth = maxVal > 0 ? (totalRevenue / maxVal) * 100 : 0;
-                    const costWidth = maxVal > 0 ? (totalCosts / maxVal) * 100 : 0;
+                
                     return (
                       <div className="space-y-4">
                         {/* Revenue row */}

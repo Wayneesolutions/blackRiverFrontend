@@ -1,14 +1,22 @@
 import { useRef } from "react";
 import { Calendar } from "lucide-react";
 
+interface DateFieldProps {
+  label?: React.ReactNode;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  error?: string;
+  required?: boolean;
+}
+
 export default function DateField({
   label,
   value,
   onChange,
   error,
   required,
-}) {
-  const ref = useRef(null);
+}: DateFieldProps) {
+  const ref = useRef<HTMLInputElement>(null);
 
   return (
     <div>

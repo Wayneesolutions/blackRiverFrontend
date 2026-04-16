@@ -14,7 +14,7 @@ import {
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getAdminDashboard, type Trip, type Truck, type DashboardStats,recentAlerts } from '../../../axios/api/main.dashboard';
+import { getAdminDashboard, type Trip, type Truck, type DashboardStats, type RecentTrips, recentAlerts } from '../../../axios/api/main.dashboard';
 import { getActiveOrdersWithTracking } from '../../../axios/api/distapcher';
 import Card from '../../../components/admin/Card';
 
@@ -119,22 +119,6 @@ interface FeatureCard {
 }
 
 
-interface RecentTrips {
-    _id: string,
-    tripNo: string,
-    driver: {
-        name: string
-    },
-    status: string,
-    deliveryLocation: {
-        place: string,
-        latitude: number,
-        longitude: number,
-
-    },
-    createdAt: string,
-    driverAcceptanceStatus: string
-}
 
 interface RecentAlerts {
     _id: string;
@@ -847,7 +831,7 @@ const Index = () => {
                                 <div className="flex items-center justify-between px-5 py-4 border-b border-theme
     bg-gradient-to-r from-[rgba(0,209,255,0.08)] to-transparent">
                                     <h2 className="text-sm font-semibold text-primary">Recent Trips</h2>
-                                    <button className="text-xs text-[var(--accent-blue)]">View All</button>
+                                    
                                 </div>
 
                                 <table className="w-full text-sm">

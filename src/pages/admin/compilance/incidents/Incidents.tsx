@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { CSSProperties } from 'react';
 import {
   FaExclamationTriangle,
   FaPlus,
@@ -35,26 +34,7 @@ import { createIssue } from '../../../../axios/api/distapcher';
 import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllTrailers } from '../../../../axios/api/trailer';
 import { listDriver } from '../../../../axios/api/distapcher';
-import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
-const ACCENT_PRIMARY = FLEET_COLORS.primary;
-const ACCENT_DARK = FLEET_COLORS.dark;
-const hexToRgba = (hex: string, alpha = 1) => {
-  const parsed = hex.replace('#', '');
-  const bigint = parseInt(parsed, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-const ACCENT_SOFT = hexToRgba(ACCENT_PRIMARY, 0.1);
-const ACCENT_SOFT_BORDER = hexToRgba(ACCENT_PRIMARY, 0.25);
-const ACCENT_VARS = {
-  '--accent-color': ACCENT_PRIMARY,
-  '--accent-dark': ACCENT_DARK,
-  '--accent-soft': ACCENT_SOFT,
-  '--accent-soft-border': ACCENT_SOFT_BORDER
-} as CSSProperties;
 
 
 

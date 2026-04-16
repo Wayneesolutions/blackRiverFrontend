@@ -191,10 +191,19 @@ export interface deliverLocation {
 }
 
 export interface RecentTrips {
-    TripNo: string,
-    Driver: string,
-    deliveryLocation: [];
-    status: string
+    _id: string;
+    tripNo: string;
+    driver: {
+        name: string;
+    };
+    status: string;
+    deliveryLocation: {
+        place: string;
+        latitude: number;
+        longitude: number;
+    };
+    createdAt: string;
+    driverAcceptanceStatus: string;
 }
 
 export interface AdminDashboardResponse {

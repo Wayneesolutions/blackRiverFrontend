@@ -53,7 +53,6 @@ const MECHANICS_QUICK_ACTIONS = [
 ];
 
 const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
-  isSidebarCollapsed = false,
   onToggleSidebar,
   basePath = "/mechanics",
 }) => {

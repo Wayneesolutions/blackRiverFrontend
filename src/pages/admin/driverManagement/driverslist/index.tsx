@@ -166,11 +166,11 @@ const DriverManagement = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPin, setShowPin] = useState(false);
   const [pinIsExisting, setPinIsExisting] = useState(false);
-  const passportExpiryRef = useRef(null);
-  const expiryRef = useRef(null);
-  const hireDateRef = useRef(null);
-  const terminationDateRef = useRef(null);
-  const dateRef = useRef(null);
+  const passportExpiryRef = useRef<HTMLInputElement>(null);
+  const expiryRef = useRef<HTMLInputElement>(null);
+  const hireDateRef = useRef<HTMLInputElement>(null);
+  const terminationDateRef = useRef<HTMLInputElement>(null);
+  const dateRef = useRef<HTMLInputElement>(null);
   const [filterBy, setFilterBy] = useState('Active');
   const [category, setCategory] = useState('');
   const [complianceStatus, setComplianceStatus] = useState('All');

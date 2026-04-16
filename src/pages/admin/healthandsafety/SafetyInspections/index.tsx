@@ -14,14 +14,7 @@ import {
   deleteInspection
 } from '../../../../axios/api/healthSafety';
 
-const CUSTOM_COLORS = {
-  background: '#EDF8FF',
-  primary: '#016ab2',
-  dark: '#063f6f',
-  light: '#398bc3',
-  gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
-  gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
-};
+
 
 interface ChecklistItem {
   id: string;
