@@ -1050,7 +1050,7 @@ const FuelReports = () => {
 
   if (emptyStateMessage) {
     return (
-      <div className="min-h-screen bg-card flex flex-col items-center justify-center text-center space-y-4 px-6 border-2 border-red-700">
+      <div className="min-h-screen bg-card flex flex-col items-center justify-center text-center space-y-4 px-6">
         <div className="text-5xl text-gray-300">⛽</div>
         <div className="space-y-2 max-w-md">
           <h2 className="text-2xl font-semibold text-primary">
@@ -1063,7 +1063,7 @@ const FuelReports = () => {
   }
 
   return (
-    <div className="min-h-screen pb-10 border-red-700" >
+    <div className="min-h-screen pb-10" >
       <div className="relative w-full mx-auto p-2">
 
         <div className="relative z-10 px-4 pt-3 pb-6">

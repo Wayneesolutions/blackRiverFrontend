@@ -81,6 +81,7 @@ const statusBgColors: Record<string, string> = {
 
 const ProfessionalFleetTracker: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [vehiclesLoaded, setVehiclesLoaded] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [location, setLocation] = useState<[number, number] | null>(null);
   const [mapZoom, setMapZoom] = useState<number>(12);
@@ -110,7 +111,9 @@ const ProfessionalFleetTracker: React.FC = () => {
           if (formatted.length > 0) handleVehicleClick(formatted[0]);
         }
       } catch (err) {
-        console.error("Error fetching vehicles:", err);
+        // silently handled
+      } finally {
+        setVehiclesLoaded(true);
       }
     };
     fetchVehicles();
@@ -473,6 +476,14 @@ const ProfessionalFleetTracker: React.FC = () => {
 
       {/* Right Map */}
       <div className="flex-1 relative">
+        {!vehiclesLoaded ? (
+          <div className="w-full h-full flex items-center justify-center bg-[var(--bg-main)]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--accent-blue)] mx-auto mb-3" />
+              <p className="text-secondary text-sm">Loading fleet data...</p>
+            </div>
+          </div>
+        ) : (
         <MapContainer
           center={location || [20.5937, 78.9629]}
           zoom={mapZoom}
@@ -514,6 +525,7 @@ const ProfessionalFleetTracker: React.FC = () => {
             </Marker>
           )}
         </MapContainer>
+        )} {/* end vehiclesLoaded ternary */}
 
         {/* Advanced Info Panel */}
         {selectedVehicle && isInfoPanelOpen && (

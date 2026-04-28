@@ -745,7 +745,7 @@ export default function AccountsSetup() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-theme">
+                <tbody className="bg-card divide-theme">
                   {loading ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-8 text-center text-secondary">Loading...</td>
@@ -809,7 +809,7 @@ export default function AccountsSetup() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-theme">
+                <tbody className="bg-card  divide-theme">
                   {loading ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-8 text-center text-secondary">Loading...</td>
@@ -868,7 +868,7 @@ export default function AccountsSetup() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-theme">
+                <tbody className="bg-card  divide-theme">
                   {loading ? (
                     <tr>
                       <td colSpan={4} className="px-6 py-8 text-center text-secondary">Loading...</td>

@@ -6,6 +6,7 @@ import SuperAdminProtectedRoute from "../components/auth/SuperAdminProtectedRout
 import SuperAdminPublicRoute from "../components/auth/SuperAdminPublicRoute";
 
 const Login = lazy(() => import("../pages/superadmin/auth/Login"))
+const ForgotPassword = lazy(() => import("../pages/superadmin/auth/ForgotPassword"))
 
 const Dashboard = lazy(() => import("../pages/superadmin/dashboard/index"));
 const Viewalladmins = lazy(() => import("../pages/superadmin/adminAccount/ViewAllAccounts"))
@@ -23,15 +24,16 @@ function SuperAdminRoute() {
 
 
             <Routes>
-                {/* Public Route - Login */}
-                <Route 
-                    path="login" 
+                {/* Public Routes */}
+                <Route
+                    path="login"
                     element={
                         <SuperAdminPublicRoute>
                             <Login />
                         </SuperAdminPublicRoute>
-                    } 
+                    }
                 />
+                <Route path="forgot-password" element={<ForgotPassword />} />
                 
                 {/* Protected Routes - SuperAdmin Dashboard */}
                 <Route 

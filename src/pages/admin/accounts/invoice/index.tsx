@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { createInvoice, listInvoices, updateInvoice, deleteInvoice, listTrips } from "../../../../axios/api/account.invoices";
 import jsPDF from 'jspdf';
+import DocLogo from '../../../../assets/doclogo.png';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 import type { Trip } from '../../../../axios/api/main.dashboard';
 
@@ -339,8 +340,31 @@ const InvoiceManagement: React.FC = () => {
                         reader.onloadend = () => resolve(reader.result as string);
                         reader.readAsDataURL(blob);
                     });
-
                     doc.addImage(base64, "PNG", margin, yPos, 45, 25);
+                } catch { }
+            } else {
+                try {
+                    const img = new Image();
+                    img.src = DocLogo;
+                    await new Promise<void>((resolve) => {
+                        img.onload = () => {
+                            try {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = img.width;
+                                canvas.height = img.height;
+                                const ctx = canvas.getContext('2d');
+                                if (ctx) {
+                                    ctx.drawImage(img, 0, 0);
+                                    const imgData = canvas.toDataURL('image/png');
+                                    const logoWidth = 45;
+                                    const logoHeight = (img.height / img.width) * logoWidth;
+                                    doc.addImage(imgData, 'PNG', margin, yPos, logoWidth, logoHeight);
+                                }
+                            } catch { }
+                            resolve();
+                        };
+                        img.onerror = () => resolve();
+                    });
                 } catch { }
             }
 

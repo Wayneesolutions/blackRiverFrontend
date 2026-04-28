@@ -322,7 +322,7 @@ const ELDDocuments = () => {
                                     <th className="px-6 py-4 text-[var(--accent-navyblue)] uppercase text-xs font-semibold text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-theme">
+                            <tbody className="divide-theme">
                                 {filteredDocuments.map((doc) => (
                                     <tr key={doc._id} className="hover:bg-[rgba(0,209,255,0.08)] transition-all duration-200 border-b border-theme">
                                         <td className="px-6 py-4 border-r border-theme">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Search, Download, Calendar, FileText, Users, X, Eye } from 'lucide-react';
 import { getPaystubs, getPaystubById } from '../../../../axios/api/account.payroll';
 import jsPDF from 'jspdf';
+import DocLogo from '../../../../assets/doclogo.png';
 
 interface Paystub {
   _id: string;
@@ -194,6 +195,31 @@ const PaystubsList = () => {
 
       let yPos = margin;
 
+      // Pre-load doclogo for use in header
+      let docLogoBase64 = '';
+      let docLogoW = 22, docLogoH = 11;
+      try {
+        const logoImg = new Image();
+        logoImg.src = DocLogo;
+        await new Promise<void>((resolve) => {
+          logoImg.onload = () => {
+            try {
+              const cv = document.createElement('canvas');
+              cv.width = logoImg.width; cv.height = logoImg.height;
+              const ctx = cv.getContext('2d');
+              if (ctx) {
+                ctx.drawImage(logoImg, 0, 0);
+                docLogoBase64 = cv.toDataURL('image/png');
+                docLogoW = 22;
+                docLogoH = (logoImg.height / logoImg.width) * docLogoW;
+              }
+            } catch { }
+            resolve();
+          };
+          logoImg.onerror = () => resolve();
+        });
+      } catch { }
+
       // Determine if this is an employee (not a driver)
       const isEmployee = (fullPaystub.employeeRole?.toLowerCase() !== 'driver' &&
         fullPaystub.userId?.role?.toLowerCase() !== 'driver') ||
@@ -247,6 +273,11 @@ const PaystubsList = () => {
         if (fullPaystub.paystubId) {
           doc.setFontSize(7);
           doc.text(`ID: ${fullPaystub.paystubId}`, pageWidth - margin, 32, { align: 'right' });
+        }
+
+        // Platform logo in bottom-right of header
+        if (docLogoBase64) {
+          doc.addImage(docLogoBase64, 'PNG', pageWidth - margin - docLogoW, 44 - docLogoH, docLogoW, docLogoH);
         }
 
         doc.setTextColor(textR, textG, textB);
@@ -581,6 +612,11 @@ const PaystubsList = () => {
         rightHeaderY += 4;
         const drvPayDueFmt = new Date(fullPaystub.payPeriod.payDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
         doc.text(`PAYROLL DUE: ${drvPayDueFmt}`, pageWidth - margin, rightHeaderY, { align: 'right' });
+
+        // Platform logo in bottom-right of header
+        if (docLogoBase64) {
+          doc.addImage(docLogoBase64, 'PNG', pageWidth - margin - docLogoW, 44 - docLogoH, docLogoW, docLogoH);
+        }
 
         doc.setTextColor(textR, textG, textB);
         yPos = 55;

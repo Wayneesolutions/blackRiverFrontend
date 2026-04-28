@@ -69,9 +69,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                                         `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium
                                          transition-all duration-200 ease-in-out
                                          ${navIsActive || isActive
-                                            ? "bg-card text-purple-700 border-l-4 border-purple-600"
-                                            : "text-primary hover:bg-[#F2F1FF] hover:text-purple-700"}`
+                                            ? "border-l-4"
+                                            : "text-secondary hover:text-primary"}`
                                     }
+                                    style={({ isActive: navIsActive }) => navIsActive || isActive ? {
+                                        backgroundColor: 'rgba(17,131,224,0.12)',
+                                        color: 'var(--accent-navyblue)',
+                                        borderLeftColor: 'var(--accent-navyblue)',
+                                    } : {
+                                        borderLeftColor: 'transparent',
+                                    }}
                                     title={isCollapsed ? link.label : undefined}
                                 >
                                     <span className={`text-xl flex-shrink-0 ${isCollapsed ? 'mx-auto' : ''}`}>

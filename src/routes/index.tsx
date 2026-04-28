@@ -1,21 +1,25 @@
 import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
-import SuperAdminRoute from "./SuperAdminRoute";
-import AdminRoute from "./AdminRoute";
-import DispatcherRoute from "./DispatcherRoute";
-import HRRoute from "./HRRoute";
-import AccountantRoute from "./AccountantRoute";
-import FleetMaintenanceRoute from "./FleetMaintenanceRoute";
-import ComplianceRoute from "./ComplianceRoute";
-import SafetyOfficerRoute from "./SafetyOfficerRoute";
-import MechanicsRoute from "./MechanicsRoute";
-import InvoicePayment from "../pages/customer/InvoicePayment";
 import PublicRoute from "../components/auth/PublicRoute";
 import Loading from "../components/common/Loading";
 import { useInactivityTimer } from "../hooks/useInactivityTimer";
 
+// All role route bundles are lazy — only the bundle for the logged-in role is ever downloaded
+const SuperAdminRoute = lazy(() => import("./SuperAdminRoute"));
+const AdminRoute = lazy(() => import("./AdminRoute"));
+const DispatcherRoute = lazy(() => import("./DispatcherRoute"));
+const HRRoute = lazy(() => import("./HRRoute"));
+const AccountantRoute = lazy(() => import("./AccountantRoute"));
+const FleetMaintenanceRoute = lazy(() => import("./FleetMaintenanceRoute"));
+const ComplianceRoute = lazy(() => import("./ComplianceRoute"));
+const SafetyOfficerRoute = lazy(() => import("./SafetyOfficerRoute"));
+const MechanicsRoute = lazy(() => import("./MechanicsRoute"));
+const InvoicePayment = lazy(() => import("../pages/customer/InvoicePayment"));
+
 const Login = lazy(() => import("../pages/admin/auth/Login"));
 const Register = lazy(() => import("../pages/admin/auth/Register"));
+const ForgotPassword = lazy(() => import("../pages/admin/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("../pages/admin/auth/ResetPassword"));
 
 const AppRoutes = () => {
   // Initialize inactivity timer for automatic logout after 1 hour of inactivity
@@ -23,62 +27,68 @@ const AppRoutes = () => {
   useInactivityTimer();
 
   return (
-
-    <Routes>
-      {/* Root route - show login page */}
-      <Route 
-        path="/" 
-        element={
-          <Suspense fallback={<Loading />}>
+    <Suspense fallback={<Loading />}>
+      <Routes>
+        {/* Root route - show login page */}
+        <Route
+          path="/"
+          element={
             <PublicRoute>
               <Login />
             </PublicRoute>
-          </Suspense>
-        } 
-      />
+          }
+        />
 
-      {/* Public registration route */}
-      <Route 
-        path="/register" 
-        element={
-          <Suspense fallback={<Loading />}>
+        {/* Public registration route */}
+        <Route
+          path="/register"
+          element={
             <PublicRoute>
               <Register />
             </PublicRoute>
-          </Suspense>
-        } 
-      />
+          }
+        />
 
-      <Route path='/superadmin/*' element={<SuperAdminRoute />}></Route>
-      <Route path='/admin/*' element={<AdminRoute />}></Route>
-      
-      {/* Dispatcher routes (without /admin prefix) */}
-      <Route path='/dispatch/*' element={<DispatcherRoute />}></Route>
-      <Route path='/gpsvehicle/*' element={<DispatcherRoute />}></Route>
-      
-      {/* HR routes (without /admin prefix) */}
-      <Route path='/Management/*' element={<HRRoute />}></Route>
-      
-      {/* Accountant routes (without /admin prefix) */}
-      <Route path='/accounts/*' element={<AccountantRoute />}></Route>
-      
-      {/* Fleet Maintenance Manager routes (without /admin prefix) */}
-      <Route path='/fleetmaintenance/*' element={<FleetMaintenanceRoute />}></Route>
-      
-      {/* Compliance Manager routes (without /admin prefix) */}
-      <Route path='/compliance/*' element={<ComplianceRoute />}></Route>
-      
-      {/* Safety Officer routes (without /admin prefix) */}
-      <Route path='/healthandsafety/*' element={<SafetyOfficerRoute />}></Route>
-      
-      {/* Mechanics routes (without /admin prefix) - for Maintenance Crew (Mechanics) role */}
-      <Route path='/mechanics/*' element={<MechanicsRoute />}></Route>
-      
-      {/* Public customer routes */}
-      <Route path='/invoice/:invoiceId' element={<InvoicePayment />}></Route>
+        <Route path='/superadmin/*' element={<SuperAdminRoute />} />
+        <Route path='/admin/*' element={<AdminRoute />} />
 
-    </Routes>
+        {/* Dispatcher routes (without /admin prefix) */}
+        <Route path='/dispatch/*' element={<DispatcherRoute />} />
+        <Route path='/gpsvehicle/*' element={<DispatcherRoute />} />
 
+        {/* HR routes (without /admin prefix) */}
+        <Route path='/Management/*' element={<HRRoute />} />
+
+        {/* Accountant routes (without /admin prefix) */}
+        <Route path='/accounts/*' element={<AccountantRoute />} />
+
+        {/* Fleet Maintenance Manager routes (without /admin prefix) */}
+        <Route path='/fleetmaintenance/*' element={<FleetMaintenanceRoute />} />
+
+        {/* Compliance Manager routes (without /admin prefix) */}
+        <Route path='/compliance/*' element={<ComplianceRoute />} />
+
+        {/* Safety Officer routes (without /admin prefix) */}
+        <Route path='/healthandsafety/*' element={<SafetyOfficerRoute />} />
+
+        {/* Mechanics routes (without /admin prefix) - for Maintenance Crew (Mechanics) role */}
+        <Route path='/mechanics/*' element={<MechanicsRoute />} />
+
+        {/* Password reset routes (public — no auth required) */}
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicRoute>
+              <ForgotPassword />
+            </PublicRoute>
+          }
+        />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+        {/* Public customer routes */}
+        <Route path='/invoice/:invoiceId' element={<InvoicePayment />} />
+      </Routes>
+    </Suspense>
   );
 };
 

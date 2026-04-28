@@ -1,23 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
-  CreditCard,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  Search,
-  Calendar,
-  CheckCircle,
-  XCircle,
-  Zap,
-  BarChart3,
-  Grid3x3,
-  List,
-  Star,
-  Copy,
-  ArrowUpDown,
-  Sparkles,
-  TrendingUp,
+  CreditCard, Plus, Edit, Trash2, Eye, Search, Calendar,
+  CheckCircle, XCircle, Zap, BarChart3, Grid3x3, List,
+  Star, Copy, ArrowUpDown, Sparkles, TrendingUp, AlertCircle,
 } from 'lucide-react';
 import { message, Modal, Input, Select, Button, Switch, Tag, Tooltip, Dropdown } from 'antd';
 import { getAllPlans, createPlan, updatePlan, deletePlan } from '../../../axios/api/superadmin';
@@ -345,8 +330,12 @@ const Billing = () => {
   };
 
   const getPlanGradient = (plan: Plan) => {
-    if (plan.isDefault) return 'from-purple-500 to-indigo-600';
-    return 'from-green-500 to-emerald-600';
+    if (plan.isDefault) return '';
+    return '';
+  };
+  const getPlanHeaderStyle = (plan: Plan): React.CSSProperties => {
+    if (plan.isDefault) return { background: 'linear-gradient(135deg, #091527 0%, #0d1e3a 100%)', borderBottom: '1px solid rgba(17,131,224,0.25)' };
+    return { background: 'linear-gradient(135deg, #0a1a10 0%, #0d2318 100%)', borderBottom: '1px solid rgba(0,255,163,0.15)' };
   };
 
   const toggleSort = (type: SortType) => {
@@ -380,16 +369,16 @@ const Billing = () => {
     const extraPrice = tp.extraTruckPrice ?? 0;
 
     return (
-      <div className="bg-[#f7f7f5] rounded-xl p-4 mt-4">
+      <div className="rounded-xl p-4 mt-4" style={{ backgroundColor: 'var(--bg-card-light)' }}>
         {/* Tabs */}
         <div className="flex gap-2 mb-4 flex-wrap">
           {(['monthly', '6months', 'annual'] as const).map(t => (
             <button key={t} onClick={() => onTabChange(t)}
               className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${tab === t ? 'bg-card border-theme shadow-sm text-primary' : 'bg-transparent border-transparent text-secondary hover:text-primary'}`}>
               {t === 'monthly' ? 'Monthly' : t === '6months' ? (
-                <span className="flex items-center gap-1.5">6 Months {bonusDays > 0 && <span className="bg-green-100 text-green-700 text-xs px-1.5 py-0.5 rounded-full font-semibold">+{bonusDays} days free</span>}</span>
+                <span className="flex items-center gap-1.5">6 Months {bonusDays > 0 && <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold text-[#F59E0B]" style={{ backgroundColor: 'rgba(245,158,11,0.12)' }}>+{bonusDays} days free</span>}</span>
               ) : (
-                <span className="flex items-center gap-1.5">Annual {freeMonths > 0 && <span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full font-semibold">{freeMonths} month free</span>}</span>
+                <span className="flex items-center gap-1.5">Annual {freeMonths > 0 && <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold text-[#00FFA3]" style={{ backgroundColor: 'rgba(0,255,163,0.1)' }}>{freeMonths} month free</span>}</span>
               )}
             </button>
           ))}
@@ -397,12 +386,12 @@ const Billing = () => {
 
         {/* Bonus banner */}
         {tab === '6months' && bonusDays > 0 && (
-          <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2.5 mb-3 text-sm text-green-800">
+          <div className="rounded-lg px-4 py-2.5 mb-3 text-sm border" style={{ backgroundColor: 'rgba(0,255,163,0.06)', borderColor: 'rgba(0,255,163,0.2)', color: '#00FFA3' }}>
             <strong>6-month bonus:</strong> Pay upfront for 6 months and receive {bonusDays} extra days of usage at no additional cost.
           </div>
         )}
         {tab === 'annual' && freeMonths > 0 && (
-          <div className="bg-card border border-blue-200 rounded-lg px-4 py-2.5 mb-3 text-sm text-blue-800">
+          <div className="rounded-lg px-4 py-2.5 mb-3 text-sm border" style={{ backgroundColor: 'rgba(17,131,224,0.06)', borderColor: 'rgba(17,131,224,0.2)', color: 'var(--accent-navyblue)' }}>
             <strong>Annual incentive:</strong> Pay for 12 months and get {freeMonths} full month{freeMonths > 1 ? 's' : ''} free — {12 + freeMonths} months of access for the price of 12.
           </div>
         )}
@@ -538,7 +527,7 @@ const Billing = () => {
           />
         </div>
 
-        <div className="flex items-center gap-3 px-4 py-3 bg-card rounded-xl border border-blue-100">
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border" style={{ backgroundColor: 'rgba(17,131,224,0.04)', borderColor: 'rgba(17,131,224,0.15)' }}>
           <Switch checked={formData.isDefault} onChange={(checked) => setFormData({ ...formData, isDefault: checked })} />
           <div>
             <p className="text-sm font-semibold text-primary">Set as Default Plan</p>
@@ -556,7 +545,7 @@ const Billing = () => {
 
           <div className="p-5 grid grid-cols-2 gap-4">
             {/* Tier 1: 1–10 Trucks */}
-            <div className="rounded-xl border-2 border-orange-200 bg-card p-4">
+            <div className="rounded-xl border-2 bg-card p-4" style={{ borderColor: 'rgba(245,158,11,0.3)' }}>
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
                   <Zap className="w-4 h-4 text-white" />
@@ -579,7 +568,7 @@ const Billing = () => {
             </div>
 
             {/* Tier 2: 11–20 Trucks */}
-            <div className="rounded-xl border-2 border-blue-200 bg-card p-4">
+            <div className="rounded-xl border-2 bg-card p-4" style={{ borderColor: 'rgba(17,131,224,0.25)' }}>
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                   <Star className="w-4 h-4 text-white" />
@@ -604,7 +593,7 @@ const Billing = () => {
 
           {/* Extra truck price */}
           <div className="px-5 pb-5">
-            <div className="rounded-xl border border-dashed border-orange-300 bg-orange-50/50 p-4">
+            <div className="rounded-xl border border-dashed p-4" style={{ borderColor: 'rgba(245,158,11,0.3)', backgroundColor: 'rgba(245,158,11,0.04)' }}>
               <div className="flex items-start gap-3">
                 <TrendingUp className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
@@ -628,7 +617,7 @@ const Billing = () => {
           <div className="px-5 pb-5 border-t border-theme pt-4">
             <p className="text-xs font-bold text-secondary uppercase tracking-widest mb-3">Billing Period Bonuses</p>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <div className="rounded-xl p-4 border" style={{ backgroundColor: 'rgba(245,158,11,0.06)', borderColor: 'rgba(245,158,11,0.2)' }}>
                 <div className="flex items-center gap-2 mb-2">
                   <Zap className="w-3.5 h-3.5 text-amber-500" />
                   <label className="text-sm font-semibold text-primary">6-Month Bonus</label>
@@ -642,7 +631,7 @@ const Billing = () => {
                   onChange={(e) => updateTruckPricing('sixMonthBonusDays', parseInt(e.target.value) || 0)}
                 />
               </div>
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+              <div className="rounded-xl p-4 border" style={{ backgroundColor: 'rgba(0,255,163,0.05)', borderColor: 'rgba(0,255,163,0.15)' }}>
                 <div className="flex items-center gap-2 mb-2">
                   <Star className="w-3.5 h-3.5 text-green-500" />
                   <label className="text-sm font-semibold text-primary">Annual Free Months</label>
@@ -701,8 +690,48 @@ const Billing = () => {
     );
   };
 
+  const mStyles = {
+    content: { background: 'var(--bg-card)', padding: 0, borderRadius: '16px', overflow: 'hidden' as const, border: '1px solid rgba(17,131,224,0.2)' },
+    body: { background: 'var(--bg-card)', padding: 0 },
+  };
+  const divider = { borderColor: 'rgba(17,131,224,0.12)' };
+
+  // CSS overrides for Ant Design inputs inside dark modals
+  const antdDarkInputs = `
+    .billing-modal .ant-input, .billing-modal .ant-input-affix-wrapper,
+    .billing-modal .ant-input-number, .billing-modal .ant-input-number-input {
+      background: transparent !important; color: var(--text-primary) !important;
+      border-color: rgba(17,131,224,0.2) !important;
+    }
+    .billing-modal .ant-input::placeholder { color: var(--text-secondary) !important; }
+    .billing-modal .ant-input-affix-wrapper > input { background: transparent !important; color: var(--text-primary) !important; }
+    .billing-modal .ant-input:focus, .billing-modal .ant-input-focused,
+    .billing-modal .ant-input-affix-wrapper:focus, .billing-modal .ant-input-affix-wrapper-focused {
+      border-color: var(--accent-navyblue) !important; box-shadow: 0 0 0 2px rgba(17,131,224,0.15) !important;
+    }
+    .billing-modal .ant-input-group-addon {
+      background: rgba(17,131,224,0.06) !important; color: var(--text-secondary) !important;
+      border-color: rgba(17,131,224,0.2) !important;
+    }
+    .billing-modal .ant-input-number-handler-wrap { background: var(--bg-card) !important; }
+    .billing-modal .ant-input-number-handler { border-color: rgba(17,131,224,0.15) !important; }
+    .billing-modal .ant-input-number-handler:hover { background: rgba(17,131,224,0.08) !important; }
+    .billing-modal .ant-select-selector {
+      background: transparent !important; border-color: rgba(17,131,224,0.2) !important;
+    }
+    .billing-modal .ant-select-selection-item, .billing-modal .ant-select-selection-placeholder {
+      color: var(--text-primary) !important;
+    }
+    .billing-modal textarea.ant-input { background: transparent !important; }
+    .billing-modal .ant-switch { background: rgba(255,255,255,0.15) !important; }
+    .billing-modal .ant-switch-checked { background: var(--accent-navyblue) !important; }
+    .billing-modal .ant-btn-sm { background: rgba(17,131,224,0.06) !important; color: var(--text-primary) !important; border-color: rgba(17,131,224,0.2) !important; }
+    .billing-modal .ant-btn-sm:hover { background: rgba(17,131,224,0.12) !important; }
+    .billing-modal .ant-btn-sm.ant-btn-dangerous { background: rgba(244,63,94,0.08) !important; color: var(--accent-red) !important; border-color: rgba(244,63,94,0.2) !important; }
+  `;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-purple-50">
+    <div className="min-h-screen bg-main">
       {/* Header */}
       <div className="bg-card border-b border-theme shadow-sm">
         <div className="px-6 py-5">
@@ -710,7 +739,7 @@ const Billing = () => {
             <div>
               <h1 className="text-3xl font-bold text-primary flex items-center">
                 <div className="relative">
-                  <CreditCard className="w-8 h-8 text-purple-600 mr-3" />
+                  <CreditCard className="w-8 h-8 mr-3" style={{ color: 'var(--accent-navyblue)' }} />
                   <Sparkles className="w-4 h-4 text-yellow-400 absolute -top-1 -right-1" />
                 </div>
                 Plan Management
@@ -737,7 +766,7 @@ const Billing = () => {
                   resetForm();
                   setShowCreateModal(true);
                 }}
-                className="bg-gradient-to-r from-purple-600 to-indigo-600 border-0 hover:from-purple-700 hover:to-indigo-700 shadow-lg"
+                style={{ backgroundColor: 'var(--accent-navyblue)', border: 'none' }}
                 size="large"
               >
                 Create Plan
@@ -747,7 +776,7 @@ const Billing = () => {
 
           {/* Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg p-4 text-white">
+            <div className="rounded-xl shadow-lg p-4 text-white border" style={{ background: 'linear-gradient(135deg, #091527 0%, #0d1e3a 100%)', borderColor: 'rgba(17,131,224,0.3)' }}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm opacity-90 mb-1">Total Plans</p>
@@ -756,7 +785,7 @@ const Billing = () => {
                 <CreditCard className="w-8 h-8 opacity-80" />
               </div>
             </div>
-            <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg p-4 text-white">
+            <div className="rounded-xl shadow-lg p-4 text-white border" style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 100%)', borderColor: 'rgba(0,255,163,0.2)' }}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm opacity-90 mb-1">Active Plans</p>
@@ -765,7 +794,7 @@ const Billing = () => {
                 <CheckCircle className="w-8 h-8 opacity-80" />
               </div>
             </div>
-            <div className="bg-gradient-to-br from-yellow-500 to-amber-600 rounded-xl shadow-lg p-4 text-white">
+            <div className="rounded-xl shadow-lg p-4 text-white border" style={{ background: 'linear-gradient(135deg, #451a03 0%, #78350f 100%)', borderColor: 'rgba(245,158,11,0.25)' }}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm opacity-90 mb-1">Default Plan</p>
@@ -779,29 +808,36 @@ const Billing = () => {
           {/* Search, Filter, and View Controls */}
           <div className="flex flex-col md:flex-row gap-4 mt-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
-              <Input
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5 z-10" />
+              <input
+                type="text"
                 placeholder="Search plans by name or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-11"
-                size="large"
+                className="w-full h-11 rounded-lg border pl-10 pr-4 text-sm text-primary bg-transparent focus:outline-none"
+                style={{ borderColor: 'rgba(17,131,224,0.2)' }}
+                onFocus={(e) => { e.target.style.borderColor = 'var(--accent-navyblue)'; e.target.style.boxShadow = '0 0 0 2px rgba(17,131,224,0.15)'; }}
+                onBlur={(e) => { e.target.style.borderColor = 'rgba(17,131,224,0.2)'; e.target.style.boxShadow = ''; }}
               />
             </div>
 
-            <div className="flex gap-2">
-              <Select
+            <div className="flex gap-2 items-center">
+              {/* Filter select */}
+              <select
                 value={filterType}
-                onChange={setFilterType}
-                className="w-40"
-                size="large"
+                onChange={(e) => setFilterType(e.target.value as FilterType)}
+                className="h-11 rounded-lg border px-3 pr-8 text-sm text-primary focus:outline-none w-36"
+                style={{ backgroundColor: 'var(--bg-card)', borderColor: 'rgba(17,131,224,0.2)' }}
+                onFocus={(e) => { e.target.style.borderColor = 'var(--accent-navyblue)'; }}
+                onBlur={(e) => { e.target.style.borderColor = 'rgba(17,131,224,0.2)'; }}
               >
-                <Select.Option value="all">All Plans</Select.Option>
-                <Select.Option value="active">Active</Select.Option>
-                <Select.Option value="inactive">Inactive</Select.Option>
-                <Select.Option value="default">Default</Select.Option>
-              </Select>
+                <option value="all" style={{ backgroundColor: 'var(--bg-card)' }}>All Plans</option>
+                <option value="active" style={{ backgroundColor: 'var(--bg-card)' }}>Active</option>
+                <option value="inactive" style={{ backgroundColor: 'var(--bg-card)' }}>Inactive</option>
+                <option value="default" style={{ backgroundColor: 'var(--bg-card)' }}>Default</option>
+              </select>
 
+              {/* Sort dropdown */}
               <Dropdown
                 menu={{
                   items: [
@@ -813,24 +849,30 @@ const Billing = () => {
                 }}
                 trigger={['click']}
               >
-                <Button icon={<ArrowUpDown className="w-4 h-4" />} size="large">
-                  Sort
-                </Button>
+                <button className="h-11 flex items-center gap-2 px-4 rounded-lg border text-sm font-medium text-primary transition-colors"
+                  style={{ backgroundColor: 'transparent', borderColor: 'rgba(17,131,224,0.2)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(17,131,224,0.06)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
+                  <ArrowUpDown className="w-4 h-4" /> Sort
+                </button>
               </Dropdown>
 
-              <div className="flex border border-theme rounded-lg overflow-hidden">
-                <Button
-                  type={viewMode === 'grid' ? 'primary' : 'default'}
-                  icon={<Grid3x3 className="w-4 h-4" />}
-                  onClick={() => setViewMode('grid')}
-                  className={viewMode === 'grid' ? 'bg-purple-600' : ''}
-                />
-                <Button
-                  type={viewMode === 'list' ? 'primary' : 'default'}
-                  icon={<List className="w-4 h-4" />}
-                  onClick={() => setViewMode('list')}
-                  className={viewMode === 'list' ? 'bg-purple-600' : ''}
-                />
+              {/* Grid/List toggle */}
+              <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: 'rgba(17,131,224,0.2)' }}>
+                <button onClick={() => setViewMode('grid')}
+                  className="w-10 h-10 flex items-center justify-center transition-all"
+                  style={viewMode === 'grid'
+                    ? { backgroundColor: 'var(--accent-navyblue)', color: '#fff' }
+                    : { backgroundColor: 'transparent', color: 'var(--text-secondary)' }}>
+                  <Grid3x3 className="w-4 h-4" />
+                </button>
+                <button onClick={() => setViewMode('list')}
+                  className="w-10 h-10 flex items-center justify-center transition-all border-l"
+                  style={viewMode === 'list'
+                    ? { backgroundColor: 'var(--accent-navyblue)', color: '#fff', borderColor: 'rgba(17,131,224,0.2)' }
+                    : { backgroundColor: 'transparent', color: 'var(--text-secondary)', borderColor: 'rgba(17,131,224,0.2)' }}>
+                  <List className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
@@ -841,7 +883,7 @@ const Billing = () => {
         {/* Plans Display */}
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-navyblue)]"></div>
           </div>
         ) : filteredAndSortedPlans.length === 0 ? (
           <div className="text-center py-20 bg-card rounded-xl shadow-sm border border-theme">
@@ -860,7 +902,7 @@ const Billing = () => {
                   resetForm();
                   setShowCreateModal(true);
                 }}
-                className="bg-gradient-to-r from-purple-600 to-indigo-600 border-0"
+                style={{ backgroundColor: 'var(--accent-navyblue)', border: 'none' }}
                 size="large"
               >
                 Create Plan
@@ -880,11 +922,11 @@ const Billing = () => {
               return (
                 <div
                   key={plan._id}
-                  className={`bg-card rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl ${plan.isDefault ? 'border-purple-300 ring-2 ring-purple-100' : 'border-theme hover:border-theme'
-                    }`}
+                  className="bg-card rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl"
+                  style={{ borderColor: plan.isDefault ? 'rgba(17,131,224,0.4)' : 'rgba(0,209,255,0.1)' }}
                 >
                   {/* ── Plan Header ── */}
-                  <div className={`px-8 py-6 bg-gradient-to-r ${getPlanGradient(plan)} relative overflow-hidden`}>
+                  <div className="px-8 py-6 relative overflow-hidden" style={getPlanHeaderStyle(plan)}>
                     <div className="absolute top-0 right-0 w-40 h-40 bg-card opacity-10 rounded-full -mr-20 -mt-20" />
                     <div className="relative z-10 flex items-start justify-between gap-4 flex-wrap">
                       <div>
@@ -935,9 +977,10 @@ const Billing = () => {
                                 key={tab}
                                 onClick={() => setPreviewTab(tab)}
                                 className={`relative px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex flex-col items-center min-w-[110px] ${planTab === tab
-                                    ? 'bg-card shadow-md text-purple-700 ring-1 ring-purple-100'
+                                    ? 'shadow-md'
                                     : 'text-secondary hover:text-primary'
                                   }`}
+                                style={planTab === tab ? { backgroundColor: 'rgba(17,131,224,0.15)', color: 'var(--accent-navyblue)', border: '1px solid rgba(17,131,224,0.25)' } : undefined}
                               >
                                 <span>{tab === 'monthly' ? 'Monthly' : tab === '6months' ? '6 Months' : 'Annual'}</span>
                                 <span className={`text-[10px] font-bold mt-0.5 ${planTab === tab
@@ -953,30 +996,30 @@ const Billing = () => {
 
                         {/* ── Bonus Banner ── */}
                         {planTab === '6months' && bonusDays > 0 && (
-                          <div className="mb-6 flex items-center gap-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl px-6 py-4">
-                            <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                              <Zap className="w-5 h-5 text-white" />
+                          <div className="mb-6 flex items-center gap-4 rounded-2xl px-6 py-4 border" style={{ backgroundColor: 'rgba(245,158,11,0.08)', borderColor: 'rgba(245,158,11,0.25)' }}>
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(245,158,11,0.15)' }}>
+                              <Zap className="w-5 h-5 text-[#F59E0B]" />
                             </div>
                             <div>
-                              <p className="text-sm font-bold text-amber-900">6-Month Plan Bonus</p>
-                              <p className="text-xs text-amber-700 mt-0.5">Admins pay for 6 months and receive <strong>{bonusDays} extra days</strong> of access free</p>
+                              <p className="text-sm font-bold text-[#F59E0B]">6-Month Plan Bonus</p>
+                              <p className="text-xs text-secondary mt-0.5">Admins pay for 6 months and receive <strong>{bonusDays} extra days</strong> of access free</p>
                             </div>
                             <div className="ml-auto flex-shrink-0">
-                              <span className="bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1.5 rounded-full">+{bonusDays} Days</span>
+                              <span className="text-xs font-bold px-3 py-1.5 rounded-full text-[#F59E0B]" style={{ backgroundColor: 'rgba(245,158,11,0.15)' }}>+{bonusDays} Days</span>
                             </div>
                           </div>
                         )}
                         {planTab === 'annual' && freeMonths > 0 && (
-                          <div className="mb-6 flex items-center gap-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl px-6 py-4">
-                            <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                              <Star className="w-5 h-5 text-white" />
+                          <div className="mb-6 flex items-center gap-4 rounded-2xl px-6 py-4 border" style={{ backgroundColor: 'rgba(0,255,163,0.06)', borderColor: 'rgba(0,255,163,0.2)' }}>
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(0,255,163,0.12)' }}>
+                              <Star className="w-5 h-5 text-[#00FFA3]" />
                             </div>
                             <div>
-                              <p className="text-sm font-bold text-green-900">Annual Plan — Best Value</p>
-                              <p className="text-xs text-green-700 mt-0.5">Admins get <strong>{freeMonths} month{freeMonths > 1 ? 's' : ''} free</strong> when paying annually</p>
+                              <p className="text-sm font-bold text-[#00FFA3]">Annual Plan — Best Value</p>
+                              <p className="text-xs text-secondary mt-0.5">Admins get <strong>{freeMonths} month{freeMonths > 1 ? 's' : ''} free</strong> when paying annually</p>
                             </div>
                             <div className="ml-auto flex-shrink-0">
-                              <span className="bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">+{freeMonths} Mo Free</span>
+                              <span className="text-xs font-bold px-3 py-1.5 rounded-full text-[#00FFA3]" style={{ backgroundColor: 'rgba(0,255,163,0.12)' }}>+{freeMonths} Mo Free</span>
                             </div>
                           </div>
                         )}
@@ -992,19 +1035,17 @@ const Billing = () => {
                             return (
                               <div
                                 key={idx}
-                                className={`relative rounded-2xl border-2 p-6 transition-all duration-200 flex flex-col ${isPopular
-                                    ? 'border-purple-400 bg-gradient-to-b from-purple-50 to-indigo-50 shadow-xl ring-2 ring-purple-100'
-                                    : 'border-theme bg-card hover:border-purple-200 hover:shadow-lg'
-                                  }`}
+                                className={`relative rounded-2xl border-2 p-6 transition-all duration-200 flex flex-col ${isPopular ? 'shadow-xl' : 'bg-card hover:shadow-lg'}`}
+                              style={isPopular ? { borderColor: 'rgba(17,131,224,0.5)', backgroundColor: 'rgba(17,131,224,0.06)', boxShadow: '0 0 20px rgba(17,131,224,0.1)' } : { borderColor: 'rgba(0,209,255,0.1)' }}
                               >
                                 {isPopular && (
-                                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg whitespace-nowrap">
+                                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg whitespace-nowrap" style={{ backgroundColor: 'var(--accent-navyblue)' }}>
                                     Most Popular
                                   </div>
                                 )}
 
                                 <div className="flex items-center gap-3 mb-5">
-                                  <div className={`p-2.5 rounded-xl ${isPopular ? 'bg-purple-600' : 'bg-orange-100'}`}>
+                                  <div className="p-2.5 rounded-xl" style={{ backgroundColor: isPopular ? 'var(--accent-navyblue)' : 'rgba(245,158,11,0.12)' }}>
                                     <BarChart3 className={`w-5 h-5 ${isPopular ? 'text-white' : 'text-[#F59E0B]'}`} />
                                   </div>
                                   <div>
@@ -1018,7 +1059,7 @@ const Billing = () => {
                                     <p className="text-sm text-secondary line-through mb-0.5">{formatPrice(strikethroughPrice, currency)}</p>
                                   )}
                                   <div className="flex items-baseline gap-1.5">
-                                    <span className={`text-4xl font-extrabold ${isPopular ? 'text-purple-700' : 'text-primary'}`}>
+                                    <span className={`text-4xl font-extrabold ${isPopular ? 'text-[var(--accent-navyblue)]' : 'text-primary'}`}>
                                       {formatPrice(displayPrice, currency)}
                                     </span>
                                     <span className="text-sm text-secondary font-medium">
@@ -1038,10 +1079,10 @@ const Billing = () => {
                                   const billingFactor = planTab === 'monthly' ? 1 : planTab === '6months' ? 6 : 12;
                                   const billingLabel = planTab === 'monthly' ? '/mo' : planTab === '6months' ? '/6 mo' : '/yr';
                                   return (
-                                    <div className="mb-4 rounded-lg border border-orange-200 bg-card overflow-hidden">
-                                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 border-b border-orange-200">
-                                        <TrendingUp className="w-3 h-3 text-orange-500" />
-                                        <span className="text-[10px] font-bold text-orange-700 uppercase tracking-wide">Additional Trucks</span>
+                                    <div className="mb-4 rounded-lg overflow-hidden border" style={{ borderColor: 'rgba(245,158,11,0.2)' }}>
+                                      <div className="flex items-center gap-1.5 px-3 py-1.5 border-b" style={{ backgroundColor: 'rgba(245,158,11,0.08)', borderColor: 'rgba(245,158,11,0.2)' }}>
+                                        <TrendingUp className="w-3 h-3 text-[#F59E0B]" />
+                                        <span className="text-[10px] font-bold text-[#F59E0B] uppercase tracking-wide">Additional Trucks</span>
                                       </div>
                                       <div className="flex items-center justify-between px-3 py-2">
                                         <span className="text-xs text-secondary">Beyond {lastTierMax} trucks</span>
@@ -1051,7 +1092,7 @@ const Billing = () => {
                                   );
                                 })()}
 
-                                <div className={`h-px mb-5 ${isPopular ? 'bg-purple-200' : 'bg-card'}`} />
+                                <div className="h-px mb-5" style={{ backgroundColor: isPopular ? 'rgba(17,131,224,0.2)' : 'rgba(255,255,255,0.06)' }} />
 
                                 <div className="space-y-2">
                                   <div className="flex items-center gap-2 text-sm text-primary">
@@ -1084,10 +1125,10 @@ const Billing = () => {
                           const lastTierMax = tiers[tiers.length - 1]?.maxTrucks ?? 0;
                           const extraCur = tp?.extraTruckCurrency ?? 'CAD';
                           return (
-                            <div className="mb-6 rounded-2xl border-2 border-dashed border-orange-200 bg-card overflow-hidden">
-                              <div className="flex items-center gap-2 px-5 py-3 bg-orange-100 border-b border-orange-200">
+                            <div className="mb-6 rounded-2xl border-2 border-dashed overflow-hidden" style={{ borderColor: 'rgba(245,158,11,0.3)', backgroundColor: 'var(--bg-card)' }}>
+                              <div className="flex items-center gap-2 px-5 py-3 border-b" style={{ backgroundColor: 'rgba(245,158,11,0.08)', borderColor: 'rgba(245,158,11,0.2)' }}>
                                 <TrendingUp className="w-4 h-4 text-[#F59E0B]" />
-                                <span className="text-sm font-bold text-orange-800">Additional Trucks Beyond {lastTierMax}</span>
+                                <span className="text-sm font-bold text-[#F59E0B]">Additional Trucks Beyond {lastTierMax}</span>
                               </div>
                               <div className="flex items-center gap-5 flex-wrap px-5 py-4">
                                 <div className="flex-1 min-w-0">
@@ -1112,8 +1153,8 @@ const Billing = () => {
                         <div className={`grid gap-2.5 ${plan.features.filter(f => f.included).length > 4 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
                           {plan.features.filter(f => f.included).map((f, fIdx) => (
                             <div key={fIdx} className="flex items-center gap-2.5">
-                              <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                              <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(0,255,163,0.1)' }}>
+                                <CheckCircle className="w-3.5 h-3.5 text-[#00FFA3]" />
                               </div>
                               <span className="text-sm text-primary">{f.name}</span>
                             </div>
@@ -1137,15 +1178,25 @@ const Billing = () => {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <h3 className="text-lg font-semibold text-primary">{plan.planName}</h3>
-                        {plan.isDefault && <Tag color="purple" icon={<Star className="w-3 h-3" />}>Default</Tag>}
-                        <Tag color={plan.planType === 'lifetime' ? 'blue' : 'green'}>
+                        {plan.isDefault && (
+                          <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
+                            style={{ backgroundColor: 'rgba(17,131,224,0.12)', color: 'var(--accent-navyblue)' }}>
+                            <Star className="w-3 h-3" /> Default
+                          </span>
+                        )}
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                          style={{ backgroundColor: 'rgba(0,255,163,0.08)', color: '#00FFA3' }}>
                           {plan.planType === 'lifetime' ? 'Lifetime' : 'Monthly'}
-                        </Tag>
-                        <Tag color={plan.status === 'active' ? 'success' : 'default'}>
+                        </span>
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                          style={{
+                            backgroundColor: plan.status === 'active' ? 'rgba(0,255,163,0.08)' : 'rgba(255,255,255,0.06)',
+                            color: plan.status === 'active' ? '#00FFA3' : 'var(--text-secondary)',
+                          }}>
                           {plan.status}
-                        </Tag>
+                        </span>
                       </div>
                       {plan.description && (
                         <p className="text-sm text-secondary mb-3">{plan.description}</p>
@@ -1170,21 +1221,35 @@ const Billing = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button icon={<Eye className="w-4 h-4" />} onClick={() => handleView(plan)}>View</Button>
-                      <Button icon={<Edit className="w-4 h-4" />} onClick={() => handleEdit(plan)}>Edit</Button>
-                      <Button icon={<Copy className="w-4 h-4" />} onClick={() => handleDuplicate(plan)}>Duplicate</Button>
-                      <Button
-                        danger
-                        icon={<Trash2 className="w-4 h-4" />}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleDelete(plan);
-                        }}
-                      >
-                        Delete
-                      </Button>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button onClick={() => handleView(plan)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
+                        style={{ backgroundColor: 'rgba(17,131,224,0.07)', borderColor: 'rgba(17,131,224,0.2)', color: 'var(--accent-navyblue)' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(17,131,224,0.14)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(17,131,224,0.07)'; }}>
+                        <Eye className="w-3.5 h-3.5" /> View
+                      </button>
+                      <button onClick={() => handleEdit(plan)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors text-primary"
+                        style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'; }}>
+                        <Edit className="w-3.5 h-3.5" /> Edit
+                      </button>
+                      <button onClick={() => handleDuplicate(plan)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors text-primary"
+                        style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'; }}>
+                        <Copy className="w-3.5 h-3.5" /> Duplicate
+                      </button>
+                      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(plan); }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
+                        style={{ backgroundColor: 'rgba(244,63,94,0.08)', borderColor: 'rgba(244,63,94,0.2)', color: 'var(--accent-red)' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(244,63,94,0.15)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(244,63,94,0.08)'; }}>
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1195,90 +1260,120 @@ const Billing = () => {
       </div>
 
       {/* Create Plan Modal */}
-      <Modal
-        title="Create New Plan"
-        open={showCreateModal}
-        onCancel={() => { setShowCreateModal(false); resetForm(); }}
-        footer={null}
-        width={860}
-      >
-        <div className="overflow-y-auto max-h-[75vh]">
+      <Modal open={showCreateModal} onCancel={() => { setShowCreateModal(false); resetForm(); }}
+        footer={null} width={880} title={null} styles={mStyles}>
+        <style>{antdDarkInputs}</style>
+        {/* Header */}
+        <div className="px-6 pt-5 pb-4 flex items-center gap-3 border-b" style={divider}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(17,131,224,0.12)' }}>
+            <Plus className="w-5 h-5" style={{ color: 'var(--accent-navyblue)' }} />
+          </div>
+          <div>
+            <h3 className="font-semibold text-primary">Create New Plan</h3>
+            <p className="text-xs text-secondary">Configure pricing tiers and features for your new plan</p>
+          </div>
+        </div>
+        {/* Body */}
+        <div className="billing-modal overflow-y-auto max-h-[68vh] px-6 py-5">
           {renderPlanFormBody()}
         </div>
-        <div className="flex justify-end space-x-3 pt-4 border-t mt-2">
-          <Button onClick={() => { setShowCreateModal(false); resetForm(); }}>Cancel</Button>
-          <Button type="primary" onClick={handleCreate} className="bg-purple-600 hover:bg-purple-700 !ml-2">Create Plan</Button>
+        {/* Footer */}
+        <div className="px-6 pb-5 pt-4 flex justify-end gap-3 border-t" style={divider}>
+          <button onClick={() => { setShowCreateModal(false); resetForm(); }}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-secondary border border-theme hover:text-primary transition-colors">
+            Cancel
+          </button>
+          <button onClick={handleCreate}
+            className="px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:-translate-y-0.5 transform flex items-center gap-2"
+            style={{ backgroundColor: 'var(--accent-navyblue)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#0d6fc7'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--accent-navyblue)'; }}>
+            <Plus className="w-4 h-4" /> Create Plan
+          </button>
         </div>
       </Modal>
 
       {/* Edit Plan Modal — description only */}
-      <Modal
-        title={
-          <div className="flex items-center gap-2">
-            <Edit className="w-4 h-4 text-purple-600" />
-            <span>Edit Plan — {selectedPlan?.planName}</span>
-          </div>
-        }
-        open={showEditModal}
-        onCancel={() => setShowEditModal(false)}
-        footer={null}
-        width={500}
-      >
-        <div className="py-4 space-y-4">
-          <div className="bg-card border border-yellow-200 rounded-lg px-3 py-2 text-sm text-yellow-800">
-            Only the plan description can be edited after creation.
+      <Modal open={showEditModal} onCancel={() => setShowEditModal(false)}
+        footer={null} width={500} title={null} styles={mStyles}>
+        {/* Header */}
+        <div className="px-6 pt-5 pb-4 flex items-center gap-3 border-b" style={divider}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(17,131,224,0.12)' }}>
+            <Edit className="w-4 h-4" style={{ color: 'var(--accent-navyblue)' }} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-primary mb-2">Description</label>
-            <Input.TextArea
+            <h3 className="font-semibold text-primary">Edit Plan</h3>
+            <p className="text-xs text-secondary truncate max-w-xs">{selectedPlan?.planName}</p>
+          </div>
+        </div>
+        {/* Body */}
+        <div className="px-6 py-5 space-y-4">
+          <div className="rounded-lg px-3 py-2.5 text-sm border flex items-center gap-2"
+            style={{ backgroundColor: 'rgba(245,158,11,0.08)', borderColor: 'rgba(245,158,11,0.2)', color: '#F59E0B' }}>
+            <Sparkles className="w-4 h-4 flex-shrink-0" />
+            Only the plan description can be edited after creation.
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-secondary">Description</label>
+            <textarea
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
-              placeholder="Enter plan description"
+              placeholder="Describe what this plan includes..."
               rows={4}
               autoFocus
+              className="block w-full rounded-lg border px-3 py-2.5 text-sm text-primary bg-transparent focus:outline-none resize-none"
+              style={{ borderColor: 'rgba(17,131,224,0.2)' }}
+              onFocus={(e) => { e.target.style.borderColor = 'var(--accent-navyblue)'; e.target.style.boxShadow = '0 0 0 2px rgba(17,131,224,0.15)'; }}
+              onBlur={(e) => { e.target.style.borderColor = 'rgba(17,131,224,0.2)'; e.target.style.boxShadow = ''; }}
             />
           </div>
         </div>
-        <div className="flex justify-end gap-3 pt-3 border-t">
-          <Button onClick={() => setShowEditModal(false)}>Cancel</Button>
-          <Button type="primary" onClick={handleUpdate} className="bg-purple-600 hover:bg-purple-700">Save Description</Button>
+        {/* Footer */}
+        <div className="px-6 pb-5 pt-4 flex justify-end gap-3 border-t" style={divider}>
+          <button onClick={() => setShowEditModal(false)}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-secondary border border-theme hover:text-primary transition-colors">
+            Cancel
+          </button>
+          <button onClick={handleUpdate}
+            className="px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:-translate-y-0.5 transform"
+            style={{ backgroundColor: 'var(--accent-navyblue)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#0d6fc7'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--accent-navyblue)'; }}>
+            Save Description
+          </button>
         </div>
       </Modal>
 
       {/* View Plan Modal */}
       {showViewModal && selectedPlan && (
-        <Modal
-          title={
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${selectedPlan.status === 'active' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-              <span className="text-xl font-bold">{selectedPlan.planName}</span>
-              {selectedPlan.isDefault && (
-                <Tag color="purple" icon={<Star className="w-3 h-3" />}>Default</Tag>
-              )}
+        <Modal open={showViewModal} onCancel={() => setShowViewModal(false)}
+          footer={null} width={720} title={null} styles={mStyles}>
+          {/* Header */}
+          <div className="px-6 pt-5 pb-4 flex items-center gap-3 border-b" style={divider}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(17,131,224,0.12)' }}>
+              <CreditCard className="w-4 h-4" style={{ color: 'var(--accent-navyblue)' }} />
             </div>
-          }
-          open={showViewModal}
-          onCancel={() => setShowViewModal(false)}
-          footer={[
-            <Button key="close" onClick={() => setShowViewModal(false)}>Close</Button>,
-            <Button
-              key="edit"
-              type="primary"
-              onClick={() => {
-                setShowViewModal(false);
-                handleEdit(selectedPlan);
-              }}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 border-0 hover:from-purple-700 hover:to-indigo-700"
-              icon={<Edit className="w-4 h-4" />}
-            >
-              Edit Plan
-            </Button>
-          ]}
-          width={700}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-semibold text-primary truncate">{selectedPlan.planName}</h3>
+                {selectedPlan.isDefault && <Tag color="blue" icon={<Star className="w-3 h-3" />}>Default</Tag>}
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                  style={{
+                    backgroundColor: selectedPlan.status === 'active' ? 'rgba(0,255,163,0.1)' : 'rgba(244,63,94,0.1)',
+                    color: selectedPlan.status === 'active' ? '#00FFA3' : 'var(--accent-red)',
+                  }}>
+                  {selectedPlan.status}
+                </span>
+              </div>
+              <p className="text-xs text-secondary mt-0.5">{selectedPlan.description || 'No description'}</p>
+            </div>
+          </div>
+          {/* Body */}
+          <div className="overflow-y-auto max-h-[65vh]"
         >
           <div className="space-y-6 py-4">
             {/* Header Info */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border border-theme">
+            <div className="rounded-lg p-4 border border-theme" style={{ backgroundColor: 'rgba(17,131,224,0.04)' }}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-secondary mb-1">Plan Type</p>
@@ -1320,7 +1415,7 @@ const Billing = () => {
                   Lifetime Pricing Options
                 </h4>
                 <div className="space-y-3">
-                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-5 rounded-xl border-2 border-blue-200">
+                  <div className="p-5 rounded-xl border-2" style={{ background: 'linear-gradient(135deg, rgba(17,131,224,0.08), rgba(17,131,224,0.04))', borderColor: 'rgba(17,131,224,0.25)' }}>
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-secondary mb-1">One-time Payment</p>
@@ -1419,33 +1514,39 @@ const Billing = () => {
               </div>
             )}
           </div>
+          </div>{/* end overflow-y-auto body */}
+          {/* Footer */}
+          <div className="px-6 pb-5 pt-4 flex justify-end gap-3 border-t" style={divider}>
+            <button onClick={() => setShowViewModal(false)}
+              className="px-4 py-2 rounded-lg text-sm font-medium text-secondary border border-theme hover:text-primary transition-colors">
+              Close
+            </button>
+            <button onClick={() => { setShowViewModal(false); handleEdit(selectedPlan); }}
+              className="px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:-translate-y-0.5 transform flex items-center gap-2"
+              style={{ backgroundColor: 'var(--accent-navyblue)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#0d6fc7'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--accent-navyblue)'; }}>
+              <Edit className="w-3.5 h-3.5" /> Edit Plan
+            </button>
+          </div>
         </Modal>
       )}
 
       {/* Compare Plans Modal */}
-      <Modal
-        title={
-          <div className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-purple-600" />
-            <span>Compare Plans</span>
+      <Modal open={showCompareModal} onCancel={() => { setShowCompareModal(false); setSelectedPlans([]); }}
+        footer={null} width={1000} title={null} styles={mStyles}>
+        {/* Header */}
+        <div className="px-6 pt-5 pb-4 flex items-center gap-3 border-b" style={divider}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(17,131,224,0.12)' }}>
+            <BarChart3 className="w-4 h-4" style={{ color: 'var(--accent-navyblue)' }} />
           </div>
-        }
-        open={showCompareModal}
-        onCancel={() => {
-          setShowCompareModal(false);
-          setSelectedPlans([]);
-        }}
-        footer={[
-          <Button key="close" onClick={() => {
-            setShowCompareModal(false);
-            setSelectedPlans([]);
-          }}>
-            Close
-          </Button>
-        ]}
-        width={1000}
-      >
-        <div className="py-4">
+          <div>
+            <h3 className="font-semibold text-primary">Compare Plans</h3>
+            <p className="text-xs text-secondary">Select at least 2 plans for side-by-side comparison</p>
+          </div>
+          <button onClick={() => { setShowCompareModal(false); setSelectedPlans([]); }} className="ml-auto text-secondary hover:text-primary transition-colors p-1">✕</button>
+        </div>
+        <div className="px-6 py-5">
           <div className="mb-4">
             <p className="text-sm text-secondary mb-3">Select plans to compare (select at least 2 plans):</p>
             <div className="flex flex-wrap gap-2">
@@ -1460,7 +1561,7 @@ const Billing = () => {
                       setSelectedPlans([...selectedPlans, plan._id]);
                     }
                   }}
-                  className={selectedPlans.includes(plan._id) ? 'bg-purple-600' : ''}
+                  style={selectedPlans.includes(plan._id) ? { backgroundColor: 'var(--accent-navyblue)' } : undefined}
                 >
                   {plan.planName}
                 </Button>
@@ -1577,68 +1678,69 @@ const Billing = () => {
             </div>
           )}
         </div>
+        {/* Footer */}
+        <div className="px-6 pb-5 pt-4 flex justify-end border-t" style={divider}>
+          <button onClick={() => { setShowCompareModal(false); setSelectedPlans([]); }}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-secondary border border-theme hover:text-primary transition-colors">
+            Close
+          </button>
+        </div>
       </Modal>
 
       {/* Delete Plan Confirmation Modal */}
-      <Modal
-        title={
-          <div className="flex items-center gap-2">
-            <Trash2 className="w-5 h-5 text-[#A855F7]" />
-            <span>Delete Plan</span>
+      <Modal open={showDeleteModal}
+        onCancel={() => { setShowDeleteModal(false); setDeletePlanId(null); setDeletePlanName(''); }}
+        footer={null} width={460} title={null}
+        styles={{ content: { background: 'var(--bg-card)', padding: 0, borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(244,63,94,0.25)' }, body: { background: 'var(--bg-card)', padding: 0 } }}>
+        {/* Header */}
+        <div className="px-6 pt-5 pb-4 flex items-center gap-3 border-b" style={{ borderColor: 'rgba(244,63,94,0.2)' }}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(244,63,94,0.1)' }}>
+            <Trash2 className="w-4 h-4" style={{ color: 'var(--accent-red)' }} />
           </div>
-        }
-        open={showDeleteModal}
-        onCancel={() => {
-          setShowDeleteModal(false);
-          setDeletePlanId(null);
-          setDeletePlanName('');
-        }}
-        footer={[
-          <Button
-            key="cancel"
-            onClick={() => {
-              setShowDeleteModal(false);
-              setDeletePlanId(null);
-              setDeletePlanName('');
-            }}
+          <div>
+            <h3 className="font-semibold text-primary">Delete Plan</h3>
+            <p className="text-xs text-secondary">This action is permanent and cannot be undone</p>
+          </div>
+        </div>
+        {/* Body */}
+        <div className="px-6 py-5 space-y-4">
+          <div className="rounded-xl p-4 border space-y-1" style={{ backgroundColor: 'rgba(17,131,224,0.04)', borderColor: 'rgba(17,131,224,0.12)' }}>
+            <div className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-secondary flex-shrink-0" />
+              <span className="text-sm font-medium text-primary">"{deletePlanName}"</span>
+            </div>
+          </div>
+          <div className="rounded-lg p-3 border flex items-start gap-2.5"
+            style={{ backgroundColor: 'rgba(245,158,11,0.08)', borderColor: 'rgba(245,158,11,0.2)' }}>
+            <Sparkles className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#F59E0B]" />
+            <p className="text-xs text-[#F59E0B]">
+              If this plan has active subscriptions, those customers will need to be migrated before deletion.
+            </p>
+          </div>
+          <div className="rounded-lg p-3 border flex items-start gap-2.5"
+            style={{ backgroundColor: 'rgba(244,63,94,0.08)', borderColor: 'rgba(244,63,94,0.25)' }}>
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent-red)' }} />
+            <p className="text-sm" style={{ color: 'var(--accent-red)' }}>
+              Deleting this plan will permanently remove all associated pricing data.
+            </p>
+          </div>
+        </div>
+        {/* Footer */}
+        <div className="px-6 pb-5 pt-4 flex justify-end gap-3 border-t" style={{ borderColor: 'rgba(244,63,94,0.15)' }}>
+          <button onClick={() => { setShowDeleteModal(false); setDeletePlanId(null); setDeletePlanName(''); }}
             disabled={deleting}
-          >
+            className="px-4 py-2 rounded-lg text-sm font-medium text-secondary border border-theme hover:text-primary transition-colors disabled:opacity-50">
             Cancel
-          </Button>,
-          <Button
-            key="delete"
-            type="primary"
-            danger
-            onClick={confirmDelete}
-            loading={deleting}
-            className="bg-red-600 hover:bg-red-700 border-red-600"
-          >
-            {deleting ? 'Deleting...' : 'Delete Plan'}
-          </Button>
-        ]}
-        width={500}
-      >
-        <div className="py-4">
-          <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-              <Trash2 className="w-6 h-6 text-[#A855F7]" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-primary mb-2">
-                Are you sure you want to delete this plan?
-              </h3>
-              <p className="text-secondary mb-4">
-                You are about to delete the plan <span className="font-semibold text-primary">"{deletePlanName}"</span>.
-                This action cannot be undone.
-              </p>
-              <div className="bg-card border border-yellow-200 rounded-lg p-3">
-                <p className="text-sm text-yellow-800">
-                  <strong>Warning:</strong> If this plan is associated with any active subscriptions,
-                  you may need to update those subscriptions before deleting this plan.
-                </p>
-              </div>
-            </div>
-          </div>
+          </button>
+          <button onClick={confirmDelete} disabled={deleting}
+            className="px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-0.5 transform"
+            style={{ backgroundColor: 'var(--accent-red)' }}>
+            {deleting ? (
+              <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Deleting...</>
+            ) : (
+              <><Trash2 className="w-3.5 h-3.5" /> Delete Plan</>
+            )}
+          </button>
         </div>
       </Modal>
     </div>

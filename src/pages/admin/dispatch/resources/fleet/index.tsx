@@ -545,9 +545,9 @@ const Index = () => {
               onChange={(event) => setStatusFilter(event.target.value as "all" | "active" | "inactive")}
               className="rounded-2xl border border-theme px-4 py-2 text-sm"
             >
-              <option value="all">All statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option className="form-option" value="all">All status</option>
+              <option className="form-option" value="active">Active</option>
+              <option className="form-option" value="inactive">Inactive</option>
             </select>
           </div>
 
@@ -707,33 +707,40 @@ const Index = () => {
                                       />
                                     </svg>
                                   </button>
-                                  <div className="space-y-1">
-                                    <div className="font-semibold text-primary">
-                                      {activeOrder?.route ? truncateText(activeOrder.route, 32) : "Available"}
+                                  <div className="space-y-2 max-w-[220px]">
+                                    {/* ROUTE */}
+                                    <div className="font-semibold text-primary truncate">
+                                      {activeOrder?.route || "Available"}
                                     </div>
-                                    {activeOrder ? (
-                                      <div className="text-xs text-secondary">
-                                        Order #{activeOrder.customerOrderNo || activeOrder.orderNumber || "—"} · Driver{" "}
-                                        {activeOrder.driverName || "TBD"}
+
+                                    {/* ORDER + DRIVER */}
+                                    <div className="text-xs text-secondary leading-tight">
+                                      <div>
+                                        #{activeOrder?.customerOrderNo || activeOrder?.orderNumber || "—"}
                                       </div>
-                                    ) : (
-                                      <div className="text-xs text-secondary">No active assignment</div>
-                                    )}
+                                      <div>
+                                        {activeOrder?.driverName || "TBD"}
+                                      </div>
+                                    </div>
+
+                                    {/* TAGS (TRAILER / TRUCK) */}
                                     {assignment?.pairedUnits?.length ? (
-                                      <div className="flex flex-wrap gap-1 pt-1">
+                                      <div className="flex flex-wrap gap-1">
                                         {assignment.pairedUnits.map((label) => (
                                           <span
                                             key={`${unit._id}-pair-${label}`}
-                                            className="text-[11px] px-2 py-0.5 rounded-full border border-theme text-secondary font-semibold uppercase"
+                                            className="text-[10px] px-2 py-[2px] rounded-full bg-muted text-primary font-medium"
                                           >
-                                            {fleetTab === "trucks" ? "Trailer" : "Truck"} {label}
+                                            {fleetTab === "trucks" ? "TRL" : "TRK"} {label}
                                           </span>
                                         ))}
                                       </div>
                                     ) : null}
+
+                                    {/* LOAD STATS */}
                                     {loadStats && (
-                                      <div className="text-xs text-secondary">
-                                        {loadStats.pendingLoads}/{loadStats.totalLoads} loads pending
+                                      <div className="text-[11px] text-secondary">
+                                        {loadStats.pendingLoads}/{loadStats.totalLoads}
                                       </div>
                                     )}
                                   </div>

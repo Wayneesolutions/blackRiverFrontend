@@ -1204,7 +1204,7 @@ const Trips = () => {
   };
 
   return (
-    <div className="p-4 bg-main min-h-screen border-2 border-red-700">
+    <div className="p-4 bg-main min-h-screen border-2">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div>

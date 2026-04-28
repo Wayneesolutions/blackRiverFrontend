@@ -1336,7 +1336,7 @@ const FinanceReport = () => {
                         <th className="px-4 py-3 text-right text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Fleet Invoice</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-theme divide-white/5">
+                    <tbody className="divide-theme divide-white/5">
                       {truckFinancialData.map((truck, idx) => {
                         const profitMargin = truck.revenue > 0 ? (truck.netProfit / truck.revenue) * 100 : 0;
                         const totalCost = truck.expenses + truck.payroll;
@@ -1689,7 +1689,7 @@ const FinanceReport = () => {
                           <th className="px-4 py-3 text-center text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-theme divide-white/5">
+                      <tbody className="divide-theme divide-white/5">
                         {tripFinancialData.map((trip, idx) => {
                           const revenue = Number(trip.revenue) || 0;
                           const fuelCost = Number(trip.fuelCost) || 0;
@@ -2322,7 +2322,7 @@ const FinanceReport = () => {
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-theme divide-white/5">
+                        <tbody className="divide-theme divide-white/5">
                           {pageRows.length === 0 ? (
                             <tr>
                               <td colSpan={6} className="text-center py-14 text-secondary text-sm">

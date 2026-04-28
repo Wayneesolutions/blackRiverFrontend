@@ -256,24 +256,24 @@ export default function LoginPage() {
 
             {/* Feature Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="bg-card/60 backdrop-blur-sm rounded-xl p-4 border border-theme/50 hover:shadow-lg transition-all duration-300">
-                <div className="w-10 h-10 bg-gradient-to-r bg-[var(--accent-blue)] rounded-lg flex items-center justify-center mx-auto mb-2">
+              <div className="rounded-xl p-4 hover:shadow-lg transition-all duration-300" style={{ backgroundColor: 'rgba(18, 26, 43, 0.85)', border: '1px solid rgba(17, 131, 224, 0.2)' }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{ backgroundColor: 'var(--accent-navyblue)' }}>
                   <Truck className="w-5 h-5 text-white" />
                 </div>
                 <h4 className="font-semibold text-xs text-primary mb-1">Fleet Tracking</h4>
                 <p className="text-xs text-secondary">Real-time vehicle monitoring</p>
               </div>
 
-              <div className="bg-card/60 backdrop-blur-sm rounded-xl p-4 border border-theme/50 hover:shadow-lg transition-all duration-300">
-                <div className="w-10 h-10 bg-gradient-to-r bg-[var(--accent-green)] rounded-lg flex items-center justify-center mx-auto mb-2">
+              <div className="rounded-xl p-4 hover:shadow-lg transition-all duration-300" style={{ backgroundColor: 'rgba(18, 26, 43, 0.85)', border: '1px solid rgba(17, 131, 224, 0.2)' }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{ backgroundColor: 'var(--accent-navyblue)' }}>
                   <MapPin className="w-5 h-5 text-white" />
                 </div>
                 <h4 className="font-semibold text-xs text-primary mb-1">Route Planning</h4>
                 <p className="text-xs text-secondary">Optimized delivery routes</p>
               </div>
 
-              <div className="bg-card/60 backdrop-blur-sm rounded-xl p-4 border border-theme/50 hover:shadow-lg transition-all duration-300">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mx-auto mb-2">
+              <div className="rounded-xl p-4 hover:shadow-lg transition-all duration-300" style={{ backgroundColor: 'rgba(18, 26, 43, 0.85)', border: '1px solid rgba(17, 131, 224, 0.2)' }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{ backgroundColor: 'var(--accent-navyblue)' }}>
                   <Users className="w-5 h-5 text-white" />
                 </div>
                 <h4 className="font-semibold text-xs text-primary mb-1">Team Management</h4>
@@ -287,7 +287,7 @@ export default function LoginPage() {
             <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-theme overflow-hidden card-premium">
               {/* Form Header */}
               <div className="pt-8 pb-1 text-center border-b border-theme">
-                <div className="w-14 h-14 mb-1 rounded-xl flex items-center justify-center mx-auto shadow-lg bg-[var(--accent-blue)]">
+                <div className="w-14 h-14 mb-1 rounded-xl flex items-center justify-center mx-auto shadow-lg" style={{ backgroundColor: 'var(--accent-navyblue)' }}>
                   <Lock className="w-7 h-7 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-primary !mb-1" style={{ fontFamily: 'var(--font-futura)' }}>Sign In</h3>
@@ -308,8 +308,8 @@ export default function LoginPage() {
                       disabled={loading}
                       className={`block w-full rounded-lg border pl-11 pr-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${errors.email ? "border-red-400 bg-card" : "border-theme hover:border-theme"
                         }`}
-                      style={{ '--tw-ring-color': 'var(--accent-blue)' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = 'var(--accent-blue)'; e.target.style.boxShadow = '0 0 0 2px rgba(66, 174, 236, 0.2)'; }}
+                      style={{ '--tw-ring-color': 'var(--accent-navyblue)' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = 'var(--accent-navyblue)'; e.target.style.boxShadow = '0 0 0 2px rgba(17, 131, 224, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="Enter your email"
                       autoComplete="email"
@@ -320,7 +320,13 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="block text-sm font-medium text-primary">Password</label>
-
+                    <a
+                      href="/forgot-password"
+                      className="text-xs hover:opacity-75 transition-opacity duration-200"
+                      style={{ color: 'var(--accent-navyblue)' }}
+                    >
+                      Forgot password?
+                    </a>
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-secondary" />
@@ -331,8 +337,8 @@ export default function LoginPage() {
                       disabled={loading}
                       className={`block w-full rounded-lg border pl-11 pr-11 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${errors.password ? "border-red-400 bg-card" : "border-theme hover:border-theme"
                         }`}
-                      style={{ '--tw-ring-color': 'var(--accent-blue)' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = 'var(--accent-blue)'; e.target.style.boxShadow = '0 0 0 2px rgba(66, 174, 236, 0.2)'; }}
+                      style={{ '--tw-ring-color': 'var(--accent-navyblue)' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = 'var(--accent-navyblue)'; e.target.style.boxShadow = '0 0 0 2px rgba(17, 131, 224, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="Enter your password"
                       autoComplete="current-password"
@@ -360,7 +366,7 @@ export default function LoginPage() {
                       onChange={(e) => setRememberMe(e.target.checked)}
                       disabled={loading}
                       className="h-4 w-4 rounded border-theme disabled:opacity-50"
-                      style={{ accentColor: 'var(--accent-blue)' }}
+                      style={{ accentColor: 'var(--accent-navyblue)' }}
                     />
                     <label htmlFor="remember" className="text-sm text-secondary">
                       Remember me
@@ -384,9 +390,9 @@ export default function LoginPage() {
                       ? "cursor-not-allowed opacity-60"
                       : "hover:shadow-xl transform hover:-translate-y-0.5"
                       }`}
-                    style={loading ? {} : { backgroundColor: 'var(--accent-blue)' }}
-                    onMouseEnter={(e) => { if (!loading) e.currentTarget.style.backgroundColor = 'var(--accent-blue)'; }}
-                    onMouseLeave={(e) => { if (!loading) e.currentTarget.style.backgroundColor = 'var(--accent-blue)'; }}
+                    style={loading ? {} : { backgroundColor: 'var(--accent-navyblue)' }}
+                    onMouseEnter={(e) => { if (!loading) e.currentTarget.style.backgroundColor = '#0d6fc7'; }}
+                    onMouseLeave={(e) => { if (!loading) e.currentTarget.style.backgroundColor = 'var(--accent-navyblue)'; }}
                   >
                     {loading ? (
                       <>
@@ -410,7 +416,8 @@ export default function LoginPage() {
                     Don't have an account?{" "}
                     <a
                       href="/admin/register"
-                      className="font-medium underline text-accent hover:opacity-80 transition-all duration-200"
+                      className="font-medium underline hover:opacity-80 transition-all duration-200"
+                      style={{ color: 'var(--accent-navyblue)' }}
                     >
                       Create one now
                     </a>

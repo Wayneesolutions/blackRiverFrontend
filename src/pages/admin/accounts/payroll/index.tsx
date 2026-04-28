@@ -4,6 +4,7 @@ import { getEmployees, createPayroll, listPayrolls, updatePayroll, deletePayroll
 import { listAttendance } from "../../../../axios/api/attendance";
 import { getDeductionAdditions } from "../../../../axios/api/account.settlement";
 import jsPDF from 'jspdf';
+import DocLogo from '../../../../assets/doclogo.png';
 
 interface Employee {
     _id: string;
@@ -1089,7 +1090,7 @@ const PayrollManagement = () => {
         setShowDeleteModal(true);
     };
 
-    const handleDownloadPaystubPDF = (paystub: Paystub) => {
+    const handleDownloadPaystubPDF = async (paystub: Paystub) => {
         try {
             const doc = new jsPDF('p', 'mm', 'a4');
             const pageWidth = doc.internal.pageSize.getWidth();
@@ -1116,9 +1117,39 @@ const PayrollManagement = () => {
 
             let yPos = margin;
 
+            // Pre-load doclogo for header
+            let docLogoBase64 = '';
+            let docLogoW = 22, docLogoH = 11;
+            try {
+                const logoImg = new Image();
+                logoImg.src = DocLogo;
+                await new Promise<void>((resolve) => {
+                    logoImg.onload = () => {
+                        try {
+                            const cv = document.createElement('canvas');
+                            cv.width = logoImg.width; cv.height = logoImg.height;
+                            const ctx = cv.getContext('2d');
+                            if (ctx) {
+                                ctx.drawImage(logoImg, 0, 0);
+                                docLogoBase64 = cv.toDataURL('image/png');
+                                docLogoW = 22;
+                                docLogoH = (logoImg.height / logoImg.width) * docLogoW;
+                            }
+                        } catch { }
+                        resolve();
+                    };
+                    logoImg.onerror = () => resolve();
+                });
+            } catch { }
+
             // Header with colored background
             doc.setFillColor(primaryR, primaryG, primaryB);
             doc.rect(0, 0, pageWidth, 45, 'F');
+
+            // Platform logo in bottom-right of header
+            if (docLogoBase64) {
+                doc.addImage(docLogoBase64, 'PNG', pageWidth - margin - docLogoW, 44 - docLogoH, docLogoW, docLogoH);
+            }
 
             // Company Details (Left side) - White text on blue background
             doc.setTextColor(255, 255, 255);

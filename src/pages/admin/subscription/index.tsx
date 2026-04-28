@@ -368,10 +368,10 @@ const SubscriptionPage = () => {
               <Alert
                 message={
                   <div className="flex items-center gap-3">
-                    <AlertCircle className="w-6 h-6" />
+                    <AlertCircle className="w-6 h-6 text-white" />
                     <div>
-                      <div className="font-bold text-lg">Subscription Required</div>
-                      <div className="text-sm mt-1">
+                      <div className="font-bold text-lg text-white">Subscription Required</div>
+                      <div className="text-sm mt-1 text-white">
                         {trialStatus?.isTrialExpired
                           ? "Your free trial has expired. You don't have an active subscription plan to use this software. Please subscribe to a plan to continue."
                           : "You don't have an active subscription plan to use this software. Please subscribe to a plan to continue."}
@@ -394,12 +394,26 @@ const SubscriptionPage = () => {
 
         {/* Trial Status Card */}
         {trialStatus && !trialStatus.hasActiveSubscription && trialStatus.hasTrial && (
-          <div className={`mb-8 relative overflow-hidden rounded-2xl shadow-2xl ${trialStatus.isTrialExpired
-            ? 'bg-gradient-to-br from-red-500 via-red-600 to-orange-600'
-            : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
-              ? 'bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500'
-              : 'bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600'
-            }`}>
+          <div
+          className="mb-8 relative overflow-hidden rounded-2xl shadow-2xl border-2"
+          style={{
+            background: trialStatus.isTrialExpired
+              ? 'linear-gradient(135deg, #1a0a0e 0%, #1f0d12 50%, #150810 100%)'
+              : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
+                ? 'linear-gradient(135deg, #1a1100 0%, #1f1500 50%, #160e00 100%)'
+                : 'linear-gradient(135deg, #091527 0%, #0d1e3a 50%, #091527 100%)',
+            borderColor: trialStatus.isTrialExpired
+              ? 'rgba(244, 63, 94, 0.4)'
+              : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
+                ? 'rgba(245, 158, 11, 0.4)'
+                : 'rgba(17, 131, 224, 0.45)',
+            boxShadow: trialStatus.isTrialExpired
+              ? '0 4px 28px rgba(244, 63, 94, 0.15)'
+              : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2
+                ? '0 4px 28px rgba(245, 158, 11, 0.15)'
+                : '0 4px 28px rgba(17, 131, 224, 0.18)',
+          }}
+        >
             <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
             <div className="absolute top-0 right-0 w-64 h-64 bg-card/5 rounded-full -mr-32 -mt-32 pointer-events-none"></div>
 
@@ -407,7 +421,7 @@ const SubscriptionPage = () => {
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-card/20 rounded-lg backdrop-blur-sm">
+                    <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
                       {trialStatus.isTrialExpired ? (
                         <XCircle className="w-6 h-6 text-white" />
                       ) : (
@@ -430,7 +444,7 @@ const SubscriptionPage = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-card/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div className="rounded-xl p-4 border" style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)' }}>
                       <div className="flex items-center gap-2 mb-2">
                         <Calendar className="w-5 h-5 text-white" />
                         <span className="text-white/80 text-sm font-medium">Days Used</span>
@@ -440,7 +454,7 @@ const SubscriptionPage = () => {
                       </p>
                     </div>
 
-                    <div className="bg-card/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                    <div className="rounded-xl p-4 border" style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)' }}>
                       <div className="flex items-center gap-2 mb-2">
                         <Clock className="w-5 h-5 text-white" />
                         <span className="text-white/80 text-sm font-medium">Days Remaining</span>
@@ -451,7 +465,7 @@ const SubscriptionPage = () => {
                     </div>
 
                     {trialStatus.trialEndDate && (
-                      <div className="bg-card/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                      <div className="rounded-xl p-4 border" style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)' }}>
                         <div className="flex items-center gap-2 mb-2">
                           <AlertCircle className="w-5 h-5 text-white" />
                           <span className="text-white/80 text-sm font-medium">Expires On</span>
@@ -477,8 +491,16 @@ const SubscriptionPage = () => {
                       </div>
                       <Progress
                         percent={Math.round(((7 - (trialStatus.daysRemaining || 0)) / 7) * 100)}
-                        strokeColor="#ffffff"
-                        trailColor="rgba(255,255,255,0.3)"
+                        strokeColor={
+                          trialStatus.isTrialExpired ? '#F43F5E'
+                          : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2 ? '#F59E0B'
+                          : '#1183e0'
+                        }
+                        trailColor={
+                          trialStatus.isTrialExpired ? 'rgba(244,63,94,0.15)'
+                          : trialStatus.daysRemaining && trialStatus.daysRemaining <= 2 ? 'rgba(245,158,11,0.15)'
+                          : 'rgba(17,131,224,0.15)'
+                        }
                         showInfo={false}
                       />
                     </div>
@@ -673,7 +695,7 @@ const SubscriptionPage = () => {
                   size="large"
                   icon={<TrendingUp className="w-4 h-4" />}
                   onClick={() => { setAddTruckCount(1); setShowAddTruckModal(true); }}
-                  className="bg-card text-[#F59E0B] border-white/30 font-bold hover:bg-[rgba(245,158,11,0.1)] flex-shrink-0"
+                  className="bg-card !text-white hover:!text-blue-500 border-white/30 font-bold hover:bg-[rgba(245,158,11,0.1)] flex-shrink-0"
                 >
                   Add Trucks
                 </Button>

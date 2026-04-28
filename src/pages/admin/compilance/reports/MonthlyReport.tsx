@@ -23,6 +23,7 @@ import {
 import { getCvsaMonthlyReport, deleteOldCvsaData, uploadCarrierProfileDocument, saveCarrierProfileData, getCarrierPerformance } from '../../../../axios/api/admin';
 import { getViolationsForMonthlyReport, getViolationStats } from '../../../../axios/api/violations';
 import jsPDF from 'jspdf';
+import DocLogo from '../../../../assets/doclogo.png';
 
 // Types
 interface MonthlyStats {
@@ -878,16 +879,47 @@ const MonthlyReport: React.FC = () => {
   };
 
   // Handle PDF download
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
     const margin = 20;
     let yPos = margin;
 
+    // Pre-load doclogo for header
+    let docLogoBase64 = '';
+    let docLogoW = 22, docLogoH = 11;
+    try {
+      const logoImg = new Image();
+      logoImg.src = DocLogo;
+      await new Promise<void>((resolve) => {
+        logoImg.onload = () => {
+          try {
+            const cv = document.createElement('canvas');
+            cv.width = logoImg.width; cv.height = logoImg.height;
+            const ctx = cv.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(logoImg, 0, 0);
+              docLogoBase64 = cv.toDataURL('image/png');
+              docLogoW = 22;
+              docLogoH = (logoImg.height / logoImg.width) * docLogoW;
+            }
+          } catch { }
+          resolve();
+        };
+        logoImg.onerror = () => resolve();
+      });
+    } catch { }
+
     // Header
     doc.setFillColor(67, 56, 202);
     doc.rect(0, 0, pageWidth, 40, 'F');
+
+    // Platform logo in top-left of header
+    if (docLogoBase64) {
+      doc.addImage(docLogoBase64, 'PNG', margin, 4, docLogoW, docLogoH);
+    }
+
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');

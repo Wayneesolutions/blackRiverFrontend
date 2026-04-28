@@ -161,6 +161,7 @@ const Index = () => {
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(true);
+    const [mapReady, setMapReady] = useState(false);
     const [dashboardData, setDashboardData] = useState<{
         stats: DashboardStats;
         trips: Trip[];
@@ -197,9 +198,11 @@ const Index = () => {
         setLoading(true);
         setError(null);
         try {
-            console.log('............fetchdashboardData...............')
-            const response = await getAdminDashboard();
-            const alertResponse = await recentAlerts();
+            // Parallel fetch — halves wait time vs sequential await
+            const [response, alertResponse] = await Promise.all([
+                getAdminDashboard(),
+                recentAlerts(),
+            ]);
 
 
 
@@ -243,10 +246,11 @@ const Index = () => {
 
             }
         } catch (err: any) {
-            console.error('Error fetching dashboard data:', err);
-            setError(err.message || 'An error occurred');
+            setError((err as any).message || 'An error occurred');
         } finally {
             setLoading(false);
+            // Mount map only after cards are painted — avoids tile downloads competing with API calls
+            setTimeout(() => setMapReady(true), 100);
         }
     };
 
@@ -457,20 +461,9 @@ const Index = () => {
         navigate(route);
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center" >
-                <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-blue)] mb-4"></div>
-                    <p className="text-secondary">Loading dashboard...</p>
-                </div>
-            </div>
-        );
-    }
-
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center" >
+            <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-[#A855F7] mb-4">Error: {error}</p>
                     <button
@@ -496,6 +489,46 @@ const Index = () => {
         rose: { bg: "bg-gradient-to-br from-[#4C0519] to-[#E11D48]", text: "text-[#FB7185]", bar: "bg-[#FB7185]", glow: "shadow-[0_0_20px_rgba(251,113,133,0.25)]" },
         indigo: { bg: "bg-gradient-to-br from-[#1E1B4B] to-[#4F46E5]", text: "text-[#818CF8]", bar: "bg-[#818CF8]", glow: "shadow-[0_0_20px_rgba(129,140,248,0.25)]" },
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[var(--bg-main)] px-4.5 pt-3.5 pb-1">
+                <div className="flex items-center justify-between mb-3">
+                    <h1 className="text-xl font-bold text-white">Overview</h1>
+                </div>
+                {/* Skeleton stat cards — visible immediately, no blank screen */}
+                <div className="grid grid-cols-4 gap-4 mb-3">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="rounded-2xl bg-card border border-theme p-4 animate-pulse">
+                            <div className="flex items-start gap-4">
+                                <div className="w-11 h-11 rounded-xl bg-[rgba(255,255,255,0.06)]" />
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-3 w-24 rounded bg-[rgba(255,255,255,0.06)]" />
+                                    <div className="h-6 w-12 rounded bg-[rgba(255,255,255,0.06)]" />
+                                    <div className="h-2 w-20 rounded bg-[rgba(255,255,255,0.04)]" />
+                                </div>
+                            </div>
+                            <div className="mt-4 h-[3px] rounded-full bg-[rgba(255,255,255,0.05)]" />
+                        </div>
+                    ))}
+                </div>
+                <div className="grid grid-cols-5 gap-4 mb-4">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className="rounded-2xl bg-card border border-theme p-4 animate-pulse">
+                            <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-[rgba(255,255,255,0.06)]" />
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-3 w-20 rounded bg-[rgba(255,255,255,0.06)]" />
+                                    <div className="h-5 w-10 rounded bg-[rgba(255,255,255,0.06)]" />
+                                </div>
+                            </div>
+                            <div className="mt-3 h-[3px] rounded-full bg-[rgba(255,255,255,0.05)]" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -594,8 +627,13 @@ const Index = () => {
                                     </button>
                                 </div>
 
-                                {/* MAP */}
+                                {/* MAP — deferred until after cards paint to avoid tile downloads blocking API responses */}
                                 <div className="relative h-[310px] m-4 rounded-xl overflow-hidden border border-theme">
+                                    {!mapReady ? (
+                                        <div className="w-full h-full flex items-center justify-center bg-[rgba(0,209,255,0.03)]">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-blue)]" />
+                                        </div>
+                                    ) : (
                                     <MapContainer
                                         center={mapCenter}
                                         zoom={mapZoom}
@@ -675,6 +713,7 @@ const Index = () => {
                                             );
                                         })}
                                     </MapContainer>
+                                    )}
 
                                     {/* LEGEND */}
                                     {/* <div className="absolute bottom-3 left-3 z-[1000] flex gap-3 text-xs bg-[rgba(10,18,32,0.85)] px-3 py-2 rounded-lg border border-[rgba(255,255,255,0.08)] backdrop-blur-md">

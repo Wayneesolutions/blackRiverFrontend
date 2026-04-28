@@ -185,7 +185,7 @@ const Header = () => {
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 {/* User Info */}
-                                <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-purple-50 to-blue-50">
+                                <div className="px-4 py-3 border-b border-theme" style={{ backgroundColor: 'rgba(17,131,224,0.06)' }}>
                                     <p className="text-sm font-semibold text-primary capitalize">
                                         {superAdminInfo?.userData?.name || 'SuperAdmin'}
                                     </p>
@@ -213,7 +213,7 @@ const Header = () => {
                                     <div className="border-t border-theme my-1"></div>
                                     <button
                                         onClick={handleLogout}
-                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#A855F7] hover:bg-red-50 transition-colors text-left"
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--accent-red)] hover:opacity-80 transition-colors text-left"
                                     >
                                         <FaSignOutAlt className="w-4 h-4" />
                                         Logout
@@ -267,16 +267,20 @@ const Header = () => {
                                         <button
                                             key={action.id}
                                             onClick={() => handleActionSelect(action)}
-                                            className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${index === selectedIndex
-                                                ? 'bg-card border-blue-500'
-                                                : 'border-transparent hover:border-blue-300'
+                                            className={`w-full flex items-center gap-3 px-4 py-3 transition-all duration-150 border-l-2 ${index === selectedIndex
+                                                ? 'border-[var(--accent-navyblue)]'
+                                                : 'border-transparent'
                                                 }`}
+                                        style={index === selectedIndex
+                                            ? { backgroundColor: 'rgba(17,131,224,0.08)' }
+                                            : undefined
+                                        }
                                         >
                                             <div className={`flex-shrink-0 ${index === selectedIndex ? 'scale-110' : ''} transition-transform`}>
-                                                <div className={`p-2 rounded-lg ${action.type === 'create' ? 'bg-green-100 text-green-700' :
-                                                    action.type === 'navigation' ? 'bg-blue-100 text-blue-700' :
-                                                        'bg-card text-primary'
-                                                    }`}>
+                                                <div className={`p-2 rounded-lg ${action.type === 'create' ? 'text-[#00FFA3]' :
+                                                    action.type === 'navigation' ? 'text-[var(--accent-navyblue)]' :
+                                                        'text-primary'
+                                                    }`} style={{ backgroundColor: action.type === 'create' ? 'rgba(0,255,163,0.1)' : action.type === 'navigation' ? 'rgba(17,131,224,0.1)' : 'rgba(255,255,255,0.05)' }}>
                                                     {action.icon}
                                                 </div>
                                             </div>
@@ -284,12 +288,12 @@ const Header = () => {
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-semibold text-primary truncate">{action.title}</span>
                                                     {action.type === 'create' && (
-                                                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                                                        <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 text-[#00FFA3]" style={{ backgroundColor: 'rgba(0,255,163,0.1)' }}>
                                                             New
                                                         </span>
                                                     )}
                                                     {action.type === 'navigation' && (
-                                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                                                        <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 text-[var(--accent-navyblue)]" style={{ backgroundColor: 'rgba(17,131,224,0.1)' }}>
                                                             Navigate
                                                         </span>
                                                     )}

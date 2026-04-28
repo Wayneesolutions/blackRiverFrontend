@@ -467,7 +467,7 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                                 <th className="px-4 py-3 text-right text-xs font-medium text-headings uppercase">Net Cash Flow</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-theme divide-white/5">
+                                        <tbody className="divide-theme divide-white/5">
                                             {insightsData.monthlyBreakdown.map((month, index) => (
                                                 <tr key={index} className="hover:bg-[rgba(255,255,255,0.03)]">
                                                     <td className="px-4 py-3 text-sm font-medium text-primary">{month.monthName}</td>

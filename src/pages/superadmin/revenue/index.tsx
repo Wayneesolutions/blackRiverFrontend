@@ -309,8 +309,8 @@ const RevenueDashboard = () => {
                         <button
                             onClick={() => setRevenueFilter('all')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${revenueFilter === 'all'
-                                    ? 'bg-green-600 text-white'
-                                    : 'bg-card text-primary hover:bg-gray-200'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-card text-primary hover:bg-gray-200'
                                 }`}
                         >
                             All
@@ -318,8 +318,8 @@ const RevenueDashboard = () => {
                         <button
                             onClick={() => setRevenueFilter('paid')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${revenueFilter === 'paid'
-                                    ? 'bg-green-600 text-white'
-                                    : 'bg-card text-primary hover:bg-gray-200'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-card text-primary hover:bg-gray-200'
                                 }`}
                         >
                             Paid
@@ -327,8 +327,8 @@ const RevenueDashboard = () => {
                         <button
                             onClick={() => setRevenueFilter('overdue')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${revenueFilter === 'overdue'
-                                    ? 'bg-green-600 text-white'
-                                    : 'bg-card text-primary hover:bg-gray-200'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-card text-primary hover:bg-gray-200'
                                 }`}
                         >
                             Overdue
@@ -336,8 +336,8 @@ const RevenueDashboard = () => {
                         <button
                             onClick={() => setRevenueFilter('trial')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${revenueFilter === 'trial'
-                                    ? 'bg-green-600 text-white'
-                                    : 'bg-card text-primary hover:bg-gray-200'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-card text-primary hover:bg-gray-200'
                                 }`}
                         >
                             Trial
@@ -375,7 +375,7 @@ const RevenueDashboard = () => {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-theme">
+                            <tbody className="bg-card  divide-theme">
                                 {filteredRevenue.map((revenue: any) => (
                                     <tr key={revenue.id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                         <td className="px-6 py-4 whitespace-nowrap w-64">
@@ -452,17 +452,7 @@ const RevenueDashboard = () => {
                                                                     <Copy className="w-4 h-4" />
                                                                     <span>Copy Revenue ID</span>
                                                                 </button>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleExport(revenue);
-                                                                        setActiveDropdown(null);
-                                                                    }}
-                                                                    className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 transition-colors"
-                                                                >
-                                                                    <Download className="w-4 h-4" />
-                                                                    <span>Export Details</span>
-                                                                </button>
+                                                               
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
@@ -527,8 +517,8 @@ const RevenueDashboard = () => {
                                     key={pageNum}
                                     onClick={() => setCurrentPage(pageNum)}
                                     className={`px-3 py-2 rounded-lg text-sm ${currentPage === pageNum
-                                            ? 'bg-green-600 text-white hover:bg-green-700'
-                                            : 'border border-theme hover:bg-[rgba(255,255,255,0.03)]'
+                                        ? 'bg-green-600 text-white hover:bg-green-700'
+                                        : 'border border-theme hover:bg-[rgba(255,255,255,0.03)]'
                                         }`}
                                 >
                                     {pageNum}
@@ -549,8 +539,8 @@ const RevenueDashboard = () => {
             {/* View Revenue Details Modal */}
             <Modal
                 title={
-                    <div className="flex items-center gap-2">
-                        <DollarSign className="w-5 h-5 text-green-600" />
+                    <div className="flex items-center gap-2 text-slate-200">
+                        <DollarSign className="w-5 h-5 text-blue-500" />
                         <span>Revenue Details</span>
                     </div>
                 }
@@ -560,99 +550,135 @@ const RevenueDashboard = () => {
                     setSelectedRevenue(null);
                 }}
                 footer={[
-                    <Button key="close" onClick={() => {
-                        setShowViewModal(false);
-                        setSelectedRevenue(null);
-                    }}>
-                        Close
-                    </Button>,
                     <Button
-                        key="export"
-                        type="primary"
-                        icon={<Download className="w-4 h-4" />}
+                        key="close"
                         onClick={() => {
-                            if (selectedRevenue) handleExport(selectedRevenue);
+                            setShowViewModal(false);
+                            setSelectedRevenue(null);
                         }}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700"
                     >
-                        Export
+                        Close
                     </Button>
                 ]}
                 width={700}
+                styles={{
+                    content: {
+                        backgroundColor: "#0f172a",
+                        border: "1px solid #1e293b",
+                    },
+                    header: {
+                        backgroundColor: "#0f172a",
+                        borderBottom: "1px solid #1e293b",
+                    },
+                    body: {
+                        backgroundColor: "#0f172a",
+                    },
+                    footer: {
+                        backgroundColor: "#0f172a",
+                        borderTop: "1px solid #1e293b",
+                    }
+                }}
             >
                 {selectedRevenue && (
                     <div className="space-y-6 py-4">
+
                         {/* Customer Information */}
-                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border border-theme">
-                            <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
-                                <Building2 className="w-4 h-4" />
+                        <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                            <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+                                <Building2 className="w-4 h-4 text-slate-400" />
                                 Customer Information
                             </h3>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-xs text-secondary mb-1">Customer Name</p>
-                                    <p className="text-sm font-medium text-primary">{selectedRevenue.customer || selectedRevenue.adminName || 'N/A'}</p>
+                                    <p className="text-xs text-slate-400 mb-1">Customer Name</p>
+                                    <p className="text-sm font-medium text-slate-200">
+                                        {selectedRevenue.customer || selectedRevenue.adminName || 'N/A'}
+                                    </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs text-secondary mb-1">Customer ID</p>
+                                    <p className="text-xs text-slate-400 mb-1">Customer ID</p>
                                     <div className="flex items-center gap-2">
-                                        <p className="text-sm font-medium text-primary">{selectedRevenue.customerId}</p>
+                                        <p className="text-sm font-medium text-slate-200">
+                                            {selectedRevenue.customerId}
+                                        </p>
                                         <button
                                             onClick={() => handleCopyId(selectedRevenue.customerId)}
-                                            className="text-secondary hover:text-secondary"
-                                            title="Copy ID"
+                                            className="text-slate-400 hover:text-slate-200"
                                         >
                                             <Copy className="w-3 h-3" />
                                         </button>
                                     </div>
                                 </div>
+
                                 {selectedRevenue.companyName && (
                                     <div className="col-span-2">
-                                        <p className="text-xs text-secondary mb-1">Company Name</p>
-                                        <p className="text-sm font-medium text-primary">{selectedRevenue.companyName}</p>
+                                        <p className="text-xs text-slate-400 mb-1">Company Name</p>
+                                        <p className="text-sm font-medium text-slate-200">
+                                            {selectedRevenue.companyName}
+                                        </p>
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Payment Information */}
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
-                            <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
-                                <CreditCard className="w-4 h-4" />
+                        <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-lg p-4 border border-slate-700">
+                            <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+                                <CreditCard className="w-4 h-4 text-slate-400" />
                                 Payment Information
                             </h3>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-xs text-secondary mb-1">Amount</p>
-                                    <p className="text-lg font-bold text-primary">
+                                    <p className="text-xs text-slate-400 mb-1">Amount</p>
+                                    <p className="text-lg font-bold text-slate-100">
                                         ${typeof selectedRevenue.amount === 'number' && !isNaN(selectedRevenue.amount)
                                             ? selectedRevenue.amount.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
                                             : '0'}
                                     </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs text-secondary mb-1">Payment Type</p>
-                                    <p className="text-sm font-medium text-primary">
+                                    <p className="text-xs text-slate-400 mb-1">Payment Type</p>
+                                    <p className="text-sm font-medium text-slate-200">
                                         {selectedRevenue.recurring ? 'Monthly Recurring' : 'One-time'}
                                     </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs text-secondary mb-1">Payment Date</p>
-                                    <p className="text-sm font-medium text-primary">{selectedRevenue.paymentDate}</p>
+                                    <p className="text-xs text-slate-400 mb-1">Payment Date</p>
+                                    <p className="text-sm font-medium text-slate-200">
+                                        {selectedRevenue.paymentDate}
+                                    </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs text-secondary mb-1">Next Payment</p>
-                                    <p className="text-sm font-medium text-primary">{selectedRevenue.nextPayment || 'N/A'}</p>
+                                    <p className="text-xs text-slate-400 mb-1">Next Payment</p>
+                                    <p className="text-sm font-medium text-slate-200">
+                                        {selectedRevenue.nextPayment || 'N/A'}
+                                    </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs text-secondary mb-1">Payment Method</p>
-                                    <p className="text-sm font-medium text-primary">{selectedRevenue.method || 'N/A'}</p>
+                                    <p className="text-xs text-slate-400 mb-1">Payment Method</p>
+                                    <p className="text-sm font-medium text-slate-200">
+                                        {selectedRevenue.method || 'N/A'}
+                                    </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs text-secondary mb-1">Status</p>
+                                    <p className="text-xs text-slate-400 mb-1">Status</p>
                                     <div className="flex items-center gap-2">
                                         {getStatusIcon(selectedRevenue.status)}
-                                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(selectedRevenue.status)}`}>
+                                        <span
+                                            className={`px-2 py-1 rounded text-xs font-medium ${selectedRevenue.status === "active"
+                                                    ? "bg-green-900 text-green-400"
+                                                    : "bg-slate-700 text-slate-300"
+                                                }`}
+                                        >
                                             {selectedRevenue.status}
                                         </span>
                                     </div>
@@ -661,19 +687,23 @@ const RevenueDashboard = () => {
                         </div>
 
                         {/* Plan Information */}
-                        <div className="bg-card rounded-lg p-4 border border-theme">
-                            <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
-                                <FileText className="w-4 h-4" />
+                        <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                            <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-slate-400" />
                                 Plan Information
                             </h3>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-xs text-secondary mb-1">Plan Name</p>
-                                    <p className="text-sm font-medium text-primary">{selectedRevenue.plan || 'N/A'}</p>
+                                    <p className="text-xs text-slate-400 mb-1">Plan Name</p>
+                                    <p className="text-sm font-medium text-slate-200">
+                                        {selectedRevenue.plan || 'N/A'}
+                                    </p>
                                 </div>
+
                                 <div>
-                                    <p className="text-xs text-secondary mb-1">Plan Type</p>
-                                    <p className="text-sm font-medium text-primary">
+                                    <p className="text-xs text-slate-400 mb-1">Plan Type</p>
+                                    <p className="text-sm font-medium text-slate-200">
                                         {selectedRevenue.recurring ? 'Monthly' : 'Lifetime'}
                                     </p>
                                 </div>
@@ -681,21 +711,24 @@ const RevenueDashboard = () => {
                         </div>
 
                         {/* Revenue ID */}
-                        <div className="bg-card rounded-lg p-3 border border-theme">
+                        <div className="bg-slate-900 rounded-lg p-3 border border-slate-700">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs text-secondary mb-1">Revenue Entry ID</p>
-                                    <p className="text-sm font-mono text-primary">{selectedRevenue.id}</p>
+                                    <p className="text-xs text-slate-400 mb-1">Revenue Entry ID</p>
+                                    <p className="text-sm font-mono text-slate-200">
+                                        {selectedRevenue.id}
+                                    </p>
                                 </div>
+
                                 <button
                                     onClick={() => handleCopyId(selectedRevenue.id)}
-                                    className="text-secondary hover:text-secondary p-1 rounded"
-                                    title="Copy Revenue ID"
+                                    className="text-slate-400 hover:text-slate-200 p-1 rounded"
                                 >
                                     <Copy className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>
+
                     </div>
                 )}
             </Modal>

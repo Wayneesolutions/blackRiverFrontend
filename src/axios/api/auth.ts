@@ -93,6 +93,30 @@ export const logout = async () => {
 };
 
 /**
+ * Forgot Password — sends a reset link to the given email
+ */
+export const forgotPassword = async (data: { email: string }) => {
+  try {
+    const res = await apiClient.post('/auth/forgot-password', data);
+    return res.data;
+  } catch (error: any) {
+    return error.response?.data || { success: false, message: 'Request failed. Please try again.' };
+  }
+};
+
+/**
+ * Reset Password — submits new password using the token from the email link
+ */
+export const resetPassword = async (token: string, data: { password: string }) => {
+  try {
+    const res = await apiClient.post(`/auth/reset-password/${token}`, data);
+    return res.data;
+  } catch (error: any) {
+    return error.response?.data || { success: false, message: 'Reset failed. Please try again.' };
+  }
+};
+
+/**
  * Auto logout API - records auto logout for attendance tracking
  */
 export const autoLogout = async () => {

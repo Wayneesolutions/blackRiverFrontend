@@ -275,8 +275,13 @@ body {
 }
 
 .ant-btn-primary {
-  background: var(--accent-blue) !important;
-  border-color: var(--accent-blue) !important;
+  background: var(--accent-navyblue) !important;
+  border-color: var(--accent-navyblue) !important;
+}
+
+.ant-btn-primary:hover {
+  background: #0d6fc7 !important;
+  border-color: #0d6fc7 !important;
 }
 
 .ant-layout {

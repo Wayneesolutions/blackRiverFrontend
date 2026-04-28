@@ -1003,7 +1003,7 @@ const DeleteConfirmationModal = ({
   onCancel: () => void;
 }) => {
   return (
-    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 border-2 border-red-700">
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-card rounded-xl shadow-xl max-w-md w-full">
         <div className="p-6">
           <div className="flex items-center gap-4 mb-4">

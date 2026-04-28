@@ -188,7 +188,7 @@ const NewFleetSidebar: FC<NewFleetSidebarProps> = ({
 
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] border-2 border-red-700"
+        className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] "
         onClick={onClose}
       ></div>
 

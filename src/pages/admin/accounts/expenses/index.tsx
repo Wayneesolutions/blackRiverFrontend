@@ -975,7 +975,7 @@ const ExpensesPage = () => {
   }
 
   return (
-    <div className="min-h-screen p-6 bg-main border-red-700 ">
+    <div className="min-h-screen p-6 bg-main">
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;

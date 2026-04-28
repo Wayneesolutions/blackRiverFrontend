@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import jsPDF from 'jspdf';
+import DocLogo from '../../../../assets/doclogo.png';
 import {
   FaFileInvoice,
   FaPlus,
@@ -1041,6 +1042,31 @@ const FleetInvoicesPage = () => {
         });
         doc.addImage(base64, 'PNG', margin, 5, 24, 14);
         logoEndX = margin + 28;
+      } catch { /* skip */ }
+    } else {
+      try {
+        const img = new Image();
+        img.src = DocLogo;
+        await new Promise<void>((resolve) => {
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.drawImage(img, 0, 0);
+                const imgData = canvas.toDataURL('image/png');
+                const logoWidth = 24;
+                const logoHeight = (img.height / img.width) * logoWidth;
+                doc.addImage(imgData, 'PNG', margin, 5, logoWidth, logoHeight);
+                logoEndX = margin + logoWidth + 4;
+              }
+            } catch { /* skip */ }
+            resolve();
+          };
+          img.onerror = () => resolve();
+        });
       } catch { /* skip */ }
     }
 

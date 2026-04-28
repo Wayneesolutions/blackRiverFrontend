@@ -342,7 +342,7 @@ const DriversTable = () => {
     );
 
     return (
-        <div className="min-h-screen bg-main border-2 border-red-700">
+        <div className="min-h-screen bg-main">
             <div className="flex-1">
                 <div className="px-6 py-4">
                     <div className="flex items-center justify-between">
@@ -548,7 +548,7 @@ const DriversTable = () => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-theme">
+                                <tbody className="divide-theme">
                                     {filteredDrivers.length > 0 ? (
                                         filteredDrivers.map((driver) => (
                                             <tr

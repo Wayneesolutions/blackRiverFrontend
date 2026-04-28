@@ -388,7 +388,7 @@ const RevenuePerMilePage = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-theme">
+                <tbody className="bg-card divide-theme">
                   {filteredData.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-8 text-center text-secondary">
