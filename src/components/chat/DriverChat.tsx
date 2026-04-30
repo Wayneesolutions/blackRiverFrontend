@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, Send, Paperclip, X, File, Image as ImageIcon, Check, CheckCheck, Search } from "lucide-react";
+import { MessageCircle, Send, Paperclip, X, File, Image as ImageIcon, Check, CheckCheck, Search, Phone, PhoneOff, PhoneIncoming } from "lucide-react";
 import { socketService } from "../../services/socketService";
 import { listDriver } from "../../axios/api/distapcher";
 import {
@@ -71,6 +71,13 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
   useEffect(() => {
     try { sessionStorage.setItem('driverChatDrivers', JSON.stringify(drivers)); } catch { /* ignore */ }
   }, [drivers]);
+
+  const [callState, setCallState] = useState<"idle" | "calling" | "incoming" | "connected" | "declined">("idle");
+  const [incomingCall, setIncomingCall] = useState<{ from: string; offer: any } | null>(null);
+  const pcRef = useRef<RTCPeerConnection | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement>(null);
+  const peerSocketRef = useRef<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -539,9 +546,49 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     socketService.onNewMessage(handleNewMessage);
     socketService.onUserTyping(handleTyping);
 
+    // WebRTC handlers
+    const onIncoming = ({ from, offer }: { from: string; offer: any }) => {
+      peerSocketRef.current = from;
+      setIncomingCall({ from, offer });
+      setCallState("incoming");
+      // Browser notification
+      if ("Notification" in window && Notification.permission === "granted") {
+        const n = new Notification("📞 Incoming Call", {
+          body: "Driver is calling you",
+          icon: "/favicon.ico",
+          requireInteraction: true,
+        });
+        n.onclick = () => { window.focus(); n.close(); };
+      }
+    };
+    const onAnswered = ({ answer, from }: { answer: any; from?: string }) => {
+      if (from) peerSocketRef.current = from;
+      pcRef.current?.setRemoteDescription(new RTCSessionDescription(answer));
+      setCallState("connected");
+    };
+    const onIce = ({ candidate }: { candidate: any }) => {
+      pcRef.current?.addIceCandidate(new RTCIceCandidate(candidate));
+    };
+    const onEnded = () => endCall(false);
+    const onRejected = () => {
+      endCall(false);
+      setCallState("declined");
+      setTimeout(() => setCallState("idle"), 2500);
+    };
+
     // Connect (reuses existing socket if same token — won't destroy listeners)
     socketService
       .connect(token)
+      .then(() => {
+        const socket = socketService.getSocket();
+        if (socket) {
+          socket.on("incoming-call", onIncoming);
+          socket.on("call-answered", onAnswered);
+          socket.on("call-ice", onIce);
+          socket.on("call-rejected", onRejected);
+          socket.on("call-ended", onEnded);
+        }
+      })
       .catch((error) => {
         console.error("Socket connection error:", error);
       });
@@ -551,6 +598,14 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
       console.log("🧹 Cleaning up socket listeners");
       socketService.offNewMessage(handleNewMessage);
       socketService.offUserTyping(handleTyping);
+      const socket = socketService.getSocket();
+      if (socket) {
+        socket.off("incoming-call", onIncoming);
+        socket.off("call-answered", onAnswered);
+        socket.off("call-ice", onIce);
+        socket.off("call-rejected", onRejected);
+        socket.off("call-ended", onEnded);
+      }
       const currentSelectedDriver = selectedDriverRef.current;
       if (currentSelectedDriver) {
         socketService.leaveDriverChat(currentSelectedDriver._id);
@@ -615,6 +670,80 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
       Notification.requestPermission();
     }
   }, []);
+
+  // ── WebRTC helpers ──────────────────────────────────────────────────────────
+  const createPeer = (to: string) => {
+    const pc = new RTCPeerConnection({
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+      ]
+    });
+
+    pc.onicecandidate = (e) => {
+      if (e.candidate) socketService.sendIceCandidate({ to, candidate: e.candidate });
+    };
+
+    const playRemoteStream = (stream: MediaStream) => {
+      if (remoteAudioRef.current) {
+        remoteAudioRef.current.srcObject = stream;
+        remoteAudioRef.current.play().catch(() => {});
+      }
+    };
+
+    pc.ontrack = (e) => {
+      if (e.streams?.[0]) playRemoteStream(e.streams[0]);
+    };
+
+    (pc as any).onaddstream = (e: any) => {
+      if (e.stream) playRemoteStream(e.stream);
+    };
+
+    pcRef.current = pc;
+    return pc;
+  };
+
+  const endCall = (notifyPeer = true) => {
+    if (notifyPeer && peerSocketRef.current) {
+      socketService.getSocket()?.emit("call-end", { to: peerSocketRef.current });
+    }
+    pcRef.current?.close();
+    pcRef.current = null;
+    localStreamRef.current?.getTracks().forEach((t) => t.stop());
+    localStreamRef.current = null;
+    if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null;
+    peerSocketRef.current = null;
+    setCallState("idle");
+    setIncomingCall(null);
+  };
+
+  // WebRTC socket listeners are registered inside the main socket useEffect below
+
+  const handleStartCall = async () => {
+    if (!selectedDriver || callState !== "idle") return;
+    setCallState("calling");
+    const pc = createPeer(selectedDriver._id);
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    localStreamRef.current = stream;
+    stream.getTracks().forEach((t) => pc.addTrack(t, stream));
+    const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: false });
+    await pc.setLocalDescription(offer);
+    socketService.callUser({ to: selectedDriver._id, offer });
+  };
+
+  const acceptCall = async () => {
+    if (!incomingCall) return;
+    peerSocketRef.current = incomingCall.from;
+    const pc = createPeer(incomingCall.from);
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    localStreamRef.current = stream;
+    stream.getTracks().forEach((t) => pc.addTrack(t, stream));
+    await pc.setRemoteDescription(new RTCSessionDescription(incomingCall.offer));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socketService.answerCall({ to: incomingCall.from, answer });
+    setCallState("connected");
+  };
 
 
 
@@ -788,7 +917,8 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
   const messageGroups = groupMessagesByDate(messages);
 
   return (
-    <div className="flex h-full bg-card">
+    <div className="flex h-full bg-card relative">
+      <audio ref={remoteAudioRef} autoPlay style={{ display: 'none' }} />
       {/* Drivers List Sidebar — WhatsApp style */}
       <div className="w-72 flex flex-col bg-card border-r border-theme">
         {/* Header */}
@@ -904,12 +1034,26 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                     {selectedDriver.name.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <div>
+                <div className="flex-1">
                   <h3 className="font-semibold text-sm leading-tight">{selectedDriver.name}</h3>
                   {selectedDriver.phone && (
                     <p className="text-xs text-white/70 leading-tight">{selectedDriver.phone}</p>
                   )}
                 </div>
+                {callState === "connected" ? (
+                  <button onClick={endCall} className="p-2 bg-red-500 hover:bg-red-600 rounded-full transition-colors" title="End call">
+                    <PhoneOff className="w-4 h-4 text-white" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleStartCall}
+                    disabled={callState !== "idle"}
+                    className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors disabled:opacity-50"
+                    title="Call driver"
+                  >
+                    <Phone className="w-4 h-4 text-white" />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1434,6 +1578,53 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
           </div>
         )}
       </div>
+
+      {/* Call overlay */}
+      {(callState === "calling" || callState === "incoming" || callState === "connected" || callState === "declined") && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 rounded-lg" style={{ background: "linear-gradient(135deg,#1a1a2e 0%,#16213e 100%)" }}>
+          {callState === "declined" ? (
+            <>
+              <div className="w-24 h-24 rounded-full bg-red-500 flex items-center justify-center mb-5 border-4 border-white/20">
+                <PhoneOff className="w-10 h-10 text-white" />
+              </div>
+              <p className="text-white text-2xl font-bold mb-2">Call Declined</p>
+              <p className="text-white/60 text-sm">The call was not accepted</p>
+            </>
+          ) : (
+            <>
+              <div className={`w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center mb-5 text-white text-4xl font-bold border-4 border-white/20 ${callState === "incoming" ? "animate-pulse" : ""}`}>
+                {selectedDriver?.name?.charAt(0).toUpperCase() || "D"}
+              </div>
+              <p className="text-white text-2xl font-bold mb-2">{selectedDriver?.name}</p>
+              <p className="text-white/60 text-sm mb-10">
+                {callState === "calling" ? "Calling..." : callState === "incoming" ? "Incoming Call" : "● Call Connected"}
+              </p>
+              <div className="flex gap-10 items-center">
+                {callState === "incoming" && (
+                  <div className="flex flex-col items-center gap-2">
+                    <button onClick={acceptCall} className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-400 flex items-center justify-center transition-colors shadow-lg">
+                      <Phone className="w-7 h-7 text-white" />
+                    </button>
+                    <span className="text-white/70 text-xs">Accept</span>
+                  </div>
+                )}
+                <div className="flex flex-col items-center gap-2">
+                  <button
+                    onClick={callState === "incoming"
+                      ? () => { socketService.getSocket()?.emit("call-rejected", { to: peerSocketRef.current }); endCall(false); }
+                      : () => endCall()
+                    }
+                    className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center transition-colors shadow-lg"
+                  >
+                    <PhoneOff className="w-7 h-7 text-white" />
+                  </button>
+                  <span className="text-white/70 text-xs">{callState === "incoming" ? "Decline" : "End Call"}</span>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };
