@@ -11,6 +11,10 @@ import {
   type ChatMessage,
 } from "../../axios/api/chat";
 import { useChat } from "../../contexts/ChatContext";
+import { useWebRTC } from "../../hooks/useWebRTC";
+import { useCall } from "../../contexts/CreateCallContext";
+
+
 
 interface Driver {
   _id: string;
@@ -24,6 +28,8 @@ interface Driver {
 interface DriverChatProps {
   onClose?: () => void;
 }
+
+
 
 const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
   // Restore drivers list from cache → renders immediately on every mount
@@ -48,6 +54,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+
   // Restore lastMessages from cache → list renders sorted immediately on every mount
   const [lastMessages, setLastMessages] = useState<Record<string, { text: string; time: Date; senderType?: string }>>(() => {
     try {
@@ -63,6 +70,23 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     } catch { /* ignore */ }
     return {};
   });
+
+  const { callState, incomingCall, setCallState, setIncomingCall } = useCall();
+  const {
+  startCall,
+  handleIncomingCall,
+  handleAnswer,
+  handleICE,
+  endCall
+} = useWebRTC(selectedDriver?._id || "");
+const { setCallHandlers } = useCall();
+
+useEffect(() => {
+  setCallHandlers({
+    onAnswer: handleAnswer,
+    onIce: handleICE
+  });
+}, [handleAnswer, handleICE]);
 
   // Persist both caches whenever they change
   useEffect(() => {
@@ -652,6 +676,8 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     }
   }, [selectedDriver]);
 
+
+
   // Auto-scroll when messages change
   useEffect(() => {
     scrollToBottom();
@@ -916,6 +942,30 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
 
   const messageGroups = groupMessagesByDate(messages);
 
+  // call handling
+  const acceptCall = async () => {
+  if (!incomingCall) return;
+
+  await handleIncomingCall(incomingCall.offer, incomingCall.from);
+
+  setCallState("connected");
+  setIncomingCall(null);
+};
+
+const rejectCall = () => {
+  setIncomingCall(null);
+  setCallState("idle");
+};
+
+const handleEndCall = () => {
+  console.log("📴 Ending call");
+
+  endCall(); // 🧠 close peer + stop media
+
+  setCallState("idle"); // 🎛️ reset UI
+  setIncomingCall(null);
+};
+
   return (
     <div className="flex h-full bg-card relative">
       <audio ref={remoteAudioRef} autoPlay style={{ display: 'none' }} />
@@ -970,6 +1020,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                       }`}
                   >
                     <div className="flex items-center gap-2.5">
+                      
                       {/* Avatar */}
                       <div className="relative flex-shrink-0">
                         {driver.profileImageUrl ? (
@@ -1026,7 +1077,8 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
           <>
             {/* Chat Header */}
             <div className="flex-shrink-0 text-white shadow-sm px-4 py-2.5" style={{ background: '#1976D2' }}>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 justify-between">
+
                 {selectedDriver.profileImageUrl ? (
                   <img src={selectedDriver.profileImageUrl} alt={selectedDriver.name} className="w-8 h-8 rounded-full object-cover" />
                 ) : (
@@ -1040,6 +1092,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                     <p className="text-xs text-white/70 leading-tight">{selectedDriver.phone}</p>
                   )}
                 </div>
+<<<<<<< HEAD
                 {callState === "connected" ? (
                   <button onClick={endCall} className="p-2 bg-red-500 hover:bg-red-600 rounded-full transition-colors" title="End call">
                     <PhoneOff className="w-4 h-4 text-white" />
@@ -1054,6 +1107,15 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                     <Phone className="w-4 h-4 text-white" />
                   </button>
                 )}
+=======
+<button
+  onClick={() => {
+    startCall(); 
+  }}
+>
+  📞
+</button>
+>>>>>>> 724b0b032590eeadd3c3e9abafbca95b9ecdd1af
               </div>
             </div>
 
@@ -1577,6 +1639,64 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
             </div>
           </div>
         )}
+
+
+        {callState === "incoming" && incomingCall && (
+  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-xl text-center shadow-lg">
+      <h2 className="text-lg font-semibold mb-4">
+        Incoming Call
+      </h2>
+
+      <div className="flex gap-4 justify-center">
+        <button
+          onClick={acceptCall}
+          className="bg-green-500 text-white px-4 py-2 rounded-full"
+        >
+          Accept
+        </button>
+
+        <button
+          onClick={rejectCall}
+          className="bg-red-500 text-white px-4 py-2 rounded-full"
+        >
+          Reject
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{callState === "outgoing" && (
+  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-xl text-center">
+      <h2 className="text-lg font-semibold">Calling...</h2>
+
+      <button
+        onClick={handleEndCall}
+        className="mt-4 bg-red-500 text-white px-4 py-2 rounded-full"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
+
+
+{callState === "connected" && (
+  <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 text-white">
+    <div className="text-center">
+      <h2 className="text-xl mb-4">Call Connected</h2>
+
+      <button
+        onClick={handleEndCall}
+        className="bg-red-600 px-6 py-3 rounded-full"
+      >
+        End Call
+      </button>
+    </div>
+  </div>
+)}
       </div>
 
       {/* Call overlay */}
