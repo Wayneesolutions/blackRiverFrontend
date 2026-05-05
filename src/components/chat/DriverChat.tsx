@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, Send, Paperclip, X, File, Image as ImageIcon, Check, CheckCheck, Search, Phone, PhoneOff, PhoneIncoming } from "lucide-react";
+import { MessageCircle, Send, Paperclip, X, File, Image as ImageIcon, Check, CheckCheck, Search, Phone, PhoneOff, Mic, MicOff, Minimize2, Maximize2, Volume2 } from "lucide-react";
 import { socketService } from "../../services/socketService";
 import { listDriver } from "../../axios/api/distapcher";
 import {
@@ -11,7 +11,6 @@ import {
   type ChatMessage,
 } from "../../axios/api/chat";
 import { useChat } from "../../contexts/ChatContext";
-import { useWebRTC } from "../../hooks/useWebRTC";
 import { useCall } from "../../contexts/CreateCallContext";
 
 
@@ -71,22 +70,12 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     return {};
   });
 
-  const { callState, incomingCall, setCallState, setIncomingCall } = useCall();
   const {
-  startCall,
-  handleIncomingCall,
-  handleAnswer,
-  handleICE,
-  endCall
-} = useWebRTC(selectedDriver?._id || "");
-const { setCallHandlers } = useCall();
-
-useEffect(() => {
-  setCallHandlers({
-    onAnswer: handleAnswer,
-    onIce: handleICE
-  });
-}, [handleAnswer, handleICE]);
+    callState, incomingCall,
+    isMuted, isMinimized, callSeconds,
+    setIsOnChatPage,
+    startCall, acceptCall, endCall, rejectCall, toggleMute,
+  } = useCall();
 
   // Persist both caches whenever they change
   useEffect(() => {
@@ -95,13 +84,6 @@ useEffect(() => {
   useEffect(() => {
     try { sessionStorage.setItem('driverChatDrivers', JSON.stringify(drivers)); } catch { /* ignore */ }
   }, [drivers]);
-
-  const [callState, setCallState] = useState<"idle" | "calling" | "incoming" | "connected" | "declined">("idle");
-  const [incomingCall, setIncomingCall] = useState<{ from: string; offer: any } | null>(null);
-  const pcRef = useRef<RTCPeerConnection | null>(null);
-  const localStreamRef = useRef<MediaStream | null>(null);
-  const remoteAudioRef = useRef<HTMLAudioElement>(null);
-  const peerSocketRef = useRef<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -116,6 +98,15 @@ useEffect(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
   };
+
+  const formatCallTime = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+
+  // Mark chat page active so GlobalCallHandler defers its full-screen overlay to us
+  useEffect(() => {
+    setIsOnChatPage(true);
+    return () => setIsOnChatPage(false);
+  }, [setIsOnChatPage]);
 
   const { setActiveDriverId } = useChat();
 
@@ -570,66 +561,17 @@ useEffect(() => {
     socketService.onNewMessage(handleNewMessage);
     socketService.onUserTyping(handleTyping);
 
-    // WebRTC handlers
-    const onIncoming = ({ from, offer }: { from: string; offer: any }) => {
-      peerSocketRef.current = from;
-      setIncomingCall({ from, offer });
-      setCallState("incoming");
-      // Browser notification
-      if ("Notification" in window && Notification.permission === "granted") {
-        const n = new Notification("📞 Incoming Call", {
-          body: "Driver is calling you",
-          icon: "/favicon.ico",
-          requireInteraction: true,
-        });
-        n.onclick = () => { window.focus(); n.close(); };
-      }
-    };
-    const onAnswered = ({ answer, from }: { answer: any; from?: string }) => {
-      if (from) peerSocketRef.current = from;
-      pcRef.current?.setRemoteDescription(new RTCSessionDescription(answer));
-      setCallState("connected");
-    };
-    const onIce = ({ candidate }: { candidate: any }) => {
-      pcRef.current?.addIceCandidate(new RTCIceCandidate(candidate));
-    };
-    const onEnded = () => endCall(false);
-    const onRejected = () => {
-      endCall(false);
-      setCallState("declined");
-      setTimeout(() => setCallState("idle"), 2500);
-    };
-
     // Connect (reuses existing socket if same token — won't destroy listeners)
     socketService
       .connect(token)
-      .then(() => {
-        const socket = socketService.getSocket();
-        if (socket) {
-          socket.on("incoming-call", onIncoming);
-          socket.on("call-answered", onAnswered);
-          socket.on("call-ice", onIce);
-          socket.on("call-rejected", onRejected);
-          socket.on("call-ended", onEnded);
-        }
-      })
       .catch((error) => {
         console.error("Socket connection error:", error);
       });
 
     // Cleanup
     return () => {
-      console.log("🧹 Cleaning up socket listeners");
       socketService.offNewMessage(handleNewMessage);
       socketService.offUserTyping(handleTyping);
-      const socket = socketService.getSocket();
-      if (socket) {
-        socket.off("incoming-call", onIncoming);
-        socket.off("call-answered", onAnswered);
-        socket.off("call-ice", onIce);
-        socket.off("call-rejected", onRejected);
-        socket.off("call-ended", onEnded);
-      }
       const currentSelectedDriver = selectedDriverRef.current;
       if (currentSelectedDriver) {
         socketService.leaveDriverChat(currentSelectedDriver._id);
@@ -697,78 +639,9 @@ useEffect(() => {
     }
   }, []);
 
-  // ── WebRTC helpers ──────────────────────────────────────────────────────────
-  const createPeer = (to: string) => {
-    const pc = new RTCPeerConnection({
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        { urls: "stun:stun1.l.google.com:19302" },
-      ]
-    });
-
-    pc.onicecandidate = (e) => {
-      if (e.candidate) socketService.sendIceCandidate({ to, candidate: e.candidate });
-    };
-
-    const playRemoteStream = (stream: MediaStream) => {
-      if (remoteAudioRef.current) {
-        remoteAudioRef.current.srcObject = stream;
-        remoteAudioRef.current.play().catch(() => {});
-      }
-    };
-
-    pc.ontrack = (e) => {
-      if (e.streams?.[0]) playRemoteStream(e.streams[0]);
-    };
-
-    (pc as any).onaddstream = (e: any) => {
-      if (e.stream) playRemoteStream(e.stream);
-    };
-
-    pcRef.current = pc;
-    return pc;
-  };
-
-  const endCall = (notifyPeer = true) => {
-    if (notifyPeer && peerSocketRef.current) {
-      socketService.getSocket()?.emit("call-end", { to: peerSocketRef.current });
-    }
-    pcRef.current?.close();
-    pcRef.current = null;
-    localStreamRef.current?.getTracks().forEach((t) => t.stop());
-    localStreamRef.current = null;
-    if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null;
-    peerSocketRef.current = null;
-    setCallState("idle");
-    setIncomingCall(null);
-  };
-
-  // WebRTC socket listeners are registered inside the main socket useEffect below
-
-  const handleStartCall = async () => {
+  const handleStartCall = () => {
     if (!selectedDriver || callState !== "idle") return;
-    setCallState("calling");
-    const pc = createPeer(selectedDriver._id);
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    localStreamRef.current = stream;
-    stream.getTracks().forEach((t) => pc.addTrack(t, stream));
-    const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: false });
-    await pc.setLocalDescription(offer);
-    socketService.callUser({ to: selectedDriver._id, offer });
-  };
-
-  const acceptCall = async () => {
-    if (!incomingCall) return;
-    peerSocketRef.current = incomingCall.from;
-    const pc = createPeer(incomingCall.from);
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    localStreamRef.current = stream;
-    stream.getTracks().forEach((t) => pc.addTrack(t, stream));
-    await pc.setRemoteDescription(new RTCSessionDescription(incomingCall.offer));
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    socketService.answerCall({ to: incomingCall.from, answer });
-    setCallState("connected");
+    startCall(selectedDriver._id, selectedDriver.name);
   };
 
 
@@ -942,33 +815,9 @@ useEffect(() => {
 
   const messageGroups = groupMessagesByDate(messages);
 
-  // call handling
-  const acceptCall = async () => {
-  if (!incomingCall) return;
-
-  await handleIncomingCall(incomingCall.offer, incomingCall.from);
-
-  setCallState("connected");
-  setIncomingCall(null);
-};
-
-const rejectCall = () => {
-  setIncomingCall(null);
-  setCallState("idle");
-};
-
-const handleEndCall = () => {
-  console.log("📴 Ending call");
-
-  endCall(); // 🧠 close peer + stop media
-
-  setCallState("idle"); // 🎛️ reset UI
-  setIncomingCall(null);
-};
-
   return (
     <div className="flex h-full bg-card relative">
-      <audio ref={remoteAudioRef} autoPlay style={{ display: 'none' }} />
+
       {/* Drivers List Sidebar — WhatsApp style */}
       <div className="w-72 flex flex-col bg-card border-r border-theme">
         {/* Header */}
@@ -1092,9 +941,8 @@ const handleEndCall = () => {
                     <p className="text-xs text-white/70 leading-tight">{selectedDriver.phone}</p>
                   )}
                 </div>
-<<<<<<< HEAD
                 {callState === "connected" ? (
-                  <button onClick={endCall} className="p-2 bg-red-500 hover:bg-red-600 rounded-full transition-colors" title="End call">
+                  <button onClick={() => endCall()} className="p-2 bg-red-500 hover:bg-red-600 rounded-full transition-colors" title="End call">
                     <PhoneOff className="w-4 h-4 text-white" />
                   </button>
                 ) : (
@@ -1107,15 +955,6 @@ const handleEndCall = () => {
                     <Phone className="w-4 h-4 text-white" />
                   </button>
                 )}
-=======
-<button
-  onClick={() => {
-    startCall(); 
-  }}
->
-  📞
-</button>
->>>>>>> 724b0b032590eeadd3c3e9abafbca95b9ecdd1af
               </div>
             </div>
 
@@ -1641,104 +1480,141 @@ const handleEndCall = () => {
         )}
 
 
-        {callState === "incoming" && incomingCall && (
-  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-xl text-center shadow-lg">
-      <h2 className="text-lg font-semibold mb-4">
-        Incoming Call
-      </h2>
-
-      <div className="flex gap-4 justify-center">
-        <button
-          onClick={acceptCall}
-          className="bg-green-500 text-white px-4 py-2 rounded-full"
-        >
-          Accept
-        </button>
-
-        <button
-          onClick={rejectCall}
-          className="bg-red-500 text-white px-4 py-2 rounded-full"
-        >
-          Reject
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-{callState === "outgoing" && (
-  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-xl text-center">
-      <h2 className="text-lg font-semibold">Calling...</h2>
-
-      <button
-        onClick={handleEndCall}
-        className="mt-4 bg-red-500 text-white px-4 py-2 rounded-full"
-      >
-        Cancel
-      </button>
-    </div>
-  </div>
-)}
-
-
-{callState === "connected" && (
-  <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 text-white">
-    <div className="text-center">
-      <h2 className="text-xl mb-4">Call Connected</h2>
-
-      <button
-        onClick={handleEndCall}
-        className="bg-red-600 px-6 py-3 rounded-full"
-      >
-        End Call
-      </button>
-    </div>
-  </div>
-)}
       </div>
 
-      {/* Call overlay */}
-      {(callState === "calling" || callState === "incoming" || callState === "connected" || callState === "declined") && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 rounded-lg" style={{ background: "linear-gradient(135deg,#1a1a2e 0%,#16213e 100%)" }}>
+      {/* ── Minimized floating call bar ──────────────────────────────────────── */}
+      {callState === "connected" && isMinimized && (
+        <div
+          className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl border border-white/10"
+          style={{ background: "linear-gradient(135deg,#1a1a2e,#16213e)", minWidth: 300 }}
+        >
+          <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-md">
+            {selectedDriver?.name?.charAt(0).toUpperCase() || "D"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white text-sm font-semibold truncate">{selectedDriver?.name}</p>
+            <p className="text-green-400 text-xs font-mono">{formatCallTime(callSeconds)}</p>
+          </div>
+          <button
+            onClick={toggleMute}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isMuted ? "bg-white/30" : "bg-white/10 hover:bg-white/20"}`}
+            title={isMuted ? "Unmute" : "Mute"}
+          >
+            {isMuted ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4 text-white" />}
+          </button>
+          <button
+            onClick={() => setIsMinimized(false)}
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+            title="Expand"
+          >
+            <Maximize2 className="w-4 h-4 text-white" />
+          </button>
+          <button
+            onClick={() => endCall()}
+            className="w-8 h-8 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center transition-colors shadow-md"
+            title="End call"
+          >
+            <PhoneOff className="w-4 h-4 text-white" />
+          </button>
+        </div>
+      )}
+
+      {/* ── Full call overlay ─────────────────────────────────────────────────── */}
+      {(callState === "calling" || callState === "incoming" || (callState === "connected" && !isMinimized) || callState === "declined") && (
+        <div
+          className="absolute inset-0 z-50 flex flex-col rounded-lg overflow-hidden"
+          style={{ background: "linear-gradient(160deg,#0f0f1a 0%,#1a1a2e 50%,#16213e 100%)" }}
+        >
           {callState === "declined" ? (
-            <>
-              <div className="w-24 h-24 rounded-full bg-red-500 flex items-center justify-center mb-5 border-4 border-white/20">
-                <PhoneOff className="w-10 h-10 text-white" />
+            /* ── Declined state ── */
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <div className="w-20 h-20 rounded-full bg-red-500/20 border-2 border-red-500/40 flex items-center justify-center mb-5">
+                <PhoneOff className="w-9 h-9 text-red-400" />
               </div>
-              <p className="text-white text-2xl font-bold mb-2">Call Declined</p>
-              <p className="text-white/60 text-sm">The call was not accepted</p>
-            </>
+              <p className="text-white text-xl font-bold mb-2">Call Declined</p>
+              <p className="text-white/50 text-sm">The call was not accepted</p>
+            </div>
           ) : (
             <>
-              <div className={`w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center mb-5 text-white text-4xl font-bold border-4 border-white/20 ${callState === "incoming" ? "animate-pulse" : ""}`}>
-                {selectedDriver?.name?.charAt(0).toUpperCase() || "D"}
+              {/* Top bar — label + minimize */}
+              <div className="flex items-center justify-between px-5 pt-5 pb-3 flex-shrink-0">
+                <div className="w-9" />
+                <p className="text-white/60 text-sm font-medium tracking-wide">
+                  {callState === "incoming" ? "Incoming Call" : callState === "connected" ? "On Call" : "Calling..."}
+                </p>
+                {callState === "connected" ? (
+                  <button
+                    onClick={() => setIsMinimized(true)}
+                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                    title="Minimize"
+                  >
+                    <Minimize2 className="w-4 h-4 text-white/70" />
+                  </button>
+                ) : <div className="w-9" />}
               </div>
-              <p className="text-white text-2xl font-bold mb-2">{selectedDriver?.name}</p>
-              <p className="text-white/60 text-sm mb-10">
-                {callState === "calling" ? "Calling..." : callState === "incoming" ? "Incoming Call" : "● Call Connected"}
-              </p>
-              <div className="flex gap-10 items-center">
-                {callState === "incoming" && (
-                  <div className="flex flex-col items-center gap-2">
-                    <button onClick={acceptCall} className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-400 flex items-center justify-center transition-colors shadow-lg">
-                      <Phone className="w-7 h-7 text-white" />
-                    </button>
-                    <span className="text-white/70 text-xs">Accept</span>
+
+              {/* Center — avatar, name, timer/status */}
+              <div className="flex-1 flex flex-col items-center justify-center">
+                <div
+                  className={`w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center mb-5 text-white text-4xl font-bold border-4 border-white/10 shadow-[0_0_40px_rgba(25,118,210,0.4)] ${callState === "incoming" ? "animate-pulse" : ""}`}
+                >
+                  {selectedDriver?.name?.charAt(0).toUpperCase() || "D"}
+                </div>
+                <p className="text-white text-2xl font-bold mb-2 tracking-tight">{selectedDriver?.name || "Driver"}</p>
+                <p className={`text-base font-mono tracking-widest ${callState === "connected" ? "text-green-400" : "text-white/50"}`}>
+                  {callState === "connected" ? formatCallTime(callSeconds) : callState === "incoming" ? "Incoming…" : "Calling…"}
+                </p>
+              </div>
+
+              {/* Bottom — controls + action buttons */}
+              <div className="pb-10 px-8 flex flex-col items-center gap-6 flex-shrink-0">
+                {/* Mute + Speaker row — only while connected */}
+                {callState === "connected" && (
+                  <div className="flex gap-8 items-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <button
+                        onClick={toggleMute}
+                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors border ${isMuted ? "bg-white/25 border-white/35" : "bg-white/10 border-white/15 hover:bg-white/20"}`}
+                      >
+                        {isMuted ? <MicOff className="w-5 h-5 text-white" /> : <Mic className="w-5 h-5 text-white" />}
+                      </button>
+                      <span className="text-white/55 text-xs">{isMuted ? "Unmute" : "Mute"}</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-12 h-12 rounded-full bg-white/10 border border-white/15 flex items-center justify-center opacity-40 cursor-not-allowed">
+                        <Volume2 className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="text-white/35 text-xs">Speaker</span>
+                    </div>
                   </div>
                 )}
-                <div className="flex flex-col items-center gap-2">
-                  <button
-                    onClick={callState === "incoming"
-                      ? () => { socketService.getSocket()?.emit("call-rejected", { to: peerSocketRef.current }); endCall(false); }
-                      : () => endCall()
-                    }
-                    className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center transition-colors shadow-lg"
-                  >
-                    <PhoneOff className="w-7 h-7 text-white" />
-                  </button>
-                  <span className="text-white/70 text-xs">{callState === "incoming" ? "Decline" : "End Call"}</span>
+
+                {/* Accept / End / Decline */}
+                <div className="flex gap-12 items-end">
+                  {callState === "incoming" && (
+                    <div className="flex flex-col items-center gap-2">
+                      <button
+                        onClick={acceptCall}
+                        className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-400 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.45)] transition-all hover:scale-105"
+                      >
+                        <Phone className="w-6 h-6 text-white" />
+                      </button>
+                      <span className="text-white/60 text-xs">Accept</span>
+                    </div>
+                  )}
+                  <div className="flex flex-col items-center gap-2">
+                    <button
+                      onClick={
+                        callState === "incoming"
+                          ? () => { socketService.getSocket()?.emit("call-rejected", { to: peerSocketRef.current }); endCall(false); }
+                          : () => endCall()
+                      }
+                      className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.45)] transition-all hover:scale-105"
+                    >
+                      <PhoneOff className="w-6 h-6 text-white" />
+                    </button>
+                    <span className="text-white/60 text-xs">{callState === "incoming" ? "Decline" : "End Call"}</span>
+                  </div>
                 </div>
               </div>
             </>

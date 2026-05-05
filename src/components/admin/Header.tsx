@@ -134,11 +134,10 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
     return (
         <>
             <header
-                className="flex items-center justify-between px-6 py-4 shadow-sm relative z-20 bg-main "
-
+                className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 shadow-sm relative z-20 bg-main"
             >
-                <div className="flex items-center gap-4">
-
+                {/* Left: sidebar toggle + nav arrows (desktop) / search icon (mobile) */}
+                <div className="flex items-center gap-2 sm:gap-4">
                     <button
                         onClick={onToggleSidebar}
                         className="header-btn"
@@ -147,26 +146,34 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                         <FaBars size={20} />
                     </button>
 
+                    {/* Back / Forward — desktop only */}
                     <button
                         onClick={() => navigate(-1)}
-                        className="header-btn"
+                        className="header-btn hidden sm:flex"
                         title="Previous"
                     >
                         <ArrowLeft size={22} />
                     </button>
-
                     <button
                         onClick={() => navigate(1)}
-                        className="header-btn"
+                        className="header-btn hidden sm:flex"
                         title="Next"
                     >
                         <ArrowRight size={22} />
                     </button>
 
+                    {/* Search icon — mobile only */}
+                    <button
+                        onClick={handleSearchClick}
+                        className="header-btn sm:hidden"
+                        title="Search"
+                    >
+                        <Search size={20} />
+                    </button>
                 </div>
 
-                {/* Search bar in center */}
-                <div className="absolute left-1/2 -translate-x-1/2">
+                {/* Search bar in center — desktop only */}
+                <div className="hidden sm:block absolute left-1/2 -translate-x-1/2">
                     <button
                         onClick={handleSearchClick}
                         className="flex items-center gap-3 px-4 py-2 rounded-lg bg-[var(--bg-card)] border border-[rgba(255,255,255,0.08)] hover:border-[#42aeec]/40 text-secondary hover:text-primary transition-all w-64"
@@ -177,8 +184,8 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                     </button>
                 </div>
 
-                <div className="flex items-center gap-4">
-
+                {/* Right: settings + logout */}
+                <div className="flex items-center gap-2 sm:gap-4">
                     <button
                         onClick={handleSettingsClick}
                         className="p-2 rounded-lg hover-accent text-primary transition"
@@ -186,7 +193,6 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                     >
                         <FaCog size={18} />
                     </button>
-
                     <button
                         onClick={handleLogout}
                         className="p-2 rounded-lg hover-accent text-primary transition"
@@ -194,7 +200,6 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                     >
                         <FaSignOutAlt size={18} />
                     </button>
-
                 </div>
             </header>
 

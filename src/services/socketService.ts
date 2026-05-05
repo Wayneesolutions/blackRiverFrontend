@@ -513,19 +513,6 @@ sendIceCandidate(data: { to: string; candidate: any }) {
     }
   }
 
-  // ==================== WEBRTC ====================
-
-  callUser(data: { to: string; offer: any }) {
-    this.socket?.emit("call-user", data);
-  }
-
-  answerCall(data: { to: string; answer: any }) {
-    this.socket?.emit("answer-call", data);
-  }
-
-  sendIceCandidate(data: { to: string; candidate: any }) {
-    this.socket?.emit("call-ice", data);
-  }
 }
 
 // Export singleton instance

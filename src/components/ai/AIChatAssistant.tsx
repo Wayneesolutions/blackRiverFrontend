@@ -108,7 +108,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   };
 
   return (
-    <div className={`fixed bottom-6 right-6 z-50 ${className}`}>
+    <div className={`fixed bottom-6 right-4 sm:right-6 z-50 ${className}`}>
       {/* Chat Button (when closed) */}
       {!isOpen && (
         <button
@@ -136,11 +136,13 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
       {isOpen && (
         <div
           className={`flex flex-col transition-all duration-300 animate-chat-popup ${
-            isMinimized ? 'w-80 h-14' : 'w-96 h-[600px]'
+            isMinimized
+              ? 'w-[calc(100vw-2rem)] sm:w-80 h-14'
+              : 'w-[calc(100vw-2rem)] sm:w-96 h-[75vh] sm:h-[600px] max-h-[600px]'
           }`}
           style={{
             marginBottom: '0',
-            marginRight: '16px',
+            marginRight: '0',
             background: 'var(--bg-card)',
             borderRadius: '14px 14px 0 0',
             border: '1px solid rgba(59, 130, 246, 0.35)',
@@ -377,7 +379,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                     )}
                   </button>
                 </div>
-                <p className="text-xs mt-2 text-center" style={{ color: 'var(--text-secondary)' }}>
+                <p className="hidden sm:block text-xs mt-2 text-center" style={{ color: 'var(--text-secondary)' }}>
                   Press{' '}
                   <kbd
                     className="px-1 py-0.5 rounded text-xs"

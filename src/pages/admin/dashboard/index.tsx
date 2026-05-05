@@ -497,7 +497,7 @@ const Index = () => {
                     <h1 className="text-xl font-bold text-white">Overview</h1>
                 </div>
                 {/* Skeleton stat cards — visible immediately, no blank screen */}
-                <div className="grid grid-cols-4 gap-4 mb-3">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-3">
                     {Array.from({ length: 4 }).map((_, i) => (
                         <div key={i} className="rounded-2xl bg-card border border-theme p-4 animate-pulse">
                             <div className="flex items-start gap-4">
@@ -512,7 +512,7 @@ const Index = () => {
                         </div>
                     ))}
                 </div>
-                <div className="grid grid-cols-5 gap-4 mb-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
                     {Array.from({ length: 5 }).map((_, i) => (
                         <div key={i} className="rounded-2xl bg-card border border-theme p-4 animate-pulse">
                             <div className="flex items-start gap-3">
@@ -548,7 +548,7 @@ const Index = () => {
                         </div>
 
                         {/* Features Cards — Row 1: 4 cards */}
-                        <div className="grid grid-cols-4 gap-4 -mt-2 mb-3">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 -mt-2 mb-3">
                             {features.slice(0, 4).map((feature) => {
                                 const styles = colorStyles[feature.color] || colorStyles.blue;
                                 const Icon = feature.icon;
@@ -558,21 +558,21 @@ const Index = () => {
                                         onClick={() => handleCardClick(feature.route)}
                                         className="cursor-pointer hover:scale-[1.02] active:scale-[0.98] card-premium"
                                     >
-                                        <div className="flex items-start gap-4">
-                                            <div className={`flex-shrink-0 rounded-xl p-3 ${styles.bg} ${styles.glow}`}>
-                                                <Icon className={styles.text} size={20} strokeWidth={2} />
+                                        <div className="flex items-start gap-2 sm:gap-4">
+                                            <div className={`flex-shrink-0 rounded-xl p-2 sm:p-3 ${styles.bg} ${styles.glow}`}>
+                                                <Icon className={styles.text} size={18} strokeWidth={2} />
                                             </div>
-                                            <div className="flex-1">
-                                                <h3 className="text-sm font-semibold text-primary">{feature.title}</h3>
-                                                <div className="text-2xl font-bold text-primary mt-1">{feature.value}</div>
-                                                <p className="text-xs text-secondary mt-1">{feature.subtitle}</p>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-xs sm:text-sm font-semibold text-primary leading-snug">{feature.title}</h3>
+                                                <div className="text-xl sm:text-2xl font-bold text-primary mt-1">{feature.value}</div>
+                                                <p className="text-xs text-secondary mt-0.5 leading-snug">{feature.subtitle}</p>
                                             </div>
-                                            <div className="text-xs font-semibold text-secondary flex items-center gap-1 mt-1">
+                                            <div className="hidden sm:flex text-xs font-semibold text-secondary items-center gap-1 mt-1 flex-shrink-0">
                                                 <span className="text-[var(--accent-green)]">↗</span>
                                                 {Math.round(feature.percentage)}%
                                             </div>
                                         </div>
-                                        <div className="mt-4 h-[3px] bg-[rgba(255,255,255,0.05)] rounded-full overflow-hidden">
+                                        <div className="mt-3 sm:mt-4 h-[3px] bg-[rgba(255,255,255,0.05)] rounded-full overflow-hidden">
                                             <div className={`h-full rounded-full ${styles.bar}`} style={{ width: `${Math.max(feature.percentage, 4)}%`, opacity: feature.percentage === 0 ? 0.35 : 1 }} />
                                         </div>
                                     </Card>
@@ -581,7 +581,7 @@ const Index = () => {
                         </div>
 
                         {/* Features Cards — Row 2: 5 cards */}
-                        <div className="grid grid-cols-5 gap-4 mb-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
                             {features.slice(4).map((feature) => {
                                 const styles = colorStyles[feature.color] || colorStyles.blue;
                                 const Icon = feature.icon;
@@ -591,13 +591,13 @@ const Index = () => {
                                         onClick={() => handleCardClick(feature.route)}
                                         className="cursor-pointer hover:scale-[1.02] active:scale-[0.98] card-premium"
                                     >
-                                        <div className="flex items-start gap-3">
-                                            <div className={`flex-shrink-0 rounded-xl p-3 ${styles.bg} ${styles.glow}`}>
-                                                <Icon className={styles.text} size={18} strokeWidth={2} />
+                                        <div className="flex items-start gap-2 sm:gap-3">
+                                            <div className={`flex-shrink-0 rounded-xl p-2 sm:p-3 ${styles.bg} ${styles.glow}`}>
+                                                <Icon className={styles.text} size={16} strokeWidth={2} />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="text-xs font-semibold text-primary truncate">{feature.title}</h3>
-                                                <div className="text-xl font-bold text-primary mt-1">{feature.value}</div>
+                                                <h3 className="text-xs font-semibold text-primary truncate leading-snug">{feature.title}</h3>
+                                                <div className="text-lg sm:text-xl font-bold text-primary mt-1">{feature.value}</div>
                                                 <p className="text-xs text-secondary mt-0.5 truncate">{feature.subtitle}</p>
                                             </div>
                                         </div>
@@ -611,10 +611,10 @@ const Index = () => {
 
                         {/* Active Trips Section */}
                         {/* Active Trips Section */}
-                        <div className="grid grid-cols-12 gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
                             {/* ================= LEFT: MAP ================= */}
-                            <div className="col-span-7 bg-card border border-theme rounded-2xl shadow-[0_0_40px_rgba(0,209,255,0.08)] overflow-hidden">
+                            <div className="lg:col-span-7 bg-card border border-theme rounded-2xl shadow-[0_0_40px_rgba(0,209,255,0.08)] overflow-hidden">
 
                                 {/* HEADER */}
                                 <div className="flex items-center justify-between px-5 py-4 border-b border-theme bg-gradient-to-r from-[rgba(0,209,255,0.06)] to-transparent">
@@ -628,7 +628,7 @@ const Index = () => {
                                 </div>
 
                                 {/* MAP — deferred until after cards paint to avoid tile downloads blocking API responses */}
-                                <div className="relative h-[310px] m-4 rounded-xl overflow-hidden border border-theme">
+                                <div className="relative h-[220px] sm:h-[260px] lg:h-[310px] m-4 rounded-xl overflow-hidden border border-theme">
                                     {!mapReady ? (
                                         <div className="w-full h-full flex items-center justify-center bg-[rgba(0,209,255,0.03)]">
                                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-blue)]" />
@@ -733,7 +733,7 @@ const Index = () => {
                             </div>
 
                             {/* ================= MIDDLE: DISPATCH ================= */}
-                            <div className="col-span-3 bg-card border border-theme rounded-2xl p-4 shadow-[0_0_30px_rgba(0,209,255,0.05)]">
+                            <div className="lg:col-span-3 bg-card border border-theme rounded-2xl p-4 shadow-[0_0_30px_rgba(0,209,255,0.05)]">
 
                                 {/* Header */}
                                 <div className="flex justify-between mb-4">
@@ -819,7 +819,7 @@ const Index = () => {
                             </div>
 
                             {/* ================= RIGHT: ALERTS ================= */}
-<div className="col-span-2 bg-card border border-theme rounded-2xl p-4 shadow-[0_0_30px_rgba(0,209,255,0.05)]">
+<div className="lg:col-span-2 bg-card border border-theme rounded-2xl p-4 shadow-[0_0_30px_rgba(0,209,255,0.05)]">
 
   <div className="flex justify-between mb-4">
     <h2 className="text-sm font-semibold text-primary">Expiring Documents</h2>
@@ -874,10 +874,10 @@ const Index = () => {
                         </div>
 
                         {/* ================= RECENT TRIPS + DRIVER STATUS ================= */}
-                        <div className="grid grid-cols-12 gap-6 mt-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
 
                             {/* ================= LEFT: RECENT TRIPS ================= */}
-                            <div className="col-span-8 bg-card border border-theme rounded-2xl shadow-[0_0_40px_rgba(0,209,255,0.08)] overflow-hidden">
+                            <div className="lg:col-span-8 bg-card border border-theme rounded-2xl shadow-[0_0_40px_rgba(0,209,255,0.08)] overflow-hidden">
 
                                 <div className="flex items-center justify-between px-5 py-4 border-b border-theme
     bg-gradient-to-r from-[rgba(0,209,255,0.08)] to-transparent">
@@ -885,7 +885,8 @@ const Index = () => {
                                     
                                 </div>
 
-                                <table className="w-full text-sm">
+                                <div className="overflow-x-auto">
+                                <table className="w-full text-sm min-w-[520px]">
                                     <thead className="text-xs text-secondary uppercase border-b border-theme">
                                         <tr>
                                             <th className="px-5 py-3 text-left">Trip ID</th>
@@ -977,6 +978,7 @@ const Index = () => {
                                         )}
                                     </tbody>
                                 </table>
+                                </div>
                             </div>
 
                             {/* ================= RIGHT: DRIVER STATUS ================= */}
@@ -984,7 +986,7 @@ const Index = () => {
 
 
 
-                            <div className="col-span-4 bg-card border border-theme rounded-2xl p-4 shadow-[0_0_40px_rgba(0,209,255,0.08)]">
+                            <div className="lg:col-span-4 bg-card border border-theme rounded-2xl p-4 shadow-[0_0_40px_rgba(0,209,255,0.08)]">
 
                                 {/* Header */}
                                 <div className="flex justify-between mb-4">
