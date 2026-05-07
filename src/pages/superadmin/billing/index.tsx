@@ -329,10 +329,6 @@ const Billing = () => {
     }).format(price);
   };
 
-  const getPlanGradient = (plan: Plan) => {
-    if (plan.isDefault) return '';
-    return '';
-  };
   const getPlanHeaderStyle = (plan: Plan): React.CSSProperties => {
     if (plan.isDefault) return { background: 'linear-gradient(135deg, #091527 0%, #0d1e3a 100%)', borderBottom: '1px solid rgba(17,131,224,0.25)' };
     return { background: 'linear-gradient(135deg, #0a1a10 0%, #0d2318 100%)', borderBottom: '1px solid rgba(0,255,163,0.15)' };

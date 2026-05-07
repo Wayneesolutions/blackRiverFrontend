@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, Send, Paperclip, X, File, Image as ImageIcon, Check, CheckCheck, Search, Phone, PhoneOff, PhoneIncoming, PhoneOutgoing, PhoneMissed, Mic, MicOff, Minimize2, Maximize2, Volume2 } from "lucide-react";
+import { MessageCircle, Send, Paperclip, X, File, Image as ImageIcon, Check, CheckCheck, Search, Phone, PhoneOff, PhoneIncoming, PhoneOutgoing, PhoneMissed, Mic, MicOff, Minimize2, Volume2 } from "lucide-react";
 import { socketService } from "../../services/socketService";
 import { listDriver } from "../../axios/api/distapcher";
 import {
@@ -87,7 +87,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
   });
 
   const {
-    callState, incomingCall,
+    callState,
     isMuted, isMinimized, callSeconds,
     setIsOnChatPage, setIsMinimized,
     startCall, acceptCall, endCall, rejectCall, toggleMute,
@@ -1640,7 +1640,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                     <button
                       onClick={
                         callState === "incoming"
-                          ? () => { socketService.getSocket()?.emit("call-rejected", { to: peerSocketRef.current }); endCall(false); }
+                          ? rejectCall
                           : () => endCall()
                       }
                       className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.45)] transition-all hover:scale-105"

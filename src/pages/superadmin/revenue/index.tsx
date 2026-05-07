@@ -5,7 +5,6 @@ import {
     TrendingUp,
     Users,
     Calendar,
-    Download,
     Eye,
     MoreHorizontal,
     Building2,
@@ -190,10 +189,6 @@ const RevenueDashboard = () => {
     const handleCopyId = (id: string) => {
         navigator.clipboard.writeText(id);
         message.success('ID copied to clipboard');
-    };
-
-    const handleExport = (_revenue: any) => {
-        message.info('Export functionality coming soon');
     };
 
     const handleMoreActions = (revenueId: string, event: React.MouseEvent) => {

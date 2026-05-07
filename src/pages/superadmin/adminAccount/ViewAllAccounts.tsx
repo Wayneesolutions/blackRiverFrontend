@@ -3,7 +3,7 @@ import {
     Users, Search, Filter, Plus, Edit, Trash2, Eye, EyeOff,
     Building2, Mail, Phone, Lock, AlertCircle,
 } from 'lucide-react';
-import { message, Modal, Select, Switch } from 'antd';
+import { message, Modal, Switch } from 'antd';
 import { getAllAdmins, createAdmin, updateAdmin, deleteAdmin } from '../../../axios/api/superadmin';
 
 interface Admin {
