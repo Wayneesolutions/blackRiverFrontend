@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, Send, Paperclip, X, File, Image as ImageIcon, Check, CheckCheck, Search, Phone, PhoneOff, Mic, MicOff, Minimize2, Maximize2, Volume2 } from "lucide-react";
+import { MessageCircle, Send, Paperclip, X, File, Image as ImageIcon, Check, CheckCheck, Search, Phone, PhoneOff, PhoneIncoming, PhoneOutgoing, PhoneMissed, Mic, MicOff, Minimize2, Maximize2, Volume2 } from "lucide-react";
 import { socketService } from "../../services/socketService";
 import { listDriver } from "../../axios/api/distapcher";
 import {
@@ -29,6 +29,22 @@ interface DriverChatProps {
 }
 
 
+
+const callRecordPreview = (text: string): string => {
+  if (!text?.startsWith('{"__callRecord"')) return text;
+  try {
+    const rec = JSON.parse(text);
+    if (!rec.__callRecord) return text;
+    const dur = rec.duration || 0;
+    const durStr = dur > 0
+      ? ` · ${String(Math.floor(dur / 60)).padStart(2, '0')}:${String(dur % 60).padStart(2, '0')}`
+      : '';
+    if (rec.type === 'ended')     return `📞 ${rec.initiatedBy === 'dispatcher' ? 'Outgoing' : 'Incoming'} call${durStr}`;
+    if (rec.type === 'cancelled') return `📞 ${rec.initiatedBy === 'dispatcher' ? 'You cancelled' : 'Driver cancelled'}`;
+    if (rec.type === 'declined')  return `📞 ${rec.initiatedBy === 'dispatcher' ? 'Driver declined' : 'You declined'}`;
+    return '📞 Missed call';
+  } catch { return text; }
+};
 
 const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
   // Restore drivers list from cache → renders immediately on every mount
@@ -73,9 +89,14 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
   const {
     callState, incomingCall,
     isMuted, isMinimized, callSeconds,
-    setIsOnChatPage,
+    setIsOnChatPage, setIsMinimized,
     startCall, acceptCall, endCall, rejectCall, toggleMute,
   } = useCall();
+
+  // Track whether the call was connected before transitioning to "declined"
+  // so we can show "Call Ended" vs "Call Declined" correctly.
+  const prevCallStateRef = useRef(callState);
+  useEffect(() => { prevCallStateRef.current = callState; }, [callState]);
 
   // Persist both caches whenever they change
   useEffect(() => {
@@ -140,7 +161,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
           counts[id] = item.unreadCount || 0;
           if (item.lastMessage) {
             lasts[id] = {
-              text: item.lastMessage.message || (item.lastMessage.fileUrl ? '📎 File' : ''),
+              text: callRecordPreview(item.lastMessage.message) || (item.lastMessage.fileUrl ? '📎 File' : ''),
               time: new Date(item.lastMessage.createdAt),
               senderType: item.lastMessage.senderType,
             };
@@ -190,7 +211,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
           setLastMessages(prev => ({
             ...prev,
             [driverId]: {
-              text: last.message || (last.fileUrl ? '📎 File' : ''),
+              text: callRecordPreview(last.message) || (last.fileUrl ? '📎 File' : ''),
               time: new Date((last as any).createdAt || Date.now()),
               senderType: last.senderType
             }
@@ -339,7 +360,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
         setLastMessages(prev => ({
           ...prev,
           [driverIdStr]: {
-            text: message.message || (message.fileUrl ? '📎 File' : ''),
+            text: callRecordPreview(message.message) || (message.fileUrl ? '📎 File' : ''),
             time: new Date(message.createdAt || Date.now()),
             senderType: message.senderType
           }
@@ -898,7 +919,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                         <div className="flex items-center justify-between gap-1 mt-0.5">
                           {lastMsg ? (
                             <p className={`text-[11px] truncate leading-tight flex-1 ${unreadCount > 0 ? 'text-primary font-medium' : 'text-secondary'}`}>
-                              {lastMsg.senderType !== 'driver' && <span className="text-secondary">You: </span>}
+                              {lastMsg.senderType !== 'driver' && !lastMsg.text?.startsWith('📞') && <span className="text-secondary">You: </span>}
                               {lastMsg.text || '📎 File'}
                             </p>
                           ) : (
@@ -995,6 +1016,52 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                       const isCurrentUser = currentUserId && String(message.senderId._id) === String(currentUserId);
                       const showAvatar = !isSystemMessage && (index === 0 || dateMessages[index - 1].senderId._id !== message.senderId._id);
                       const isRead = message.readBy && message.readBy.length > 0;
+
+                      // ── Call record messages ─────────────────────────────
+                      if (message.message?.startsWith('{"__callRecord"')) {
+                        let rec: any = null;
+                        try { rec = JSON.parse(message.message); } catch {}
+                        if (rec?.__callRecord) {
+                          const durSecs = rec.duration || 0;
+                          const durStr = durSecs > 0
+                            ? `${String(Math.floor(durSecs / 60)).padStart(2, '0')}:${String(durSecs % 60).padStart(2, '0')}`
+                            : '';
+                          // dispatcher = "you"; driver = the other party
+                          const byDispatcher = rec.initiatedBy === 'dispatcher';
+                          const byDriver     = rec.initiatedBy === 'driver';
+                          let label = '';
+                          let IconEl: React.ReactNode;
+                          let colorClass = '';
+                          let bgClass = '';
+                          if (rec.type === 'ended') {
+                            label = byDispatcher ? `Outgoing call${durStr ? ' · ' + durStr : ''}` : byDriver ? `Incoming call${durStr ? ' · ' + durStr : ''}` : `Call ended${durStr ? ' · ' + durStr : ''}`;
+                            IconEl = byDispatcher ? <PhoneOutgoing className="w-3 h-3 flex-shrink-0" /> : byDriver ? <PhoneIncoming className="w-3 h-3 flex-shrink-0" /> : <Phone className="w-3 h-3 flex-shrink-0" />;
+                            colorClass = 'text-green-600'; bgClass = 'bg-green-500/10 border-green-500/20';
+                          } else if (rec.type === 'cancelled') {
+                            label = byDispatcher ? 'You cancelled' : byDriver ? 'Driver cancelled' : 'Call cancelled';
+                            IconEl = byDispatcher ? <PhoneOutgoing className="w-3 h-3 flex-shrink-0" /> : <PhoneIncoming className="w-3 h-3 flex-shrink-0" />;
+                            colorClass = 'text-gray-400'; bgClass = 'bg-gray-500/10 border-gray-500/20';
+                          } else if (rec.type === 'declined') {
+                            label = byDispatcher ? 'Driver declined' : byDriver ? 'You declined' : 'Call declined';
+                            IconEl = <PhoneMissed className="w-3 h-3 flex-shrink-0" />;
+                            colorClass = 'text-red-500'; bgClass = 'bg-red-500/10 border-red-500/20';
+                          } else {
+                            label = 'Missed call';
+                            IconEl = <PhoneMissed className="w-3 h-3 flex-shrink-0" />;
+                            colorClass = 'text-red-500'; bgClass = 'bg-red-500/10 border-red-500/20';
+                          }
+                          const timeStr = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                          return (
+                            <div key={message._id} className="flex flex-col items-center my-3 gap-1">
+                              <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold border ${colorClass} ${bgClass}`}>
+                                {IconEl}
+                                <span>{label}</span>
+                              </div>
+                              <span className="text-[10px] text-gray-500">{timeStr}</span>
+                            </div>
+                          );
+                        }
+                      }
 
                       // System messages (trip status) should be centered
                       if (isSystemMessage && message.tripStatus) {
@@ -1482,43 +1549,6 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
 
       </div>
 
-      {/* ── Minimized floating call bar ──────────────────────────────────────── */}
-      {callState === "connected" && isMinimized && (
-        <div
-          className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl border border-white/10"
-          style={{ background: "linear-gradient(135deg,#1a1a2e,#16213e)", minWidth: 300 }}
-        >
-          <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-md">
-            {selectedDriver?.name?.charAt(0).toUpperCase() || "D"}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-white text-sm font-semibold truncate">{selectedDriver?.name}</p>
-            <p className="text-green-400 text-xs font-mono">{formatCallTime(callSeconds)}</p>
-          </div>
-          <button
-            onClick={toggleMute}
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isMuted ? "bg-white/30" : "bg-white/10 hover:bg-white/20"}`}
-            title={isMuted ? "Unmute" : "Mute"}
-          >
-            {isMuted ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4 text-white" />}
-          </button>
-          <button
-            onClick={() => setIsMinimized(false)}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-            title="Expand"
-          >
-            <Maximize2 className="w-4 h-4 text-white" />
-          </button>
-          <button
-            onClick={() => endCall()}
-            className="w-8 h-8 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center transition-colors shadow-md"
-            title="End call"
-          >
-            <PhoneOff className="w-4 h-4 text-white" />
-          </button>
-        </div>
-      )}
-
       {/* ── Full call overlay ─────────────────────────────────────────────────── */}
       {(callState === "calling" || callState === "incoming" || (callState === "connected" && !isMinimized) || callState === "declined") && (
         <div
@@ -1531,8 +1561,12 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
               <div className="w-20 h-20 rounded-full bg-red-500/20 border-2 border-red-500/40 flex items-center justify-center mb-5">
                 <PhoneOff className="w-9 h-9 text-red-400" />
               </div>
-              <p className="text-white text-xl font-bold mb-2">Call Declined</p>
-              <p className="text-white/50 text-sm">The call was not accepted</p>
+              <p className="text-white text-xl font-bold mb-2">
+                {prevCallStateRef.current === 'connected' ? 'Call Ended' : 'Call Declined'}
+              </p>
+              <p className="text-white/50 text-sm">
+                {prevCallStateRef.current === 'connected' ? 'Driver ended the call' : 'The call was not accepted'}
+              </p>
             </div>
           ) : (
             <>

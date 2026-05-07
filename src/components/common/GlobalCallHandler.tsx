@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useCallback } from "react";
 import { Phone, PhoneOff, Mic, MicOff, Volume2, Minimize2, Maximize2 } from "lucide-react";
 import { socketService } from "../../services/socketService";
 import { useCall } from "../../contexts/CreateCallContext";
+import { sendDriverChatMessage } from "../../axios/api/chat";
 
 export const GlobalCallHandler: React.FC = () => {
   const {
@@ -25,6 +26,19 @@ export const GlobalCallHandler: React.FC = () => {
   // Keep a ref mirror so async closures always see latest incomingCall
   const incomingCallRef = useRef(incomingCall);
   useEffect(() => { incomingCallRef.current = incomingCall; }, [incomingCall]);
+  // Call-record tracking refs
+  const isCallerRef       = useRef(false);        // true when WE initiated the call
+  const callTargetIdRef   = useRef<string | null>(null); // driver's MongoDB _id
+  const callStartTimeRef  = useRef<number | null>(null); // ms timestamp when connected
+  const callStateRef      = useRef(callState);    // live mirror of callState
+  useEffect(() => { callStateRef.current = callState; }, [callState]);
+  const remoteEndedRef    = useRef(false);        // true when remote party hung up (not rejected)
+
+  const postCallRecord = (driverId: string, type: 'ended' | 'cancelled' | 'declined', durationSecs = 0) => {
+    const initiated = isCallerRef.current ? 'dispatcher' : 'driver';
+    const msg = JSON.stringify({ __callRecord: true, type, duration: durationSecs, initiatedBy: initiated });
+    sendDriverChatMessage(driverId, msg).catch(() => {});
+  };
 
   const formatTime = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
@@ -106,6 +120,17 @@ export const GlobalCallHandler: React.FC = () => {
     if (notifyPeer && peerSocketRef.current) {
       socketService.getSocket()?.emit("call-end", { to: peerSocketRef.current });
     }
+    // Post call record — only when WE initiated the call
+    if (isCallerRef.current && callTargetIdRef.current) {
+      const cs = callStateRef.current;
+      const dur = callStartTimeRef.current
+        ? Math.floor((Date.now() - callStartTimeRef.current) / 1000) : 0;
+      if (cs === "connected") postCallRecord(callTargetIdRef.current, "ended", dur);
+      else if (cs === "calling") postCallRecord(callTargetIdRef.current, "cancelled");
+    }
+    isCallerRef.current      = false;
+    callTargetIdRef.current  = null;
+    callStartTimeRef.current = null;
     pcRef.current?.close();
     pcRef.current = null;
     localStreamRef.current?.getTracks().forEach(t => t.stop());
@@ -121,11 +146,14 @@ export const GlobalCallHandler: React.FC = () => {
   }, [setIsMuted, setIsMinimized, setCallState, setIncomingCall, setCallerName]);
 
   const startCall = useCallback(async (targetId: string, targetName: string) => {
+    isCallerRef.current     = true;
+    callTargetIdRef.current = targetId;
+    callStartTimeRef.current = null;
     setCallerName(targetName);
     setCallState("calling");
     try {
       const pc = createPeer(targetId);
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
       localStreamRef.current = stream;
       stream.getTracks().forEach(t => pc.addTrack(t, stream));
       const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: false });
@@ -147,13 +175,14 @@ export const GlobalCallHandler: React.FC = () => {
     peerSocketRef.current = incoming.from;
     try {
       const pc = createPeer(incoming.from);
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
       localStreamRef.current = stream;
       stream.getTracks().forEach(t => pc.addTrack(t, stream));
       await pc.setRemoteDescription(new RTCSessionDescription(incoming.offer));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       socketService.answerCall({ to: incoming.from, answer });
+      callStartTimeRef.current = Date.now();
       setCallState("connected");
     } catch (err) { console.error("❌ Accept call error:", err); }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -177,13 +206,49 @@ export const GlobalCallHandler: React.FC = () => {
     registerActions({ startCall, acceptCall, endCall: cleanup, rejectCall, toggleMute });
   }, [registerActions, startCall, acceptCall, cleanup, rejectCall, toggleMute]);
 
-  // ── Socket listeners (single source — no duplicate registration in DriverChat) ─
+  // ── Connect socket at app-load level (Option B) ──────────────────────────────
+  // GlobalCallHandler owns the connection so it never depends on DriverChat being open.
+  // socketService.connect() with the same token is a no-op when already connected,
+  // so DriverChat calling it later causes zero conflict.
   useEffect(() => {
-    const register = () => {
-      const socket = socketService.getSocket();
-      if (!socket) return false;
+    const tryConnect = () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      if (socketService.isConnected() && socketService.getIsAuthenticated()) return;
+      socketService.connect(token).catch(() => {});
+    };
 
-      socket.on("incoming-call", ({ from, offer }: { from: string; offer: any }) => {
+    tryConnect(); // immediate attempt on mount
+
+    // Retry every 2 s until authenticated (covers post-login case where token
+    // wasn't in localStorage yet at mount time)
+    const interval = setInterval(() => {
+      if (socketService.isConnected() && socketService.getIsAuthenticated()) {
+        clearInterval(interval);
+        return;
+      }
+      tryConnect();
+    }, 2000);
+
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Socket listeners ────────────────────────────────────────────────────────
+  useEffect(() => {
+    const attachListeners = (socket: ReturnType<typeof socketService.getSocket>) => {
+      if (!socket) return;
+      // Remove any previous listeners first so we never double-register
+      socket.off("incoming-call");
+      socket.off("call-answered");
+      socket.off("call-ice");
+      socket.off("call-ended");
+      socket.off("call-rejected");
+
+      socket.on("incoming-call", ({ from, offer, driverId }: { from: string; offer: any; driverId?: string }) => {
+        isCallerRef.current      = false; // we are the callee
+        callTargetIdRef.current  = driverId || null;
+        callStartTimeRef.current = null;
         peerSocketRef.current = from;
         setIncomingCall({ from, offer });
         setCallState("incoming");
@@ -200,6 +265,7 @@ export const GlobalCallHandler: React.FC = () => {
       socket.on("call-answered", ({ answer, from }: { answer: any; from?: string }) => {
         if (from) peerSocketRef.current = from;
         pcRef.current?.setRemoteDescription(new RTCSessionDescription(answer));
+        callStartTimeRef.current = Date.now();
         setCallState("connected");
       });
 
@@ -207,21 +273,62 @@ export const GlobalCallHandler: React.FC = () => {
         pcRef.current?.addIceCandidate(new RTCIceCandidate(candidate));
       });
 
-      socket.on("call-ended", () => cleanup(false));
+      socket.on("call-ended", () => {
+        const wasConnected = callStateRef.current === "connected";
+        const wasMissed    = callStateRef.current === "incoming";
+        remoteEndedRef.current = wasConnected;
+        cleanup(false);
+        if (wasConnected) {
+          setCallState("declined");
+          setTimeout(() => { remoteEndedRef.current = false; setCallState("idle"); }, 2500);
+        }
+        // Dispatcher missed the call — show browser notification so they can follow up
+        if (wasMissed && "Notification" in window && Notification.permission === "granted") {
+          new Notification("📵 Missed Call", {
+            body: `${callerName || "Driver"} tried to reach you`,
+            icon: "/favicon.ico",
+            tag: "missed-call",
+          });
+        }
+      });
       socket.on("call-rejected", () => {
+        remoteEndedRef.current = false;
+        if (isCallerRef.current && callTargetIdRef.current) {
+          postCallRecord(callTargetIdRef.current, "declined");
+        }
         stopRing();
         cleanup(false);
         setCallState("declined");
         setTimeout(() => setCallState("idle"), 2500);
       });
-
-      return true;
     };
 
-    if (!register()) {
-      const interval = setInterval(() => { if (register()) clearInterval(interval); }, 500);
-      return () => clearInterval(interval);
+    // Try immediately if socket already exists
+    const existing = socketService.getSocket();
+    if (existing) {
+      attachListeners(existing);
     }
+
+    // Re-attach whenever the socket (re)authenticates
+    // socketService fires "socket-ready" after every successful authenticate
+    const onSocketReady = () => {
+      attachListeners(socketService.getSocket());
+    };
+    window.addEventListener("socket-ready", onSocketReady);
+
+    // Fallback: poll every 500 ms until socket is available
+    const interval = setInterval(() => {
+      const s = socketService.getSocket();
+      if (s) {
+        attachListeners(s);
+        clearInterval(interval);
+      }
+    }, 500);
+
+    return () => {
+      window.removeEventListener("socket-ready", onSocketReady);
+      clearInterval(interval);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -291,8 +398,12 @@ export const GlobalCallHandler: React.FC = () => {
             <div className="w-24 h-24 rounded-full bg-red-500/20 border-2 border-red-500/50 flex items-center justify-center mb-5">
               <PhoneOff className="w-10 h-10 text-red-400" />
             </div>
-            <p className="text-white text-2xl font-bold mb-2">Call Declined</p>
-            <p className="text-white/50 text-sm">The call was not accepted</p>
+            <p className="text-white text-2xl font-bold mb-2">
+              {remoteEndedRef.current ? "Call Ended" : "Call Declined"}
+            </p>
+            <p className="text-white/50 text-sm">
+              {remoteEndedRef.current ? "Driver ended the call" : "The call was not accepted"}
+            </p>
           </div>
         ) : (
           <>
