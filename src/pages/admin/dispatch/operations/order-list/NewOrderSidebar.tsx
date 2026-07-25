@@ -6743,7 +6743,9 @@ focus:outline-none focus:ring-2 focus:ring-[#00D1FF]"
                                 className="px-6 py-2.5 !text-white font-medium rounded-lg transition-opacity flex items-center gap-2 shadow-md hover:shadow-lg hover:opacity-90"
                                 style={{ background: PRIMARY_GRADIENT }}
                             >
-                                {loading ? "Creating..." : "Create Order"}
+                                {loading
+                                    ? (order && order._id ? "Saving..." : "Creating...")
+                                    : (order && order._id ? "Save Changes" : "Create Order")}
                             </button>
                         )}
                     </div>
