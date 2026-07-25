@@ -853,7 +853,9 @@ export default function SettlementSystem() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">{item.recurrence}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-secondary">${item.amount.toLocaleString()}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">{item.assignedTo?.name || 'Unknown'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                          {item.assignedTo?.name || <span className="italic text-red-400">Deleted user</span>}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button
@@ -864,7 +866,7 @@ export default function SettlementSystem() {
                                   type: item.type,
                                   recurrence: item.recurrence as 'One-time' | 'Weekly' | 'Bi-weekly' | 'Monthly' | 'Quarterly' | 'Yearly',
                                   amount: item.amount.toString(),
-                                  assignedTo: item.assignedTo._id,
+                                  assignedTo: item.assignedTo?._id || '',
                                   startDate: '',
                                   endDate: '',
                                   description: ''
@@ -1081,6 +1083,10 @@ export default function SettlementSystem() {
                     onClick={async () => {
                       if (!settlementForm.driver || !settlementForm.payPeriod.startDate || !settlementForm.payPeriod.endDate || !settlementForm.grossPay) {
                         showNotification('error', 'Please fill in all required fields');
+                        return;
+                      }
+                      if (!(parseFloat(settlementForm.grossPay) > 0)) {
+                        showNotification('error', 'Gross pay must be greater than $0');
                         return;
                       }
                       setSubmitting(true);
@@ -1648,7 +1654,7 @@ export default function SettlementSystem() {
 
                     <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-4 border border-cyan-200">
                       <label className="text-xs font-semibold text-cyan-900 uppercase tracking-wide mb-2 block">Assigned To</label>
-                      <p className="text-lg font-bold text-cyan-900">{selectedItem.assignedTo?.name || 'Unknown'}</p>
+                      <p className="text-lg font-bold text-cyan-900">{selectedItem.assignedTo?.name || 'Deleted user'}</p>
                       {selectedItem.assignedTo?.email && (
                         <p className="text-sm text-cyan-700 mt-1">{selectedItem.assignedTo.email}</p>
                       )}
