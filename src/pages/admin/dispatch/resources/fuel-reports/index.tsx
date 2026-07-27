@@ -923,13 +923,6 @@ const FuelReports = () => {
     { month: "Nov", spend: 14200 },
     { month: "Dec", spend: 0 },
   ];
-  const STATIC_TOP_TRUCKS = [
-    { unitNo: "T-101", consumption: 12450 },
-    { unitNo: "T-205", consumption: 10230 },
-    { unitNo: "T-089", consumption: 9870 },
-    { unitNo: "T-312", consumption: 8450 },
-    { unitNo: "T-156", consumption: 7820 },
-  ];
   const currentYear = new Date().getFullYear();
   const ytdConsumption = useMemo(() => {
     const fromData = fuelReports.reduce((acc, r) => {
@@ -952,7 +945,7 @@ const FuelReports = () => {
     }));
   }, [fuelReports]);
   const topConsumingTrucks = useMemo(() => {
-    if (fuelReports.length < 3) return STATIC_TOP_TRUCKS;
+    if (fuelReports.length < 3) return [];
     const byUnit: Record<string, number> = {};
     fuelReports.forEach((r) => {
       // Use the same logic as getVehicleDetails to extract unit number
@@ -985,7 +978,7 @@ const FuelReports = () => {
       .sort((a, b) => b.consumption - a.consumption)
       .slice(0, 5);
 
-    return result.length > 0 ? result : STATIC_TOP_TRUCKS;
+    return result;
   }, [fuelReports, unitsMap]);
 
   // Filter by date range (client-side)
@@ -1157,17 +1150,21 @@ const FuelReports = () => {
             </div>
             <div className="bg-card rounded-xl p-4 shadow-sm border border-theme">
               <h3 className="text-sm font-semibold text-secondary mb-3">Top Consuming Trucks</h3>
-              <div className="flex flex-wrap gap-3">
-                {topConsumingTrucks.map((t, i) => (
-                  <div key={t.unitNo} className="flex items-center gap-2 px-3 py-2 bg-card rounded-lg">
-                    <span className="text-xs font-bold text-secondary">#{i + 1}</span>
-                    <span className="font-semibold text-primary">{t.unitNo}</span>
-                    <span className="text-xs text-secondary">
-                      {t.consumption.toLocaleString(undefined, { maximumFractionDigits: 0 })} L
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {topConsumingTrucks.length > 0 ? (
+                <div className="flex flex-wrap gap-3">
+                  {topConsumingTrucks.map((t, i) => (
+                    <div key={t.unitNo} className="flex items-center gap-2 px-3 py-2 bg-card rounded-lg">
+                      <span className="text-xs font-bold text-secondary">#{i + 1}</span>
+                      <span className="font-semibold text-primary">{t.unitNo}</span>
+                      <span className="text-xs text-secondary">
+                        {t.consumption.toLocaleString(undefined, { maximumFractionDigits: 0 })} L
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-secondary">Not enough fuel report data yet to rank trucks by consumption.</p>
+              )}
             </div>
           </div>
 

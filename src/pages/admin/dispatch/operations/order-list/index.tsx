@@ -912,8 +912,31 @@ const OrderList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // Load Board view filtering (client-side; the backend has no view-specific endpoint yet)
+  const HISTORICAL_STATUSES = ['completed', 'delivered', 'canceled', 'cancelled'];
+  const matchesLoadBoardView = (order: Order): boolean => {
+    const pickupLocStr = (typeof order.pickupLocation === 'string' ? order.pickupLocation : extractLocationString(order.pickupLocation)) || '';
+    const deliveryLocStr = (typeof order.deliveryLocation === 'string' ? order.deliveryLocation : extractLocationString(order.deliveryLocation)) || '';
+    const status = (order.status || '').toLowerCase();
+    const direction = (order as any).borderInfo?.direction || '';
+
+    switch (loadBoard) {
+      case 'TO/FROM YARD':
+        return pickupLocStr.toLowerCase().includes('yard') || deliveryLocStr.toLowerCase().includes('yard');
+      case 'HISTORICAL LOAD BOARD':
+        return HISTORICAL_STATUSES.includes(status);
+      case 'INBOUND':
+        return direction === 'US_TO_CA';
+      case 'OUTBOUND':
+        return direction === 'CA_TO_US';
+      default:
+        // LOAD BOARD / CITY LOAD BOARD show all orders
+        return true;
+    }
+  };
+
   const filteredOrders = useMemo(() => {
-    return orders.filter((order) => {
+    const result = orders.filter((order) => {
       const matchesOrderNo = !orderNo || order.orderNo.toLowerCase().includes(orderNo.toLowerCase());
       const matchesCustOrderNo = !custOrderNo || order.custOrderNo.toLowerCase().includes(custOrderNo.toLowerCase());
       const matchesTripNo = !tripNo || order.tripNo.toLowerCase().includes(tripNo.toLowerCase());
@@ -929,10 +952,20 @@ const OrderList = () => {
       const matchesOrderType = !orderType || order.orderType === orderType;
       const matchesStatus = !orderStatus || order.status === orderStatus;
 
-      return matchesOrderNo && matchesCustOrderNo && matchesTripNo && matchesPickupDeliveryRef &&
+      return matchesLoadBoardView(order) && matchesOrderNo && matchesCustOrderNo && matchesTripNo && matchesPickupDeliveryRef &&
         matchesCustName && matchesPickupLocation && matchesDeliveryLocation && matchesOrderType && matchesStatus;
     });
-  }, [orders, orderNo, custOrderNo, tripNo, pickupDeliveryRef, custName, pickupLocation, deliveryLocation, orderType, orderStatus]);
+
+    // CITY LOAD BOARD groups orders by pickup city (alphabetical by pickup location)
+    if (loadBoard === 'CITY LOAD BOARD') {
+      return [...result].sort((a, b) => {
+        const aLoc = (typeof a.pickupLocation === 'string' ? a.pickupLocation : extractLocationString(a.pickupLocation)) || '';
+        const bLoc = (typeof b.pickupLocation === 'string' ? b.pickupLocation : extractLocationString(b.pickupLocation)) || '';
+        return aLoc.localeCompare(bLoc);
+      });
+    }
+    return result;
+  }, [orders, loadBoard, orderNo, custOrderNo, tripNo, pickupDeliveryRef, custName, pickupLocation, deliveryLocation, orderType, orderStatus]);
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const paginatedOrders = filteredOrders.slice(
@@ -1132,7 +1165,7 @@ const OrderList = () => {
       <div className="mb-4 flex items-center gap-4">
         <select
           value={loadBoard}
-          onChange={(e) => setLoadBoard(e.target.value)}
+          onChange={(e) => { setLoadBoard(e.target.value); setCurrentPage(1); }}
           className="px-4 py-2 border border-theme rounded text-sm bg-card font-medium text-primary"
         >
           <option value="LOAD BOARD">LOAD BOARD</option>

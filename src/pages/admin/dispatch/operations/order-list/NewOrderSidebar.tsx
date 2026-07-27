@@ -1759,8 +1759,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
     const handleSaveOrder = async () => {
         // Final validation
-        // Use shipper customer as the order customer if available, otherwise use receiver customer
-        const orderCustomer = selectedShipperCustomer || selectedReceiverCustomer || selectedCustomer;
+        // Use the explicitly selected Customer (Step 1) as the order customer;
+        // only fall back to shipper/receiver if no customer was chosen
+        const orderCustomer = selectedCustomer || selectedShipperCustomer || selectedReceiverCustomer;
         if (!orderCustomer) {
             addNotification('error', "Please select a shipper or receiver customer");
             return;
@@ -2489,14 +2490,24 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 });
             }
 
-            // Add receiver stops
+            // Add receiver stops (skip any that exactly duplicate the primary receiver stop above)
+            const primaryReceiverDate = deliveryDate ? `${deliveryDate} ${deliveryTime || 'TBA'}` : "-";
             receiverStops.forEach((stop) => {
+                const stopName = stop.receiver || '';
+                const stopCity = stop.address || '';
+                const stopDate = stop.date || "-";
+                const isDuplicateOfPrimary =
+                    stopName === (receiverName || '') &&
+                    stopCity === (receiverAddress || deliveryLocationAddress || '') &&
+                    stopDate === primaryReceiverDate;
+                if (isDuplicateOfPrimary) return;
+
                 initialStops.push({
                     job: jobNumber++,
                     type: "Drop Off",
-                    name: stop.receiver || '',
-                    city: stop.address || '',
-                    date: stop.date || "-",
+                    name: stopName,
+                    city: stopCity,
+                    date: stopDate,
                     truck: selectedTruck ? (selectedTruck.plateNumber || selectedTruck.vehicleNumber || '12/31/2025 TBA') : '12/31/2025 TBA',
                     trailer: selectedTrailer ? (selectedTrailer.trailer || selectedTrailer.plateNumber || 'TBA') : 'TBA',
                     driver: selectedDriver ? (selectedDriver.name || '') : '',
@@ -6743,7 +6754,9 @@ focus:outline-none focus:ring-2 focus:ring-[#00D1FF]"
                                 className="px-6 py-2.5 !text-white font-medium rounded-lg transition-opacity flex items-center gap-2 shadow-md hover:shadow-lg hover:opacity-90"
                                 style={{ background: PRIMARY_GRADIENT }}
                             >
-                                {loading ? "Creating..." : "Create Order"}
+                                {loading
+                                    ? (order && order._id ? "Saving..." : "Creating...")
+                                    : (order && order._id ? "Save Changes" : "Create Order")}
                             </button>
                         )}
                     </div>
