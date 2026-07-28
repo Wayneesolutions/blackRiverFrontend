@@ -814,6 +814,13 @@ const OrderList = () => {
     return '';
   };
 
+  // Maps the Load Board dropdown's display value to the value the backend's
+  // loadBoard switch actually matches (dispatcher/order?loadBoard=...)
+  const LOAD_BOARD_PARAM: Record<string, string> = {
+    'HISTORICAL LOAD BOARD': 'HISTORICAL',
+    'CITY LOAD BOARD': 'CITY',
+  };
+
   const fetchOrders = async () => {
     setLoading(true);
     try {
@@ -822,7 +829,7 @@ const OrderList = () => {
         limit: itemsPerPage,
         status: orderStatus || undefined,
         orderType: orderType || undefined,
-        loadBoard: loadBoard !== 'LOAD BOARD' ? loadBoard : undefined
+        loadBoard: loadBoard !== 'LOAD BOARD' ? (LOAD_BOARD_PARAM[loadBoard] || loadBoard) : undefined
       });
 
       if (response?.success && response?.data) {
@@ -922,31 +929,9 @@ const OrderList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Load Board view filtering (client-side; the backend has no view-specific endpoint yet)
-  const HISTORICAL_STATUSES = ['completed', 'delivered', 'canceled', 'cancelled'];
-  const matchesLoadBoardView = (order: Order): boolean => {
-    const pickupLocStr = (typeof order.pickupLocation === 'string' ? order.pickupLocation : extractLocationString(order.pickupLocation)) || '';
-    const deliveryLocStr = (typeof order.deliveryLocation === 'string' ? order.deliveryLocation : extractLocationString(order.deliveryLocation)) || '';
-    const status = (order.status || '').toLowerCase();
-    const direction = (order as any).borderInfo?.direction || '';
-
-    switch (loadBoard) {
-      case 'TO/FROM YARD':
-        return pickupLocStr.toLowerCase().includes('yard') || deliveryLocStr.toLowerCase().includes('yard');
-      case 'HISTORICAL LOAD BOARD':
-        return HISTORICAL_STATUSES.includes(status);
-      case 'INBOUND':
-        return direction === 'US_TO_CA';
-      case 'OUTBOUND':
-        return direction === 'CA_TO_US';
-      default:
-        // LOAD BOARD / CITY LOAD BOARD show all orders
-        return true;
-    }
-  };
-
+  // Load Board view filtering/sorting now happens server-side (dispatcher/order?loadBoard=...)
   const filteredOrders = useMemo(() => {
-    const result = orders.filter((order) => {
+    return orders.filter((order) => {
       const matchesOrderNo = !orderNo || order.orderNo.toLowerCase().includes(orderNo.toLowerCase());
       const matchesCustOrderNo = !custOrderNo || order.custOrderNo.toLowerCase().includes(custOrderNo.toLowerCase());
       const matchesTripNo = !tripNo || order.tripNo.toLowerCase().includes(tripNo.toLowerCase());
@@ -962,20 +947,10 @@ const OrderList = () => {
       const matchesOrderType = !orderType || order.orderType === orderType;
       const matchesStatus = !orderStatus || order.status === orderStatus;
 
-      return matchesLoadBoardView(order) && matchesOrderNo && matchesCustOrderNo && matchesTripNo && matchesPickupDeliveryRef &&
+      return matchesOrderNo && matchesCustOrderNo && matchesTripNo && matchesPickupDeliveryRef &&
         matchesCustName && matchesPickupLocation && matchesDeliveryLocation && matchesOrderType && matchesStatus;
     });
-
-    // CITY LOAD BOARD groups orders by pickup city (alphabetical by pickup location)
-    if (loadBoard === 'CITY LOAD BOARD') {
-      return [...result].sort((a, b) => {
-        const aLoc = (typeof a.pickupLocation === 'string' ? a.pickupLocation : extractLocationString(a.pickupLocation)) || '';
-        const bLoc = (typeof b.pickupLocation === 'string' ? b.pickupLocation : extractLocationString(b.pickupLocation)) || '';
-        return aLoc.localeCompare(bLoc);
-      });
-    }
-    return result;
-  }, [orders, loadBoard, orderNo, custOrderNo, tripNo, pickupDeliveryRef, custName, pickupLocation, deliveryLocation, orderType, orderStatus]);
+  }, [orders, orderNo, custOrderNo, tripNo, pickupDeliveryRef, custName, pickupLocation, deliveryLocation, orderType, orderStatus]);
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const paginatedOrders = filteredOrders.slice(

@@ -749,15 +749,16 @@ export const createOrder = async (data: FormData | any) => {
   }
 }
 
-export const listOrder = async (params?: { 
-  page?: number; 
-  limit?: number; 
-  search?: string; 
-  status?: string; 
+export const listOrder = async (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
   orderType?: string;
   accountingStatus?: string;
-  sortBy?: string; 
-  sortOrder?: string 
+  loadBoard?: string;
+  sortBy?: string;
+  sortOrder?: string
 }) => {
   try {
     const queryParams = new URLSearchParams();
@@ -767,6 +768,7 @@ export const listOrder = async (params?: {
     if (params?.status) queryParams.append('status', params.status);
     if (params?.orderType) queryParams.append('orderType', params.orderType);
     if (params?.accountingStatus) queryParams.append('accountingStatus', params.accountingStatus);
+    if (params?.loadBoard) queryParams.append('loadBoard', params.loadBoard);
     if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
     
