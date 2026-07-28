@@ -301,6 +301,10 @@ const OrderList = () => {
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
   const [selectedOrderForDocuments, setSelectedOrderForDocuments] = useState<Order | null>(null);
 
+  // Bulk selection
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+  const [bulkApproveLoading, setBulkApproveLoading] = useState(false);
+
   // Navigation
   const navigate = useNavigate();
   const location = useLocation();
@@ -311,6 +315,9 @@ const OrderList = () => {
 
   // Places state for search dropdowns
   const [, setPlaces] = useState<Place[]>([]);
+
+  // Load Board filter state (must be declared before the fetchOrders useEffect that depends on it)
+  const [loadBoard, setLoadBoard] = useState("LOAD BOARD");
 
   const [, setPickupLocationDropdownOpen] = useState(false);
 
@@ -702,7 +709,7 @@ const OrderList = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, [userInfo?.company]);
+  }, [userInfo?.company, loadBoard]);
 
   // Fetch unread message counts for all orders
   useEffect(() => {
@@ -814,7 +821,8 @@ const OrderList = () => {
         page: currentPage,
         limit: itemsPerPage,
         status: orderStatus || undefined,
-        orderType: orderType || undefined
+        orderType: orderType || undefined,
+        loadBoard: loadBoard !== 'LOAD BOARD' ? loadBoard : undefined
       });
 
       if (response?.success && response?.data) {
@@ -868,6 +876,10 @@ const OrderList = () => {
           // Document fields
           attachments: order.attachments || [],
           documentVerification: order.documentVerification || null,
+          documentsApproved: order.documentsApproved || false,
+          documentsApprovedBy: order.documentsApprovedBy,
+          documentsApprovedAt: order.documentsApprovedAt,
+          approvedWithoutDocuments: order.approvedWithoutDocuments || false,
           // Driver acceptance
           driverAcceptanceStatus: order.driverAcceptanceStatus || 'pending',
           driverRejectionReason: order.driverRejectionReason || '',
@@ -887,8 +899,6 @@ const OrderList = () => {
     }
   };
 
-  // Load Board filter states
-  const [loadBoard, setLoadBoard] = useState("LOAD BOARD");
   const [dispatcher, setDispatcher] = useState("");
 
   // Filter states (keeping for backward compatibility)
@@ -1238,9 +1248,86 @@ const OrderList = () => {
 
 
 
+      {/* Analytics Cards */}
+      {(() => {
+        const total = orders.length;
+        const docsApproved = orders.filter(o => (o as any).documentsApproved).length;
+        const pendingReview = orders.filter(o => {
+          const s = (o.status || '').toLowerCase();
+          return s === 'pending_review' || s === 'verification_pending';
+        }).length;
+        const approvalRate = total > 0 ? Math.round((docsApproved / total) * 100) : 0;
+        return (
+          <div className="grid grid-cols-4 gap-4 mb-4">
+            <div className="bg-card border border-theme rounded-lg p-4">
+              <div className="text-xs text-secondary font-medium uppercase mb-1">Total Orders</div>
+              <div className="text-2xl font-bold text-primary">{total}</div>
+            </div>
+            <div className="bg-card border border-theme rounded-lg p-4">
+              <div className="text-xs text-secondary font-medium uppercase mb-1">Docs Approved</div>
+              <div className="text-2xl font-bold text-green-500">{docsApproved}</div>
+            </div>
+            <div className="bg-card border border-theme rounded-lg p-4">
+              <div className="text-xs text-secondary font-medium uppercase mb-1">Pending Review</div>
+              <div className="text-2xl font-bold text-orange-400">{pendingReview}</div>
+            </div>
+            <div className="bg-card border border-theme rounded-lg p-4">
+              <div className="text-xs text-secondary font-medium uppercase mb-1">Approval Rate</div>
+              <div className="text-2xl font-bold text-[var(--accent-blue)]">{approvalRate}%</div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Orders Table */}
       <div className="bg-card rounded-lg shadow-md overflow-hidden">
         {/* Top Scrollbar - Only visible horizontal scrollbar */}
+        {/* Bulk approve toolbar */}
+        {selectedOrderIds.size > 0 && (
+          <div className="flex items-center gap-3 px-4 py-2 border-b border-theme" style={{ background: 'var(--bg-card)' }}>
+            <span className="text-sm font-medium text-primary">{selectedOrderIds.size} order(s) selected</span>
+            <button
+              disabled={bulkApproveLoading}
+              onClick={async () => {
+                if (!window.confirm(`Approve documents for ${selectedOrderIds.size} selected order(s)?`)) return;
+                setBulkApproveLoading(true);
+                let successCount = 0;
+                let failCount = 0;
+                const failMessages: string[] = [];
+                for (const orderId of Array.from(selectedOrderIds)) {
+                  try {
+                    const res = await approveOrderDocuments(orderId, false);
+                    if (res?.success) successCount++;
+                    else { failCount++; if (res?.message) failMessages.push(res.message); }
+                  } catch (err: any) {
+                    failCount++;
+                    const msg = err?.message || err?.error || 'Unknown error';
+                    if (msg && !failMessages.includes(msg)) failMessages.push(msg);
+                  }
+                }
+                setBulkApproveLoading(false);
+                setSelectedOrderIds(new Set());
+                if (successCount > 0 && failCount === 0) {
+                  addNotification('success', `${successCount} order(s) approved successfully.`);
+                } else if (successCount > 0 && failCount > 0) {
+                  addNotification('warning', `${successCount} approved, ${failCount} failed: ${failMessages[0] || 'Unknown error'}`);
+                } else {
+                  addNotification('error', failMessages[0] || 'Failed to approve selected orders.');
+                }
+                fetchOrders();
+              }}
+              className="px-3 py-1.5 text-sm bg-green-600 !text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+            >
+              {bulkApproveLoading ? 'Approving...' : 'Bulk Approve Documents'}
+            </button>
+            <button
+              onClick={() => setSelectedOrderIds(new Set())}
+              className="px-3 py-1.5 text-sm bg-red-500 !text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+            >
+              Clear Selection
+            </button>
+          </div>
+        )}
         <style>{`
           .top-scrollbar-container::-webkit-scrollbar {
             height: 8px;
@@ -1283,7 +1370,18 @@ const OrderList = () => {
           <table className="w-full">
             <thead className="bg-card border-b border-theme">
               <tr>
-
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase w-10">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded accent-blue-600"
+                    checked={paginatedOrders.length > 0 && paginatedOrders.every(o => selectedOrderIds.has(o.id))}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedOrderIds(new Set(paginatedOrders.map(o => o.id)));
+                      else setSelectedOrderIds(new Set());
+                    }}
+                    title="Select all"
+                  />
+                </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Load #
                 </th>
@@ -1370,14 +1468,14 @@ const OrderList = () => {
             <tbody className="bg-card">
               {loading ? (
                 <tr>
-                  <td colSpan={25} className="px-6 py-12 text-center text-secondary">
+                  <td colSpan={26} className="px-6 py-12 text-center text-secondary">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: PRIMARY_COLOR }}></div>
                     <p className="mt-2">Loading orders...</p>
                   </td>
                 </tr>
               ) : paginatedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={25} className="px-6 py-12 text-center text-secondary">
+                  <td colSpan={26} className="px-6 py-12 text-center text-secondary">
                     <p className="text-lg font-medium">No orders found</p>
                     <p className="text-sm">Create a new order to get started</p>
                   </td>
@@ -1457,7 +1555,7 @@ const OrderList = () => {
                   return (
                     <tr
                       key={order.id}
-                      className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
+                      className={`hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors ${selectedOrderIds.has(order.id) ? 'bg-blue-50/20' : ''}`}
                       onClick={async () => {
                         // Open sidebar in edit mode
                         try {
@@ -1474,6 +1572,19 @@ const OrderList = () => {
                         }
                       }}
                     >
+                      <td className="px-4 py-4 whitespace-nowrap w-10" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded accent-blue-600"
+                          checked={selectedOrderIds.has(order.id)}
+                          onChange={(e) => {
+                            const next = new Set(selectedOrderIds);
+                            if (e.target.checked) next.add(order.id);
+                            else next.delete(order.id);
+                            setSelectedOrderIds(next);
+                          }}
+                        />
+                      </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {loadNumber}
                       </td>

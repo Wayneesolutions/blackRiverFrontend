@@ -696,12 +696,6 @@ const EmployeesPage = () => {
       return;
     }
 
-    // Step 2 - Create employee
-    if (!formData.password && rolesWithLoginAccess.includes(formData.role)) {
-      addNotification('error', 'Password is required for this role');
-      return;
-    }
-
     // Prevent double submission
     if (isSubmitting) {
       return;
@@ -755,7 +749,8 @@ const EmployeesPage = () => {
 
         // Determine the type based on role
         const entityType = formData.role === 'contact' ? 'Contact' : formData.role === 'customer' ? 'Customer' : 'Employee';
-        addNotification('success', response.message || `${entityType} created successfully`);
+        const inviteSuffix = !formData.password && rolesWithLoginAccess.includes(formData.role) ? ` An invite email has been sent to ${formData.email}.` : '';
+        addNotification('success', response.message || `${entityType} created successfully.${inviteSuffix}`);
 
         // Refresh the appropriate tab based on role
         if (formData.role === 'contact') {
@@ -1989,7 +1984,7 @@ const EmployeesPage = () => {
                       {!rolesWithoutLoginAccess.includes(formData.role) && (
                         <div>
                           <label className="block text-sm font-medium text-primary mb-2">
-                            Password {!editingEmployee && rolesWithLoginAccess.includes(formData.role) && <span className="text-red-500">*</span>}
+                            Password
                           </label>
                           <div className="relative">
                             <input
@@ -1997,8 +1992,7 @@ const EmployeesPage = () => {
                               name="password"
                               value={formData.password}
                               onChange={handleInputChange}
-                              required={!editingEmployee && rolesWithLoginAccess.includes(formData.role)}
-                              placeholder={editingEmployee ? "Leave empty to keep current password" : rolesWithLoginAccess.includes(formData.role) ? "Leave empty for default password" : "Not required for this role"}
+                              placeholder={editingEmployee ? "Leave empty to keep current password" : rolesWithLoginAccess.includes(formData.role) ? "Leave empty to send an invite email" : "Not required for this role"}
                               className="w-full px-4 py-2.5 pr-12 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                             <button

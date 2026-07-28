@@ -3,6 +3,7 @@ import { Plus, Trash2, ChevronUp, ChevronDown, X, HelpCircle, Edit, FileDown } f
 import ExcelJS from 'exceljs';
 import { FaTimes, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import * as customerApi from '../../../../axios/api/customer';
+import ImportButton from '../../../../components/common/ImportButton';
 import AddressSearch from '../../../../components/common/AddressSearch';
 
 interface Customer {
@@ -698,6 +699,36 @@ const CustomersPage = () => {
               >
                 <FileDown className="w-5 h-5" />
               </button>
+              <ImportButton
+                templateFileName="customers_template.csv"
+                label="Import Customers"
+                templateColumns={[
+                  { header: 'name', example: 'Acme Logistics', required: true },
+                  { header: 'email', example: 'billing@acme.com' },
+                  { header: 'phone', example: '+1-555-123-4567' },
+                  { header: 'customer_id', example: 'CUST-001' },
+                  { header: 'customer_type', example: 'Customer' },
+                  { header: 'address', example: '123 Main St' },
+                  { header: 'city', example: 'Chicago' },
+                  { header: 'state', example: 'IL' },
+                  { header: 'country', example: 'USA' },
+                  { header: 'postal_code', example: '60601' },
+                  { header: 'email_secondary', example: 'ops@acme.com' },
+                  { header: 'phone_secondary', example: '+1-555-987-6543' },
+                  { header: 'contact', example: 'John Smith' },
+                  { header: 'tax_id', example: '12-3456789' },
+                  { header: 'credit_limit', example: '50000' },
+                  { header: 'credit_term', example: 'NET 30' },
+                  { header: 'billing_type', example: 'DEFAULT / LOAD' },
+                ]}
+                onImport={async (file, fieldMap) => {
+                  const result = await customerApi.importCustomersFromFile(file, fieldMap);
+                  if (result?.success || result?.imported > 0) {
+                    await fetchCustomers();
+                  }
+                  return result;
+                }}
+              />
               <button
                 onClick={() => {
                   resetForm();

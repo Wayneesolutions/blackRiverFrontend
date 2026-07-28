@@ -491,11 +491,6 @@ const EmployeesPage = () => {
     const nonSigninRoles = ['reporter', 'operator', 'salesperson'];
     const isNonSigninRole = nonSigninRoles.includes(basicData.role);
 
-    if (!isNonSigninRole && !editingId && !basicData.password) {
-      showNotification('error', 'Password is required for this role');
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -687,14 +682,14 @@ const EmployeesPage = () => {
         formData.append('name', `${basicData.firstName} ${basicData.lastName}`.trim());
         formData.append('email', basicData.email);
 
-        // Only include password if it's provided or if it's a non-signin role
+        // Only include password if explicitly provided, or set dummy for non-signin roles.
+        // For signin roles with no password, omit it so the backend generates an invite email.
         if (basicData.password) {
           formData.append('password', basicData.password);
         } else if (isNonSigninRole) {
           formData.append('password', 'NonSignin123!');
-        } else {
-          formData.append('password', 'TempPassword123!');
         }
+        // else: no password → backend triggers invite email flow
 
         formData.append('status', basicData.status.toLowerCase());
         if (basicData.role) formData.append('role', basicData.role);
@@ -1720,7 +1715,8 @@ const EmployeesPage = () => {
                       {!['reporter', 'operator', 'salesperson'].includes(basicData.role) && (
                         <div>
                           <label className="block text-sm font-medium text-primary mb-1">
-                            Password{!editingId && <span className="text-[var(--accent-red)]">*</span>}
+                            Password
+                            {!editingId && <span className="text-xs text-secondary font-normal ml-1">(leave blank to send invite email)</span>}
                           </label>
                           {passwordIsExisting ? (
                             <div className="relative">

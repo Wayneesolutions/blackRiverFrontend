@@ -20,6 +20,7 @@ const Login = lazy(() => import("../pages/admin/auth/Login"));
 const Register = lazy(() => import("../pages/admin/auth/Register"));
 const ForgotPassword = lazy(() => import("../pages/admin/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("../pages/admin/auth/ResetPassword"));
+const AcceptInvite = lazy(() => import("../pages/admin/auth/AcceptInvite"));
 
 const AppRoutes = () => {
   // Initialize inactivity timer for automatic logout after 1 hour of inactivity
@@ -84,6 +85,7 @@ const AppRoutes = () => {
           }
         />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/accept-invite/:token" element={<AcceptInvite />} />
 
         {/* Public customer routes */}
         <Route path='/invoice/:invoiceId' element={<InvoicePayment />} />

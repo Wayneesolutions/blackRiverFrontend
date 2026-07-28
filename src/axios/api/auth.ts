@@ -117,6 +117,18 @@ export const resetPassword = async (token: string, data: { password: string }) =
 };
 
 /**
+ * Accept Employee Invite — submits new password using the invite token from the email link
+ */
+export const acceptInvite = async (token: string, data: { password: string }) => {
+  try {
+    const res = await apiClient.post(`/auth/accept-invite/${token}`, data);
+    return res.data;
+  } catch (error: any) {
+    return error.response?.data || { success: false, message: 'Failed to accept invite. Please try again.' };
+  }
+};
+
+/**
  * Auto logout API - records auto logout for attendance tracking
  */
 export const autoLogout = async () => {

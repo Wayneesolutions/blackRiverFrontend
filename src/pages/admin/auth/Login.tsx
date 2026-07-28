@@ -7,6 +7,8 @@ import { message } from 'antd';
 import { setUserCredentials } from "../../../redux/slices/userSlice";
 import { useDispatch } from "react-redux";
 import Logo from "../../../assets/FleetGo.png"
+import { PublicHeader } from "../../../components/auth/PublicHeader";
+import { PublicFooter } from "../../../components/auth/PublicFooter";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -234,21 +236,24 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-main flex items-center justify-center px-4 py-6" style={{ fontFamily: 'var(--font-poppins)' }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-main)", fontFamily: 'var(--font-poppins)' }}>
+      <PublicHeader />
+
       {/* Floating Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
         <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-gradient-to-r from-[var(--bg-card)] to-[var(--bg-card-light)] rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-gradient-to-r from-blue-400/10 to-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
+      <main className="flex-1 flex items-center justify-center px-4 py-6 relative" style={{ zIndex: 1 }}>
       <div className="w-full max-w-6xl relative">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Left Side - Welcome Content */}
           <div className="space-y-5 text-center lg:text-left">
             <div>
-              <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
+              {/* <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
                 <img src={Logo} alt="Logo" className="w-28 h-auto" />
-              </div>
+              </div> */}
               <p className="text-sm text-secondary max-w-md mx-auto lg:mx-0">
                 Sign in to access your logistics dashboard and manage your operations efficiently.
               </p>
@@ -429,12 +434,10 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-7 text-center text-xs text-secondary">
-          © {new Date().getFullYear()} Logistiq Innovation Platform. All rights reserved.
-        </div>
-
       </div>
+      </main>
+
+      <PublicFooter />
     </div>
   );
 }
