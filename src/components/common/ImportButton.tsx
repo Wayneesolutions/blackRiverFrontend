@@ -92,11 +92,23 @@ async function parseFileHeaders(file: File): Promise<FileHeader[]> {
 function buildAutoMap(headers: FileHeader[], cols: TemplateColumn[]): Record<string, string> {
   const map: Record<string, string> = {};
   for (const h of headers) {
+    const hn = h.normalized.replace(/_/g, '');
+
+    // 1. Exact normalized match  (e.g. "make" → make)
     const exact = cols.find(c => c.header === h.normalized);
     if (exact) { map[h.normalized] = exact.header; continue; }
-    const stripped = h.normalized.replace(/_/g, '');
-    const fuzzy = cols.find(c => c.header.replace(/_/g, '') === stripped);
-    if (fuzzy) { map[h.normalized] = fuzzy.header; }
+
+    // 2. Strip-underscore equality  (e.g. "platenumber" → plate_number)
+    const fuzzy = cols.find(c => c.header.replace(/_/g, '') === hn);
+    if (fuzzy) { map[h.normalized] = fuzzy.header; continue; }
+
+    // 3. Prefix / contains match — handles truncated names like "plate" → plate_number,
+    //    "trailer" → trailer_number, "unit" → unit_number
+    const partial = cols.find(c => {
+      const fn = c.header.replace(/_/g, '');
+      return (fn.startsWith(hn) || hn.startsWith(fn)) && Math.min(fn.length, hn.length) >= 3;
+    });
+    if (partial) { map[h.normalized] = partial.header; }
   }
   return map;
 }

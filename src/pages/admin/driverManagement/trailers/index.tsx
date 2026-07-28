@@ -1461,18 +1461,19 @@ const TrailersPage: React.FC = () => {
                               templateColumns={[
                                 { header: 'trailer_number', example: 'TRL-001', required: true },
                                 { header: 'plate_number', example: 'XYZ-9876', required: false },
+                                { header: 'unit_number', example: 'TRL-001', required: false },
                                 { header: 'make', example: 'Utility', required: false },
                                 { header: 'model', example: 'Reefer 53ft', required: false },
                                 { header: 'year', example: '2021', required: false },
                                 { header: 'vin', example: '1UYVS2538WU456123', required: false },
                                 { header: 'type', example: 'Dry Van', required: false },
+                                { header: 'status', example: 'In Service', required: false },
                                 { header: 'ownership', example: 'COMPANY ASSET', required: false },
                                 { header: 'registration_country', example: 'Canada', required: false },
                                 { header: 'registration_province', example: 'Ontario', required: false },
                                 { header: 'weight', example: '15000', required: false },
                                 { header: 'capacity', example: '53ft', required: false },
                                 { header: 'notes', example: 'Refrigerated unit', required: false },
-                                { header: 'status', example: 'In Service', required: false },
                               ]}
                               label="Import Trailers"
                             />
