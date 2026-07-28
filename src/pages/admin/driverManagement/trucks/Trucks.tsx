@@ -1714,6 +1714,13 @@ const Trucks: React.FC = () => {
                                 { header: 'year', example: '2022', required: false },
                                 { header: 'vin', example: '1FUJHHDR0CLBP8795', required: false },
                                 { header: 'type', example: 'Semi-Truck', required: false },
+                                { header: 'ownership', example: 'COMPANY ASSET', required: false },
+                                { header: 'registration_country', example: 'Canada', required: false },
+                                { header: 'registration_province', example: 'Ontario', required: false },
+                                { header: 'weight', example: '36287', required: false },
+                                { header: 'odometer', example: '125000', required: false },
+                                { header: 'serial_number', example: 'SN-20221045', required: false },
+                                { header: 'notes', example: 'Assigned to northern route', required: false },
                                 { header: 'status', example: 'In Service', required: false },
                                 { header: 'internal_id', example: 'TRK-001', required: false },
                               ]}
