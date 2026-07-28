@@ -1186,6 +1186,12 @@ const EmployeesPage = () => {
                   { header: 'role', example: 'dispatcher', required: true },
                   { header: 'phone', example: '555-987-6543', required: false },
                   { header: 'department', example: 'Operations', required: false },
+                  { header: 'job_title', example: 'Senior Dispatcher', required: false },
+                  { header: 'city', example: 'Toronto', required: false },
+                  { header: 'country', example: 'Canada', required: false },
+                  { header: 'date_of_birth', example: '1990-05-15', required: false },
+                  { header: 'hire_date', example: '2023-01-10', required: false },
+                  { header: 'gender', example: 'Male', required: false },
                   { header: 'employee_id', example: 'EMP-0001', required: false },
                 ]}
                 label="Import Employees"
