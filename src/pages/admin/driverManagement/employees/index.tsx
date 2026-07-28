@@ -1184,6 +1184,7 @@ const EmployeesPage = () => {
                   { header: 'name', example: 'Jane Doe', required: false },
                   { header: 'email', example: 'jane@example.com', required: true },
                   { header: 'role', example: 'dispatcher', required: true },
+                  { header: 'status', example: 'active', required: false },
                   { header: 'phone', example: '555-987-6543', required: false },
                   { header: 'department', example: 'Operations', required: false },
                   { header: 'job_title', example: 'Senior Dispatcher', required: false },
