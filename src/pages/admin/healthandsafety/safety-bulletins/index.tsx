@@ -223,7 +223,7 @@ const SafetyBulletins: React.FC = () => {
       case 'low':
         return 'bg-blue-100 text-blue-800 border-blue-500';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-500';
+        return 'bg-card text-primary border-gray-500';
     }
   };
 
@@ -232,11 +232,11 @@ const SafetyBulletins: React.FC = () => {
       case 'published':
         return 'bg-green-100 text-green-800';
       case 'draft':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-card text-primary';
       case 'archived':
         return 'bg-blue-100 text-blue-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-card text-primary';
     }
   };
 
@@ -249,54 +249,54 @@ const SafetyBulletins: React.FC = () => {
             <FaBullhorn className="inline mr-3" style={{ color: COLORS.status.warning }} />
             Safety Bulletins
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-secondary">
             Create, publish, and track safety bulletins with employee acknowledgment tracking.
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
-          <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: COLORS.status.warning }}>
-            <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
-            <div className="text-sm text-gray-600 mt-1">Total Bulletins</div>
+          <div className="bg-card rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: COLORS.status.warning }}>
+            <div className="text-3xl font-bold text-primary">{stats.total}</div>
+            <div className="text-sm text-secondary mt-1">Total Bulletins</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-green-500">
+          <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-green-500">
             <div className="text-3xl font-bold text-green-700">{stats.published}</div>
-            <div className="text-sm text-gray-600 mt-1">Published</div>
+            <div className="text-sm text-secondary mt-1">Published</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-gray-500">
-            <div className="text-3xl font-bold text-gray-700">{stats.draft}</div>
-            <div className="text-sm text-gray-600 mt-1">Draft</div>
+          <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-gray-500">
+            <div className="text-3xl font-bold text-primary">{stats.draft}</div>
+            <div className="text-sm text-secondary mt-1">Draft</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-red-500">
+          <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-red-500">
             <div className="text-3xl font-bold text-red-700">{stats.critical}</div>
-            <div className="text-sm text-gray-600 mt-1">Critical Alerts</div>
+            <div className="text-sm text-secondary mt-1">Critical Alerts</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-blue-500">
+          <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-blue-500">
             <div className="text-3xl font-bold text-blue-700">{Math.round(stats.avgAcknowledgment)}%</div>
-            <div className="text-sm text-gray-600 mt-1">Avg. Acknowledgment</div>
+            <div className="text-sm text-secondary mt-1">Avg. Acknowledgment</div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl p-4 shadow-lg mb-6">
+        <div className="bg-card rounded-xl p-4 shadow-lg mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
               <input
                 type="text"
                 placeholder="Search bulletins by title, number, content, tags..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex items-center gap-2">
-              <FaFilter className="text-gray-400" />
+              <FaFilter className="text-secondary" />
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Status</option>
                 <option value="published">Published</option>
@@ -306,7 +306,7 @@ const SafetyBulletins: React.FC = () => {
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Categories</option>
                 <option value="Safety Alert">Safety Alert</option>
@@ -319,7 +319,7 @@ const SafetyBulletins: React.FC = () => {
               <select
                 value={filterPriority}
                 onChange={(e) => setFilterPriority(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Priorities</option>
                 <option value="critical">Critical</option>
@@ -340,14 +340,14 @@ const SafetyBulletins: React.FC = () => {
         {/* Bulletins List */}
         <div className="space-y-4">
           {loading ? (
-            <div className="bg-white rounded-xl p-8 text-center text-gray-500">Loading...</div>
+            <div className="bg-card rounded-xl p-8 text-center text-secondary">Loading...</div>
           ) : filteredBulletins.length === 0 ? (
-            <div className="bg-white rounded-xl p-8 text-center text-gray-500">No bulletins found</div>
+            <div className="bg-card rounded-xl p-8 text-center text-secondary">No bulletins found</div>
           ) : (
             filteredBulletins.map((bulletin) => (
               <div
                 key={bulletin._id}
-                className="bg-white rounded-xl shadow-lg p-6 border-l-4"
+                className="bg-card rounded-xl shadow-lg p-6 border-l-4"
                 style={{
                   borderColor:
                     bulletin.priority === 'critical'
@@ -360,7 +360,7 @@ const SafetyBulletins: React.FC = () => {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-bold text-gray-900">{bulletin.title}</h3>
+                      <h3 className="text-xl font-bold text-primary">{bulletin.title}</h3>
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-semibold border-2 ${getPriorityColor(
                           bulletin.priority
@@ -372,30 +372,30 @@ const SafetyBulletins: React.FC = () => {
                         {bulletin.status.toUpperCase()}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                    <div className="flex items-center gap-4 text-sm text-secondary mb-3">
                       <span className="font-medium">{bulletin.bulletinNumber}</span>
                       <span className="flex items-center gap-1">
-                        <FaTag className="text-gray-400" size={12} />
+                        <FaTag className="text-secondary" size={12} />
                         {bulletin.category}
                       </span>
                       {bulletin.publishedDate && (
                         <span className="flex items-center gap-1">
-                          <FaCalendarAlt className="text-gray-400" size={12} />
+                          <FaCalendarAlt className="text-secondary" size={12} />
                           Published: {new Date(bulletin.publishedDate).toLocaleDateString()}
                         </span>
                       )}
                       {bulletin.expiryDate && (
                         <span className="flex items-center gap-1">
-                          <FaClock className="text-gray-400" size={12} />
+                          <FaClock className="text-secondary" size={12} />
                           Expires: {new Date(bulletin.expiryDate).toLocaleDateString()}
                         </span>
                       )}
                     </div>
-                    <p className="text-gray-700 mb-4">{bulletin.content}</p>
+                    <p className="text-primary mb-4">{bulletin.content}</p>
                     {bulletin.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-4">
                         {bulletin.tags.map((tag, idx) => (
-                          <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                          <span key={idx} className="px-2 py-1 bg-card text-secondary rounded text-xs">
                             <FaTag className="inline mr-1" size={8} />
                             {tag}
                           </span>
@@ -403,7 +403,7 @@ const SafetyBulletins: React.FC = () => {
                       </div>
                     )}
                     {bulletin.acknowledgmentRequired && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                      <div className="bg-card border border-blue-200 rounded-lg p-3 mb-4">
                         <div className="flex items-center justify-between">
                           <div>
                             <span className="text-sm font-semibold text-blue-900">Acknowledgment Required</span>
@@ -420,7 +420,7 @@ const SafetyBulletins: React.FC = () => {
                               />
                             </div>
                             {bulletin.acknowledgmentRate < 100 && (
-                              <span className="text-xs text-orange-600 flex items-center gap-1">
+                              <span className="text-xs text-[#F59E0B] flex items-center gap-1">
                                 <FaExclamationTriangle /> Pending
                               </span>
                             )}
@@ -440,17 +440,17 @@ const SafetyBulletins: React.FC = () => {
                         setSelectedBulletin(bulletin);
                         setShowDetailModal(true);
                       }}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                      className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition"
                       title="View Details"
                     >
                       <FaEye />
                     </button>
                     {bulletin.status === 'draft' && (
-                      <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition" title="Edit">
+                      <button className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition" title="Edit">
                         <FaEdit />
                       </button>
                     )}
-                    <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition" title="Download">
+                    <button className="p-2 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition" title="Download">
                       <FaDownload />
                     </button>
                   </div>
@@ -461,7 +461,7 @@ const SafetyBulletins: React.FC = () => {
         </div>
 
         {/* Info Panel */}
-        <div className="mt-6 bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6">
+        <div className="mt-6 bg-card border-2 border-yellow-200 rounded-xl p-6">
           <h3 className="text-lg font-bold text-yellow-900 mb-3 flex items-center gap-2">
             <FaBullhorn /> Safety Bulletins Features
           </h3>

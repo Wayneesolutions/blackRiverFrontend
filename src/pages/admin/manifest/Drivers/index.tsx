@@ -64,7 +64,7 @@ const DriverAvatar = ({ driver: d, size }: { driver: DriverData; size: "sm" | "m
     );
   }
   return (
-    <div className={`${cls} rounded-full bg-[#42aeec]/10 text-[#42aeec] font-bold ${textCls} flex items-center justify-center flex-shrink-0`}>
+    <div className={`${cls} rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] font-bold ${textCls} flex items-center justify-center flex-shrink-0`}>
       {initials(d)}
     </div>
   );
@@ -73,7 +73,7 @@ const DriverAvatar = ({ driver: d, size }: { driver: DriverData; size: "sm" | "m
 const StatusBadge = ({ status }: { status?: string }) => {
   const active = (status || "").toLowerCase() === "active";
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${active ? "bg-green-50 text-green-700" : "bg-card text-secondary"}`}>
       {active ? <CheckCircle size={10} /> : null}{status || "—"}
     </span>
   );
@@ -90,14 +90,14 @@ const exportToExcel = async (drivers: DriverData[]) => {
     alignment: { horizontal: "center", vertical: "middle" },
   };
   ws.columns = [
-    { header: "Name", key: "name", width: 22 },{ header: "Email", key: "email", width: 26 },
-    { header: "Phone", key: "phone", width: 16 },{ header: "Status", key: "status", width: 12 },
-    { header: "Internal ID", key: "internalId", width: 14 },{ header: "Licence #", key: "licence", width: 18 },
-    { header: "Licence Expiry", key: "licExpiry", width: 16 },{ header: "Job Type", key: "jobType", width: 16 },
-    { header: "Pay Type", key: "payType", width: 14 },{ header: "Pay Rate", key: "payRate", width: 12 },
-    { header: "Fast Card #", key: "fastCard", width: 16 },{ header: "Fast Card Expiry", key: "fastExpiry", width: 18 },
-    { header: "Citizenship", key: "citizenship", width: 16 },{ header: "Gender", key: "gender", width: 12 },
-    { header: "Hire Date", key: "hireDate", width: 14 },{ header: "Join Date", key: "joinDate", width: 14 },
+    { header: "Name", key: "name", width: 22 }, { header: "Email", key: "email", width: 26 },
+    { header: "Phone", key: "phone", width: 16 }, { header: "Status", key: "status", width: 12 },
+    { header: "Internal ID", key: "internalId", width: 14 }, { header: "Licence #", key: "licence", width: 18 },
+    { header: "Licence Expiry", key: "licExpiry", width: 16 }, { header: "Job Type", key: "jobType", width: 16 },
+    { header: "Pay Type", key: "payType", width: 14 }, { header: "Pay Rate", key: "payRate", width: 12 },
+    { header: "Fast Card #", key: "fastCard", width: 16 }, { header: "Fast Card Expiry", key: "fastExpiry", width: 18 },
+    { header: "Citizenship", key: "citizenship", width: 16 }, { header: "Gender", key: "gender", width: 12 },
+    { header: "Hire Date", key: "hireDate", width: 14 }, { header: "Join Date", key: "joinDate", width: 14 },
   ];
   ws.getRow(1).eachCell((c) => { Object.assign(c, { style: hStyle }); });
   ws.getRow(1).height = 24;
@@ -124,8 +124,8 @@ const exportToExcel = async (drivers: DriverData[]) => {
 
 const DR = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="flex flex-col gap-0.5">
-    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{label}</span>
-    <span className="text-sm text-gray-800">{value || <span className="text-gray-300">—</span>}</span>
+    <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider">{label}</span>
+    <span className="text-sm text-primary">{value || <span className="text-gray-300">—</span>}</span>
   </div>
 );
 
@@ -143,63 +143,63 @@ const SlidePanel = ({ driver: d, onClose }: { driver: DriverData; onClose: () =>
       <div className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40" onClick={onClose} />
       <div
         ref={ref}
-        className="fixed right-0 top-0 h-full w-full max-w-[520px] bg-white z-50 shadow-2xl flex flex-col overflow-hidden"
+        className="fixed right-0 top-0 h-full w-full max-w-[520px] bg-card z-50 shadow-2xl flex flex-col overflow-hidden"
         style={{ animation: "slideInRight .22s ease-out" }}
       >
         <div
           className="flex items-center justify-between px-5 py-4 flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, #42aeec 0%, #0ea3d8 100%)" }}
+
         >
           <div className="flex items-center gap-3">
             <DriverAvatar driver={d} size="md" />
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-white text-base">{driverFullName(d)}</span>
+                <span className="font-bold text-headings text-base">{driverFullName(d)}</span>
                 <StatusBadge status={d.status} />
               </div>
-              <p className="text-[11px] text-white/70 mt-0.5">{d.internalId || d.email || ""}</p>
+              <p className="text-[11px] text-headings/70 mt-0.5">{d.internalId || d.email || ""}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => exportToExcel([d])} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-medium rounded-lg">
+            <button onClick={() => exportToExcel([d])} className="flex items-center gap-1.5 px-3 py-1.5 bg-card/15 hover:bg-card/25 text-white text-xs font-medium rounded-lg  bg-[var(--accent-navyblue)]">
               <Download size={13} /> Export
             </button>
-            <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-lg text-white"><X size={18} /></button>
+            <button onClick={onClose} className="p-1.5 hover:bg-card/20 rounded-lg text-white"><X size={18} /></button>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div className="rounded-xl border border-gray-100 p-4">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Contact Info</p>
+          <div className="rounded-xl border border-theme p-4">
+            <p className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Contact Info</p>
             <div className="grid grid-cols-2 gap-3">
-              <DR label="Full Name"   value={driverFullName(d)} />
+              <DR label="Full Name" value={driverFullName(d)} />
               <DR label="Internal ID" value={d.internalId} />
-              <DR label="Email"       value={d.email} />
-              <DR label="Phone"       value={d.phone} />
-              <DR label="Status"      value={<StatusBadge status={d.status} />} />
-              <DR label="Join Date"   value={fmt(d.joinDate)} />
+              <DR label="Email" value={d.email} />
+              <DR label="Phone" value={d.phone} />
+              <DR label="Status" value={<StatusBadge status={d.status} />} />
+              <DR label="Join Date" value={fmt(d.joinDate)} />
             </div>
           </div>
 
-          <div className="rounded-xl border border-gray-100 p-4">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Licence & Compliance</p>
+          <div className="rounded-xl border border-theme p-4">
+            <p className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Licence & Compliance</p>
             <div className="grid grid-cols-2 gap-3">
-              <DR label="Licence #"        value={d.details?.licenceNumber} />
-              <DR label="Licence Expiry"   value={fmt(d.details?.licenceExpiry)} />
-              <DR label="Fast Card #"      value={d.details?.fastCardNo} />
+              <DR label="Licence #" value={d.details?.licenceNumber} />
+              <DR label="Licence Expiry" value={fmt(d.details?.licenceExpiry)} />
+              <DR label="Fast Card #" value={d.details?.fastCardNo} />
               <DR label="Fast Card Expiry" value={fmt(d.details?.fastCardExpiry)} />
-              <DR label="Citizenship"      value={d.details?.citizenship} />
+              <DR label="Citizenship" value={d.details?.citizenship} />
             </div>
           </div>
 
-          <div className="rounded-xl border border-gray-100 p-4">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Employment</p>
+          <div className="rounded-xl border border-theme p-4">
+            <p className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Employment</p>
             <div className="grid grid-cols-2 gap-3">
-              <DR label="Job Type"  value={d.details?.jobType} />
-              <DR label="Pay Type"  value={d.details?.payType} />
-              <DR label="Pay Rate"  value={d.details?.payRate ? `$${d.details.payRate}` : ""} />
+              <DR label="Job Type" value={d.details?.jobType} />
+              <DR label="Pay Type" value={d.details?.payType} />
+              <DR label="Pay Rate" value={d.details?.payRate ? `$${d.details.payRate}` : ""} />
               <DR label="Hire Date" value={fmt(d.details?.hireDate)} />
-              <DR label="Gender"    value={d.details?.gender} />
+              <DR label="Gender" value={d.details?.gender} />
             </div>
           </div>
         </div>
@@ -233,89 +233,89 @@ const DriversPage = () => {
   useEffect(() => { load(); }, [load]);
 
   return (
-    <div className="p-6 min-h-screen bg-[#EDF8FF]">
+    <div className="p-6 min-h-screen bg-main">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <Users size={20} className="text-[#42aeec]" /> Drivers
+          <h1 className="text-xl font-bold text-primary flex items-center gap-2">
+            <Users size={20} className="text-[var(--accent-blue)]" /> Drivers
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">{drivers.length} drivers</p>
+          <p className="text-sm text-secondary mt-0.5">{drivers.length} drivers</p>
         </div>
         <button
           onClick={async () => { setExporting(true); try { await exportToExcel(drivers); } finally { setExporting(false); } }}
           disabled={exporting || !drivers.length}
-          className="flex items-center gap-2 px-4 py-2 bg-[#42aeec] hover:bg-[#1db5f5] disabled:opacity-50 !text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-navyblue)] hover:bg-[var(--accent-blue)] disabled:opacity-50 !text-white text-sm font-medium rounded-lg transition-colors"
         >
           {exporting ? <RefreshCw size={14} className="animate-spin" /> : <Download size={14} />} Export
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 flex items-center gap-3 flex-wrap mb-5">
+      <div className="bg-card rounded-xl shadow-sm border border-theme px-4 py-3 flex items-center gap-3 flex-wrap mb-5">
         <div className="relative flex-1 min-w-[180px]">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
           <input type="text" placeholder="Search name, email…" value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#42aeec] focus:ring-1 focus:ring-[#42aeec]/20" />
+            className="w-full pl-8 pr-3 py-2 text-sm border border-theme rounded-lg outline-none focus:border-[var(--accent-blue)] focus:ring-1 focus:ring-[var(--accent-blue)]/20" />
         </div>
         <div className="flex items-center gap-2">
-          <Filter size={14} className="text-gray-400" />
+          <Filter size={14} className="text-secondary" />
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[#42aeec] bg-white">
+            className="text-sm border border-theme rounded-lg px-3 py-2 outline-none focus:border-[var(--accent-blue)] bg-card">
             <option value="">All Statuses</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
         </div>
-        <button onClick={load} className="p-2 rounded-lg hover:bg-gray-50 text-gray-500 hover:text-[#42aeec] border border-gray-200">
+        <button onClick={load} className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-secondary hover:text-[var(--accent-blue)] border border-theme">
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
         </button>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm mb-4">
+        <div className="flex items-center gap-2 p-4 bg-card border border-red-100 rounded-xl text-red-700 text-sm mb-4">
           <AlertCircle size={16} />{error}
         </div>
       )}
 
       {loading ? (
         <div className="flex items-center justify-center py-24">
-          <div className="w-10 h-10 border-2 border-[#42aeec] border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-2 border-[var(--accent-blue)] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : drivers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-3 text-gray-400">
+        <div className="flex flex-col items-center justify-center py-24 gap-3 text-secondary">
           <Users size={40} strokeWidth={1} /><p className="text-sm">No drivers found</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full" style={{ minWidth: "820px" }}>
-              <thead className="bg-gray-50 border-b border-gray-100">
+              <thead className="bg-card border-b border-theme">
                 <tr>
                   {["Driver", "Email", "Phone", "Status", "Internal ID", "Licence #", "Licence Expiry", "Job Type", ""].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                    <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-headings uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-theme divide-white/5">
                 {drivers.map((d) => (
-                  <tr key={d._id} onClick={() => setSelected(d)} className="hover:bg-[#42aeec]/5 cursor-pointer group transition-colors">
+                  <tr key={d._id} onClick={() => setSelected(d)} className="hover:bg-[var(--accent-blue)]/5 cursor-pointer group transition-colors">
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-2.5">
                         <DriverAvatar driver={d} size="sm" />
                         <div>
-                          <p className="text-sm font-semibold text-gray-800">{driverFullName(d)}</p>
+                          <p className="text-sm font-semibold text-primary">{driverFullName(d)}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{d.email || "—"}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{d.phone || "—"}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary">{d.email || "—"}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary">{d.phone || "—"}</td>
                     <td className="px-4 py-3 whitespace-nowrap"><StatusBadge status={d.status} /></td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{d.internalId || "—"}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{d.details?.licenceNumber || "—"}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{fmt(d.details?.licenceExpiry)}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{d.details?.jobType || "—"}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary">{d.internalId || "—"}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary">{d.details?.licenceNumber || "—"}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary">{fmt(d.details?.licenceExpiry)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-secondary">{d.details?.jobType || "—"}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-right pr-4">
-                      <ChevronRight size={15} className="text-gray-300 group-hover:text-[#42aeec] transition-colors inline-block" />
+                      <ChevronRight size={15} className="text-gray-300 group-hover:text-[var(--accent-blue)] transition-colors inline-block" />
                     </td>
                   </tr>
                 ))}

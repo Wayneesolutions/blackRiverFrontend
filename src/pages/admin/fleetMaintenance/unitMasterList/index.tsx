@@ -145,7 +145,7 @@ const UnitMasterList: React.FC = () => {
 
   const filteredUnits = units.filter(unit => {
     const matchesStatus = activeTab === 'active' ? unit.status === 'Active' : unit.status === 'Inactive';
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       unit.unitNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       unit.makeModel.toLowerCase().includes(searchTerm.toLowerCase()) ||
       unit.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -207,19 +207,19 @@ const UnitMasterList: React.FC = () => {
       };
       setUnits([...units, newUnit]);
     } else if (showEditModal && selectedUnit) {
-      setUnits(units.map(unit => 
-        unit._id === selectedUnit._id 
-          ? { 
-              ...unit, 
-              unitNo: formData.unitNo,
-              unitType: formData.unitType,
-              makeModel: formData.makeModel,
-              vinNo: formData.vinNo,
-              licensePlate: formData.licensePlate,
-              initialOdometer: parseInt(formData.initialOdometer),
-              lastDate: formData.lastDate || undefined,
-              reason: formData.reason || undefined
-            }
+      setUnits(units.map(unit =>
+        unit._id === selectedUnit._id
+          ? {
+            ...unit,
+            unitNo: formData.unitNo,
+            unitType: formData.unitType,
+            makeModel: formData.makeModel,
+            vinNo: formData.vinNo,
+            licensePlate: formData.licensePlate,
+            initialOdometer: parseInt(formData.initialOdometer),
+            lastDate: formData.lastDate || undefined,
+            reason: formData.reason || undefined
+          }
           : unit
       ));
     }
@@ -262,7 +262,7 @@ const UnitMasterList: React.FC = () => {
                 <h1 className="text-4xl font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
                   Unit Master List
                 </h1>
-                <p className="text-gray-600 mt-1 flex items-center gap-2">
+                <p className="text-secondary mt-1 flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
                   Create and manage truck & trailer assets
                 </p>
@@ -282,26 +282,24 @@ const UnitMasterList: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-6">
-          <div className="flex border-b border-gray-200">
+        <div className="bg-card rounded-xl shadow-lg border border-theme mb-6">
+          <div className="flex border-b border-theme">
             <button
               onClick={() => setActiveTab('active')}
-              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
-                activeTab === 'active'
+              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${activeTab === 'active'
                   ? 'text-white border-b-2'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
+                  : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
+                }`}
               style={activeTab === 'active' ? { background: 'linear-gradient(to right, #016ab2, #063f6f)', borderColor: '#016ab2' } : {}}
             >
               Active Units ({units.filter(u => u.status === 'Active').length})
             </button>
             <button
               onClick={() => setActiveTab('inactive')}
-              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
-                activeTab === 'inactive'
+              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${activeTab === 'inactive'
                   ? 'text-white border-b-2'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
+                  : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
+                }`}
               style={activeTab === 'inactive' ? { background: 'linear-gradient(to right, #016ab2, #063f6f)', borderColor: '#016ab2' } : {}}
             >
               Inactive Units ({units.filter(u => u.status === 'Inactive').length})
@@ -309,15 +307,15 @@ const UnitMasterList: React.FC = () => {
           </div>
 
           {/* Search */}
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-theme">
             <div className="relative">
-              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
               <input
                 type="text"
                 placeholder="Search by unit number, make/model, license plate, or VIN..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                className="pl-10 pr-4 py-2 w-full border border-theme rounded-lg focus:ring-2 focus:border-transparent"
                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                 onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                 onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
@@ -346,46 +344,44 @@ const UnitMasterList: React.FC = () => {
                   <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-theme">
                 {filteredUnits.length === 0 ? (
                   <tr>
-                    <td colSpan={activeTab === 'inactive' ? 9 : 7} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={activeTab === 'inactive' ? 9 : 7} className="px-6 py-12 text-center text-secondary">
                       No {activeTab} units found
                     </td>
                   </tr>
                 ) : (
                   filteredUnits.map((unit) => (
-                    <tr key={unit._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-gray-900">{unit.unitNo}</td>
+                    <tr key={unit._id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                      <td className="px-6 py-4 font-medium text-primary">{unit.unitNo}</td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                          unit.unitType === 'Truck' ? 'bg-blue-100 text-blue-800' :
-                          unit.unitType === 'Reefer Trailer' ? 'bg-green-100 text-green-800' :
-                          unit.unitType === 'Tri-Axle Trailer' ? 'bg-orange-100 text-orange-800' :
-                          unit.unitType === 'Dry Van' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${unit.unitType === 'Truck' ? 'bg-blue-100 text-blue-800' :
+                            unit.unitType === 'Reefer Trailer' ? 'bg-green-100 text-green-800' :
+                              unit.unitType === 'Tri-Axle Trailer' ? 'bg-orange-100 text-orange-800' :
+                                unit.unitType === 'Dry Van' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-card text-primary'
+                          }`}>
                           {unit.unitType}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-gray-900">{unit.makeModel}</td>
-                      <td className="px-6 py-4 text-gray-600 font-mono text-sm">{unit.vinNo}</td>
-                      <td className="px-6 py-4 text-gray-900 font-medium">{unit.licensePlate}</td>
-                      <td className="px-6 py-4 text-gray-900">
+                      <td className="px-6 py-4 text-primary">{unit.makeModel}</td>
+                      <td className="px-6 py-4 text-secondary font-mono text-sm">{unit.vinNo}</td>
+                      <td className="px-6 py-4 text-primary font-medium">{unit.licensePlate}</td>
+                      <td className="px-6 py-4 text-primary">
                         {unit.currentOdometer !== undefined ? unit.currentOdometer.toLocaleString() : unit.initialOdometer.toLocaleString()} km
                       </td>
                       {activeTab === 'inactive' && (
                         <>
-                          <td className="px-6 py-4 text-gray-600">
+                          <td className="px-6 py-4 text-secondary">
                             {unit.lastDate ? new Date(unit.lastDate).toLocaleDateString() : 'N/A'}
                           </td>
-                          <td className="px-6 py-4 text-gray-600">{unit.reason || 'N/A'}</td>
+                          <td className="px-6 py-4 text-secondary">{unit.reason || 'N/A'}</td>
                         </>
                       )}
                       <td className="px-6 py-4">
-                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                          unit.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${unit.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
                           {unit.status === 'Active' ? (
                             <><FaCheckCircle className="mr-1" size={12} /> Active</>
                           ) : (
@@ -397,14 +393,14 @@ const UnitMasterList: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleEditUnit(unit)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
                             title="Edit"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteUnit(unit)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -427,7 +423,7 @@ const UnitMasterList: React.FC = () => {
               setShowEditModal(false);
               setSelectedUnit(null);
             }} />
-            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-gray-200">
+            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-card shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-theme">
               <div className="h-full flex flex-col">
                 <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
                   <h2 className="text-2xl font-bold">{showAddModal ? 'Add New Unit' : 'Edit Unit'}</h2>
@@ -437,133 +433,133 @@ const UnitMasterList: React.FC = () => {
                       setShowEditModal(false);
                       setSelectedUnit(null);
                     }}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                    className="p-2 hover:bg-card/20 rounded-lg transition-colors"
                   >
                     <FaTimes className="w-5 h-5" />
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Unit No. *</label>
-                    <input
-                      type="text"
-                      value={formData.unitNo}
-                      onChange={(e) => setFormData({ ...formData, unitNo: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., 1001, BRV001"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Unit No. *</label>
+                      <input
+                        type="text"
+                        value={formData.unitNo}
+                        onChange={(e) => setFormData({ ...formData, unitNo: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., 1001, BRV001"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Unit Type *</label>
+                      <select
+                        value={formData.unitType}
+                        onChange={(e) => setFormData({ ...formData, unitType: e.target.value as UnitType })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                      >
+                        <option value="Truck">Truck</option>
+                        <option value="Reefer Trailer">Reefer Trailer</option>
+                        <option value="Tri-Axle Trailer">Tri-Axle Trailer</option>
+                        <option value="Dry Van">Dry Van</option>
+                        <option value="Bus/Van">Bus/Van</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Make/Model *</label>
+                      <input
+                        type="text"
+                        value={formData.makeModel}
+                        onChange={(e) => setFormData({ ...formData, makeModel: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., Kenworth T680"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">VIN No. *</label>
+                      <input
+                        type="text"
+                        value={formData.vinNo}
+                        onChange={(e) => setFormData({ ...formData, vinNo: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent font-mono"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="17-character VIN"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">License Plate *</label>
+                      <input
+                        type="text"
+                        value={formData.licensePlate}
+                        onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="e.g., BRV-1001"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-primary mb-2">Initial Odometer/Hour *</label>
+                      <input
+                        type="number"
+                        value={formData.initialOdometer}
+                        onChange={(e) => setFormData({ ...formData, initialOdometer: e.target.value })}
+                        className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="0"
+                      />
+                    </div>
+                    {activeTab === 'inactive' && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-primary mb-2">Last Date *</label>
+                          <input
+                            type="date"
+                            value={formData.lastDate}
+                            onChange={(e) => setFormData({ ...formData, lastDate: e.target.value })}
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                            onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-primary mb-2">Reason/Comment *</label>
+                          <input
+                            type="text"
+                            value={formData.reason}
+                            onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                            className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                            onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                            placeholder="SOLD, Rental returned, Scrapped, etc."
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Unit Type *</label>
-                    <select
-                      value={formData.unitType}
-                      onChange={(e) => setFormData({ ...formData, unitType: e.target.value as UnitType })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                    >
-                      <option value="Truck">Truck</option>
-                      <option value="Reefer Trailer">Reefer Trailer</option>
-                      <option value="Tri-Axle Trailer">Tri-Axle Trailer</option>
-                      <option value="Dry Van">Dry Van</option>
-                      <option value="Bus/Van">Bus/Van</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Make/Model *</label>
-                    <input
-                      type="text"
-                      value={formData.makeModel}
-                      onChange={(e) => setFormData({ ...formData, makeModel: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., Kenworth T680"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">VIN No. *</label>
-                    <input
-                      type="text"
-                      value={formData.vinNo}
-                      onChange={(e) => setFormData({ ...formData, vinNo: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent font-mono"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="17-character VIN"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">License Plate *</label>
-                    <input
-                      type="text"
-                      value={formData.licensePlate}
-                      onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., BRV-1001"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Initial Odometer/Hour *</label>
-                    <input
-                      type="number"
-                      value={formData.initialOdometer}
-                      onChange={(e) => setFormData({ ...formData, initialOdometer: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="0"
-                    />
-                  </div>
-                  {activeTab === 'inactive' && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Date *</label>
-                        <input
-                          type="date"
-                          value={formData.lastDate}
-                          onChange={(e) => setFormData({ ...formData, lastDate: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Reason/Comment *</label>
-                        <input
-                          type="text"
-                          value={formData.reason}
-                          onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                          placeholder="SOLD, Rental returned, Scrapped, etc."
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-                  <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t mt-6">
+                  <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t mt-6">
                     <button
                       onClick={() => {
                         setShowAddModal(false);
                         setShowEditModal(false);
                         setSelectedUnit(null);
                       }}
-                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     >
                       Cancel
                     </button>
@@ -585,24 +581,24 @@ const UnitMasterList: React.FC = () => {
         {showDeleteModal && selectedUnit && (
           <>
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998]" onClick={() => setShowDeleteModal(false)} />
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-[9999] w-full max-w-md">
+            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card rounded-xl shadow-2xl z-[9999] w-full max-w-md">
               <div className="p-6">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                    <FaExclamationCircle className="text-red-600" size={24} />
+                    <FaExclamationCircle className="text-[#A855F7]" size={24} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">Delete Unit</h3>
-                    <p className="text-sm text-gray-500">This action cannot be undone</p>
+                    <h3 className="text-lg font-bold text-primary">Delete Unit</h3>
+                    <p className="text-sm text-secondary">This action cannot be undone</p>
                   </div>
                 </div>
-                <p className="text-gray-700 mb-6">
+                <p className="text-primary mb-6">
                   Are you sure you want to delete unit <strong>{selectedUnit.unitNo}</strong> ({selectedUnit.makeModel})?
                 </p>
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => setShowDeleteModal(false)}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="px-6 py-2 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     Cancel
                   </button>

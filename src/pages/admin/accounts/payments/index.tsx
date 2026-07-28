@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import { Search, Plus, Filter, Download, DollarSign, CreditCard, Calendar, CheckCircle, Clock, AlertCircle, MoreHorizontal } from 'lucide-react';
 
 export default function PaymentsPage() {
@@ -59,20 +59,20 @@ export default function PaymentsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF]">
+    <div className="min-h-screen bg-main">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-card border-b border-theme">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Payments Overview</h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <h1 className="text-2xl font-bold" style={{ background: 'var(--accent-navyblue)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Payments Overview</h1>
+              <p className="text-sm text-secondary mt-1">
                 Manage and track outgoing payments, transaction history, and status
               </p>
             </div>
             <button
               className="px-4 py-2 hover:shadow-lg hover:scale-105 transform duration-200 text-white rounded-lg transition-all flex items-center gap-2"
-              style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+              style={{ background: 'var(--accent-navyblue)' }}
             >
               <Plus className="w-4 h-4" />
               Record Payment
@@ -82,12 +82,12 @@ export default function PaymentsPage() {
 
         {/* Tabs - if needed in future */}
         <div className="px-6">
-          <div className="flex gap-1 border-b border-gray-200">
+          <div className="flex gap-1 border-b border-theme">
             <button
               onClick={() => setActiveTab('all')}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'all'
-                ? 'border-[#42aeec] text-[#016ab2]'
-                : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                ? 'border-[var(--accent-blue)] text-[#016ab2]'
+                : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                 }`}
             >
               <CreditCard className="w-4 h-4" />
@@ -96,8 +96,8 @@ export default function PaymentsPage() {
             <button
               onClick={() => setActiveTab('scheduled')}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'scheduled'
-                ? 'border-[#42aeec] text-[#016ab2]'
-                : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                ? 'border-[var(--accent-blue)] text-[#016ab2]'
+                : 'border-transparent text-secondary hover:text-primary hover:border-theme'
                 }`}
             >
               <Calendar className="w-4 h-4" />
@@ -119,10 +119,10 @@ export default function PaymentsPage() {
                     'bg-[#FFF3E0] border-orange-100'
                 }`}>
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-white`}>
-                    <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[#42aeec]' :
-                      card.color === 'green' ? 'text-[#0ea3d8]' :
-                        card.color === 'purple' ? 'text-[#1db5f5]' :
+                  <div className={`p-3 rounded-lg bg-card`}>
+                    <Icon className={`w-6 h-6 ${card.color === 'blue' ? 'text-[var(--accent-blue)]' :
+                      card.color === 'green' ? 'text-[rgba(0,209,255,0.15)]' :
+                        card.color === 'purple' ? 'text-[var(--accent-blue)]' :
                           'text-orange-500'
                       }`} />
                   </div>
@@ -136,27 +136,27 @@ export default function PaymentsPage() {
         </div>
 
         {/* Main Content */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-card rounded-lg shadow">
           {/* Toolbar */}
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-theme">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-3 flex-1">
                 <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-4 h-4" />
                   <input
                     type="text"
                     placeholder="Search payments..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                    className="pl-10 pr-4 py-2 border border-theme rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                   />
                 </div>
-                <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Filter className="w-4 h-4 text-gray-600" />
+                <button className="p-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                  <Filter className="w-4 h-4 text-secondary" />
                 </button>
               </div>
               <div className="flex items-center gap-2">
-                <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+                <button className="px-4 py-2 text-sm border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-2">
                   <Download className="w-4 h-4" />
                   Export
                 </button>
@@ -167,26 +167,26 @@ export default function PaymentsPage() {
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-card border-b border-theme">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payee</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Payment ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Payee</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Method</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Reference</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-theme">
                 {filteredPayments.map((payment) => (
-                  <tr key={payment.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{payment.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{payment.date}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{payment.payee}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${payment.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{payment.method}</td>
+                  <tr key={payment.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#00D1FF]">{payment.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">{payment.date}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">{payment.payee}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">${payment.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">{payment.method}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit ${payment.status === 'Completed' ? 'bg-green-100 text-green-800' :
                         payment.status === 'Processing' ? 'bg-blue-100 text-blue-800' :
@@ -198,9 +198,9 @@ export default function PaymentsPage() {
                         {payment.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{payment.reference}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">{payment.reference}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded">
+                      <button className="p-1 text-secondary hover:text-primary hover:bg-[rgba(255,255,255,0.03)] rounded">
                         <MoreHorizontal className="w-4 h-4" />
                       </button>
                     </td>
@@ -211,6 +211,6 @@ export default function PaymentsPage() {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }

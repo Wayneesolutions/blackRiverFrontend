@@ -16,7 +16,7 @@ import {
   updateCurrentUserProfile,
   changePassword
 } from '../../../../axios/api/auth';
-import { FLEET_COLORS, getFocusStyles } from '../../fleetMaintenance/colorUtils';
+import { getFocusStyles } from '../../fleetMaintenance/colorUtils';
 interface UserProfile {
   _id?: string;
   name?: string;
@@ -47,15 +47,15 @@ const ToastNotificationComponent = ({ notifications, removeNotification }: { not
   const icons = {
     success: <CheckCircle className="text-green-500" size={24} />,
     error: <XCircle className="text-red-500" size={24} />,
-    info: <User className="text-blue-500" size={24} />,
+    info: <User className="text-[#1183e0]" size={24} />,
     warning: <XCircle className="text-yellow-500" size={24} />
   };
 
   const bgColors = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200'
+    success: 'bg-[#00FFA3]/10 border-[#00FFA3]/30',
+    error: 'bg-card border-red-500/30',
+    info: 'bg-[rgba(17,131,224,0.08)] border-[rgba(17,131,224,0.25)]',
+    warning: 'bg-card border-yellow-500/30'
   };
 
   return (
@@ -68,10 +68,10 @@ const ToastNotificationComponent = ({ notifications, removeNotification }: { not
           <div className="flex-shrink-0 mt-0.5">
             {icons[notification.type]}
           </div>
-          <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+          <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
           <button
             onClick={() => removeNotification(notification.id)}
-            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
           >
             <X size={16} />
           </button>
@@ -114,17 +114,17 @@ const ProfilePage = () => {
   const focusHandlers = getFocusStyles();
   const sharedInputProps = {
     ...focusHandlers,
-    style: { border: `1px solid ${FLEET_COLORS.focusRing}` }
+    style: { border: `1px solid rgba(17, 131, 224, 0.2)`, background: '#0B1220', color: '#E6EDF3' }
   };
   const cardStyle: React.CSSProperties = {
-    borderColor: FLEET_COLORS.focusRing,
-    boxShadow: `0 25px 45px ${FLEET_COLORS.focusRing}`,
+    border: '1px solid rgba(17, 131, 224, 0.2)',
+    boxShadow: `0 4px 20px rgba(17, 131, 224, 0.08)`,
     borderRadius: "20px",
   };
   const primaryButtonStyle: React.CSSProperties = {
-    background: FLEET_COLORS.gradient,
+    background: 'linear-gradient(90deg, #1a8ee8 0%, #1183e0 40%, #0d6bc7 100%)',
     color: "#fff",
-    boxShadow: `0 15px 30px ${FLEET_COLORS.focusRing}`,
+    boxShadow: `0 8px 20px rgba(17, 131, 224, 0.25)`,
   };
 
   // Fetch user profile on mount
@@ -256,24 +256,24 @@ const ProfilePage = () => {
 
   if (fetchLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#EDF8FF" }}>
+      <div className="min-h-screen flex items-center justify-center bg-main">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: FLEET_COLORS.primary }}></div>
-          <p className="text-white">Loading profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: '#1183e0' }}></div>
+          <p className="text-primary">Loading profile...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen px-4" style={{ background: "#EDF8FF" }}>
+    <div className="min-h-screen px-4 bg-main">
       <div className="py-4">
         {/* Header */}
-        <div className="bg-white p-4 mb-4" style={cardStyle}>
+        <div className="bg-card p-4 mb-4" style={cardStyle}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold mb-1" style={{ color: FLEET_COLORS.dark }}>My Profile</h1>
-              <p className="text-sm" style={{ color: FLEET_COLORS.light }}>Manage your account information and preferences</p>
+              <h1 className="text-2xl font-bold mb-1" style={{ color: '#1183e0' }}>My Profile</h1>
+              <p className="text-sm text-secondary">Manage your account information and preferences</p>
             </div>
             {!isEditing && (
               <button
@@ -292,18 +292,18 @@ const ProfilePage = () => {
           {/* Left Column */}
           <div className="space-y-4">
             {/* Profile Information */}
-            <div className="bg-white" style={cardStyle}>
-              <div className="p-4 border-b" style={{ borderColor: FLEET_COLORS.focusRing }}>
+            <div className="bg-card" style={cardStyle}>
+              <div className="p-4 border-b border-[rgba(17,131,224,0.15)]">
                 <div className="flex items-center gap-2">
-                  <User style={{ color: FLEET_COLORS.primary }} size={20} />
-                  <h2 className="text-lg font-bold" style={{ color: FLEET_COLORS.dark }}>Personal Information</h2>
+                  <User style={{ color: '#1183e0' }} size={20} />
+                  <h2 className="text-lg font-bold" style={{ color: '#1183e0' }}>Personal Information</h2>
                 </div>
               </div>
 
               <div className="p-4 space-y-4">
                 {/* Name */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Full Name</label>
+                  <label className="block text-xs font-semibold text-primary mb-1">Full Name</label>
                   {isEditing ? (
                     <input
                       type="text"
@@ -315,15 +315,15 @@ const ProfilePage = () => {
                       {...sharedInputProps}
                     />
                   ) : (
-                    <div className="px-3 py-2 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900 font-medium text-sm">{profile.name || 'Not set'}</p>
+                    <div className="px-3 py-2 bg-card rounded-lg">
+                      <p className="text-primary font-medium text-sm">{profile.name || 'Not set'}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
+                  <label className="block text-xs font-semibold text-primary mb-1">Email Address</label>
                   {isEditing ? (
                     <input
                       type="email"
@@ -335,15 +335,15 @@ const ProfilePage = () => {
                       {...sharedInputProps}
                     />
                   ) : (
-                    <div className="px-3 py-2 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900 font-medium text-sm">{profile.email || 'Not set'}</p>
+                    <div className="px-3 py-2 bg-card rounded-lg">
+                      <p className="text-primary font-medium text-sm">{profile.email || 'Not set'}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Phone Number</label>
+                  <label className="block text-xs font-semibold text-primary mb-1">Phone Number</label>
                   {isEditing ? (
                     <input
                       type="text"
@@ -355,37 +355,37 @@ const ProfilePage = () => {
                       {...sharedInputProps}
                     />
                   ) : (
-                    <div className="px-3 py-2 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900 font-medium text-sm">{profile.phone || 'Not set'}</p>
+                    <div className="px-3 py-2 bg-card rounded-lg">
+                      <p className="text-primary font-medium text-sm">{profile.phone || 'Not set'}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Role */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Role</label>
-                  <div className="px-3 py-2 bg-gray-50 rounded-lg">
-                    <span className="px-3 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium capitalize">
+                  <label className="block text-xs font-semibold text-primary mb-1">Role</label>
+                  <div className="px-3 py-2 bg-card rounded-lg">
+                    <span className="px-3 py-0.5 bg-[rgba(17,131,224,0.15)] text-[#1183e0] rounded-full text-xs font-medium capitalize border border-[rgba(17,131,224,0.25)]">
                       {profile.role || 'Not set'}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Role cannot be changed</p>
+                  <p className="text-xs text-secondary mt-1">Role cannot be changed</p>
                 </div>
               </div>
             </div>
 
             {/* Company Information */}
             {profile.company && (
-              <div className="bg-white" style={cardStyle}>
-                <div className="p-4 border-b" style={{ borderColor: FLEET_COLORS.focusRing }}>
+              <div className="bg-card" style={cardStyle}>
+                <div className="p-4 border-b border-[rgba(17,131,224,0.15)]">
                   <div className="flex items-center gap-2">
-                    <Building style={{ color: FLEET_COLORS.primary }} size={20} />
-                    <h2 className="text-lg font-bold" style={{ color: FLEET_COLORS.dark }}>Company Information</h2>
+                    <Building style={{ color: '#1183e0' }} size={20} />
+                    <h2 className="text-lg font-bold" style={{ color: '#1183e0' }}>Company Information</h2>
                   </div>
                 </div>
                 <div className="p-4">
-                  <div className="px-3 py-2 bg-gray-50 rounded-lg">
-                    <p className="text-gray-900 font-medium text-sm">
+                  <div className="px-3 py-2 bg-card rounded-lg">
+                    <p className="text-primary font-medium text-sm">
                       {typeof profile.company === 'object' ? profile.company.companyName : profile.company}
                     </p>
                   </div>
@@ -397,18 +397,18 @@ const ProfilePage = () => {
           {/* Right Column */}
           <div className="space-y-4">
             {/* Location Information */}
-            <div className="bg-white" style={cardStyle}>
-              <div className="p-4 border-b" style={{ borderColor: FLEET_COLORS.focusRing }}>
+            <div className="bg-card" style={cardStyle}>
+              <div className="p-4 border-b border-[rgba(17,131,224,0.15)]">
                 <div className="flex items-center gap-2">
-                  <MapPin style={{ color: FLEET_COLORS.primary }} size={20} />
-                  <h2 className="text-lg font-bold" style={{ color: FLEET_COLORS.dark }}>Location Information</h2>
+                  <MapPin style={{ color: '#1183e0' }} size={20} />
+                  <h2 className="text-lg font-bold" style={{ color: '#1183e0' }}>Location Information</h2>
                 </div>
               </div>
 
               <div className="p-4 space-y-4">
                 {/* Country */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Country</label>
+                  <label className="block text-xs font-semibold text-primary mb-1">Country</label>
                   {isEditing ? (
                     <input
                       type="text"
@@ -420,15 +420,15 @@ const ProfilePage = () => {
                       {...sharedInputProps}
                     />
                   ) : (
-                    <div className="px-3 py-2 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900 font-medium text-sm">{profile.country || 'Not set'}</p>
+                    <div className="px-3 py-2 bg-card rounded-lg">
+                      <p className="text-primary font-medium text-sm">{profile.country || 'Not set'}</p>
                     </div>
                   )}
                 </div>
 
                 {/* State */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">State</label>
+                  <label className="block text-xs font-semibold text-primary mb-1">State</label>
                   {isEditing ? (
                     <input
                       type="text"
@@ -440,15 +440,15 @@ const ProfilePage = () => {
                       {...sharedInputProps}
                     />
                   ) : (
-                    <div className="px-3 py-2 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900 font-medium text-sm">{profile.state || 'Not set'}</p>
+                    <div className="px-3 py-2 bg-card rounded-lg">
+                      <p className="text-primary font-medium text-sm">{profile.state || 'Not set'}</p>
                     </div>
                   )}
                 </div>
 
                 {/* City */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">City</label>
+                  <label className="block text-xs font-semibold text-primary mb-1">City</label>
                   {isEditing ? (
                     <input
                       type="text"
@@ -460,15 +460,15 @@ const ProfilePage = () => {
                       {...sharedInputProps}
                     />
                   ) : (
-                    <div className="px-3 py-2 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900 font-medium text-sm">{profile.city || 'Not set'}</p>
+                    <div className="px-3 py-2 bg-card rounded-lg">
+                      <p className="text-primary font-medium text-sm">{profile.city || 'Not set'}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Address */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Address</label>
+                  <label className="block text-xs font-semibold text-primary mb-1">Address</label>
                   {isEditing ? (
                     <input
                       type="text"
@@ -480,8 +480,8 @@ const ProfilePage = () => {
                       {...sharedInputProps}
                     />
                   ) : (
-                    <div className="px-3 py-2 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900 font-medium text-sm">{profile.location?.address || 'Not set'}</p>
+                    <div className="px-3 py-2 bg-card rounded-lg">
+                      <p className="text-primary font-medium text-sm">{profile.location?.address || 'Not set'}</p>
                     </div>
                   )}
                 </div>
@@ -489,18 +489,18 @@ const ProfilePage = () => {
             </div>
 
             {/* Password Section */}
-            <div className="bg-white" style={cardStyle}>
-              <div className="p-4 border-b" style={{ borderColor: FLEET_COLORS.focusRing }}>
+            <div className="bg-card" style={cardStyle}>
+              <div className="p-4 border-b border-[rgba(17,131,224,0.15)]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Key style={{ color: FLEET_COLORS.primary }} size={20} />
-                    <h2 className="text-lg font-bold" style={{ color: FLEET_COLORS.dark }}>Password</h2>
+                    <Key style={{ color: '#1183e0' }} size={20} />
+                    <h2 className="text-lg font-bold" style={{ color: '#1183e0' }}>Password</h2>
                   </div>
                   {!showPasswordSection && (
                     <button
                       onClick={() => setShowPasswordSection(true)}
                       className="px-3 py-1.5 rounded-lg transition-colors font-medium flex items-center gap-2 text-sm"
-                      style={{ border: `1px solid ${FLEET_COLORS.primary}`, color: FLEET_COLORS.primary }}
+                      style={{ border: `1px solid rgba(17, 131, 224, 0.35)`, color: '#1183e0' }}
                     >
                       <Key size={14} />
                       Change Password
@@ -512,7 +512,7 @@ const ProfilePage = () => {
               {showPasswordSection && (
                 <div className="p-4 space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">New Password</label>
+                    <label className="block text-xs font-semibold text-primary mb-1">New Password</label>
                     <div className="relative">
                       <input
                         type={showNewPassword ? "text" : "password"}
@@ -525,7 +525,7 @@ const ProfilePage = () => {
                       <button
                         type="button"
                         onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-secondary"
                       >
                         {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
@@ -533,7 +533,7 @@ const ProfilePage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Confirm New Password</label>
+                    <label className="block text-xs font-semibold text-primary mb-1">Confirm New Password</label>
                     <div className="relative">
                       <input
                         type={showConfirmPassword ? "text" : "password"}
@@ -546,7 +546,7 @@ const ProfilePage = () => {
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-secondary"
                       >
                         {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
@@ -561,18 +561,18 @@ const ProfilePage = () => {
                         ) : (
                           <>
                             <XCircle size={16} className="text-red-500" />
-                            <span className="text-xs text-red-600">Passwords do not match</span>
+                            <span className="text-xs text-red-400">Passwords do not match</span>
                           </>
                         )}
                       </div>
                     )}
                   </div>
 
-                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                  <div className="flex justify-end gap-3 pt-4 border-t border-theme">
                     <button
                       onClick={handleCancelPassword}
                       disabled={loading}
-                      className="px-3 py-1.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 text-sm disabled:opacity-50"
+                      className="px-3 py-1.5 text-secondary bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] rounded-lg transition-colors font-medium flex items-center gap-2 text-sm disabled:opacity-50"
                     >
                       <X size={14} />
                       Cancel
@@ -604,12 +604,12 @@ const ProfilePage = () => {
 
         {/* Edit Actions */}
         {isEditing && (
-          <div className="bg-white p-4 mt-4" style={cardStyle}>
+          <div className="bg-card p-4 mt-4" style={cardStyle}>
             <div className="flex justify-end gap-3">
               <button
                 onClick={handleCancelEdit}
                 disabled={loading}
-                className="px-3 py-1.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 text-sm disabled:opacity-50"
+                className="px-3 py-1.5 text-secondary bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)] rounded-lg transition-colors font-medium flex items-center gap-2 text-sm disabled:opacity-50"
               >
                 <X size={14} />
                 Cancel

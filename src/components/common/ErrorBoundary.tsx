@@ -30,23 +30,23 @@ class ErrorBoundary extends Component<Props, State> {
       if (this.props.fallback) {
         return this.props.fallback;
       }
-      
+
       // Log error details for debugging
       console.error('ErrorBoundary Error Details:', {
         message: this.state.error?.message,
         stack: this.state.error?.stack,
         name: this.state.error?.name
       });
-      
+
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-          <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-2xl">
-            <h1 className="text-2xl font-bold text-red-600 mb-4">⚠️ Something went wrong</h1>
-            <p className="text-gray-700 mb-2 font-semibold">Error: {this.state.error?.message || 'An unexpected error occurred'}</p>
+        <div className="min-h-screen flex items-center justify-center bg-card p-4">
+          <div className="text-center p-8 bg-card rounded-lg shadow-lg max-w-2xl">
+            <h1 className="text-2xl font-bold text-[#A855F7] mb-4">⚠️ Something went wrong</h1>
+            <p className="text-primary mb-2 font-semibold">Error: {this.state.error?.message || 'An unexpected error occurred'}</p>
             {this.state.error?.stack && (
               <details className="mt-4 text-left">
-                <summary className="cursor-pointer text-sm text-gray-600 mb-2">Show error details</summary>
-                <pre className="text-xs bg-gray-100 p-4 rounded overflow-auto max-h-60 text-gray-800">
+                <summary className="cursor-pointer text-sm text-secondary mb-2">Show error details</summary>
+                <pre className="text-xs bg-card p-4 rounded overflow-auto max-h-60 text-primary">
                   {this.state.error.stack}
                 </pre>
               </details>

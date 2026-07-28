@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, Send, Paperclip, X, File, Image as ImageIcon, Check, CheckCheck, Search } from "lucide-react";
+import { MessageCircle, Send, Paperclip, X, File, Image as ImageIcon, Check, CheckCheck, Search, Phone, PhoneOff, PhoneIncoming, PhoneOutgoing, PhoneMissed, Mic, MicOff, Minimize2, Volume2 } from "lucide-react";
 import { socketService } from "../../services/socketService";
 import { listDriver } from "../../axios/api/distapcher";
 import {
@@ -11,7 +11,6 @@ import {
   type ChatMessage,
 } from "../../axios/api/chat";
 import { useChat } from "../../contexts/ChatContext";
-import { useWebRTC } from "../../hooks/useWebRTC";
 import { useCall } from "../../contexts/CreateCallContext";
 
 
@@ -30,6 +29,22 @@ interface DriverChatProps {
 }
 
 
+
+const callRecordPreview = (text: string): string => {
+  if (!text?.startsWith('{"__callRecord"')) return text;
+  try {
+    const rec = JSON.parse(text);
+    if (!rec.__callRecord) return text;
+    const dur = rec.duration || 0;
+    const durStr = dur > 0
+      ? ` · ${String(Math.floor(dur / 60)).padStart(2, '0')}:${String(dur % 60).padStart(2, '0')}`
+      : '';
+    if (rec.type === 'ended')     return `📞 ${rec.initiatedBy === 'dispatcher' ? 'Outgoing' : 'Incoming'} call${durStr}`;
+    if (rec.type === 'cancelled') return `📞 ${rec.initiatedBy === 'dispatcher' ? 'You cancelled' : 'Driver cancelled'}`;
+    if (rec.type === 'declined')  return `📞 ${rec.initiatedBy === 'dispatcher' ? 'Driver declined' : 'You declined'}`;
+    return '📞 Missed call';
+  } catch { return text; }
+};
 
 const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
   // Restore drivers list from cache → renders immediately on every mount
@@ -71,22 +86,17 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     return {};
   });
 
-  const { callState, incomingCall, setCallState, setIncomingCall } = useCall();
   const {
-  startCall,
-  handleIncomingCall,
-  handleAnswer,
-  handleICE,
-  endCall
-} = useWebRTC(selectedDriver?._id || "");
-const { setCallHandlers } = useCall();
+    callState,
+    isMuted, isMinimized, callSeconds,
+    setIsOnChatPage, setIsMinimized,
+    startCall, acceptCall, endCall, rejectCall, toggleMute,
+  } = useCall();
 
-useEffect(() => {
-  setCallHandlers({
-    onAnswer: handleAnswer,
-    onIce: handleICE
-  });
-}, [handleAnswer, handleICE]);
+  // Track whether the call was connected before transitioning to "declined"
+  // so we can show "Call Ended" vs "Call Declined" correctly.
+  const prevCallStateRef = useRef(callState);
+  useEffect(() => { prevCallStateRef.current = callState; }, [callState]);
 
   // Persist both caches whenever they change
   useEffect(() => {
@@ -109,6 +119,15 @@ useEffect(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
   };
+
+  const formatCallTime = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+
+  // Mark chat page active so GlobalCallHandler defers its full-screen overlay to us
+  useEffect(() => {
+    setIsOnChatPage(true);
+    return () => setIsOnChatPage(false);
+  }, [setIsOnChatPage]);
 
   const { setActiveDriverId } = useChat();
 
@@ -142,7 +161,7 @@ useEffect(() => {
           counts[id] = item.unreadCount || 0;
           if (item.lastMessage) {
             lasts[id] = {
-              text: item.lastMessage.message || (item.lastMessage.fileUrl ? '📎 File' : ''),
+              text: callRecordPreview(item.lastMessage.message) || (item.lastMessage.fileUrl ? '📎 File' : ''),
               time: new Date(item.lastMessage.createdAt),
               senderType: item.lastMessage.senderType,
             };
@@ -192,7 +211,7 @@ useEffect(() => {
           setLastMessages(prev => ({
             ...prev,
             [driverId]: {
-              text: last.message || (last.fileUrl ? '📎 File' : ''),
+              text: callRecordPreview(last.message) || (last.fileUrl ? '📎 File' : ''),
               time: new Date((last as any).createdAt || Date.now()),
               senderType: last.senderType
             }
@@ -341,7 +360,7 @@ useEffect(() => {
         setLastMessages(prev => ({
           ...prev,
           [driverIdStr]: {
-            text: message.message || (message.fileUrl ? '📎 File' : ''),
+            text: callRecordPreview(message.message) || (message.fileUrl ? '📎 File' : ''),
             time: new Date(message.createdAt || Date.now()),
             senderType: message.senderType
           }
@@ -572,7 +591,6 @@ useEffect(() => {
 
     // Cleanup
     return () => {
-      console.log("🧹 Cleaning up socket listeners");
       socketService.offNewMessage(handleNewMessage);
       socketService.offUserTyping(handleTyping);
       const currentSelectedDriver = selectedDriverRef.current;
@@ -641,6 +659,11 @@ useEffect(() => {
       Notification.requestPermission();
     }
   }, []);
+
+  const handleStartCall = () => {
+    if (!selectedDriver || callState !== "idle") return;
+    startCall(selectedDriver._id, selectedDriver.name);
+  };
 
 
 
@@ -813,48 +836,25 @@ useEffect(() => {
 
   const messageGroups = groupMessagesByDate(messages);
 
-  // call handling
-  const acceptCall = async () => {
-  if (!incomingCall) return;
-
-  await handleIncomingCall(incomingCall.offer, incomingCall.from);
-
-  setCallState("connected");
-  setIncomingCall(null);
-};
-
-const rejectCall = () => {
-  setIncomingCall(null);
-  setCallState("idle");
-};
-
-const handleEndCall = () => {
-  console.log("📴 Ending call");
-
-  endCall(); // 🧠 close peer + stop media
-
-  setCallState("idle"); // 🎛️ reset UI
-  setIncomingCall(null);
-};
-
   return (
-    <div className="flex h-full bg-white">
+    <div className="flex h-full bg-card relative">
+
       {/* Drivers List Sidebar — WhatsApp style */}
-      <div className="w-72 flex flex-col bg-white border-r border-gray-200">
+      <div className="w-72 flex flex-col bg-card border-r border-theme">
         {/* Header */}
-        <div className="px-3 pt-3 pb-2 border-b border-gray-100" style={{ background: '#1976D2' }}>
+        <div className="px-3 pt-3 pb-2 border-b border-theme bg-accent">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-bold text-white flex items-center gap-1.5">
               <MessageCircle className="w-4 h-4" />
               Drivers
               {Object.values(unreadCounts).reduce((s, n) => s + n, 0) > 0 && (
-                <span className="bg-white text-blue-700 text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                <span className="bg-card text-[var(--accent-navyblue)] text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
                   {Object.values(unreadCounts).reduce((s, n) => s + n, 0)}
                 </span>
               )}
             </h2>
             {onClose && (
-              <button onClick={onClose} className="p-1 hover:bg-white/20 rounded transition-colors">
+              <button onClick={onClose} className="p-1 hover:bg-card/20 rounded transition-colors">
                 <X className="w-4 h-4 text-white" />
               </button>
             )}
@@ -867,15 +867,15 @@ const handleEndCall = () => {
               placeholder="Search drivers..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-white/15 text-white placeholder-white/60 border border-white/25 rounded-lg focus:outline-none focus:bg-white/25"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-card/15 text-white placeholder-white/60 border border-white/25 rounded-lg focus:outline-none focus:bg-card/25"
             />
           </div>
         </div>
 
         {/* Drivers List */}
-        <div className="flex-1 overflow-y-auto bg-white">
+        <div className="flex-1 overflow-y-auto bg-card">
           {filteredDrivers.length === 0 && !driversLoading ? (
-            <div className="p-4 text-center text-gray-400 text-xs">No drivers found</div>
+            <div className="p-4 text-center text-secondary text-xs">No drivers found</div>
           ) : (
             <div>
               {filteredDrivers.map((driver) => {
@@ -886,9 +886,8 @@ const handleEndCall = () => {
                   <button
                     key={driver._id}
                     onClick={() => setSelectedDriver(driver)}
-                    className={`w-full px-3 py-2.5 text-left transition-colors border-b border-gray-50 ${
-                      isSelected ? 'bg-blue-50 border-l-2 border-l-blue-600' : 'hover:bg-gray-50'
-                    }`}
+                    className={`w-full px-3 py-2.5 text-left transition-colors border-b border-gray-50 ${isSelected ? 'bg-card border-l-2 border-l-[var(--accent-navyblue)]' : 'hover:bg-[rgba(255,255,255,0.03)]'
+                      }`}
                   >
                     <div className="flex items-center gap-2.5">
                       
@@ -908,23 +907,23 @@ const handleEndCall = () => {
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1">
-                          <p className={`text-xs font-semibold truncate ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
+                          <p className={`text-xs font-semibold truncate ${isSelected ? 'text-[var(--accent-navyblue)]' : 'text-primary'}`}>
                             {driver.name}
                           </p>
                           {lastMsg && (
-                            <span className={`text-[10px] flex-shrink-0 whitespace-nowrap ${unreadCount > 0 ? 'text-blue-600 font-semibold' : 'text-gray-400'}`}>
+                            <span className={`text-[10px] flex-shrink-0 whitespace-nowrap ${unreadCount > 0 ? 'text-[var(--accent-navyblue)] font-semibold' : 'text-secondary'}`}>
                               {formatSidebarTime(lastMsg.time)}
                             </span>
                           )}
                         </div>
                         <div className="flex items-center justify-between gap-1 mt-0.5">
                           {lastMsg ? (
-                            <p className={`text-[11px] truncate leading-tight flex-1 ${unreadCount > 0 ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>
-                              {lastMsg.senderType !== 'driver' && <span className="text-gray-500">You: </span>}
+                            <p className={`text-[11px] truncate leading-tight flex-1 ${unreadCount > 0 ? 'text-primary font-medium' : 'text-secondary'}`}>
+                              {lastMsg.senderType !== 'driver' && !lastMsg.text?.startsWith('📞') && <span className="text-secondary">You: </span>}
                               {lastMsg.text || '📎 File'}
                             </p>
                           ) : (
-                            <p className="text-[11px] text-gray-400 truncate leading-tight flex-1 italic">No messages yet</p>
+                            <p className="text-[11px] text-secondary truncate leading-tight flex-1 italic">No messages yet</p>
                           )}
                           {unreadCount > 0 && (
                             <span className="text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 flex-shrink-0" style={{ background: '#1976D2' }}>
@@ -953,43 +952,50 @@ const handleEndCall = () => {
                 {selectedDriver.profileImageUrl ? (
                   <img src={selectedDriver.profileImageUrl} alt={selectedDriver.name} className="w-8 h-8 rounded-full object-cover" />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-sm">
+                  <div className="w-8 h-8 rounded-full bg-card/20 flex items-center justify-center text-white font-bold text-sm">
                     {selectedDriver.name.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <div>
+                <div className="flex-1">
                   <h3 className="font-semibold text-sm leading-tight">{selectedDriver.name}</h3>
                   {selectedDriver.phone && (
                     <p className="text-xs text-white/70 leading-tight">{selectedDriver.phone}</p>
                   )}
                 </div>
-<button
-  onClick={() => {
-    startCall(); 
-  }}
->
-  📞
-</button>
+                {callState === "connected" ? (
+                  <button onClick={() => endCall()} className="p-2 bg-red-500 hover:bg-red-600 rounded-full transition-colors" title="End call">
+                    <PhoneOff className="w-4 h-4 text-white" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleStartCall}
+                    disabled={callState !== "idle"}
+                    className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors disabled:opacity-50"
+                    title="Call driver"
+                  >
+                    <Phone className="w-4 h-4 text-white" />
+                  </button>
+                )}
               </div>
             </div>
 
             {/* Messages Container */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-4 min-h-0 bg-gray-50">
+            <div className="flex-1 overflow-y-auto p-3 space-y-4 min-h-0 bg-card">
               {loading ? (
                 <div className="flex items-center justify-center h-full min-h-[200px]">
                   <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
-                    <p className="text-gray-500">Loading messages...</p>
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-navyblue)] mb-3"></div>
+                    <p className="text-secondary">Loading messages...</p>
                   </div>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full min-h-[200px]">
                   <div className="text-center">
                     <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-                      <MessageCircle className="w-8 h-8 text-blue-600" />
+                      <MessageCircle className="w-8 h-8 text-[var(--accent-navyblue)]" />
                     </div>
-                    <p className="text-gray-700 font-semibold text-lg mb-1">No messages yet</p>
-                    <p className="text-sm text-gray-500">Start the conversation with {selectedDriver.name}!</p>
+                    <p className="text-primary font-semibold text-lg mb-1">No messages yet</p>
+                    <p className="text-sm text-secondary">Start the conversation with {selectedDriver.name}!</p>
                   </div>
                 </div>
               ) : (
@@ -997,8 +1003,8 @@ const handleEndCall = () => {
                   <div key={dateKey}>
                     {/* Date Separator */}
                     <div className="flex items-center justify-center my-4">
-                      <div className="bg-white px-4 py-1 rounded-full shadow-sm border border-gray-200">
-                        <span className="text-xs font-medium text-gray-600">{dateKey}</span>
+                      <div className="bg-card px-4 py-1 rounded-full shadow-sm border border-theme">
+                        <span className="text-xs font-medium text-secondary">{dateKey}</span>
                       </div>
                     </div>
 
@@ -1010,6 +1016,52 @@ const handleEndCall = () => {
                       const isCurrentUser = currentUserId && String(message.senderId._id) === String(currentUserId);
                       const showAvatar = !isSystemMessage && (index === 0 || dateMessages[index - 1].senderId._id !== message.senderId._id);
                       const isRead = message.readBy && message.readBy.length > 0;
+
+                      // ── Call record messages ─────────────────────────────
+                      if (message.message?.startsWith('{"__callRecord"')) {
+                        let rec: any = null;
+                        try { rec = JSON.parse(message.message); } catch {}
+                        if (rec?.__callRecord) {
+                          const durSecs = rec.duration || 0;
+                          const durStr = durSecs > 0
+                            ? `${String(Math.floor(durSecs / 60)).padStart(2, '0')}:${String(durSecs % 60).padStart(2, '0')}`
+                            : '';
+                          // dispatcher = "you"; driver = the other party
+                          const byDispatcher = rec.initiatedBy === 'dispatcher';
+                          const byDriver     = rec.initiatedBy === 'driver';
+                          let label = '';
+                          let IconEl: React.ReactNode;
+                          let colorClass = '';
+                          let bgClass = '';
+                          if (rec.type === 'ended') {
+                            label = byDispatcher ? `Outgoing call${durStr ? ' · ' + durStr : ''}` : byDriver ? `Incoming call${durStr ? ' · ' + durStr : ''}` : `Call ended${durStr ? ' · ' + durStr : ''}`;
+                            IconEl = byDispatcher ? <PhoneOutgoing className="w-3 h-3 flex-shrink-0" /> : byDriver ? <PhoneIncoming className="w-3 h-3 flex-shrink-0" /> : <Phone className="w-3 h-3 flex-shrink-0" />;
+                            colorClass = 'text-green-600'; bgClass = 'bg-green-500/10 border-green-500/20';
+                          } else if (rec.type === 'cancelled') {
+                            label = byDispatcher ? 'You cancelled' : byDriver ? 'Driver cancelled' : 'Call cancelled';
+                            IconEl = byDispatcher ? <PhoneOutgoing className="w-3 h-3 flex-shrink-0" /> : <PhoneIncoming className="w-3 h-3 flex-shrink-0" />;
+                            colorClass = 'text-gray-400'; bgClass = 'bg-gray-500/10 border-gray-500/20';
+                          } else if (rec.type === 'declined') {
+                            label = byDispatcher ? 'Driver declined' : byDriver ? 'You declined' : 'Call declined';
+                            IconEl = <PhoneMissed className="w-3 h-3 flex-shrink-0" />;
+                            colorClass = 'text-red-500'; bgClass = 'bg-red-500/10 border-red-500/20';
+                          } else {
+                            label = 'Missed call';
+                            IconEl = <PhoneMissed className="w-3 h-3 flex-shrink-0" />;
+                            colorClass = 'text-red-500'; bgClass = 'bg-red-500/10 border-red-500/20';
+                          }
+                          const timeStr = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                          return (
+                            <div key={message._id} className="flex flex-col items-center my-3 gap-1">
+                              <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold border ${colorClass} ${bgClass}`}>
+                                {IconEl}
+                                <span>{label}</span>
+                              </div>
+                              <span className="text-[10px] text-gray-500">{timeStr}</span>
+                            </div>
+                          );
+                        }
+                      }
 
                       // System messages (trip status) should be centered
                       if (isSystemMessage && message.tripStatus) {
@@ -1026,7 +1078,7 @@ const handleEndCall = () => {
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-2">
-                                      <h4 className="text-sm font-bold text-gray-800">Driver Trip Status</h4>
+                                      <h4 className="text-sm font-bold text-primary">Driver Trip Status</h4>
                                       {message.tripStatus.summary.isCurrentlyDriving && (
                                         <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
                                           Currently Driving
@@ -1038,7 +1090,7 @@ const handleEndCall = () => {
                                         </span>
                                       )}
                                       {!message.tripStatus.summary.isCurrentlyDriving && message.tripStatus.summary.totalPending === 0 && (
-                                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full">
+                                        <span className="px-2 py-0.5 bg-card text-primary text-xs font-semibold rounded-full">
                                           Available
                                         </span>
                                       )}
@@ -1046,7 +1098,7 @@ const handleEndCall = () => {
 
                                     {/* AI Summary */}
                                     {message.tripStatus.aiSummary && (
-                                      <p className="text-sm text-gray-700 mb-3 leading-relaxed">
+                                      <p className="text-sm text-primary mb-3 leading-relaxed">
                                         {message.tripStatus.aiSummary}
                                       </p>
                                     )}
@@ -1056,21 +1108,21 @@ const handleEndCall = () => {
                                       {/* Active Trips */}
                                       {message.tripStatus.activeTrips.length > 0 && (
                                         <div>
-                                          <p className="text-xs font-semibold text-gray-600 mb-1">Active Trips ({message.tripStatus.activeTrips.length}):</p>
+                                          <p className="text-xs font-semibold text-secondary mb-1">Active Trips ({message.tripStatus.activeTrips.length}):</p>
                                           {message.tripStatus.activeTrips.map((trip, idx) => (
-                                            <div key={idx} className="text-xs text-gray-600 bg-white/60 rounded p-2 mb-2 border border-gray-200">
+                                            <div key={idx} className="text-xs text-secondary bg-card/60 rounded p-2 mb-2 border border-theme">
                                               <div className="font-medium mb-2 flex items-center gap-2">
                                                 <span>Trip {trip.tripNumber}</span>
                                                 {trip.driverRole && (
-                                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                                                  <span className="px-2 py-0.5 bg-blue-100 text-[var(--accent-navyblue)] rounded text-xs">
                                                     {trip.driverRole}
                                                   </span>
                                                 )}
                                               </div>
-                                              <div className="text-gray-700 space-y-1">
-                                                <div className="font-medium text-gray-800">📍 Start Location:</div>
+                                              <div className="text-primary space-y-1">
+                                                <div className="font-medium text-primary">📍 Start Location:</div>
                                                 <div className="ml-2">{trip.startLocation}</div>
-                                                <div className="font-medium text-gray-800 mt-2">📍 End Location:</div>
+                                                <div className="font-medium text-primary mt-2">📍 End Location:</div>
                                                 <div className="ml-2">{trip.endLocation}</div>
                                                 {trip.ordersCount > 0 && (
                                                   <div className="mt-2">
@@ -1098,12 +1150,12 @@ const handleEndCall = () => {
                                                   </div>
                                                 )}
                                                 {trip.actualStartDate && (
-                                                  <div className="text-gray-500 mt-2 text-xs">
+                                                  <div className="text-secondary mt-2 text-xs">
                                                     Started: {new Date(trip.actualStartDate).toLocaleString()}
                                                   </div>
                                                 )}
                                                 {trip.plannedEndDate && (
-                                                  <div className="text-gray-500 text-xs">
+                                                  <div className="text-secondary text-xs">
                                                     Expected End: {new Date(trip.plannedEndDate).toLocaleString()}
                                                   </div>
                                                 )}
@@ -1116,30 +1168,30 @@ const handleEndCall = () => {
                                       {/* Active Orders - All non-completed/canceled orders */}
                                       {message.tripStatus.activeOrders.length > 0 && (
                                         <div>
-                                          <p className="text-xs font-semibold text-gray-600 mb-1">Active Orders ({message.tripStatus.activeOrders.length}):</p>
+                                          <p className="text-xs font-semibold text-secondary mb-1">Active Orders ({message.tripStatus.activeOrders.length}):</p>
                                           {message.tripStatus.activeOrders.map((order, idx) => (
-                                            <div key={idx} className="text-xs text-gray-600 bg-white/60 rounded p-2 mb-2 border border-gray-200">
+                                            <div key={idx} className="text-xs text-secondary bg-card/60 rounded p-2 mb-2 border border-theme">
                                               <div className="font-medium mb-2 flex items-center gap-2">
                                                 <span>Order {order.orderNumber}</span>
                                                 <span className={`px-2 py-0.5 rounded text-xs ${order.status === 'in-delivery' ? 'bg-yellow-100 text-yellow-700' :
                                                   order.status === 'delivered' ? 'bg-purple-100 text-purple-700' :
-                                                    order.status === 'planned' ? 'bg-blue-100 text-blue-700' :
+                                                    order.status === 'planned' ? 'bg-blue-100 text-[var(--accent-navyblue)]' :
                                                       order.status === 'quoted' ? 'bg-orange-100 text-orange-700' :
-                                                        'bg-gray-100 text-gray-700'
+                                                        'bg-card text-primary'
                                                   }`}>
                                                   {order.status}
                                                 </span>
                                               </div>
-                                              <div className="text-gray-700 space-y-1">
-                                                <div className="font-medium text-gray-800">📍 Pickup Location:</div>
+                                              <div className="text-primary space-y-1">
+                                                <div className="font-medium text-primary">📍 Pickup Location:</div>
                                                 <div className="ml-2">{order.pickupLocation}</div>
                                                 {order.pickupFullAddress && (
-                                                  <div className="ml-2 text-gray-500 text-xs">{order.pickupFullAddress}</div>
+                                                  <div className="ml-2 text-secondary text-xs">{order.pickupFullAddress}</div>
                                                 )}
-                                                <div className="font-medium text-gray-800 mt-2">📍 Delivery Location:</div>
+                                                <div className="font-medium text-primary mt-2">📍 Delivery Location:</div>
                                                 <div className="ml-2">{order.deliveryLocation}</div>
                                                 {order.deliveryFullAddress && (
-                                                  <div className="ml-2 text-gray-500 text-xs">{order.deliveryFullAddress}</div>
+                                                  <div className="ml-2 text-secondary text-xs">{order.deliveryFullAddress}</div>
                                                 )}
                                                 {order.customer && (
                                                   <div className="mt-2">
@@ -1157,17 +1209,17 @@ const handleEndCall = () => {
                                                   </div>
                                                 )}
                                                 {order.actualStartDate && (
-                                                  <div className="text-gray-500 mt-2 text-xs">
+                                                  <div className="text-secondary mt-2 text-xs">
                                                     Started: {new Date(order.actualStartDate).toLocaleString()}
                                                   </div>
                                                 )}
                                                 {order.pickupDate && !order.actualStartDate && (
-                                                  <div className="text-gray-500 mt-2 text-xs">
+                                                  <div className="text-secondary mt-2 text-xs">
                                                     Pickup: {new Date(order.pickupDate).toLocaleString()}
                                                   </div>
                                                 )}
                                                 {order.deliveryDate && (
-                                                  <div className="text-gray-500 text-xs">
+                                                  <div className="text-secondary text-xs">
                                                     Delivery Due: {new Date(order.deliveryDate).toLocaleString()}
                                                   </div>
                                                 )}
@@ -1180,21 +1232,21 @@ const handleEndCall = () => {
                                       {/* Pending Trips */}
                                       {message.tripStatus.pendingTrips.length > 0 && (
                                         <div>
-                                          <p className="text-xs font-semibold text-gray-600 mb-1">Pending Trips ({message.tripStatus.pendingTrips.length}):</p>
+                                          <p className="text-xs font-semibold text-secondary mb-1">Pending Trips ({message.tripStatus.pendingTrips.length}):</p>
                                           {message.tripStatus.pendingTrips.map((trip, idx) => (
-                                            <div key={idx} className="text-xs text-gray-600 bg-white/60 rounded p-2 mb-2 border border-gray-200">
+                                            <div key={idx} className="text-xs text-secondary bg-card/60 rounded p-2 mb-2 border border-theme">
                                               <div className="font-medium mb-2 flex items-center gap-2">
                                                 <span>Trip {trip.tripNumber}</span>
                                                 {trip.driverRole && (
-                                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                                                  <span className="px-2 py-0.5 bg-blue-100 text-[var(--accent-navyblue)] rounded text-xs">
                                                     {trip.driverRole}
                                                   </span>
                                                 )}
                                               </div>
-                                              <div className="text-gray-700 space-y-1">
-                                                <div className="font-medium text-gray-800">📍 Start Location:</div>
+                                              <div className="text-primary space-y-1">
+                                                <div className="font-medium text-primary">📍 Start Location:</div>
                                                 <div className="ml-2">{trip.startLocation}</div>
-                                                <div className="font-medium text-gray-800 mt-2">📍 End Location:</div>
+                                                <div className="font-medium text-primary mt-2">📍 End Location:</div>
                                                 <div className="ml-2">{trip.endLocation}</div>
                                                 {trip.ordersCount > 0 && (
                                                   <div className="mt-2">
@@ -1212,7 +1264,7 @@ const handleEndCall = () => {
                                                   </div>
                                                 )}
                                                 {trip.plannedStartDate && (
-                                                  <div className="text-gray-500 mt-2 text-xs">
+                                                  <div className="text-secondary mt-2 text-xs">
                                                     Planned Start: {new Date(trip.plannedStartDate).toLocaleString()}
                                                   </div>
                                                 )}
@@ -1225,28 +1277,28 @@ const handleEndCall = () => {
                                       {/* Pending Orders */}
                                       {message.tripStatus.pendingOrders.length > 0 && (
                                         <div>
-                                          <p className="text-xs font-semibold text-gray-600 mb-1">Pending Orders ({message.tripStatus.pendingOrders.length}):</p>
+                                          <p className="text-xs font-semibold text-secondary mb-1">Pending Orders ({message.tripStatus.pendingOrders.length}):</p>
                                           {message.tripStatus.pendingOrders.map((order, idx) => (
-                                            <div key={idx} className="text-xs text-gray-600 bg-white/60 rounded p-2 mb-2 border border-gray-200">
+                                            <div key={idx} className="text-xs text-secondary bg-card/60 rounded p-2 mb-2 border border-theme">
                                               <div className="font-medium mb-2 flex items-center gap-2">
                                                 <span>Order {order.orderNumber}</span>
-                                                <span className={`px-2 py-0.5 rounded text-xs ${order.status === 'planned' ? 'bg-blue-100 text-blue-700' :
+                                                <span className={`px-2 py-0.5 rounded text-xs ${order.status === 'planned' ? 'bg-blue-100 text-[var(--accent-navyblue)]' :
                                                   order.status === 'quoted' ? 'bg-orange-100 text-orange-700' :
-                                                    'bg-gray-100 text-gray-700'
+                                                    'bg-card text-primary'
                                                   }`}>
                                                   {order.status}
                                                 </span>
                                               </div>
-                                              <div className="text-gray-700 space-y-1">
-                                                <div className="font-medium text-gray-800">📍 Pickup Location:</div>
+                                              <div className="text-primary space-y-1">
+                                                <div className="font-medium text-primary">📍 Pickup Location:</div>
                                                 <div className="ml-2">{order.pickupLocation}</div>
                                                 {order.pickupFullAddress && (
-                                                  <div className="ml-2 text-gray-500 text-xs">{order.pickupFullAddress}</div>
+                                                  <div className="ml-2 text-secondary text-xs">{order.pickupFullAddress}</div>
                                                 )}
-                                                <div className="font-medium text-gray-800 mt-2">📍 Delivery Location:</div>
+                                                <div className="font-medium text-primary mt-2">📍 Delivery Location:</div>
                                                 <div className="ml-2">{order.deliveryLocation}</div>
                                                 {order.deliveryFullAddress && (
-                                                  <div className="ml-2 text-gray-500 text-xs">{order.deliveryFullAddress}</div>
+                                                  <div className="ml-2 text-secondary text-xs">{order.deliveryFullAddress}</div>
                                                 )}
                                                 {order.customer && (
                                                   <div className="mt-2">
@@ -1254,12 +1306,12 @@ const handleEndCall = () => {
                                                   </div>
                                                 )}
                                                 {order.pickupDate && (
-                                                  <div className="text-gray-500 mt-2 text-xs">
+                                                  <div className="text-secondary mt-2 text-xs">
                                                     Pickup: {new Date(order.pickupDate).toLocaleString()}
                                                   </div>
                                                 )}
                                                 {order.deliveryDate && (
-                                                  <div className="text-gray-500 text-xs">
+                                                  <div className="text-secondary text-xs">
                                                     Delivery Due: {new Date(order.deliveryDate).toLocaleString()}
                                                   </div>
                                                 )}
@@ -1271,7 +1323,7 @@ const handleEndCall = () => {
 
                                       {/* No trips/orders */}
                                       {message.tripStatus.summary.totalActive === 0 && message.tripStatus.summary.totalPending === 0 && (
-                                        <p className="text-xs text-gray-600 italic">No active trips or orders assigned.</p>
+                                        <p className="text-xs text-secondary italic">No active trips or orders assigned.</p>
                                       )}
                                     </div>
                                   </div>
@@ -1298,7 +1350,7 @@ const handleEndCall = () => {
                           {/* Message Bubble */}
                           <div className={`flex flex-col ${isRightSide ? "items-end" : "items-start"} max-w-[75%]`}>
                             {!isRightSide && showAvatar && (
-                              <span className="text-xs font-medium text-gray-600 mb-1 px-1">
+                              <span className="text-xs font-medium text-secondary mb-1 px-1">
                                 {message.senderName}
                               </span>
                             )}
@@ -1306,19 +1358,19 @@ const handleEndCall = () => {
                             <div
                               className={`relative rounded-2xl px-4 py-2.5 shadow-md ${isRightSide
                                 ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-tr-sm"
-                                : "bg-white text-gray-800 border border-gray-200 rounded-tl-sm"
+                                : "bg-card text-primary border border-theme rounded-tl-sm"
                                 }`}
                             >
                               {/* Message Text */}
                               {message.message && (
-                                <p className={`text-sm leading-relaxed ${isRightSide ? "text-white" : "text-gray-800"}`}>
+                                <p className={`text-sm leading-relaxed ${isRightSide ? "text-white" : "text-primary"}`}>
                                   {message.message}
                                 </p>
                               )}
 
                               {/* File Attachment */}
                               {message.fileUrl && (
-                                <div className={`mt-2 ${message.message ? "pt-2 border-t" : ""} ${isRightSide ? "border-blue-400/30" : "border-gray-200"
+                                <div className={`mt-2 ${message.message ? "pt-2 border-t" : ""} ${isRightSide ? "border-blue-400/30" : "border-theme"
                                   }`}>
                                   <button
                                     onClick={async (e) => {
@@ -1336,8 +1388,8 @@ const handleEndCall = () => {
                                       }
                                     }}
                                     className={`flex items-center gap-2 p-2 rounded-lg transition-all hover:opacity-80 ${isRightSide
-                                      ? "bg-white/20 hover:bg-white/30 text-white"
-                                      : "bg-gray-100 hover:bg-gray-200 text-blue-600"
+                                      ? "bg-card/20 hover:bg-card/30 text-white"
+                                      : "bg-card hover:bg-gray-200 text-[var(--accent-navyblue)]"
                                       }`}
                                   >
                                     {message.fileType === "image" ? (
@@ -1349,7 +1401,7 @@ const handleEndCall = () => {
                                       {message.fileName || "File"}
                                     </span>
                                     {message.fileSize && (
-                                      <span className={`text-xs ${isRightSide ? "text-blue-100" : "text-gray-500"}`}>
+                                      <span className={`text-xs ${isRightSide ? "text-blue-100" : "text-secondary"}`}>
                                         {formatFileSize(message.fileSize)}
                                       </span>
                                     )}
@@ -1360,7 +1412,7 @@ const handleEndCall = () => {
 
                               {/* Message Footer */}
                               <div className={`flex items-center gap-1.5 mt-1.5 ${isRightSide ? "justify-end" : "justify-start"}`}>
-                                <span className={`text-xs ${isRightSide ? "text-blue-100" : "text-gray-500"}`}>
+                                <span className={`text-xs ${isRightSide ? "text-blue-100" : "text-secondary"}`}>
                                   {formatTime(message.createdAt)}
                                 </span>
                                 {isRightSide && isCurrentUser && (
@@ -1388,14 +1440,14 @@ const handleEndCall = () => {
                   <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
                     <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
                   </div>
-                  <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-md border border-gray-200">
+                  <div className="bg-card rounded-2xl rounded-tl-sm px-4 py-3 shadow-md border border-theme">
                     <div className="flex items-center gap-1">
                       <div className="flex gap-1">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                       </div>
-                      <span className="text-xs text-gray-500 ml-2">
+                      <span className="text-xs text-secondary ml-2">
                         {Array.from(typingUsers).join(", ")} typing...
                       </span>
                     </div>
@@ -1408,19 +1460,19 @@ const handleEndCall = () => {
 
             {/* File Preview */}
             {selectedFile && (
-              <div className="flex-shrink-0 px-4 py-3 bg-white border-t border-gray-200 flex items-center justify-between shadow-sm">
+              <div className="flex-shrink-0 px-4 py-3 bg-card border-t border-theme flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="p-2 bg-blue-100 rounded-lg">
-                    <File className="w-4 h-4 text-blue-600" />
+                    <File className="w-4 h-4 text-[var(--accent-navyblue)]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{selectedFile.name}</p>
-                    <p className="text-xs text-gray-500">{formatFileSize(selectedFile.size)}</p>
+                    <p className="text-sm font-medium text-primary truncate">{selectedFile.name}</p>
+                    <p className="text-xs text-secondary">{formatFileSize(selectedFile.size)}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setSelectedFile(null)}
-                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-2 text-secondary hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1428,7 +1480,7 @@ const handleEndCall = () => {
             )}
 
             {/* Input Area */}
-            <div className="flex-shrink-0 px-3 py-2 bg-white border-t border-gray-200 shadow-sm">
+            <div className="flex-shrink-0 px-3 py-2 bg-card border-t border-theme shadow-sm">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -1439,7 +1491,7 @@ const handleEndCall = () => {
               <div className="flex items-end gap-2">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-2.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 flex-shrink-0"
+                  className="p-2.5 text-secondary hover:text-[var(--accent-navyblue)] hover:bg-blue-50 rounded-lg transition-all duration-200 flex-shrink-0"
                   title="Attach file"
                 >
                   <Paperclip className="w-5 h-5" />
@@ -1460,7 +1512,7 @@ const handleEndCall = () => {
                       }
                     }}
                     placeholder="Type a message..."
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent resize-none bg-gray-50 text-gray-800 placeholder-gray-400 transition-all"
+                    className="w-full px-3 py-2 text-sm border border-theme rounded-xl focus:outline-none focus:ring-2 focus:border-transparent resize-none bg-card text-primary placeholder-gray-400 transition-all"
                     rows={1}
                     style={{ maxHeight: "100px", focusRingColor: '#007A6E' } as any}
                   />
@@ -1483,75 +1535,126 @@ const handleEndCall = () => {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-gray-50">
+          <div className="flex-1 flex items-center justify-center bg-card">
             <div className="text-center">
-              <div className="w-14 h-14 mx-auto mb-3 rounded-full flex items-center justify-center bg-blue-50">
-                <MessageCircle className="w-7 h-7 text-blue-600" />
+              <div className="w-14 h-14 mx-auto mb-3 rounded-full flex items-center justify-center bg-card">
+                <MessageCircle className="w-7 h-7 text-[var(--accent-navyblue)]" />
               </div>
-              <p className="text-gray-700 font-semibold text-sm mb-1">Select a driver to chat</p>
-              <p className="text-xs text-gray-400">Choose from the list on the left</p>
+              <p className="text-primary font-semibold text-sm mb-1">Select a driver to chat</p>
+              <p className="text-xs text-secondary">Choose from the list on the left</p>
             </div>
           </div>
         )}
 
 
-        {callState === "incoming" && incomingCall && (
-  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-xl text-center shadow-lg">
-      <h2 className="text-lg font-semibold mb-4">
-        Incoming Call
-      </h2>
-
-      <div className="flex gap-4 justify-center">
-        <button
-          onClick={acceptCall}
-          className="bg-green-500 text-white px-4 py-2 rounded-full"
-        >
-          Accept
-        </button>
-
-        <button
-          onClick={rejectCall}
-          className="bg-red-500 text-white px-4 py-2 rounded-full"
-        >
-          Reject
-        </button>
       </div>
-    </div>
-  </div>
-)}
 
-{callState === "outgoing" && (
-  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-xl text-center">
-      <h2 className="text-lg font-semibold">Calling...</h2>
+      {/* ── Full call overlay ─────────────────────────────────────────────────── */}
+      {(callState === "calling" || callState === "incoming" || (callState === "connected" && !isMinimized) || callState === "declined") && (
+        <div
+          className="absolute inset-0 z-50 flex flex-col rounded-lg overflow-hidden"
+          style={{ background: "linear-gradient(160deg,#0f0f1a 0%,#1a1a2e 50%,#16213e 100%)" }}
+        >
+          {callState === "declined" ? (
+            /* ── Declined state ── */
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <div className="w-20 h-20 rounded-full bg-red-500/20 border-2 border-red-500/40 flex items-center justify-center mb-5">
+                <PhoneOff className="w-9 h-9 text-red-400" />
+              </div>
+              <p className="text-white text-xl font-bold mb-2">
+                {prevCallStateRef.current === 'connected' ? 'Call Ended' : 'Call Declined'}
+              </p>
+              <p className="text-white/50 text-sm">
+                {prevCallStateRef.current === 'connected' ? 'Driver ended the call' : 'The call was not accepted'}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Top bar — label + minimize */}
+              <div className="flex items-center justify-between px-5 pt-5 pb-3 flex-shrink-0">
+                <div className="w-9" />
+                <p className="text-white/60 text-sm font-medium tracking-wide">
+                  {callState === "incoming" ? "Incoming Call" : callState === "connected" ? "On Call" : "Calling..."}
+                </p>
+                {callState === "connected" ? (
+                  <button
+                    onClick={() => setIsMinimized(true)}
+                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                    title="Minimize"
+                  >
+                    <Minimize2 className="w-4 h-4 text-white/70" />
+                  </button>
+                ) : <div className="w-9" />}
+              </div>
 
-      <button
-        onClick={handleEndCall}
-        className="mt-4 bg-red-500 text-white px-4 py-2 rounded-full"
-      >
-        Cancel
-      </button>
-    </div>
-  </div>
-)}
+              {/* Center — avatar, name, timer/status */}
+              <div className="flex-1 flex flex-col items-center justify-center">
+                <div
+                  className={`w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center mb-5 text-white text-4xl font-bold border-4 border-white/10 shadow-[0_0_40px_rgba(25,118,210,0.4)] ${callState === "incoming" ? "animate-pulse" : ""}`}
+                >
+                  {selectedDriver?.name?.charAt(0).toUpperCase() || "D"}
+                </div>
+                <p className="text-white text-2xl font-bold mb-2 tracking-tight">{selectedDriver?.name || "Driver"}</p>
+                <p className={`text-base font-mono tracking-widest ${callState === "connected" ? "text-green-400" : "text-white/50"}`}>
+                  {callState === "connected" ? formatCallTime(callSeconds) : callState === "incoming" ? "Incoming…" : "Calling…"}
+                </p>
+              </div>
 
+              {/* Bottom — controls + action buttons */}
+              <div className="pb-10 px-8 flex flex-col items-center gap-6 flex-shrink-0">
+                {/* Mute + Speaker row — only while connected */}
+                {callState === "connected" && (
+                  <div className="flex gap-8 items-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <button
+                        onClick={toggleMute}
+                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors border ${isMuted ? "bg-white/25 border-white/35" : "bg-white/10 border-white/15 hover:bg-white/20"}`}
+                      >
+                        {isMuted ? <MicOff className="w-5 h-5 text-white" /> : <Mic className="w-5 h-5 text-white" />}
+                      </button>
+                      <span className="text-white/55 text-xs">{isMuted ? "Unmute" : "Mute"}</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-12 h-12 rounded-full bg-white/10 border border-white/15 flex items-center justify-center opacity-40 cursor-not-allowed">
+                        <Volume2 className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="text-white/35 text-xs">Speaker</span>
+                    </div>
+                  </div>
+                )}
 
-{callState === "connected" && (
-  <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 text-white">
-    <div className="text-center">
-      <h2 className="text-xl mb-4">Call Connected</h2>
-
-      <button
-        onClick={handleEndCall}
-        className="bg-red-600 px-6 py-3 rounded-full"
-      >
-        End Call
-      </button>
-    </div>
-  </div>
-)}
-      </div>
+                {/* Accept / End / Decline */}
+                <div className="flex gap-12 items-end">
+                  {callState === "incoming" && (
+                    <div className="flex flex-col items-center gap-2">
+                      <button
+                        onClick={acceptCall}
+                        className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-400 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.45)] transition-all hover:scale-105"
+                      >
+                        <Phone className="w-6 h-6 text-white" />
+                      </button>
+                      <span className="text-white/60 text-xs">Accept</span>
+                    </div>
+                  )}
+                  <div className="flex flex-col items-center gap-2">
+                    <button
+                      onClick={
+                        callState === "incoming"
+                          ? rejectCall
+                          : () => endCall()
+                      }
+                      className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.45)] transition-all hover:scale-105"
+                    >
+                      <PhoneOff className="w-6 h-6 text-white" />
+                    </button>
+                    <span className="text-white/60 text-xs">{callState === "incoming" ? "Decline" : "End Call"}</span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };

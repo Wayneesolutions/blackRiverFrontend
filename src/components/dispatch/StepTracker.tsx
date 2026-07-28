@@ -42,7 +42,7 @@ const StepTracker: React.FC<StepTrackerProps> = ({ currentStep, className = '' }
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
                   isCompleted
                     ? 'bg-green-500 text-white shadow-lg'
-                    : 'bg-gray-200 text-gray-500'
+                    : 'bg-gray-200 text-secondary'
                 } ${
                   isCurrent ? 'ring-4 ring-green-200' : ''
                 }`}
@@ -51,7 +51,7 @@ const StepTracker: React.FC<StepTrackerProps> = ({ currentStep, className = '' }
               </div>
               <span
                 className={`text-xs mt-2 font-medium whitespace-nowrap ${
-                  isCompleted ? 'text-green-600' : 'text-gray-500'
+                  isCompleted ? 'text-green-600' : 'text-secondary'
                 }`}
               >
                 {step.label}

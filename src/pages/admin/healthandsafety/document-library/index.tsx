@@ -4,7 +4,7 @@ const CUSTOM_COLORS = {
   primary: '#016ab2',
   dark: '#063f6f',
   light: '#398bc3',
-  gradient: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+  gradient: 'linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)',
   gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
 };
 import {
@@ -88,9 +88,9 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200'
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200',
+    warning: 'bg-card border-yellow-200'
   };
 
   useEffect(() => {
@@ -105,10 +105,10 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -213,13 +213,13 @@ const DocumentLibrary: React.FC = () => {
   const getFileIcon = (type: Document['documentType']) => {
     switch (type) {
       case 'pdf':
-        return <FaFilePdf className="text-red-600" size={24} />;
+        return <FaFilePdf className="text-[#A855F7]" size={24} />;
       case 'word':
-        return <FaFileWord className="text-blue-600" size={24} />;
+        return <FaFileWord className="text-[#00D1FF]" size={24} />;
       case 'image':
         return <FaFileImage className="text-green-600" size={24} />;
       default:
-        return <FaFileAlt className="text-gray-600" size={24} />;
+        return <FaFileAlt className="text-secondary" size={24} />;
     }
   };
 
@@ -257,54 +257,54 @@ const DocumentLibrary: React.FC = () => {
             <FaFolder className="inline mr-3" style={{ color: CUSTOM_COLORS.primary }} />
             Document Library
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-secondary">
             Centralized document storage with retention management and compliance tracking.
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
-          <div className="bg-white rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
-            <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
-            <div className="text-sm text-gray-600 mt-1">Total Documents</div>
+          <div className="bg-card rounded-xl p-6 shadow-md border-l-4" style={{ borderColor: CUSTOM_COLORS.primary }}>
+            <div className="text-3xl font-bold text-primary">{stats.total}</div>
+            <div className="text-sm text-secondary mt-1">Total Documents</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-yellow-500">
+          <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-yellow-500">
             <div className="text-3xl font-bold text-yellow-700">{stats.expiringSoon}</div>
-            <div className="text-sm text-gray-600 mt-1">Expiring Soon</div>
+            <div className="text-sm text-secondary mt-1">Expiring Soon</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-red-500">
+          <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-red-500">
             <div className="text-3xl font-bold text-red-700">{stats.expired}</div>
-            <div className="text-sm text-gray-600 mt-1">Expired</div>
+            <div className="text-sm text-secondary mt-1">Expired</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-gray-500">
-            <div className="text-3xl font-bold text-gray-700">{stats.archived}</div>
-            <div className="text-sm text-gray-600 mt-1">Archived</div>
+          <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-gray-500">
+            <div className="text-3xl font-bold text-primary">{stats.archived}</div>
+            <div className="text-sm text-secondary mt-1">Archived</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-blue-500">
+          <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-blue-500">
             <div className="text-3xl font-bold text-blue-700">{formatFileSize(stats.totalSize)}</div>
-            <div className="text-sm text-gray-600 mt-1">Total Storage</div>
+            <div className="text-sm text-secondary mt-1">Total Storage</div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl p-4 shadow-lg mb-6">
+        <div className="bg-card rounded-xl p-4 shadow-lg mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
               <input
                 type="text"
                 placeholder="Search documents by title, number, tags..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex items-center gap-2">
-              <FaFilter className="text-gray-400" />
+              <FaFilter className="text-secondary" />
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Categories</option>
                 <option value="Safety Meeting">Safety Meeting</option>
@@ -320,7 +320,7 @@ const DocumentLibrary: React.FC = () => {
               <select
                 value={filterRetention}
                 onChange={(e) => setFilterRetention(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Retention Status</option>
                 <option value="active">Active</option>
@@ -340,55 +340,55 @@ const DocumentLibrary: React.FC = () => {
         </div>
 
         {/* Documents Table */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-card rounded-xl shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-card">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Document</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Uploaded</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Retention</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Document</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Category</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Uploaded</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Retention</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Size</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-theme">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">Loading...</td>
+                    <td colSpan={7} className="px-6 py-8 text-center text-secondary">Loading...</td>
                   </tr>
                 ) : filteredDocuments.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">No documents found</td>
+                    <td colSpan={7} className="px-6 py-8 text-center text-secondary">No documents found</td>
                   </tr>
                 ) : (
                   filteredDocuments.map((doc) => (
-                    <tr 
-                      key={doc._id} 
+                    <tr
+                      key={doc._id}
                       onClick={() => {
                         setSelectedDocument(doc);
                         setShowDetailModal(true);
                       }}
-                      className="hover:bg-gray-50 transition cursor-pointer"
+                      className="hover:bg-[rgba(255,255,255,0.03)] transition cursor-pointer"
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           {getFileIcon(doc.documentType)}
                           <div>
-                            <div className="font-semibold text-gray-900">{doc.title}</div>
-                            <div className="text-xs text-gray-500">{doc.documentNumber}</div>
+                            <div className="font-semibold text-primary">{doc.title}</div>
+                            <div className="text-xs text-secondary">{doc.documentNumber}</div>
                             {doc.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {doc.tags.slice(0, 2).map((tag, idx) => (
-                                  <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
+                                  <span key={idx} className="px-2 py-0.5 bg-card text-secondary rounded text-xs">
                                     <FaTag className="inline mr-1" size={8} />
                                     {tag}
                                   </span>
                                 ))}
                                 {doc.tags.length > 2 && (
-                                  <span className="text-xs text-gray-400">+{doc.tags.length - 2}</span>
+                                  <span className="text-xs text-secondary">+{doc.tags.length - 2}</span>
                                 )}
                               </div>
                             )}
@@ -400,18 +400,18 @@ const DocumentLibrary: React.FC = () => {
                           {doc.category}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-6 py-4 text-sm text-secondary">
                         <div>{new Date(doc.uploadedDate).toLocaleDateString()}</div>
-                        <div className="text-xs text-gray-400">by {doc.uploadedBy}</div>
+                        <div className="text-xs text-secondary">by {doc.uploadedBy}</div>
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <div className="flex items-center gap-2">
-                          <FaCalendarAlt className="text-gray-400" size={12} />
+                          <FaCalendarAlt className="text-secondary" size={12} />
                           <div>
-                            <div className="text-gray-700">
+                            <div className="text-primary">
                               {new Date(doc.retentionEndDate).toLocaleDateString()}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-secondary">
                               {doc.retentionPeriod} months
                             </div>
                           </div>
@@ -434,12 +434,12 @@ const DocumentLibrary: React.FC = () => {
                           </span>
                         )}
                         {doc.retentionStatus === 'archived' && (
-                          <span className="flex items-center text-gray-700">
+                          <span className="flex items-center text-primary">
                             <FaArchive className="mr-1" /> Archived
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{formatFileSize(doc.fileSize)}</td>
+                      <td className="px-6 py-4 text-sm text-secondary">{formatFileSize(doc.fileSize)}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <button
@@ -448,7 +448,7 @@ const DocumentLibrary: React.FC = () => {
                               setSelectedDocument(doc);
                               setShowDetailModal(true);
                             }}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition"
                             title="View Details"
                           >
                             <FaEye />
@@ -476,7 +476,7 @@ const DocumentLibrary: React.FC = () => {
                               e.stopPropagation();
                               handleDeleteDocument(doc);
                             }}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete"
+                            className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition" title="Delete"
                           >
                             <FaTrash />
                           </button>
@@ -491,7 +491,7 @@ const DocumentLibrary: React.FC = () => {
         </div>
 
         {/* Info Panel */}
-        <div className="mt-6 bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+        <div className="mt-6 bg-card border-2 border-blue-200 rounded-xl p-6">
           <h3 className="text-lg font-bold text-blue-900 mb-3 flex items-center gap-2">
             <FaCheckCircle /> Document Retention Management
           </h3>
@@ -509,8 +509,8 @@ const DocumentLibrary: React.FC = () => {
       {/* Upload Document Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black/40 bg-opacity-50" onClick={() => setShowUploadModal(false)}>
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-card border-b p-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold">
                 {editingDocument ? 'Edit Document' : 'Upload New Document'}
               </h2>
@@ -537,7 +537,7 @@ const DocumentLibrary: React.FC = () => {
                     file: null,
                   });
                 }}
-                className="text-gray-500 hover:text-gray-800 transition-colors"
+                className="text-secondary hover:text-primary transition-colors"
               >
                 <FaTimes size={24} />
               </button>
@@ -617,36 +617,36 @@ const DocumentLibrary: React.FC = () => {
               className="p-6 space-y-6"
             >
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Title *</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Title *</label>
                 <input
                   type="text"
                   required
                   value={newDocument.title}
                   onChange={(e) => setNewDocument({ ...newDocument, title: e.target.value })}
-                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
                   placeholder="Document Title"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Description</label>
                 <textarea
                   rows={3}
                   value={newDocument.description}
                   onChange={(e) => setNewDocument({ ...newDocument, description: e.target.value })}
-                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
                   placeholder="Document description..."
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Category *</label>
                   <select
                     required
                     value={newDocument.category}
                     onChange={(e) => setNewDocument({ ...newDocument, category: e.target.value as any })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Safety Meeting">Safety Meeting</option>
                     <option value="Toolbox Talk">Toolbox Talk</option>
@@ -660,12 +660,12 @@ const DocumentLibrary: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Document Type *</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Document Type *</label>
                   <select
                     required
                     value={newDocument.documentType}
                     onChange={(e) => setNewDocument({ ...newDocument, documentType: e.target.value as any })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="pdf">PDF</option>
                     <option value="word">Word</option>
@@ -678,47 +678,47 @@ const DocumentLibrary: React.FC = () => {
 
               {!editingDocument && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">File *</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">File *</label>
                   <input
                     type="file"
                     required={!editingDocument}
                     onChange={(e) => setNewDocument({ ...newDocument, file: e.target.files?.[0] || null })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Retention Period (months) *</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Retention Period (months) *</label>
                   <input
                     type="number"
                     required
                     min="1"
                     value={newDocument.retentionPeriod}
                     onChange={(e) => setNewDocument({ ...newDocument, retentionPeriod: e.target.value })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Retention Start Date *</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Retention Start Date *</label>
                   <input
                     type="date"
                     required
                     value={newDocument.retentionStartDate}
                     onChange={(e) => setNewDocument({ ...newDocument, retentionStartDate: e.target.value })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Access Level</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Access Level</label>
                   <select
                     value={newDocument.accessLevel}
                     onChange={(e) => setNewDocument({ ...newDocument, accessLevel: e.target.value as any })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="public">Public</option>
                     <option value="restricted">Restricted</option>
@@ -726,12 +726,12 @@ const DocumentLibrary: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Audit Category</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Audit Category</label>
                   <input
                     type="text"
                     value={newDocument.auditCategory}
                     onChange={(e) => setNewDocument({ ...newDocument, auditCategory: e.target.value })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g., Safety Committee"
                   />
                 </div>
@@ -743,23 +743,23 @@ const DocumentLibrary: React.FC = () => {
                     type="checkbox"
                     checked={newDocument.autoDelete}
                     onChange={(e) => setNewDocument({ ...newDocument, autoDelete: e.target.checked })}
-                    className="w-5 h-5 text-blue-600 focus:ring-blue-500 rounded"
+                    className="w-5 h-5 text-[#00D1FF] focus:ring-blue-500 rounded"
                   />
-                  <span className="font-medium text-gray-700">Auto Delete After Retention</span>
+                  <span className="font-medium text-primary">Auto Delete After Retention</span>
                 </label>
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={newDocument.requiredForAudit}
                     onChange={(e) => setNewDocument({ ...newDocument, requiredForAudit: e.target.checked })}
-                    className="w-5 h-5 text-blue-600 focus:ring-blue-500 rounded"
+                    className="w-5 h-5 text-[#00D1FF] focus:ring-blue-500 rounded"
                   />
-                  <span className="font-medium text-gray-700">Required for Audit</span>
+                  <span className="font-medium text-primary">Required for Audit</span>
                 </label>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Tags (comma-separated)</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Tags (comma-separated)</label>
                 <input
                   type="text"
                   value={newDocument.tags.join(', ')}
@@ -767,19 +767,19 @@ const DocumentLibrary: React.FC = () => {
                     const tags = e.target.value.split(',').map(t => t.trim()).filter(t => t);
                     setNewDocument({ ...newDocument, tags });
                   }}
-                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
+                  className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-blue-500"
                   placeholder="tag1, tag2, tag3"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+              <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                 <button
                   type="button"
                   onClick={() => {
                     setShowUploadModal(false);
                     setEditingDocument(null);
                   }}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300"
+                  className="px-4 py-2 bg-gray-200 text-primary rounded-xl font-semibold hover:bg-gray-300"
                   disabled={submitting}
                 >
                   Cancel
@@ -801,12 +801,12 @@ const DocumentLibrary: React.FC = () => {
       {/* Document Detail Modal */}
       {showDetailModal && selectedDocument && (
         <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black/40 bg-opacity-50" onClick={() => setShowDetailModal(false)}>
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-card border-b p-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold">Document Details</h2>
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="text-gray-500 hover:text-gray-800 transition-colors"
+                className="text-secondary hover:text-primary transition-colors"
               >
                 <FaTimes size={24} />
               </button>
@@ -814,51 +814,51 @@ const DocumentLibrary: React.FC = () => {
 
             <div className="p-6 space-y-4">
               <div>
-                <h3 className="font-bold text-gray-900 text-lg">{selectedDocument.title}</h3>
-                <p className="text-sm text-gray-500">{selectedDocument.documentNumber}</p>
+                <h3 className="font-bold text-primary text-lg">{selectedDocument.title}</h3>
+                <p className="text-sm text-secondary">{selectedDocument.documentNumber}</p>
               </div>
 
               {selectedDocument.description && (
                 <div>
-                  <h4 className="font-semibold text-gray-700 mb-1">Description</h4>
-                  <p className="text-gray-600">{selectedDocument.description}</p>
+                  <h4 className="font-semibold text-primary mb-1">Description</h4>
+                  <p className="text-secondary">{selectedDocument.description}</p>
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-semibold text-gray-700 mb-1">Category</h4>
+                  <h4 className="font-semibold text-primary mb-1">Category</h4>
                   <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">{selectedDocument.category}</span>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-700 mb-1">Type</h4>
-                  <span className="text-gray-600">{selectedDocument.documentType.toUpperCase()}</span>
+                  <h4 className="font-semibold text-primary mb-1">Type</h4>
+                  <span className="text-secondary">{selectedDocument.documentType.toUpperCase()}</span>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-700 mb-1">Uploaded</h4>
-                  <p className="text-gray-600">{new Date(selectedDocument.uploadedDate).toLocaleDateString()}</p>
-                  <p className="text-xs text-gray-400">by {selectedDocument.uploadedBy}</p>
+                  <h4 className="font-semibold text-primary mb-1">Uploaded</h4>
+                  <p className="text-secondary">{new Date(selectedDocument.uploadedDate).toLocaleDateString()}</p>
+                  <p className="text-xs text-secondary">by {selectedDocument.uploadedBy}</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-700 mb-1">File Size</h4>
-                  <p className="text-gray-600">{formatFileSize(selectedDocument.fileSize)}</p>
+                  <h4 className="font-semibold text-primary mb-1">File Size</h4>
+                  <p className="text-secondary">{formatFileSize(selectedDocument.fileSize)}</p>
                 </div>
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-700 mb-1">Retention</h4>
+                <h4 className="font-semibold text-primary mb-1">Retention</h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
-                    <span className="text-gray-500">Period:</span> <span className="text-gray-700">{selectedDocument.retentionPeriod} months</span>
+                    <span className="text-secondary">Period:</span> <span className="text-primary">{selectedDocument.retentionPeriod} months</span>
                   </div>
                   <div>
-                    <span className="text-gray-500">End Date:</span> <span className="text-gray-700">{new Date(selectedDocument.retentionEndDate).toLocaleDateString()}</span>
+                    <span className="text-secondary">End Date:</span> <span className="text-primary">{new Date(selectedDocument.retentionEndDate).toLocaleDateString()}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500">Status:</span>
+                    <span className="text-secondary">Status:</span>
                     <span className={`ml-2 ${selectedDocument.retentionStatus === 'active' ? 'text-green-700' :
                       selectedDocument.retentionStatus === 'expiring-soon' ? 'text-yellow-700' :
-                        selectedDocument.retentionStatus === 'expired' ? 'text-red-700' : 'text-gray-700'
+                        selectedDocument.retentionStatus === 'expired' ? 'text-red-700' : 'text-primary'
                       }`}>
                       {selectedDocument.retentionStatus}
                     </span>
@@ -868,10 +868,10 @@ const DocumentLibrary: React.FC = () => {
 
               {selectedDocument.tags && selectedDocument.tags.length > 0 && (
                 <div>
-                  <h4 className="font-semibold text-gray-700 mb-2">Tags</h4>
+                  <h4 className="font-semibold text-primary mb-2">Tags</h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedDocument.tags.map((tag, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-sm">
+                      <span key={idx} className="px-2 py-1 bg-card text-secondary rounded text-sm">
                         <FaTag className="inline mr-1" size={10} />
                         {tag}
                       </span>
@@ -946,21 +946,21 @@ const DocumentLibrary: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && documentToDelete && (
         <div className="fixed inset-0 flex justify-center items-center z-[11000] p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FaExclamationTriangle className="text-red-500 text-3xl" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Delete Document?</h2>
-              <p className="text-gray-600">
-                Are you sure you want to delete <span className="font-semibold text-gray-800">"{documentToDelete.title}"</span>?
+              <h2 className="text-2xl font-bold text-primary mb-2">Delete Document?</h2>
+              <p className="text-secondary">
+                Are you sure you want to delete <span className="font-semibold text-primary">"{documentToDelete.title}"</span>?
                 This action cannot be undone.
               </p>
             </div>
             <div className="flex gap-4">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition"
+                className="flex-1 px-4 py-3 bg-card text-primary rounded-xl font-semibold hover:bg-gray-200 transition"
               >
                 Cancel
               </button>

@@ -147,23 +147,23 @@ const SystemSettings = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading settings...</p>
+          <p className="mt-4 text-secondary">Loading settings...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-card p-6">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4 mb-6">
+      <div className="bg-card rounded-xl shadow-sm border border-theme px-6 py-4 mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <h1 className="text-2xl font-bold text-primary flex items-center">
               <Settings className="w-6 h-6 mr-3 text-purple-600" />
               System Settings
             </h1>
-            <p className="text-gray-600 mt-1">Manage your super admin profile and preferences</p>
+            <p className="text-secondary mt-1">Manage your super admin profile and preferences</p>
           </div>
           <button
             onClick={handleSave}
@@ -179,40 +179,40 @@ const SystemSettings = () => {
       {/* Settings Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Profile Information */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
           <div className="flex items-center mb-6">
             <div className="bg-purple-100 p-2 rounded-lg mr-3">
               <User className="w-5 h-5 text-purple-600" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Profile Information</h2>
+            <h2 className="text-lg font-semibold text-primary">Profile Information</h2>
           </div>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Full Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={settings.name}
                 onChange={(e) => updateSetting('name', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="Enter your full name"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Email Address <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-secondary" />
                 <input
                   type="email"
                   value={settings.email}
                   onChange={(e) => updateSetting('email', e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter your email"
                   required
                 />
@@ -220,16 +220,16 @@ const SystemSettings = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Phone Number
               </label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-secondary" />
                 <input
                   type="tel"
                   value={settings.phone}
                   onChange={(e) => updateSetting('phone', e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter your phone number"
                 />
               </div>
@@ -238,26 +238,26 @@ const SystemSettings = () => {
         </div>
 
         {/* Location Information */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
           <div className="flex items-center mb-6">
             <div className="bg-blue-100 p-2 rounded-lg mr-3">
-              <MapPin className="w-5 h-5 text-blue-600" />
+              <MapPin className="w-5 h-5 text-[#00D1FF]" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Location Information</h2>
+            <h2 className="text-lg font-semibold text-primary">Location Information</h2>
           </div>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Country
               </label>
               <div className="relative">
-                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-secondary" />
                 <input
                   type="text"
                   value={settings.country}
                   onChange={(e) => updateSetting('country', e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full pl-10 pr-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter country"
                 />
               </div>
@@ -265,40 +265,40 @@ const SystemSettings = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-primary mb-2">
                   State/Province
                 </label>
                 <input
                   type="text"
                   value={settings.state}
                   onChange={(e) => updateSetting('state', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter state"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-primary mb-2">
                   City
                 </label>
                 <input
                   type="text"
                   value={settings.city}
                   onChange={(e) => updateSetting('city', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter city"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Address
               </label>
               <textarea
                 value={settings.address}
                 onChange={(e) => updateSetting('address', e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="Enter full address"
               />
             </div>
@@ -306,40 +306,40 @@ const SystemSettings = () => {
         </div>
 
         {/* Policies */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
           <div className="flex items-center mb-6">
             <div className="bg-green-100 p-2 rounded-lg mr-3">
               <FileText className="w-5 h-5 text-green-600" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Policies</h2>
+            <h2 className="text-lg font-semibold text-primary">Policies</h2>
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-primary mb-2">
               Policies
             </label>
             <textarea
               value={settings.policies}
               onChange={(e) => updateSetting('policies', e.target.value)}
               rows={5}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               placeholder="Enter policies or terms"
             />
           </div>
         </div>
 
         {/* Password Change */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
           <div className="flex items-center mb-6">
             <div className="bg-orange-100 p-2 rounded-lg mr-3">
-              <Lock className="w-5 h-5 text-orange-600" />
+              <Lock className="w-5 h-5 text-[#F59E0B]" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Change Password</h2>
+            <h2 className="text-lg font-semibold text-primary">Change Password</h2>
           </div>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Current Password
               </label>
               <div className="relative">
@@ -347,7 +347,7 @@ const SystemSettings = () => {
                   type={showCurrentPassword ? 'text' : 'password'}
                   value={settings.password}
                   onChange={(e) => updateSetting('password', e.target.value)}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 pr-10 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter current password"
                 />
                 <button
@@ -356,16 +356,16 @@ const SystemSettings = () => {
                   className="absolute inset-y-0 right-0 flex items-center pr-3"
                 >
                   {showCurrentPassword ? (
-                    <EyeOff className="w-4 h-4 text-gray-400" />
+                    <EyeOff className="w-4 h-4 text-secondary" />
                   ) : (
-                    <Eye className="w-4 h-4 text-gray-400" />
+                    <Eye className="w-4 h-4 text-secondary" />
                   )}
                 </button>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 New Password
               </label>
               <div className="relative">
@@ -373,7 +373,7 @@ const SystemSettings = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={settings.newPassword}
                   onChange={(e) => updateSetting('newPassword', e.target.value)}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 pr-10 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter new password (min 6 characters)"
                 />
                 <button
@@ -382,13 +382,13 @@ const SystemSettings = () => {
                   className="absolute inset-y-0 right-0 flex items-center pr-3"
                 >
                   {showPassword ? (
-                    <EyeOff className="w-4 h-4 text-gray-400" />
+                    <EyeOff className="w-4 h-4 text-secondary" />
                   ) : (
-                    <Eye className="w-4 h-4 text-gray-400" />
+                    <Eye className="w-4 h-4 text-secondary" />
                   )}
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-secondary mt-1">
                 Leave blank to keep current password
               </p>
             </div>

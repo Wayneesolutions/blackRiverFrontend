@@ -5,76 +5,76 @@ import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import { createtCustomer, updateCustomer } from '../../../../../axios/api/distapcher';
 
 interface ToastNotification {
-  id: number;
-  type: 'success' | 'error';
-  message: string;
+    id: number;
+    type: 'success' | 'error';
+    message: string;
 }
 
 const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
-  const icons = {
-    success: <FaCheckCircle className="text-green-500" size={24} />,
-    error: <FaExclamationCircle className="text-red-500" size={24} />,
-  };
+    const icons = {
+        success: <FaCheckCircle className="text-green-500" size={24} />,
+        error: <FaExclamationCircle className="text-red-500" size={24} />,
+    };
 
-  const bgColors = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-  };
+    const bgColors = {
+        success: 'bg-green-50 border-green-200',
+        error: 'bg-card border-red-200',
+    };
 
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose(notification.id);
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [notification.id, onClose]);
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            onClose(notification.id);
+        }, 5000);
+        return () => clearTimeout(timer);
+    }, [notification.id, onClose]);
 
-  return (
-    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
-      <div className="flex-shrink-0 mt-0.5">
-        {icons[notification.type]}
-      </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
-      <button
-        onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <FaTimes size={16} />
-      </button>
-    </div>
-  );
+    return (
+        <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in`}>
+            <div className="flex-shrink-0 mt-0.5">
+                {icons[notification.type]}
+            </div>
+            <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
+            <button
+                onClick={() => onClose(notification.id)}
+                className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
+            >
+                <FaTimes size={16} />
+            </button>
+        </div>
+    );
 };
 
 interface CustomerDetails {
-  _id?: string;
-  internalId?: string;
-  name?: string;
-  email?: string;
-  phone?: string;
-  country?: string;
-  state?: string;
-  city?: string;
-  customerDetails?: {
-    customerId?: string;
-    emailPrimary?: string;
-    emailSecondary?: string;
-    trackingEmail?: string;
-    taxId?: string;
-    assignedSalesperson?: string;
-    phonePrimary?: string;
-    phoneSecondary?: string;
-    contact?: string;
-    address?: string;
-    unit?: string;
-    zipCode?: string;
-    creditLimit?: string;
-    creditTerm?: string;
-    invoiceNet?: string;
-    defaultQuickPayDiscount?: string;
-    useFactoringCompany?: boolean;
-    csaFastApproved?: boolean;
-    softBlock?: boolean;
-    hardBlock?: boolean;
-  };
+    _id?: string;
+    internalId?: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    country?: string;
+    state?: string;
+    city?: string;
+    customerDetails?: {
+        customerId?: string;
+        emailPrimary?: string;
+        emailSecondary?: string;
+        trackingEmail?: string;
+        taxId?: string;
+        assignedSalesperson?: string;
+        phonePrimary?: string;
+        phoneSecondary?: string;
+        contact?: string;
+        address?: string;
+        unit?: string;
+        zipCode?: string;
+        creditLimit?: string;
+        creditTerm?: string;
+        invoiceNet?: string;
+        defaultQuickPayDiscount?: string;
+        useFactoringCompany?: boolean;
+        csaFastApproved?: boolean;
+        softBlock?: boolean;
+        hardBlock?: boolean;
+    };
 }
 
 interface NewCustomerSidebarProps {
@@ -86,11 +86,11 @@ interface NewCustomerSidebarProps {
 }
 
 const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
-  isOpen,
-  onClose,
-  mode = 'create',
-  customer,
-  onSaved
+    isOpen,
+    onClose,
+    mode = 'create',
+    customer,
+    onSaved
 }) => {
     const [customerData, setCustomerData] = useState({
         // Basic Information
@@ -104,7 +104,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
         phonePrimary: '',
         phoneSecondary: '',
         contact: '',
-        
+
         // Address
         address: '',
         city: '',
@@ -112,26 +112,26 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
         stateProvince: '',
         country: '',
         zipCode: '',
-        
+
         // Finance
         creditLimit: '',
         creditTerm: '',
         invoiceNet: '',
         defaultQuickPayDiscount: '',
         useFactoringCompany: false,
-        
+
         // Additional Settings
         csaFastApproved: false,
         softBlock: false,
         hardBlock: false,
-        
+
         // Legacy fields for API compatibility
         name: '',
         email: '',
         phone: '',
         internalId: ''
     });
-    
+
     const [isLoading, setIsLoading] = useState(false);
     const [notifications, setNotifications] = useState<ToastNotification[]>([]);
     const notificationIdRef = useRef(0);
@@ -148,7 +148,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
         const checked = (e.target as HTMLInputElement).checked;
-        
+
         setCustomerData(prev => ({
             ...prev,
             [name]: type === 'checkbox' ? checked : value,
@@ -162,45 +162,45 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
 
     // Prefill form when editing an existing customer
     useEffect(() => {
-      if (mode === 'edit' && customer) {
-        const details = customer.customerDetails || {};
+        if (mode === 'edit' && customer) {
+            const details = customer.customerDetails || {};
 
-        setCustomerData(prev => ({
-          ...prev,
-          customerId: details.customerId || customer.internalId || '',
-          customer: customer.name || '',
-          emailPrimary: details.emailPrimary || customer.email || '',
-          emailSecondary: details.emailSecondary || '',
-          trackingEmail: details.trackingEmail || '',
-          taxId: details.taxId || '',
-          assignedSalesperson: details.assignedSalesperson || '',
-          phonePrimary: details.phonePrimary || customer.phone || '',
-          phoneSecondary: details.phoneSecondary || '',
-          contact: details.contact || '',
-          address: details.address || '',
-          city: customer.city || '',
-          unit: details.unit || '',
-          stateProvince: customer.state || '',
-          country: customer.country || '',
-          zipCode: details.zipCode || '',
-          creditLimit: details.creditLimit || '',
-          creditTerm: details.creditTerm || '',
-          invoiceNet: details.invoiceNet || '',
-          defaultQuickPayDiscount: details.defaultQuickPayDiscount || '',
-          useFactoringCompany: !!details.useFactoringCompany,
-          csaFastApproved: !!details.csaFastApproved,
-          softBlock: !!details.softBlock,
-          hardBlock: !!details.hardBlock,
-          name: customer.name || '',
-          email: customer.email || '',
-          phone: customer.phone || '',
-          internalId: customer.internalId || ''
-        }));
-      } else if (mode === 'create' && !customer && !isOpen) {
-        // When closing create sidebar, ensure form is reset
-        resetForm();
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+            setCustomerData(prev => ({
+                ...prev,
+                customerId: details.customerId || customer.internalId || '',
+                customer: customer.name || '',
+                emailPrimary: details.emailPrimary || customer.email || '',
+                emailSecondary: details.emailSecondary || '',
+                trackingEmail: details.trackingEmail || '',
+                taxId: details.taxId || '',
+                assignedSalesperson: details.assignedSalesperson || '',
+                phonePrimary: details.phonePrimary || customer.phone || '',
+                phoneSecondary: details.phoneSecondary || '',
+                contact: details.contact || '',
+                address: details.address || '',
+                city: customer.city || '',
+                unit: details.unit || '',
+                stateProvince: customer.state || '',
+                country: customer.country || '',
+                zipCode: details.zipCode || '',
+                creditLimit: details.creditLimit || '',
+                creditTerm: details.creditTerm || '',
+                invoiceNet: details.invoiceNet || '',
+                defaultQuickPayDiscount: details.defaultQuickPayDiscount || '',
+                useFactoringCompany: !!details.useFactoringCompany,
+                csaFastApproved: !!details.csaFastApproved,
+                softBlock: !!details.softBlock,
+                hardBlock: !!details.hardBlock,
+                name: customer.name || '',
+                email: customer.email || '',
+                phone: customer.phone || '',
+                internalId: customer.internalId || ''
+            }));
+        } else if (mode === 'create' && !customer && !isOpen) {
+            // When closing create sidebar, ensure form is reset
+            resetForm();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mode, customer, isOpen]);
 
     const handleSubmit = async () => {
@@ -244,31 +244,31 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
 
             let customerResponse;
             if (mode === 'edit' && customer?._id) {
-              // Update existing customer
-              customerResponse = await updateCustomer(customer._id, apiData);
+                // Update existing customer
+                customerResponse = await updateCustomer(customer._id, apiData);
             } else {
-              // Create new customer
-              customerResponse = await createtCustomer(apiData);
+                // Create new customer
+                customerResponse = await createtCustomer(apiData);
             }
 
             if (!customerResponse?.success) {
                 showToast('error', customerResponse?.message || 'Error creating customer. Please try again.');
-            setIsLoading(false);
-            return;
+                setIsLoading(false);
+                return;
             }
 
             showToast('success', customerResponse.message || (mode === 'edit' ? 'Customer updated successfully!' : 'Customer created successfully!'));
 
             if (onSaved) {
-              onSaved();
+                onSaved();
             }
 
             if (mode === 'create') {
-              resetForm();
+                resetForm();
             }
-            
+
             setTimeout(() => {
-              onClose();
+                onClose();
             }, 800);
         } catch (error: any) {
             console.error('Error creating customer:', error);
@@ -332,8 +332,8 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
             </div>
 
             {/* Backdrop */}
-            <div 
-                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" 
+            <div
+                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]"
                 onClick={(e) => {
                     if (e.target === e.currentTarget) {
                         handleClose();
@@ -342,15 +342,15 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
             ></div>
 
             {/* Sidebar */}
-            <div 
-                className="fixed right-0 top-0 h-full w-[600px] bg-white border-l border-gray-200 shadow-xl z-[101] flex flex-col"
+            <div
+                className="fixed right-0 top-0 h-full w-[600px] bg-card border-l border-theme shadow-xl z-[101] flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="p-6 border-b border-gray-200 flex-shrink-0">
+                <div className="p-6 border-b border-theme flex-shrink-0">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-xl font-semibold text-gray-900">New Customer</h2>
-                        <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+                        <h2 className="text-xl font-semibold text-primary">New Customer</h2>
+                        <button onClick={handleClose} className="text-secondary hover:text-secondary transition-colors">
                             <X className="w-5 h-5" />
                         </button>
                     </div>
@@ -361,127 +361,127 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                     <div className="space-y-6">
                         {/* Basic Information Section */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Basic Information</h3>
+                            <h3 className="text-lg font-semibold text-primary mb-4 pb-2 border-b border-theme">Basic Information</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Customer ID</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Customer ID</label>
                                     <input
                                         type="text"
                                         name="customerId"
                                         value={customerData.customerId}
                                         onChange={handleInputChange}
                                         placeholder="e.g., CUST001, ABC123"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Customer *</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Customer *</label>
                                     <input
                                         type="text"
                                         name="customer"
                                         value={customerData.customer}
                                         onChange={handleInputChange}
                                         placeholder="Customer/Company Name"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                         required
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Address (Primary)</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Email Address (Primary)</label>
                                     <input
                                         type="email"
                                         name="emailPrimary"
                                         value={customerData.emailPrimary}
                                         onChange={handleInputChange}
                                         placeholder="primary@example.com"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Address (Secondary)</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Email Address (Secondary)</label>
                                     <input
                                         type="email"
                                         name="emailSecondary"
                                         value={customerData.emailSecondary}
                                         onChange={handleInputChange}
                                         placeholder="secondary@example.com"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tracking Email</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Tracking Email</label>
                                     <input
                                         type="email"
                                         name="trackingEmail"
                                         value={customerData.trackingEmail}
                                         onChange={handleInputChange}
                                         placeholder="tracking@example.com"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tax ID or Business No.</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Tax ID or Business No.</label>
                                     <input
                                         type="text"
                                         name="taxId"
                                         value={customerData.taxId}
                                         onChange={handleInputChange}
                                         placeholder="Tax Identification Number"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Salesperson</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Assigned Salesperson</label>
                                     <input
                                         type="text"
                                         name="assignedSalesperson"
                                         value={customerData.assignedSalesperson}
                                         onChange={handleInputChange}
                                         placeholder="Salesperson Name"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Primary Phone #</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">Primary Phone #</label>
                                         <input
                                             type="text"
                                             name="phonePrimary"
                                             value={customerData.phonePrimary}
                                             onChange={handleInputChange}
                                             placeholder="Primary Phone"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                            className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Phone #</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">Secondary Phone #</label>
                                         <input
                                             type="text"
                                             name="phoneSecondary"
                                             value={customerData.phoneSecondary}
                                             onChange={handleInputChange}
                                             placeholder="Secondary Phone"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                            className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Contact</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Contact</label>
                                     <input
                                         type="text"
                                         name="contact"
                                         value={customerData.contact}
                                         onChange={handleInputChange}
                                         placeholder="Primary Contact Name"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
                             </div>
@@ -489,79 +489,79 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
 
                         {/* Address Section */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Address</h3>
+                            <h3 className="text-lg font-semibold text-primary mb-4 pb-2 border-b border-theme">Address</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Address</label>
                                     <input
                                         type="text"
                                         name="address"
                                         value={customerData.address}
                                         onChange={handleInputChange}
                                         placeholder="Street Address"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">City</label>
                                         <input
                                             type="text"
                                             name="city"
                                             value={customerData.city}
                                             onChange={handleInputChange}
                                             placeholder="City"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                            className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">Unit</label>
                                         <input
                                             type="text"
                                             name="unit"
                                             value={customerData.unit}
                                             onChange={handleInputChange}
                                             placeholder="Unit Number"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                            className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">State/Province</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">State/Province</label>
                                         <input
                                             type="text"
                                             name="stateProvince"
                                             value={customerData.stateProvince}
                                             onChange={handleInputChange}
                                             placeholder="State/Province"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                            className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">Country</label>
                                         <input
                                             type="text"
                                             name="country"
                                             value={customerData.country}
                                             onChange={handleInputChange}
                                             placeholder="Country"
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                            className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">ZIP Code</label>
                                     <input
                                         type="text"
                                         name="zipCode"
                                         value={customerData.zipCode}
                                         onChange={handleInputChange}
                                         placeholder="ZIP/Postal Code"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
                             </div>
@@ -569,46 +569,46 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
 
                         {/* Finance Section */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Finance</h3>
+                            <h3 className="text-lg font-semibold text-primary mb-4 pb-2 border-b border-theme">Finance</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Credit Limit</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Credit Limit</label>
                                     <input
                                         type="number"
                                         name="creditLimit"
                                         value={customerData.creditLimit}
                                         onChange={handleInputChange}
                                         placeholder="Maximum Credit Amount"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Credit Term</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Credit Term</label>
                                     <input
                                         type="number"
                                         name="creditTerm"
                                         value={customerData.creditTerm}
                                         onChange={handleInputChange}
                                         placeholder="Days (e.g., 30)"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Net</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Invoice Net</label>
                                     <input
                                         type="number"
                                         name="invoiceNet"
                                         value={customerData.invoiceNet}
                                         onChange={handleInputChange}
                                         placeholder="Percentage (e.g., 30)"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Default Quick Pay Discount (%)</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Default Quick Pay Discount (%)</label>
                                     <input
                                         type="number"
                                         name="defaultQuickPayDiscount"
@@ -616,7 +616,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         onChange={handleInputChange}
                                         placeholder="Discount Percentage"
                                         step="0.01"
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
 
@@ -627,9 +627,9 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         id="useFactoringCompany"
                                         checked={customerData.useFactoringCompany}
                                         onChange={handleInputChange}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        className="w-4 h-4 text-[#00D1FF] border-theme rounded focus:ring-blue-500"
                                     />
-                                    <label htmlFor="useFactoringCompany" className="ml-2 text-sm font-medium text-gray-700">
+                                    <label htmlFor="useFactoringCompany" className="ml-2 text-sm font-medium text-primary">
                                         Use Factoring Company
                                     </label>
                                 </div>
@@ -638,7 +638,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
 
                         {/* Additional Settings Section */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Additional Settings</h3>
+                            <h3 className="text-lg font-semibold text-primary mb-4 pb-2 border-b border-theme">Additional Settings</h3>
                             <div className="space-y-3">
                                 <div className="flex items-center">
                                     <input
@@ -647,9 +647,9 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         id="csaFastApproved"
                                         checked={customerData.csaFastApproved}
                                         onChange={handleInputChange}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        className="w-4 h-4 text-[#00D1FF] border-theme rounded focus:ring-blue-500"
                                     />
-                                    <label htmlFor="csaFastApproved" className="ml-2 text-sm font-medium text-gray-700">
+                                    <label htmlFor="csaFastApproved" className="ml-2 text-sm font-medium text-primary">
                                         CSA/FAST Approved
                                     </label>
                                 </div>
@@ -661,9 +661,9 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         id="softBlock"
                                         checked={customerData.softBlock}
                                         onChange={handleInputChange}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        className="w-4 h-4 text-[#00D1FF] border-theme rounded focus:ring-blue-500"
                                     />
-                                    <label htmlFor="softBlock" className="ml-2 text-sm font-medium text-gray-700">
+                                    <label htmlFor="softBlock" className="ml-2 text-sm font-medium text-primary">
                                         Soft Block
                                     </label>
                                 </div>
@@ -675,9 +675,9 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         id="hardBlock"
                                         checked={customerData.hardBlock}
                                         onChange={handleInputChange}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        className="w-4 h-4 text-[#00D1FF] border-theme rounded focus:ring-blue-500"
                                     />
-                                    <label htmlFor="hardBlock" className="ml-2 text-sm font-medium text-gray-700">
+                                    <label htmlFor="hardBlock" className="ml-2 text-sm font-medium text-primary">
                                         Hard Block
                                     </label>
                                 </div>
@@ -687,11 +687,11 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-200 flex justify-between items-center bg-white sticky bottom-0 z-[102]">
+                <div className="p-6 border-t border-theme flex justify-between items-center bg-card sticky bottom-0 z-[102]">
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                        className="px-5 py-2.5 border border-theme rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                         disabled={isLoading}
                     >
                         Cancel
@@ -701,7 +701,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                         onClick={handleSubmit}
                         className="px-5 py-2.5 rounded-lg !text-white transition-all font-medium"
                         style={{
-                            background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                            background: 'var(--accent-navyblue)',
                         }}
                         disabled={isLoading || !customerData.customer.trim()}
                     >

@@ -119,9 +119,9 @@ const Index = () => {
       value: dashboardStats?.totalDrivers ?? 0,
       subtitle: `${dashboardStats?.recentDriverActivity?.active ?? 0} active, ${dashboardStats?.recentDriverActivity?.inactive ?? 0} inactive`,
       icon: Truck,
-      bgColor: 'bg-blue-100',
-      iconColor: 'text-blue-700',
-      cardBg: 'bg-gradient-to-br from-blue-50 to-blue-100',
+      bgColor: 'bg-[var(--accent-blue)]/10',
+      iconColor: 'text-[var(--accent-blue)]',
+      cardBg: 'bg-card',
       path: `${basePath}/drivers`
     },
     {
@@ -130,9 +130,9 @@ const Index = () => {
       value: dashboardStats?.totalEmployees ?? 0,
       subtitle: 'Active workforce',
       icon: Users,
-      bgColor: 'bg-purple-100',
-      iconColor: 'text-purple-700',
-      cardBg: 'bg-gradient-to-br from-purple-50 to-purple-100',
+      bgColor: 'bg-[var(--accent-purple)]/10',
+      iconColor: 'text-[var(--accent-purple)]',
+      cardBg: 'bg-card',
       path: `${basePath}/employeelist`
     },
     {
@@ -141,9 +141,9 @@ const Index = () => {
       value: dashboardStats?.usBasedDrivers ?? 0,
       subtitle: 'United States based',
       icon: MapPin,
-      bgColor: 'bg-red-100',
-      iconColor: 'text-red-700',
-      cardBg: 'bg-gradient-to-br from-red-50 to-red-100',
+      bgColor: 'bg-[var(--accent-red)]/10',
+      iconColor: 'text-[var(--accent-red)]',
+      cardBg: 'bg-card',
       path: `${basePath}/drivers`
     },
     {
@@ -152,9 +152,9 @@ const Index = () => {
       value: dashboardStats?.canadaBasedDrivers ?? 0,
       subtitle: 'Canada based',
       icon: MapPin,
-      bgColor: 'bg-cyan-100',
-      iconColor: 'text-cyan-700',
-      cardBg: 'bg-gradient-to-br from-cyan-50 to-cyan-100',
+      bgColor: 'bg-[var(--accent-cyan)]/10',
+      iconColor: 'text-[var(--accent-cyan)]',
+      cardBg: 'bg-card',
       path: `${basePath}/drivers`
     },
     {
@@ -163,9 +163,9 @@ const Index = () => {
       value: dashboardStats?.soloDrivers ?? 0,
       subtitle: 'Individual drivers',
       icon: UserCheck,
-      bgColor: 'bg-green-100',
-      iconColor: 'text-green-700',
-      cardBg: 'bg-gradient-to-br from-green-50 to-green-100',
+      bgColor: 'bg-[var(--accent-green)]/10',
+      iconColor: 'text-[var(--accent-green)]',
+      cardBg: 'bg-card',
       path: `${basePath}/drivers`
     },
     {
@@ -174,9 +174,9 @@ const Index = () => {
       value: dashboardStats?.teamDrivers ?? 0,
       subtitle: 'Team-based drivers',
       icon: UsersRound,
-      bgColor: 'bg-teal-100',
-      iconColor: 'text-teal-700',
-      cardBg: 'bg-gradient-to-br from-teal-50 to-teal-100',
+      bgColor: 'bg-[var(--accent-teal)]/10',
+      iconColor: 'text-[var(--accent-teal)]',
+      cardBg: 'bg-card',
       path: `${basePath}/drivers`
     },
     {
@@ -185,9 +185,9 @@ const Index = () => {
       value: dashboardStats?.activeDrivers ?? 0,
       subtitle: `${dashboardStats?.recentDriverActivity?.active ?? 0} active, ${dashboardStats?.recentDriverActivity?.inactive ?? 0} inactive`,
       icon: Truck,
-      bgColor: 'bg-blue-100',
-      iconColor: 'text-blue-700',
-      cardBg: 'bg-gradient-to-br from-blue-50 to-blue-100',
+      bgColor: 'bg-[var(--accent-blue)]/10',
+      iconColor: 'text-[var(--accent-blue)]',
+      cardBg: 'bg-card',
       path: `${basePath}/drivers`
     },
     {
@@ -196,9 +196,9 @@ const Index = () => {
       value: dashboardStats?.pendingDocumentRenewals ?? 0,
       subtitle: 'Documents requiring attention',
       icon: FileText,
-      bgColor: 'bg-orange-100',
-      iconColor: 'text-orange-700',
-      cardBg: 'bg-gradient-to-br from-orange-50 to-orange-100',
+      bgColor: 'bg-[var(--accent-orange)]/10',
+      iconColor: 'text-[var(--accent-orange)]',
+      cardBg: 'bg-card',
       path: `${basePath}/documents`
     },
     {
@@ -207,9 +207,9 @@ const Index = () => {
       value: dashboardStats?.attendance?.presentToday ?? 0,
       subtitle: 'Current attendance',
       icon: Clock,
-      bgColor: 'bg-emerald-100',
-      iconColor: 'text-emerald-700',
-      cardBg: 'bg-gradient-to-br from-emerald-50 to-emerald-100',
+      bgColor: 'bg-[var(--accent-green)]/10',
+      iconColor: 'text-[var(--accent-green)]',
+      cardBg: 'bg-card',
       path: `${basePath}/attendence`
     },
   ];
@@ -221,8 +221,8 @@ const Index = () => {
       subtitle: 'Pending',
       value: dashboardStats?.documents?.pending ?? 0,
       icon: FileText,
-      bgColor: 'bg-orange-100',
-      iconColor: 'text-orange-700',
+      bgColor: 'bg-[var(--accent-amber)]/10',
+      iconColor: 'text-[var(--accent-amber)]',
       path: `${basePath}/documents`
     },
     {
@@ -231,8 +231,8 @@ const Index = () => {
       subtitle: `${dashboardStats?.companyDocuments?.expiringSoon ?? 0} expiring`,
       value: dashboardStats?.companyDocuments?.total ?? 0,
       icon: FolderOpen,
-      bgColor: 'bg-sky-100',
-      iconColor: 'text-sky-700',
+      bgColor: 'bg-[var(--accent-cyan)]/10',
+      iconColor: 'text-[var(--accent-cyan)]',
       path: `${basePath}/company-documents`
     },
     {
@@ -241,8 +241,8 @@ const Index = () => {
       subtitle: 'Present today',
       value: dashboardStats?.attendance?.presentToday ?? 0,
       icon: Clock,
-      bgColor: 'bg-emerald-100',
-      iconColor: 'text-emerald-700',
+      bgColor: 'bg-[var(--accent-green)]/10',
+      iconColor: 'text-[var(--accent-green)]',
       path: `${basePath}/attendence`
     },
     {
@@ -251,8 +251,8 @@ const Index = () => {
       subtitle: 'Completed',
       value: dashboardStats?.employeePortfolio?.completed ?? 0,
       icon: Briefcase,
-      bgColor: 'bg-indigo-100',
-      iconColor: 'text-indigo-700',
+      bgColor: 'bg-[var(--accent-purple)]/10',
+      iconColor: 'text-[var(--accent-purple)]',
       path: `${basePath}/employee-profiles`
     },
     {
@@ -261,8 +261,8 @@ const Index = () => {
       subtitle: 'Open',
       value: dashboardStats?.issues?.open ?? 0,
       icon: AlertCircle,
-      bgColor: 'bg-rose-100',
-      iconColor: 'text-rose-700',
+      bgColor: 'bg-[var(--accent-red)]/10',
+      iconColor: 'text-[var(--accent-red)]',
       path: `${basePath}/issues`
     },
     {
@@ -271,287 +271,284 @@ const Index = () => {
       subtitle: 'View List',
       value: dashboardStats?.totalEmployees ?? 0,
       icon: Users,
-      bgColor: 'bg-purple-100',
-      iconColor: 'text-purple-700',
+      bgColor: 'bg-[var(--accent-teal)]/10',
+      iconColor: 'text-[var(--accent-teal)]',
       path: `${basePath}/employeelist`
     }
   ];
 
   if (loading) {
     return (
-      <div className="min-h-screen p-4 bg-[#EDF8FF] px-6 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-500"></div>
+      <div className="min-h-screen p-4 bg-main px-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-[var(--accent-blue)]"></div>
       </div>
     );
   }
 
   return (
     <>
-    <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
-     <div className="w-full mx-auto p-2 relative">
-        {/* Gradient band */}
-        <div
-          className="absolute inset-x-0 top-0"
-          style={{
-            background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
-            height: '101px'
-          }}
-          aria-hidden="true"
-        />
+      <div className="min-h-screen " >
+        <div className="w-full mx-auto p-2 relative ">
+          {/* Gradient band */}
+          <div
+            className="absolute inset-x-0 top-0"
 
-        {/* Main content */}
-        <div className="relative z-10 px-4 pt-3 pb-6">
-          {/* Header Section */}
-          <div className="mb-4 relative z-10">
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-white">HR Management</h1>
-              <div className="flex items-center gap-2 text-white/90">
-                <span className="text-xs">Dashboard Overview</span>
+            aria-hidden="true"
+          />
+
+          {/* Main content */}
+          <div className="relative z-10 px-4 pt-3 pb-6">
+            {/* Header Section */}
+            <div className="mb-4 relative z-10">
+              <div className="flex items-center justify-between">
+                <h1 className="text-xl font-bold text-[var(--accent-navyblue)]">HR Management</h1>
+                <div className="flex items-center gap-2 text-secondary">
+                  <span className="text-xs">Dashboard Overview</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 -mt-2 mb-4">
-            {features.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={feature.id}
-                  onClick={() => {
-                    if (feature.path) {
-                      navigate(feature.path);
-                    }
-                  }}
-                  className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all ${feature.path ? 'cursor-pointer' : 'cursor-default'} border border-transparent hover:border-[#42aeec]/20 ${feature.path ? 'hover:scale-[1.02] active:scale-[0.98]' : ''}`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    {/* Left side content */}
-                    <div className="flex-1">
-                      <h3 className="text-sm font-bold text-gray-900 mb-1">
-                        {feature.title}
-                      </h3>
-
-                      <div className="flex items-baseline gap-2 mb-0.5">
-                        <span className="text-xl font-bold text-gray-900">{feature.value}</span>
-                      </div>
-
-                      <p className="text-xs text-gray-400">{feature.subtitle}</p>
-                    </div>
-
-                    {/* Right side icon */}
-                    <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
-                      <Icon className={feature.iconColor} size={21} strokeWidth={2} />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Quick Actions Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6 mb-4">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions & Overview</h2>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-              {quickActions.map((action) => {
-                const Icon = action.icon;
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 -mt-2 mb-4">
+              {features.map((feature) => {
+                const Icon = feature.icon;
                 return (
                   <div
-                    key={action.id}
-                    onClick={() => navigate(action.path)}
-                    className="group p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
+                    key={feature.id}
+                    onClick={() => {
+                      if (feature.path) {
+                        navigate(feature.path);
+                      }
+                    }}
+                    className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all ${feature.path ? 'cursor-pointer' : 'cursor-default'} border border-transparent hover:border-[var(--accent-blue)]/20 bg-card border border-theme hover:border-[var(--accent-blue)]/30 ${feature.path ? 'hover:scale-[1.02] active:scale-[0.98]' : ''}`}
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className={`${action.bgColor} group-hover:bg-white p-2 rounded-lg transition-colors`}>
-                        <Icon className={`h-5 w-5 ${action.iconColor}`} />
+                    <div className="flex items-start justify-between mb-2">
+                      {/* Left side content */}
+                      <div className="flex-1">
+                        <h3 className="text-sm font-bold text-primary mb-1">
+                          {feature.title}
+                        </h3>
+
+                        <div className="flex items-baseline gap-2 mb-0.5">
+                          <span className="text-xl font-bold text-primary">{feature.value}</span>
+                        </div>
+
+                        <p className="text-xs text-secondary">{feature.subtitle}</p>
                       </div>
-                      <span className="text-lg font-bold text-gray-900 group-hover:text-blue-700">
-                        {action.value}
-                      </span>
+
+                      {/* Right side icon */}
+                      <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
+                        <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                      </div>
                     </div>
-                    <p className="text-sm font-medium text-gray-700 group-hover:text-blue-800">{action.title}</p>
-                    <p className="text-xs text-gray-500 mt-1 group-hover:text-blue-600">{action.subtitle}</p>
                   </div>
                 );
               })}
             </div>
-          </div>
 
-          {/* Additional Information Sections */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Upcoming Birthdays */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Gift className="h-5 w-5 text-pink-600" />
-                <h2 className="text-lg font-bold text-gray-900">Upcoming Birthdays</h2>
-              </div>
-              <div className="space-y-3">
-                {dashboardStats?.upcomingBirthdays && dashboardStats.upcomingBirthdays.length > 0 ? (
-                  dashboardStats.upcomingBirthdays.slice(0, 5).map((birthday, index) => {
-                    const birthdayDate = birthday.birthday ? new Date(birthday.birthday + 'T00:00:00') : null;
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    today.setMinutes(0, 0);
-                    today.setSeconds(0, 0);
-                    today.setMilliseconds(0);
-                    
-                    // Use daysUntil from backend if available, otherwise calculate
-                    let daysUntil = birthday.daysUntil;
-                    if (daysUntil === undefined && birthdayDate && !isNaN(birthdayDate.getTime())) {
-                      daysUntil = Math.ceil((birthdayDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                    }
-                    
-                    return (
-                      <div key={index} className="flex items-center justify-between p-3 bg-pink-50 rounded-lg border border-pink-100">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">{birthday.name || 'Unknown'}</p>
-                          <p className="text-xs text-gray-600">
-                            {birthdayDate && !isNaN(birthdayDate.getTime()) 
-                              ? birthdayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                              : birthday.birthday 
-                                ? new Date(birthday.birthday).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                                : 'Date not available'}
-                          </p>
+            {/* Quick Actions Section */}
+            <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6 mb-4">
+              <h2 className="text-lg font-bold text-primary mb-4">Quick Actions & Overview</h2>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+                {quickActions.map((action) => {
+                  const Icon = action.icon;
+                  return (
+                    <div
+                      key={action.id}
+                      onClick={() => navigate(action.path)}
+                      className="group p-4 rounded-xl border border-theme hover:border-[var(--accent-blue)]/30
+hover:bg-[rgba(255,255,255,0.05)] transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className={`${action.bgColor} group-hover:bg-card p-2 rounded-lg transition-colors`}>
+                          <Icon className={`h-5 w-5 ${action.iconColor}`} />
                         </div>
-                        <span className="text-xs font-medium text-pink-700 bg-pink-100 px-2 py-1 rounded-full">
-                          {daysUntil !== null && daysUntil !== undefined
-                            ? (daysUntil === 0 ? 'Today' : daysUntil < 0 ? 'Past' : `${daysUntil} days`)
-                            : 'N/A'}
+                        <span className="text-lg font-bold text-primary group-hover:text-accent">
+                          {action.value}
                         </span>
                       </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <p className="text-sm">No upcoming birthdays in the next 30 days</p>
-                  </div>
-                )}
+                      <p className="text-sm font-medium text-primary group-hover:text-accent">{action.title}</p>
+                      <p className="text-xs text-secondary mt-1 group-hover:text-accent">{action.subtitle}</p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Upcoming Work Anniversaries */}
-            {(dashboardStats?.upcomingWorkAnniversaries && dashboardStats.upcomingWorkAnniversaries.length > 0) ? (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6">
+            {/* Additional Information Sections */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Upcoming Birthdays */}
+              <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <Award className="h-5 w-5 text-amber-600" />
-                  <h2 className="text-lg font-bold text-gray-900">Work Anniversaries</h2>
+                  <Gift className="h-5 w-5 text-pink-600" />
+                  <h2 className="text-lg font-bold text-primary">Upcoming Birthdays</h2>
                 </div>
                 <div className="space-y-3">
-                  {dashboardStats.upcomingWorkAnniversaries.slice(0, 5).map((anniversary, index) => {
-                    const anniversaryDate = anniversary.anniversaryDate ? new Date(anniversary.anniversaryDate) : null;
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const daysUntil = anniversaryDate && !isNaN(anniversaryDate.getTime())
-                      ? Math.ceil((anniversaryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-                      : null;
-                    
-                    return (
-                      <div key={index} className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-100">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">{anniversary.name || 'Unknown'}</p>
-                          <p className="text-xs text-gray-600">
-                            {anniversary.yearsOfService || 0} {(anniversary.yearsOfService || 0) === 1 ? 'year' : 'years'} • {anniversaryDate && !isNaN(anniversaryDate.getTime())
-                              ? anniversaryDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                              : 'Date not available'}
-                          </p>
+                  {dashboardStats?.upcomingBirthdays && dashboardStats.upcomingBirthdays.length > 0 ? (
+                    dashboardStats.upcomingBirthdays.slice(0, 5).map((birthday, index) => {
+                      const birthdayDate = birthday.birthday ? new Date(birthday.birthday + 'T00:00:00') : null;
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      today.setMinutes(0, 0);
+                      today.setSeconds(0, 0);
+                      today.setMilliseconds(0);
+
+                      // Use daysUntil from backend if available, otherwise calculate
+                      let daysUntil = birthday.daysUntil;
+                      if (daysUntil === undefined && birthdayDate && !isNaN(birthdayDate.getTime())) {
+                        daysUntil = Math.ceil((birthdayDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                      }
+
+                      return (
+                        <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-[var(--accent-purple)]/10 border-theme">
+                          <div>
+                            <p className="text-sm font-semibold text-primary">{birthday.name || 'Unknown'}</p>
+                            <p className="text-xs text-secondary">
+                              {birthdayDate && !isNaN(birthdayDate.getTime())
+                                ? birthdayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                                : birthday.birthday
+                                  ? new Date(birthday.birthday).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                                  : 'Date not available'}
+                            </p>
+                          </div>
+                          <span className="text-xs font-medium text-[var(--accent-purple)] bg-[var(--accent-purple)]/10 text-[var(--accent-purple)] bg-[var(--accent-purple)]/10 px-2 py-1 rounded-full">
+                            {daysUntil !== null && daysUntil !== undefined
+                              ? (daysUntil === 0 ? 'Today' : daysUntil < 0 ? 'Past' : `${daysUntil} days`)
+                              : 'N/A'}
+                          </span>
                         </div>
-                        <span className="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
-                          {daysUntil !== null 
-                            ? (daysUntil === 0 ? 'Today' : daysUntil < 0 ? 'Past' : `${daysUntil} days`)
-                            : 'N/A'}
-                        </span>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-8 text-secondary">
+                      <p className="text-sm">No upcoming birthdays in the next 30 days</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Upcoming Work Anniversaries */}
+              {(dashboardStats?.upcomingWorkAnniversaries && dashboardStats.upcomingWorkAnniversaries.length > 0) ? (
+                <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Award className="h-5 w-5 text-amber-600" />
+                    <h2 className="text-lg font-bold text-primary">Work Anniversaries</h2>
+                  </div>
+                  <div className="space-y-3">
+                    {dashboardStats.upcomingWorkAnniversaries.slice(0, 5).map((anniversary, index) => {
+                      const anniversaryDate = anniversary.anniversaryDate ? new Date(anniversary.anniversaryDate) : null;
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const daysUntil = anniversaryDate && !isNaN(anniversaryDate.getTime())
+                        ? Math.ceil((anniversaryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                        : null;
+
+                      return (
+                        <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-[var(--accent-amber)]/10 border-theme">
+                          <div>
+                            <p className="text-sm font-semibold text-primary">{anniversary.name || 'Unknown'}</p>
+                            <p className="text-xs text-secondary">
+                              {anniversary.yearsOfService || 0} {(anniversary.yearsOfService || 0) === 1 ? 'year' : 'years'} • {anniversaryDate && !isNaN(anniversaryDate.getTime())
+                                ? anniversaryDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                                : 'Date not available'}
+                            </p>
+                          </div>
+                          <span className="text-xs font-medium text-[var(--accent-amber)] bg-[var(--accent-amber)]/10 px-2 py-1 rounded-full">
+                            {daysUntil !== null
+                              ? (daysUntil === 0 ? 'Today' : daysUntil < 0 ? 'Past' : `${daysUntil} days`)
+                              : 'N/A'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Award className="h-5 w-5 text-amber-600" />
+                    <h2 className="text-lg font-bold text-primary">Upcoming Work Anniversaries</h2>
+                  </div>
+                  <div className="text-center py-8 text-secondary">
+                    <p className="text-sm">No upcoming work anniversaries</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Document Expiry Tracking */}
+            {(dashboardStats?.documentExpiryTracking && dashboardStats.documentExpiryTracking.length > 0) ? (
+              <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6 mt-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Calendar className="h-5 w-5 text-[var(--accent-orange)]" />
+                  <h2 className="text-lg font-bold text-primary">Document Expiry Tracking</h2>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-card">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">Employee</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">Document Type</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">Expiry Date</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-theme">
+                      {dashboardStats.documentExpiryTracking.slice(0, 10).map((doc, index) => {
+                        const expiryDate = doc.expiryDate ? new Date(doc.expiryDate) : null;
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const daysUntilExpiry = expiryDate && !isNaN(expiryDate.getTime())
+                          ? Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                          : null;
+
+                        return (
+                          <tr key={index} className="hover:bg-[rgba(255,255,255,0.03)]">
+                            <td className="px-4 py-3 text-sm text-primary">{doc.employeeOrDriverName || 'Unknown'}</td>
+                            <td className="px-4 py-3 text-sm text-secondary">{doc.documentType || 'N/A'}</td>
+                            <td className="px-4 py-3 text-sm text-secondary">
+                              {expiryDate && !isNaN(expiryDate.getTime())
+                                ? expiryDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                                : 'Date not available'}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`text-xs font-medium px-2 py-1 rounded-full ${daysUntilExpiry !== null && daysUntilExpiry < 0
+                                ? 'bg-[var(--accent-red)]/10 text-[var(--accent-red)]'
+                                : daysUntilExpiry !== null && daysUntilExpiry <= 30
+                                  ? 'group-hover:text-accentbg-[var(--accent-orange)]/10 text-[var(--accent-orange)]'
+                                  : 'bg-[var(--accent-green)]/10 text-[var(--accent-green)]'
+                                }`}>
+                                {daysUntilExpiry === null
+                                  ? 'N/A'
+                                  : daysUntilExpiry < 0
+                                    ? 'Expired'
+                                    : daysUntilExpiry === 0
+                                      ? 'Expires Today'
+                                      : `${daysUntilExpiry} days left`}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6">
+              <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6 mt-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <Award className="h-5 w-5 text-amber-600" />
-                  <h2 className="text-lg font-bold text-gray-900">Upcoming Work Anniversaries</h2>
+                  <Calendar className="h-5 w-5 text-[var(--accent-orange)]" />
+                  <h2 className="text-lg font-bold text-primary">Document Expiry Tracking</h2>
                 </div>
-                <div className="text-center py-8 text-gray-500">
-                  <p className="text-sm">No upcoming work anniversaries</p>
+                <div className="text-center py-8 text-secondary">
+                  <p className="text-sm">No document expiry records available</p>
                 </div>
               </div>
             )}
           </div>
-
-          {/* Document Expiry Tracking */}
-          {(dashboardStats?.documentExpiryTracking && dashboardStats.documentExpiryTracking.length > 0) ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6 mt-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Calendar className="h-5 w-5 text-orange-600" />
-                <h2 className="text-lg font-bold text-gray-900">Document Expiry Tracking</h2>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Employee</th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Document Type</th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Expiry Date</th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {dashboardStats.documentExpiryTracking.slice(0, 10).map((doc, index) => {
-                      const expiryDate = doc.expiryDate ? new Date(doc.expiryDate) : null;
-                      const today = new Date();
-                      today.setHours(0, 0, 0, 0);
-                      const daysUntilExpiry = expiryDate && !isNaN(expiryDate.getTime())
-                        ? Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-                        : null;
-                      
-                      return (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm text-gray-900">{doc.employeeOrDriverName || 'Unknown'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{doc.documentType || 'N/A'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            {expiryDate && !isNaN(expiryDate.getTime())
-                              ? expiryDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                              : 'Date not available'}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                              daysUntilExpiry !== null && daysUntilExpiry < 0 
-                                ? 'bg-red-100 text-red-700' 
-                                : daysUntilExpiry !== null && daysUntilExpiry <= 30 
-                                ? 'bg-orange-100 text-orange-700' 
-                                : 'bg-green-100 text-green-700'
-                            }`}>
-                              {daysUntilExpiry === null
-                                ? 'N/A'
-                                : daysUntilExpiry < 0 
-                                ? 'Expired' 
-                                : daysUntilExpiry === 0 
-                                ? 'Expires Today' 
-                                : `${daysUntilExpiry} days left`}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6 mt-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Calendar className="h-5 w-5 text-orange-600" />
-                <h2 className="text-lg font-bold text-gray-900">Document Expiry Tracking</h2>
-              </div>
-              <div className="text-center py-8 text-gray-500">
-                <p className="text-sm">No document expiry records available</p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
-    </div>
     </>
   );
 }

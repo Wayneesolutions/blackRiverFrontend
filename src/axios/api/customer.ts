@@ -66,3 +66,19 @@ export const deleteCustomer = async (id: string) => {
   }
 };
 
+// Import customers from CSV/Excel
+export const importCustomersFromFile = async (file: File, fieldMap: Record<string, string>) => {
+  try {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('fieldMap', JSON.stringify(fieldMap));
+    const res: AxiosResponse = await apiClient.post('dispatcher/customer/import', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as any).response?.data;
+  }
+};
+

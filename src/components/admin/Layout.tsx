@@ -11,20 +11,20 @@ import { socketService } from "../../services/socketService";
 
 // Wrapper to handle route changes
 const OutletWrapper = memo(() => {
-  return <Outlet />;
+    return <Outlet />;
 });
 
 const Layout = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [documentNotification, setDocumentNotification] = useState<any>(null);
     const [showDocumentNotification, setShowDocumentNotification] = useState(false);
-    
+
     // Hooks MUST be called unconditionally at top level (React Rules of Hooks)
     // ErrorBoundary will catch any errors from these hooks
-    const { 
-        showExpiringPopup: showDriverExpiringPopup, 
-        handleClosePopup: handleCloseDriverPopup, 
-        handleViewDocuments: handleViewDriverDocuments 
+    const {
+        showExpiringPopup: showDriverExpiringPopup,
+        handleClosePopup: handleCloseDriverPopup,
+        handleViewDocuments: handleViewDriverDocuments
     } = useExpiringDriverDocuments();
 
     const toggleSidebar = useCallback(() => {
@@ -104,38 +104,47 @@ const Layout = () => {
 
     return (
         <ErrorBoundary>
-            <div className="flex h-screen bg-[#eeeeee]">
-                {/* Sidebar with independent scroll */}
+            <div className="flex h-screen bg-main">
+
+                {/* Sidebar */}
                 <ErrorBoundary>
                     <div className="flex-shrink-0 h-screen overflow-hidden">
-                        <Sidebar 
+                        <Sidebar
                             isCollapsed={isSidebarCollapsed}
                         />
                     </div>
                 </ErrorBoundary>
-                
-                {/* Main content area with independent scroll */}
+
+                {/* Main Content */}
                 <div className="flex flex-col flex-1 h-full overflow-hidden">
-                    {/* Header - fixed at top */}
+
+                    {/* Header */}
                     <ErrorBoundary>
                         <div className="flex-shrink-0">
-                            <Header 
+                            <Header
                                 isSidebarCollapsed={isSidebarCollapsed}
                                 onToggleSidebar={toggleSidebar}
                             />
                         </div>
                     </ErrorBoundary>
-                    
-                    {/* Main content with scroll */}
-                    <main className="flex-1 overflow-y-auto bg-[#EDF8FF]">
+
+                    {/* Content */}
+                    <main className="flex-1 overflow-y-auto bg-main">
+
                         <ErrorBoundary
                             fallback={
-                                <div className="p-8 bg-white rounded-lg shadow">
-                                    <h2 className="text-xl font-bold text-red-600 mb-4">Page Error</h2>
-                                    <p className="text-gray-600 mb-4">The page failed to load. Please check the console for details.</p>
+                                <div className="p-8 bg-card border border-theme rounded-lg shadow">
+                                    <h2 className="text-xl font-bold text-[var(--accent-red)] mb-4">
+                                        Page Error
+                                    </h2>
+
+                                    <p className="text-secondary mb-4">
+                                        The page failed to load. Please check the console for details.
+                                    </p>
+
                                     <button
                                         onClick={() => window.location.href = '/admin/dashboard'}
-                                        className="px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700"
+                                        className="px-4 py-2 rounded-lg bg-[var(--accent-blue)] text-black hover:opacity-90 transition"
                                     >
                                         Go to Dashboard
                                     </button>
@@ -144,12 +153,11 @@ const Layout = () => {
                         >
                             <OutletWrapper />
                         </ErrorBoundary>
+
                     </main>
                 </div>
-                
-             
-                
-                {/* Global Expiring Driver Documents Popup */}
+
+                {/* Expiring Docs Popup */}
                 <ErrorBoundary>
                     <ExpiringDriverDocumentsPopup
                         isOpen={showDriverExpiringPopup}
@@ -160,12 +168,12 @@ const Layout = () => {
                     />
                 </ErrorBoundary>
 
-                {/* AI Chat Assistant */}
+                {/* AI Assistant */}
                 <ErrorBoundary>
                     <AIChatAssistant />
                 </ErrorBoundary>
 
-                {/* Global Document Upload Notification - Like expiring documents popup */}
+                {/* Upload Notification */}
                 {showDocumentNotification && documentNotification && (
                     <DocumentUploadNotification
                         notification={documentNotification}

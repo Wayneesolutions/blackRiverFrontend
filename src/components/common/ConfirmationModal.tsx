@@ -29,15 +29,15 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   const getIcon = () => {
     switch (type) {
       case 'danger':
-        return <AlertTriangle className="w-6 h-6 text-red-600" />;
+        return <AlertTriangle className="w-6 h-6 text-[#A855F7]" />;
       case 'warning':
-        return <AlertCircle className="w-6 h-6 text-yellow-600" />;
+        return <AlertCircle className="w-6 h-6 text-[#00FFA3]" />;
       case 'info':
-        return <Info className="w-6 h-6 text-blue-600" />;
+        return <Info className="w-6 h-6 text-[#00D1FF]" />;
       case 'success':
         return <CheckCircle className="w-6 h-6 text-green-600" />;
       default:
-        return <AlertTriangle className="w-6 h-6 text-red-600" />;
+        return <AlertTriangle className="w-6 h-6 text-[#A855F7]" />;
     }
   };
 
@@ -73,23 +73,23 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full transform transition-all animate-scaleIn">
+      <div className="bg-card rounded-xl shadow-2xl max-w-md w-full transform transition-all animate-scaleIn">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-theme">
           <div className="flex items-start gap-4">
             <div className={`flex-shrink-0 w-12 h-12 ${getIconBgColor()} rounded-full flex items-center justify-center`}>
               {getIcon()}
             </div>
             <div className="flex-1">
-              <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
-              <p className="text-sm text-gray-600 mt-2">{message}</p>
+              <h3 className="text-xl font-semibold text-primary">{title}</h3>
+              <p className="text-sm text-secondary mt-2">{message}</p>
             </div>
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="flex-shrink-0 p-1 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-shrink-0 p-1 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <X className="w-5 h-5 text-gray-400" />
+              <X className="w-5 h-5 text-secondary" />
             </button>
           </div>
         </div>
@@ -99,7 +99,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2.5 border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {cancelText}
           </button>

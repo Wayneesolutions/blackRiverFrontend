@@ -72,14 +72,14 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
         // Fetch vehicles (trucks)
         const vehiclesResponse = await getAllVehicles(1, 1000);
         const vehicles = vehiclesResponse?.success && vehiclesResponse?.data ? vehiclesResponse.data : [];
-        
+
         // Fetch trailers
         const trailersResponse = await getAllTrailers(1, 1000);
         const trailers = trailersResponse?.success && trailersResponse?.data ? trailersResponse.data : [];
-        
+
         // Combine vehicles and trailers
         const allUnits: UnitOption[] = [];
-        
+
         // Map vehicles
         vehicles.forEach((vehicle: any) => {
           allUnits.push({
@@ -93,7 +93,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
             vinNumber: vehicle.vinNumber
           });
         });
-        
+
         // Map trailers
         trailers.forEach((trailer: any) => {
           allUnits.push({
@@ -107,7 +107,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
             vinNumber: trailer.vinNumber
           });
         });
-        
+
         setUnits(allUnits);
         console.log('Fetched units for issues:', allUnits.length);
       } catch (error) {
@@ -196,16 +196,16 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-end">
-      <div className="bg-white w-full max-w-2xl h-full overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-end ">
+      <div className="bg-card w-full max-w-2xl h-full overflow-y-auto">
+        <div className="p-6 border-b border-theme">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-headings">
               {issue ? 'Edit Issue' : 'Create New Issue'}
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-secondary hover:text-secondary"
             >
               <MdClose className="text-xl" />
             </button>
@@ -216,7 +216,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-headings mb-2">
                 Reported By *
               </label>
               <input
@@ -225,13 +225,13 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 value={formData.reportedBy}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter reporter name"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-headings mb-2">
                 Assigned To
               </label>
               <input
@@ -239,7 +239,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 name="assignedTo"
                 value={formData.assignedTo}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter assignee name"
               />
             </div>
@@ -247,16 +247,16 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
 
           {/* Vehicle */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-headings mb-2">
               Vehicle
             </label>
             <select
               name="vehicle"
               value={formData.vehicle}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">Select Vehicle/Trailer</option>
+              <option className='form-option' value="">Select Vehicle/Trailer</option>
               {units.map((unit) => {
                 // Extract make and model
                 let make = unit.make || '';
@@ -276,7 +276,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 const identifier = unit.plateNumber || unit.unitNo || unit._id;
 
                 return (
-                  <option key={unit._id} value={unit._id}>
+                  <option className='form-option' key={unit._id} value={unit._id}>
                     {vehicleName} ({identifier}) [{unit.unitType}]
                   </option>
                 );
@@ -287,7 +287,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
           {/* Issue Type and Category */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-headings mb-2">
                 Issue Type *
               </label>
               <select
@@ -295,17 +295,17 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 value={formData.issueType}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="maintanance">Maintenance</option>
-                <option value="operational">Operational</option>
-                <option value="accident">Accident</option>
-                <option value="compilance">Compliance</option>
+                <option className='form-option' value="maintanance">Maintenance</option>
+                <option className='form-option' value="operational">Operational</option>
+                <option className='form-option' value="accident">Accident</option>
+                <option className='form-option' value="compilance">Compliance</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-headings mb-2">
                 Issue Category *
               </label>
               <select
@@ -313,12 +313,12 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 value={formData.issueCategory}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="engine">Engine</option>
-                <option value="fuel">Fuel</option>
-                <option value="paper-work">Paper Work</option>
-                <option value="minor-damage">Minor Damage</option>
+                <option className='form-option' value="engine">Engine</option>
+                <option className='form-option' value="fuel">Fuel</option>
+                <option className='form-option' value="paper-work">Paper Work</option>
+                <option className='form-option' value="minor-damage">Minor Damage</option>
               </select>
             </div>
           </div>
@@ -326,7 +326,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
           {/* Priority and Status */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-headings mb-2">
                 Priority *
               </label>
               <select
@@ -334,16 +334,16 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 value={formData.priority}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option className='form-option' value="low">Low</option>
+                <option className='form-option' value="medium">Medium</option>
+                <option className='form-option' value="high">High</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-headings mb-2">
                 Status *
               </label>
               <select
@@ -351,18 +351,18 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 value={formData.status}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="open">Open</option>
-                <option value="in-progress">In Progress</option>
-                <option value="closed">Closed</option>
+                <option className='form-option' value="open">Open</option>
+                <option className='form-option' value="in-progress">In Progress</option>
+                <option className='form-option' value="closed">Closed</option>
               </select>
             </div>
           </div>
 
           {/* Issue Report */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-headings mb-2">
               Issue Report *
             </label>
             <textarea
@@ -371,14 +371,14 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
               onChange={handleInputChange}
               required
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Describe the issue in detail..."
             />
           </div>
 
           {/* Issue Tags */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-headings mb-2">
               Issue Tags
             </label>
             <div className="flex gap-2 mb-2">
@@ -387,14 +387,14 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Add a tag and press Enter"
               />
               <button
                 type="button"
                 onClick={handleAddTag}
                 style={{
-                  background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)"
+                  background: "var(--accent-navyblue)"
                 }}
                 className="px-4 py-2 !text-white rounded-lg hover:bg-blue-700"
               >
@@ -411,7 +411,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                   <button
                     type="button"
                     onClick={() => handleRemoveTag(tag)}
-                    className="text-blue-600 hover:text-blue-800"
+                    className="text-[#00D1FF] hover:text-blue-800"
                   >
                     ×
                   </button>
@@ -422,7 +422,7 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
 
           {/* Address */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-headings mb-2">
               Location Address (Optional)
             </label>
             <input
@@ -430,20 +430,20 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
               name="address"
               value={formData.address}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter the address where the issue occurred"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-secondary mt-1">
               Coordinates will be automatically generated from this address
             </p>
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
+          <div className="flex justify-end gap-3 pt-6 border-t border-theme">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+              className="px-4 py-2 text-primary bg-gray-700 rounded-lg  hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
@@ -451,9 +451,9 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
               type="submit"
               disabled={loading}
               style={{
-                background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)"
+                background: "var(--accent-navyblue)"
               }}
-              className="flex items-center gap-2 px-4 py-2  !text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2  !text-white rounded-lg hover:bg-[var(--accent-blue)] disabled:opacity-50 transition-colors"
             >
               <MdSave />
               {loading ? 'Saving...' : (issue ? 'Update Issue' : 'Create Issue')}

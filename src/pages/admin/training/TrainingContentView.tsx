@@ -129,11 +129,11 @@ const TrainingContentView: React.FC = () => {
       console.log('User role:', userRole);
       console.log('Target role:', targetRole);
       console.log('User ID:', userId);
-      
+
       // Fetch training content assigned to the target role
       const contentResponse = await getTrainingContent({ role: targetRole });
       console.log(`Training content response for ${targetRole}:`, contentResponse);
-      
+
       if (contentResponse?.success && Array.isArray(contentResponse.data)) {
         // Filter content assigned to the target role
         const roleContent = contentResponse.data.filter((item: TrainingContent) => {
@@ -151,7 +151,7 @@ const TrainingContentView: React.FC = () => {
       // Fetch question banks assigned to the target role
       const qaResponse = await getQuestionBanks({ role: targetRole });
       console.log(`Question banks response for ${targetRole}:`, qaResponse);
-      
+
       if (qaResponse?.success && Array.isArray(qaResponse.data)) {
         // Filter Q&A assigned to the target role
         const roleQA = qaResponse.data.filter((item: QAItem) => {
@@ -165,7 +165,7 @@ const TrainingContentView: React.FC = () => {
         console.warn('Question banks response not successful or not array:', qaResponse);
         setQAContent([]);
       }
-      
+
       console.log('=== Fetch Complete ===');
 
       // Fetch test types
@@ -219,9 +219,9 @@ const TrainingContentView: React.FC = () => {
     try {
       const response = await getTrainingContentSignedUrl(contentId, 'inline');
       console.log('Signed URL response:', response);
-      
+
       const signedUrl = response?.url || response?.data?.url;
-      
+
       if (response?.success && signedUrl) {
         window.open(signedUrl, '_blank');
       } else {
@@ -237,7 +237,7 @@ const TrainingContentView: React.FC = () => {
 
   const handleAnswerSelect = (qaId: string, questionIndex: number, answerIndex: number) => {
     if (submittedQA[qaId]) return;
-    
+
     setUserAnswers((prev) => ({
       ...prev,
       [qaId]: {
@@ -288,15 +288,15 @@ const TrainingContentView: React.FC = () => {
         const totalQuestions = qaItem.questions.length;
         const correctAnswers = Math.round((score / 100) * totalQuestions);
 
-    setScores((prev) => ({
-      ...prev,
+        setScores((prev) => ({
+          ...prev,
           [qaId]: { correct: correctAnswers, total: totalQuestions, passed }
-    }));
+        }));
 
-    setSubmittedQA((prev) => ({
-      ...prev,
-      [qaId]: true,
-    }));
+        setSubmittedQA((prev) => ({
+          ...prev,
+          [qaId]: true,
+        }));
 
         setTestResults((prev) => ({
           ...prev,
@@ -345,64 +345,64 @@ const TrainingContentView: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-6 bg-[#EDF8FF] min-h-screen flex items-center justify-center">
+      <div className="p-6 bg-main min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#0ea3d8] mx-auto mb-4" />
-          <p className="text-gray-600">Loading training content...</p>
+          <Loader2 className="w-8 h-8 animate-spin text-[var(--accent-blue)] mx-auto mb-4" />
+          <p className="text-secondary">Loading training content...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-[#EDF8FF] min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <div className="p-6 bg-main min-h-screen">
+      <div className="w-full mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Training Content</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold text-headings mb-2">Training Content</h1>
+          <p className="text-secondary">
             Training materials and Q&A for {roleLabel}
           </p>
         </div>
 
         {/* Training Materials Section */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Training Materials</h2>
-            <p className="text-sm text-gray-600 mt-1">
+        <div className="bg-card rounded-lg shadow-sm mb-6">
+          <div className="p-6 border-b border-theme">
+            <h2 className="text-xl font-semibold text-headings">Training Materials</h2>
+            <p className="text-sm text-secondary mt-1">
               Videos, PDFs, and images for your role
             </p>
           </div>
           <div className="p-6">
             {trainingContent.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <div className="text-center py-12 text-secondary">
+                <Upload className="w-12 h-12 mx-auto mb-4 text-secondary" />
                 <p>No training materials available yet</p>
                 <p className="text-sm mt-2">Training materials will appear here when uploaded</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {trainingContent.map((item) => (
-                  <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div key={item._id} className="bg-card rounded-lg p-4 border border-theme">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2 flex-1">
-                        <div className="text-[#0ea3d8]">{getIcon(item.type)}</div>
-                        <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                        <div className="text-[var(--accent-blue)]">{getIcon(item.type)}</div>
+                        <h3 className="font-semibold text-headings">{item.name}</h3>
                       </div>
                       <button
                         onClick={() => handleViewContent(item._id, item.type)}
-                        className="text-[#0ea3d8] hover:text-[#0d8fc4] p-1"
+                        className="text-[var(--accent-blue)] hover:text-[var(--accent-blue)]/70 p-1"
                         title="View content"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                     </div>
                     {item.description && (
-                      <p className="text-sm text-gray-600 mt-2 mb-3">{item.description}</p>
+                      <p className="text-sm text-secondary mt-2 mb-3">{item.description}</p>
                     )}
-                    <div className="flex items-center justify-between text-sm text-gray-500 mt-3">
+                    <div className="flex items-center justify-between text-sm text-secondary mt-3">
                       <div className="flex items-center gap-2">
-                        <span className="capitalize bg-gray-200 px-2 py-1 rounded">{getTypeLabel(item.type)}</span>
-                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
+                        <span className="capitalize bg-[rgba(255,255,255,0.08)] text-secondary px-2 py-1 rounded text-xs">{getTypeLabel(item.type)}</span>
+                        <span className="bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
                       </div>
                       <span>
                         {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
@@ -416,17 +416,17 @@ const TrainingContentView: React.FC = () => {
         </div>
 
         {/* Q&A Section */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Q&A Content</h2>
-            <p className="text-sm text-gray-600 mt-1">
+        <div className="bg-card rounded-lg shadow-sm">
+          <div className="p-6 border-b border-theme">
+            <h2 className="text-xl font-semibold text-headings">Q&A Content</h2>
+            <p className="text-sm text-secondary mt-1">
               Questions and answers for your role
             </p>
           </div>
           <div className="p-6">
             {qaContent.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <div className="text-center py-12 text-secondary">
+                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-secondary" />
                 <p>No Q&A content available yet</p>
                 <p className="text-sm mt-2">Q&A content will appear here when added</p>
               </div>
@@ -440,30 +440,30 @@ const TrainingContentView: React.FC = () => {
                   const isSubmitting = submitting[item._id];
 
                   return (
-                    <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div key={item._id} className="bg-card rounded-lg p-4 border border-theme">
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-3">
                           <div>
                             <div className="flex items-center gap-3 mb-2">
-                              <h3 className="font-semibold text-gray-900">{item.testName}</h3>
-                              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
-                              <span className="text-sm text-gray-600">Passing: {item.passingPercentage}%</span>
-                              <span className="text-sm text-gray-600">Questions: {item.questions.length}</span>
-                              {item.mandatory && <span className="text-xs text-red-600 font-medium">Mandatory</span>}
+                              <h3 className="font-semibold text-headings">{item.testName}</h3>
+                              <span className="bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
+                              <span className="text-sm text-secondary">Passing: {item.passingPercentage}%</span>
+                              <span className="text-sm text-secondary">Questions: {item.questions.length}</span>
+                              {item.mandatory && <span className="text-xs text-[var(--accent-purple)] font-medium">Mandatory</span>}
                             </div>
-                         
+
                           </div>
                           {isSubmitted && score && (
-                            <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200">
-                              <span className="text-sm font-medium text-gray-700">Score:</span>
-                              <span className={`text-lg font-bold ${score.passed ? 'text-green-600' : score.correct / score.total >= 0.7 ? 'text-yellow-600' : 'text-red-600'}`}>
+                            <div className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg border border-theme">
+                              <span className="text-sm font-medium text-headings">Score:</span>
+                              <span className={`text-lg font-bold ${score.passed ? 'text-[var(--accent-green)]' : score.correct / score.total >= 0.7 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-purple)]'}`}>
                                 {score.correct}/{score.total}
                               </span>
-                              <span className="text-sm text-gray-500">
+                              <span className="text-sm text-secondary">
                                 ({Math.round((score.correct / score.total) * 100)}%)
                               </span>
                               {score.passed && (
-                                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                <CheckCircle2 className="w-5 h-5 text-[var(--accent-green)]" />
                               )}
                             </div>
                           )}
@@ -475,19 +475,19 @@ const TrainingContentView: React.FC = () => {
                             const showResults = isSubmitted;
 
                             return (
-                              <div key={idx} className="bg-white rounded p-3 border border-gray-200">
-                                <p className="font-medium text-gray-900 mb-2">Q{idx + 1}: {q.question}</p>
+                              <div key={idx} className="bg-card rounded p-3 border border-theme">
+                                <p className="font-medium text-headings mb-2">Q{idx + 1}: {q.question}</p>
                                 <div className="space-y-1">
                                   {q.options.map((option, optIdx) => {
                                     const isSelected = userAnswer === optIdx;
                                     const isCorrectOption = q.correctAnswer === optIdx;
-                                    let optionClass = 'text-gray-600';
-                                    
+                                    let optionClass = 'text-secondary';
+
                                     if (showResults) {
                                       if (isCorrectOption) {
-                                        optionClass = 'text-green-600 font-medium';
+                                        optionClass = 'text-[var(--accent-green)] font-medium';
                                       } else if (isSelected && !isCorrectOption) {
-                                        optionClass = 'text-red-600 font-medium';
+                                        optionClass = 'text-[var(--accent-purple)] font-medium';
                                       }
                                     }
 
@@ -504,10 +504,10 @@ const TrainingContentView: React.FC = () => {
                                         <span className={`text-sm ${optionClass} flex items-center gap-2`}>
                                           {String.fromCharCode(65 + optIdx)}. {option}
                                           {showResults && isCorrectOption && (
-                                            <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                            <CheckCircle2 className="w-4 h-4 text-[var(--accent-green)]" />
                                           )}
                                           {showResults && isSelected && !isCorrectOption && (
-                                            <XCircle className="w-4 h-4 text-red-600" />
+                                            <XCircle className="w-4 h-4 text-[var(--accent-purple)]" />
                                           )}
                                         </span>
                                       </div>
@@ -515,7 +515,7 @@ const TrainingContentView: React.FC = () => {
                                   })}
                                 </div>
                                 {showResults && (
-                                  <div className={`mt-2 text-xs font-medium ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                                  <div className={`mt-2 text-xs font-medium ${isCorrect ? 'text-[var(--accent-green)]' : 'text-[var(--accent-purple)]'}`}>
                                     {isCorrect ? '✓ Correct!' : '✗ Incorrect. The correct answer is marked in green.'}
                                   </div>
                                 )}
@@ -528,7 +528,7 @@ const TrainingContentView: React.FC = () => {
                             <button
                               onClick={() => handleSubmitQA(item._id, item)}
                               disabled={!allAnswered || isSubmitting}
-                              className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                              className="px-4 py-2 bg-[var(--accent-blue)] text-white rounded-lg hover:bg-[var(--accent-blue)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                               {isSubmitting ? (
                                 <>
@@ -542,7 +542,7 @@ const TrainingContentView: React.FC = () => {
                           ) : (
                             <button
                               onClick={() => handleResetQA(item._id)}
-                              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                              className="px-4 py-2 bg-[rgba(255,255,255,0.08)] text-secondary border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.12)] transition-colors"
                             >
                               Retake Quiz
                             </button>

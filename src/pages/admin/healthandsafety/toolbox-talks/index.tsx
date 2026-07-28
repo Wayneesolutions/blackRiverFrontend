@@ -219,43 +219,43 @@ const ToolboxTalks: React.FC = () => {
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-blue-500">
-          <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
-          <div className="text-sm text-gray-600 mt-1">Total Talks</div>
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-blue-500">
+          <div className="text-3xl font-bold text-primary">{stats.total}</div>
+          <div className="text-sm text-secondary mt-1">Total Talks</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-green-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-green-500">
           <div className="text-3xl font-bold text-green-700">{stats.completed}</div>
-          <div className="text-sm text-gray-600 mt-1">Completed</div>
+          <div className="text-sm text-secondary mt-1">Completed</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-yellow-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-yellow-500">
           <div className="text-3xl font-bold text-yellow-700">{stats.scheduled}</div>
-          <div className="text-sm text-gray-600 mt-1">Scheduled</div>
+          <div className="text-sm text-secondary mt-1">Scheduled</div>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-md border-l-4 border-purple-500">
+        <div className="bg-card rounded-xl p-6 shadow-md border-l-4 border-purple-500">
           <div className="text-3xl font-bold text-purple-700">{stats.totalAttendees}</div>
-          <div className="text-sm text-gray-600 mt-1">Total Attendees</div>
+          <div className="text-sm text-secondary mt-1">Total Attendees</div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl p-4 shadow-lg">
+      <div className="bg-card rounded-xl p-4 shadow-lg">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
             <input
               type="text"
               placeholder="Search by talk number, title, or topic..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="flex items-center gap-2">
-            <FaFilter className="text-gray-400" />
+            <FaFilter className="text-secondary" />
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Status</option>
               <option value="scheduled">Scheduled</option>
@@ -265,7 +265,7 @@ const ToolboxTalks: React.FC = () => {
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Categories</option>
               <option value="Safety">Safety</option>
@@ -280,9 +280,9 @@ const ToolboxTalks: React.FC = () => {
       </div>
 
       {/* Talks Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-card rounded-xl shadow-lg overflow-hidden">
         <div className="p-6 border-b flex justify-between items-center">
-          <h3 className="text-xl font-bold text-gray-900">Toolbox Talks</h3>
+          <h3 className="text-xl font-bold text-primary">Toolbox Talks</h3>
           <button
             onClick={() => setShowNewTalkModal(true)}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 font-semibold"
@@ -292,52 +292,52 @@ const ToolboxTalks: React.FC = () => {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-card">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Talk #</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Title / Topic</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Date / Location</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Presenter</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Attendees</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Talk #</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Title / Topic</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Date / Location</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Presenter</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Attendees</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Status</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-theme">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">Loading...</td>
+                  <td colSpan={7} className="px-6 py-8 text-center text-secondary">Loading...</td>
                 </tr>
               ) : filteredTalks.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">No toolbox talks found</td>
+                  <td colSpan={7} className="px-6 py-8 text-center text-secondary">No toolbox talks found</td>
                 </tr>
               ) : (
                 filteredTalks.map((talk) => (
-                  <tr key={talk._id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 font-medium text-gray-900">{talk.talkNumber}</td>
+                  <tr key={talk._id} className="hover:bg-[rgba(255,255,255,0.03)] transition">
+                    <td className="px-6 py-4 font-medium text-primary">{talk.talkNumber}</td>
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-gray-900">{talk.title}</div>
-                      <div className="text-sm text-gray-600">{talk.topic}</div>
+                      <div className="font-semibold text-primary">{talk.title}</div>
+                      <div className="text-sm text-secondary">{talk.topic}</div>
                       <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-semibold">
                         {talk.category}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <div className="flex items-center gap-2 text-gray-700">
-                        <FaCalendarAlt className="text-gray-400" />
+                      <div className="flex items-center gap-2 text-primary">
+                        <FaCalendarAlt className="text-secondary" />
                         {new Date(talk.date).toLocaleDateString()}
                       </div>
-                      <div className="text-gray-600 mt-1">{talk.location}</div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-secondary mt-1">{talk.location}</div>
+                      <div className="text-xs text-secondary mt-1">
                         <FaClock className="inline mr-1" />
                         {talk.duration} min
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{talk.presenter}</td>
+                    <td className="px-6 py-4 text-sm text-primary">{talk.presenter}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <FaUsers className="text-gray-400" />
+                        <FaUsers className="text-secondary" />
                         <span className="font-semibold">{talk.totalAttendees}</span>
                         {talk.attendees.filter(a => a.attended).length > 0 && (
                           <span className="text-xs text-green-600">
@@ -352,7 +352,7 @@ const ToolboxTalks: React.FC = () => {
                           ? 'bg-green-100 text-green-800'
                           : talk.status === 'scheduled'
                             ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-100 text-gray-800'
+                            : 'bg-card text-primary'
                           }`}
                       >
                         {talk.status.toUpperCase()}
@@ -365,7 +365,7 @@ const ToolboxTalks: React.FC = () => {
                             setSelectedTalk(talk);
                             setShowDetailModal(true);
                           }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition"
                           title="View Details"
                         >
                           <FaEye />
@@ -387,9 +387,9 @@ const ToolboxTalks: React.FC = () => {
 
   const renderTemplates = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="bg-card rounded-xl p-6 shadow-lg">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-gray-900">Toolbox Talk Templates</h3>
+          <h3 className="text-xl font-bold text-primary">Toolbox Talk Templates</h3>
           <button
             onClick={() => setShowTemplateModal(true)}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 font-semibold"
@@ -399,29 +399,29 @@ const ToolboxTalks: React.FC = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {templates.map((template) => (
-            <div key={template._id} className="bg-gray-50 rounded-xl p-6 border-2 border-gray-200 hover:border-blue-500 transition">
+            <div key={template._id} className="bg-card rounded-xl p-6 border-2 border-theme hover:border-blue-500 transition">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h4 className="font-bold text-lg text-gray-900 mb-1">{template.title}</h4>
+                  <h4 className="font-bold text-lg text-primary mb-1">{template.title}</h4>
                   <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-semibold">
                     {template.category}
                   </span>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 mb-4">{template.topic}</p>
+              <p className="text-sm text-secondary mb-4">{template.topic}</p>
               <div className="space-y-2 mb-4">
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-secondary">
                   <FaClock className="inline mr-1" />
                   {template.estimatedDuration} minutes
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-secondary">
                   <FaBookOpen className="inline mr-1" />
                   Used {template.usageCount} times
                 </div>
               </div>
               <div className="mb-4">
-                <p className="text-xs font-semibold text-gray-600 mb-2">Key Points:</p>
-                <ul className="text-xs text-gray-700 space-y-1">
+                <p className="text-xs font-semibold text-secondary mb-2">Key Points:</p>
+                <ul className="text-xs text-primary space-y-1">
                   {template.keyPoints.slice(0, 3).map((point, idx) => (
                     <li key={idx} className="flex items-start gap-2">
                       <FaCheckCircle className="text-green-600 mt-0.5 flex-shrink-0" size={10} />
@@ -429,7 +429,7 @@ const ToolboxTalks: React.FC = () => {
                     </li>
                   ))}
                   {template.keyPoints.length > 3 && (
-                    <li className="text-gray-500">+ {template.keyPoints.length - 3} more</li>
+                    <li className="text-secondary">+ {template.keyPoints.length - 3} more</li>
                   )}
                 </ul>
               </div>
@@ -437,7 +437,7 @@ const ToolboxTalks: React.FC = () => {
                 <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold">
                   Use Template
                 </button>
-                <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                <button className="px-4 py-2 bg-gray-200 text-primary rounded-lg hover:bg-gray-300 transition">
                   <FaEdit />
                 </button>
               </div>
@@ -457,19 +457,19 @@ const ToolboxTalks: React.FC = () => {
             <FaComments className="inline mr-3" style={{ color: COLORS.modules.committee }} />
             Toolbox Talks
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-secondary">
             Schedule and track safety toolbox talks, manage templates, and track employee attendance.
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-lg mb-6">
-          <div className="flex border-b border-gray-200">
+        <div className="bg-card rounded-xl shadow-lg mb-6">
+          <div className="flex border-b border-theme">
             <button
               onClick={() => setActiveTab('talks')}
               className={`flex-1 px-6 py-4 font-semibold transition ${activeTab === 'talks'
-                ? 'border-b-2 text-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'border-b-2 text-[#00D1FF]'
+                : 'text-secondary hover:text-primary'
                 }`}
               style={activeTab === 'talks' ? { borderColor: COLORS.primary.main } : {}}
             >
@@ -479,8 +479,8 @@ const ToolboxTalks: React.FC = () => {
             <button
               onClick={() => setActiveTab('templates')}
               className={`flex-1 px-6 py-4 font-semibold transition ${activeTab === 'templates'
-                ? 'border-b-2 text-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'border-b-2 text-[#00D1FF]'
+                : 'text-secondary hover:text-primary'
                 }`}
               style={activeTab === 'templates' ? { borderColor: COLORS.primary.main } : {}}
             >
@@ -495,7 +495,7 @@ const ToolboxTalks: React.FC = () => {
         {activeTab === 'templates' && renderTemplates()}
 
         {/* Info Panel */}
-        <div className="mt-6 bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+        <div className="mt-6 bg-card border-2 border-blue-200 rounded-xl p-6">
           <h3 className="text-lg font-bold text-blue-900 mb-3 flex items-center gap-2">
             <FaCheckCircle /> Toolbox Talks Compliance
           </h3>

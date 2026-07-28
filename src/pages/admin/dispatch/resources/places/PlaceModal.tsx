@@ -22,7 +22,7 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
+    error: 'bg-card border-red-200',
   };
 
   useEffect(() => {
@@ -37,10 +37,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -116,7 +116,7 @@ const PlaceModal: React.FC<Props> = ({ place, onClose, onSave }) => {
       </div>
 
       <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg w-[600px] max-w-full p-6 relative">
+      <div className="bg-card rounded-lg shadow-lg w-[600px] max-w-full p-6 relative">
         <h2 className="text-xl font-semibold mb-4">
           {place ? "Edit Place" : "Create Place"}
         </h2>
@@ -134,13 +134,13 @@ const PlaceModal: React.FC<Props> = ({ place, onClose, onSave }) => {
             { label: "Postal Code", name: "securityAccessCodepostalCode" },
           ].map((field) => (
             <div key={field.name}>
-              <label className="block text-gray-700 text-sm mb-1">{field.label}</label>
+              <label className="block text-primary text-sm mb-1">{field.label}</label>
               <input
                 type="text"
                 name={field.name}
                 value={formData[field.name] || ""}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-theme rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           ))}

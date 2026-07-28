@@ -65,8 +65,8 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200'
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200'
   };
 
   useEffect(() => {
@@ -77,8 +77,8 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
   return (
     <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]}`}>
       <div className="flex-shrink-0 mt-0.5">{icons[notification.type]}</div>
-      <p className="flex-1 text-sm font-medium text-gray-900">{notification.message}</p>
-      <button onClick={() => onClose(notification.id)} className="flex-shrink-0 text-gray-400 hover:text-gray-600">
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
+      <button onClick={() => onClose(notification.id)} className="flex-shrink-0 text-secondary hover:text-secondary">
         <FaTimes size={16} />
       </button>
     </div>
@@ -286,7 +286,7 @@ const DriverDocumentsPage = () => {
       case 'pending': return 'bg-yellow-100 text-yellow-700';
       case 'expired':
       case 'rejected': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
+      default: return 'bg-card text-primary';
     }
   };
 
@@ -302,8 +302,8 @@ const DriverDocumentsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+      <div className="min-h-screen bg-card p-8">
+        <div className="bg-card rounded-xl shadow-sm p-8 border border-theme">
           <div className="animate-pulse space-y-4">
             <div className="h-6 bg-gray-200 rounded w-1/4"></div>
             <div className="h-32 bg-gray-200 rounded"></div>
@@ -314,7 +314,7 @@ const DriverDocumentsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-card p-8 ">
       {/* Notifications */}
       <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-md">
         {notifications.map(notification => (
@@ -323,13 +323,13 @@ const DriverDocumentsPage = () => {
       </div>
 
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
+      <div className="bg-card rounded-xl shadow-sm p-6 mb-6 border border-theme">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">Driver Documents</h2>
-            <p className="text-sm text-gray-500 mt-1">Manage CDL, medical certificates, and compliance documents for drivers</p>
+            <h2 className="text-2xl font-bold text-primary">Driver Documents</h2>
+            <p className="text-sm text-secondary mt-1">Manage CDL, medical certificates, and compliance documents for drivers</p>
             {selectedDriver && (
-              <p className="text-gray-600 mt-1">Viewing documents for: <span className="font-semibold text-blue-600">{selectedDriver.name}</span></p>
+              <p className="text-secondary mt-1">Viewing documents for: <span className="font-semibold text-[#00D1FF]">{selectedDriver.name}</span></p>
             )}
           </div>
           <button
@@ -343,11 +343,11 @@ const DriverDocumentsPage = () => {
 
         <div className="flex items-center space-x-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
             <input
               type="text"
               placeholder="Search by driver name, document type, or document number..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <select
@@ -356,7 +356,7 @@ const DriverDocumentsPage = () => {
               const driver = drivers.find(d => d._id === e.target.value);
               setSelectedDriver(driver || null);
             }}
-            className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+            className="px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
           >
             <option value="">All Drivers</option>
             {drivers.map((driver) => (
@@ -370,15 +370,15 @@ const DriverDocumentsPage = () => {
 
       {/* Document Statistics */}
       {!selectedDriver && documentStats && (
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Document Statistics</h3>
+        <div className="bg-card rounded-xl shadow-sm p-6 mb-6 border border-theme">
+          <h3 className="text-lg font-semibold text-primary mb-4">Document Statistics</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <div className="bg-card rounded-lg p-4 border border-blue-200">
               <div className="flex items-center justify-between mb-2">
                 <FileText className="w-5 h-5 text-blue-500" />
-                <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">Total</span>
+                <span className="text-xs bg-blue-100 text-[#00D1FF] px-2 py-0.5 rounded">Total</span>
               </div>
-              <p className="text-sm font-medium text-gray-800 mb-1">Total Documents</p>
+              <p className="text-sm font-medium text-primary mb-1">Total Documents</p>
               <p className="text-2xl font-bold text-blue-900">{documentStats.totalDocuments}</p>
             </div>
             <div className="bg-green-50 rounded-lg p-4 border border-green-200">
@@ -386,23 +386,23 @@ const DriverDocumentsPage = () => {
                 <CheckCircle className="w-5 h-5 text-green-500" />
                 <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded">Valid</span>
               </div>
-              <p className="text-sm font-medium text-gray-800 mb-1">Valid Documents</p>
+              <p className="text-sm font-medium text-primary mb-1">Valid Documents</p>
               <p className="text-2xl font-bold text-green-900">{documentStats.validDocuments}</p>
             </div>
-            <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+            <div className="bg-card rounded-lg p-4 border border-yellow-200">
               <div className="flex items-center justify-between mb-2">
                 <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded">Pending</span>
+                <span className="text-xs bg-yellow-100 text-[#00FFA3] px-2 py-0.5 rounded">Pending</span>
               </div>
-              <p className="text-sm font-medium text-gray-800 mb-1">Pending Review</p>
+              <p className="text-sm font-medium text-primary mb-1">Pending Review</p>
               <p className="text-2xl font-bold text-yellow-900">{documentStats.pendingDocuments}</p>
             </div>
-            <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+            <div className="bg-card rounded-lg p-4 border border-red-200">
               <div className="flex items-center justify-between mb-2">
                 <XCircle className="w-5 h-5 text-red-500" />
-                <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">Expired</span>
+                <span className="text-xs bg-red-100 text-[#A855F7] px-2 py-0.5 rounded">Expired</span>
               </div>
-              <p className="text-sm font-medium text-gray-800 mb-1">Expired/Rejected</p>
+              <p className="text-sm font-medium text-primary mb-1">Expired/Rejected</p>
               <p className="text-2xl font-bold text-red-900">{documentStats.expiredDocuments}</p>
             </div>
           </div>
@@ -412,10 +412,10 @@ const DriverDocumentsPage = () => {
       {/* Driver Documents List */}
       <div className="space-y-6">
         {driverDocuments.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100 text-center">
-            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
-            <p className="text-gray-500 mb-4">
+          <div className="bg-card rounded-xl shadow-sm p-8 border border-theme text-center">
+            <FileText className="w-12 h-12 text-secondary mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-primary mb-2">No documents found</h3>
+            <p className="text-secondary mb-4">
               {selectedDriver
                 ? `${selectedDriver.name} has no documents uploaded yet.`
                 : 'No driver documents found. Upload driver compliance documents to get started.'
@@ -430,21 +430,21 @@ const DriverDocumentsPage = () => {
           </div>
         ) : (
           driverDocuments.map((drvDoc) => (
-            <div key={drvDoc.driver._id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div key={drvDoc.driver._id} className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
               {/* Driver Header */}
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-gray-200">
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-theme">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
                       {drvDoc.driver.name.split(' ').map((n: string) => n[0]).join('')}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800">{drvDoc.driver.name}</h3>
-                      <p className="text-sm text-gray-500">Driver ID: {drvDoc.driver.internalId}</p>
+                      <h3 className="font-semibold text-primary">{drvDoc.driver.name}</h3>
+                      <p className="text-sm text-secondary">Driver ID: {drvDoc.driver.internalId}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">{drvDoc.documents.length} documents</span>
+                    <span className="text-sm text-secondary">{drvDoc.documents.length} documents</span>
                     <button
                       onClick={() => {
                         setSelectedDriver(drvDoc.driver);
@@ -453,7 +453,7 @@ const DriverDocumentsPage = () => {
                       className="p-2 hover:bg-blue-200 rounded-lg"
                       title="Upload Document"
                     >
-                      <Plus className="w-4 h-4 text-gray-600" />
+                      <Plus className="w-4 h-4 text-secondary" />
                     </button>
                   </div>
                 </div>
@@ -463,23 +463,23 @@ const DriverDocumentsPage = () => {
               {drvDoc.documents.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
+                    <thead className="bg-card border-b border-theme">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Document Type</th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Upload Date</th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Expiry Date</th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">File Size</th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Document Type</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Upload Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Expiry Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">File Size</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-theme">
                       {drvDoc.documents.map((doc: DriverDocument, index: number) => (
-                        <tr key={index} className="hover:bg-gray-50">
+                        <tr key={index} className="hover:bg-[rgba(255,255,255,0.03)]">
                           <td className="px-6 py-4">
                             <div className="flex items-center space-x-2">
-                              <FileText className="w-4 h-4 text-gray-400" />
-                              <span className="text-sm font-medium text-gray-800">{doc.documentType}</span>
+                              <FileText className="w-4 h-4 text-secondary" />
+                              <span className="text-sm font-medium text-primary">{doc.documentType}</span>
                             </div>
                           </td>
                           <td className="px-6 py-4">
@@ -489,17 +489,17 @@ const DriverDocumentsPage = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="text-sm text-gray-600">
+                            <span className="text-sm text-secondary">
                               {new Date(doc.createdAt).toLocaleDateString()}
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`text-sm ${!doc.expiryDate ? 'text-gray-400' : 'text-gray-600'}`}>
+                            <span className={`text-sm ${!doc.expiryDate ? 'text-secondary' : 'text-secondary'}`}>
                               {doc.expiryDate ? new Date(doc.expiryDate).toLocaleDateString() : '-'}
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="text-sm text-gray-600">
+                            <span className="text-sm text-secondary">
                               {doc.fileSize ? formatFileSize(doc.fileSize) : '-'}
                             </span>
                           </td>
@@ -516,21 +516,21 @@ const DriverDocumentsPage = () => {
                               )}
                               <button
                                 onClick={() => handleViewDocument(doc)}
-                                className="p-1.5 hover:bg-blue-50 rounded text-blue-600"
+                                className="p-1.5 hover:bg-blue-50 rounded text-[#00D1FF]"
                                 title="View"
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleEditDocument(doc)}
-                                className="p-1.5 hover:bg-yellow-50 rounded text-yellow-600"
+                                className="p-1.5 hover:bg-yellow-50 rounded text-[#00FFA3]"
                                 title="Edit"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleDeleteClick(doc._id)}
-                                className="p-1.5 hover:bg-red-50 rounded text-red-600"
+                                className="p-1.5 hover:bg-red-50 rounded text-[#A855F7]"
                                 title="Delete"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -543,8 +543,8 @@ const DriverDocumentsPage = () => {
                   </table>
                 </div>
               ) : (
-                <div className="p-8 text-center text-gray-500">
-                  <FileText className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                <div className="p-8 text-center text-secondary">
+                  <FileText className="w-8 h-8 mx-auto mb-2 text-secondary" />
                   <p>No documents uploaded for this driver</p>
                 </div>
               )}
@@ -554,11 +554,11 @@ const DriverDocumentsPage = () => {
       </div>
 
       {/* Document Types Reference (Static for Drivers) */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mt-6 border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Required Driver Document Types</h3>
+      <div className="bg-card rounded-xl shadow-sm p-6 mt-6 border border-theme">
+        <h3 className="text-lg font-semibold text-primary mb-4">Required Driver Document Types</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {DRIVER_DOCUMENT_TYPES.map((docType, index) => (
-            <div key={index} className="flex items-center space-x-2 text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg">
+            <div key={index} className="flex items-center space-x-2 text-sm text-primary bg-card px-3 py-2 rounded-lg">
               <FileText className="w-4 h-4 text-blue-500 flex-shrink-0" />
               <span>{docType}</span>
             </div>
@@ -732,26 +732,26 @@ const UploadDocumentModal = ({
 
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800">
+            <h2 className="text-xl font-bold text-primary">
               {editingDocument ? 'Edit Driver Document' : 'Upload Driver Document'}
             </h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <button onClick={onClose} className="text-secondary hover:text-secondary">
               <XCircle className="w-6 h-6" />
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Driver <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.driver}
                 onChange={(e) => setFormData({ ...formData, driver: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
                 disabled={!!editingDocument}
               >
@@ -765,13 +765,13 @@ const UploadDocumentModal = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Document Type <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.documentType}
                 onChange={(e) => setFormData({ ...formData, documentType: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               >
                 <option value="">Select Document Type</option>
@@ -783,7 +783,7 @@ const UploadDocumentModal = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-primary mb-2">
                   Document Number
                 </label>
                 <input
@@ -791,17 +791,17 @@ const UploadDocumentModal = ({
                   value={formData.documentNumber}
                   onChange={(e) => setFormData({ ...formData, documentNumber: e.target.value })}
                   placeholder="e.g., CDL-123456"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-primary mb-2">
                   Status
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="valid">Valid</option>
                   <option value="pending">Pending</option>
@@ -813,60 +813,60 @@ const UploadDocumentModal = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-primary mb-2">
                   Issue Date
                 </label>
                 <input
                   type="date"
                   value={formData.issueDate}
                   onChange={(e) => setFormData({ ...formData, issueDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-primary mb-2">
                   Expiry Date
                 </label>
                 <input
                   type="date"
                   value={formData.expiryDate}
                   onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Description
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter document description or notes..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Document File {!editingDocument && <span className="text-red-500">*</span>}
               </label>
               <input
                 type="file"
                 onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
                 required={!editingDocument}
               />
               {selectedFile && (
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-secondary mt-1">
                   Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
                 </p>
               )}
               {editingDocument && (
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-secondary mt-1">
                   Leave empty to keep current file
                 </p>
               )}
@@ -876,7 +876,7 @@ const UploadDocumentModal = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 disabled={loading}
               >
                 Cancel
@@ -911,55 +911,55 @@ const ViewDocumentModal = ({
 }) => {
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">Document Details</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 transition-colors">
+      <div className="bg-card rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-primary">Document Details</h2>
+          <button onClick={onClose} className="text-secondary hover:text-primary transition-colors">
             <XCircle className="w-6 h-6" />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+          <div className="flex items-center justify-between pb-4 border-b border-theme">
             <div className="flex items-center gap-3">
               <FileText className="w-10 h-10 text-blue-500" />
               <div>
-                <p className="text-lg font-semibold text-gray-900">{document.documentType}</p>
-                <p className="text-sm text-gray-500">Driver: {driverName}</p>
+                <p className="text-lg font-semibold text-primary">{document.documentType}</p>
+                <p className="text-sm text-secondary">Driver: {driverName}</p>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {document.documentNumber && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-medium text-gray-600 mb-1">Document Number</p>
-                <p className="text-lg font-semibold text-gray-900">{document.documentNumber}</p>
+              <div className="bg-card p-4 rounded-lg">
+                <p className="text-sm font-medium text-secondary mb-1">Document Number</p>
+                <p className="text-lg font-semibold text-primary">{document.documentNumber}</p>
               </div>
             )}
 
             {document.issueDate && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-medium text-gray-600 mb-1">Issue Date</p>
-                <p className="text-lg font-semibold text-gray-900">
+              <div className="bg-card p-4 rounded-lg">
+                <p className="text-sm font-medium text-secondary mb-1">Issue Date</p>
+                <p className="text-lg font-semibold text-primary">
                   {new Date(document.issueDate).toLocaleDateString()}
                 </p>
               </div>
             )}
 
             {document.expiryDate && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-medium text-gray-600 mb-1">Expiry Date</p>
-                <p className="text-lg font-semibold text-gray-900">
+              <div className="bg-card p-4 rounded-lg">
+                <p className="text-sm font-medium text-secondary mb-1">Expiry Date</p>
+                <p className="text-lg font-semibold text-primary">
                   {new Date(document.expiryDate).toLocaleDateString()}
                 </p>
               </div>
             )}
 
             {document.fileSize && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-medium text-gray-600 mb-1">File Size</p>
-                <p className="text-lg font-semibold text-gray-900">
+              <div className="bg-card p-4 rounded-lg">
+                <p className="text-sm font-medium text-secondary mb-1">File Size</p>
+                <p className="text-lg font-semibold text-primary">
                   {(document.fileSize / 1024).toFixed(2)} KB
                 </p>
               </div>
@@ -968,13 +968,13 @@ const ViewDocumentModal = ({
 
           {document.description && (
             <div>
-              <p className="text-sm font-medium text-gray-600 mb-2">Description</p>
-              <p className="text-gray-900 bg-gray-50 p-4 rounded-lg">{document.description}</p>
+              <p className="text-sm font-medium text-secondary mb-2">Description</p>
+              <p className="text-primary bg-card p-4 rounded-lg">{document.description}</p>
             </div>
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
+        <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 flex items-center justify-end gap-3">
           <button
             onClick={() => onEdit(document)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
@@ -984,7 +984,7 @@ const ViewDocumentModal = ({
           </button>
           <button
             onClick={onClose}
-            className="text-gray-600 hover:text-gray-900 px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="text-secondary hover:text-primary px-6 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
           >
             Close
           </button>
@@ -1004,24 +1004,24 @@ const DeleteConfirmationModal = ({
 }) => {
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+      <div className="bg-card rounded-xl shadow-xl max-w-md w-full">
         <div className="p-6">
           <div className="flex items-center gap-4 mb-4">
             <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-              <Trash2 className="w-6 h-6 text-red-600" />
+              <Trash2 className="w-6 h-6 text-[#A855F7]" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Delete Document</h3>
-              <p className="text-sm text-gray-500">This action cannot be undone</p>
+              <h3 className="text-lg font-semibold text-primary">Delete Document</h3>
+              <p className="text-sm text-secondary">This action cannot be undone</p>
             </div>
           </div>
-          <p className="text-gray-700 mb-6">
+          <p className="text-primary mb-6">
             Are you sure you want to delete this document? This will permanently remove the document and all associated data.
           </p>
           <div className="flex items-center justify-end gap-3">
             <button
               onClick={onCancel}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
             >
               Cancel
             </button>

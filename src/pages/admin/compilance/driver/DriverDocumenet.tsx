@@ -62,7 +62,7 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
+    error: 'bg-card border-red-200',
     info: 'bg-[#9793E4]/10 border-[#9793E4]/30'
   };
 
@@ -79,10 +79,10 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -232,7 +232,7 @@ function DriverDocument() {
     data.append("documentNumber", formData.documentNumber);
     data.append("expiryDate", formData.expiryDate);
     data.append("issuedAt", formData.issuedAt);
-    
+
     // Add employee/driver ID to FormData (required by backend)
     data.append("employee", selectedDriver._id);
 
@@ -271,7 +271,7 @@ function DriverDocument() {
       case "expiring-soon":
         return "bg-yellow-100 text-yellow-700 border border-yellow-200";
       default:
-        return "bg-gray-100 text-gray-700 border border-gray-200";
+        return "bg-card text-primary border border-theme";
     }
   };
 
@@ -283,30 +283,30 @@ function DriverDocument() {
 
   const DocumentModal = () => (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
         {/* Modal Header */}
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl">
-          <h3 className="text-xl font-bold !text-gray-800">
+        <div className="sticky top-0 bg-card border-b px-6 py-4 flex items-center justify-between rounded-t-2xl">
+          <h3 className="text-xl font-bold !text-primary">
             {editingDoc ? "Update Document" : "Add New Document"}
           </h3>
           <button
             onClick={() => setShowDocModal(false)}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
             disabled={submitting}
           >
-            <FaTimes className="text-gray-500" size={20} />
+            <FaTimes className="text-secondary" size={20} />
           </button>
         </div>
 
         {/* Modal Body */}
         <div className="p-6 space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-primary mb-2">
               Document Type <span className="text-red-500">*</span>
             </label>
             <select
               name="documentType"
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+              className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
               value={formData.documentType}
               onChange={handleInputChange}
             >
@@ -324,13 +324,13 @@ function DriverDocument() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-primary mb-2">
               Document Number <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               name="documentNumber"
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+              className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
               value={formData.documentNumber}
               onChange={handleInputChange}
               placeholder="Enter document number"
@@ -340,13 +340,13 @@ function DriverDocument() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-primary mb-2">
                 Issued Date <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
                 name="issuedAt"
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                 value={formData.issuedAt}
                 onChange={handleInputChange}
                 required
@@ -354,13 +354,13 @@ function DriverDocument() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-primary mb-2">
                 Expiry Date <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
                 name="expiryDate"
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                 value={formData.expiryDate}
                 onChange={handleInputChange}
                 required
@@ -369,13 +369,13 @@ function DriverDocument() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-primary mb-2">
               Upload Document
             </label>
             <div className="relative">
               <input
                 type="file"
-                className="w-full border border-gray-300 rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#9793E4]/10 file:text-[#9793E4] hover:file:bg-[#9793E4]/20 transition-all"
+                className="w-full border border-theme rounded-lg p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#9793E4]/10 file:text-[#9793E4] hover:file:bg-[#9793E4]/20 transition-all"
                 onChange={handleFileChange}
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
               />
@@ -389,10 +389,10 @@ function DriverDocument() {
         </div>
 
         {/* Modal Footer */}
-        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
+        <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
           <button
             type="button"
-            className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+            className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
             onClick={() => setShowDocModal(false)}
             disabled={submitting}
           >
@@ -413,27 +413,27 @@ function DriverDocument() {
 
   const DeleteConfirmationModal = () => (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md relative">
         {/* Modal Header */}
-        <div className="bg-red-50 border-b border-red-100 px-6 py-4 flex items-center gap-3 rounded-t-2xl">
+        <div className="bg-card border-b border-red-100 px-6 py-4 flex items-center gap-3 rounded-t-2xl">
           <div className="p-2 bg-red-100 rounded-full">
-            <FaTrash className="text-red-600" size={20} />
+            <FaTrash className="text-[#A855F7]" size={20} />
           </div>
           <h3 className="text-xl font-bold text-red-900">Delete Document</h3>
         </div>
 
         {/* Modal Body */}
         <div className="p-6">
-          <p className="text-gray-700 text-base">
+          <p className="text-primary text-base">
             Are you sure you want to delete this document? This action cannot be undone.
           </p>
         </div>
 
         {/* Modal Footer */}
-        <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
+        <div className="bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
           <button
             type="button"
-            className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+            className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
             onClick={cancelDelete}
           >
             Cancel
@@ -451,7 +451,7 @@ function DriverDocument() {
   );
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50">
+    <div className="p-6 min-h-screen bg-card">
       {/* Notifications Container */}
       <div className="fixed top-4 right-4 z-[200] space-y-3 max-w-md">
         {notifications.map(notification => (
@@ -467,18 +467,18 @@ function DriverDocument() {
       {!selectedDriver && (
         <>
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-800">Driver Documents</h1>
+            <h1 className="text-3xl font-bold text-primary">Driver Documents</h1>
           </div>
 
           {driversLoading ? (
             <div className="text-center py-16">
               <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#9793E4] mx-auto mb-4"></div>
-              <p className="text-gray-500 text-lg">Loading drivers...</p>
+              <p className="text-secondary text-lg">Loading drivers...</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {drivers.length === 0 ? (
-                <div className="bg-white rounded-2xl shadow-lg border border-dashed border-gray-300 p-10 flex flex-col items-center justify-center text-gray-400">
+                <div className="bg-card rounded-2xl shadow-lg border border-dashed border-theme p-10 flex flex-col items-center justify-center text-secondary">
                   <FaUser size={48} className="mb-3" />
                   <p className="text-sm">No drivers available yet.</p>
                 </div>
@@ -486,12 +486,12 @@ function DriverDocument() {
                 drivers.map((driver: Driver) => (
                   <div
                     key={driver._id}
-                    className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all cursor-pointer overflow-hidden border border-gray-200"
+                    className="bg-card rounded-2xl shadow-lg hover:shadow-xl transition-all cursor-pointer overflow-hidden border border-theme"
                     onClick={() => handleSelectDriver(driver)}
                   >
                     <div className="bg-gradient-to-r from-[#9793E4] via-[#8783D4] to-[#7773C4] p-6">
                       <div className="flex items-center gap-4">
-                        <div className="p-4 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
+                        <div className="p-4 bg-card bg-opacity-20 rounded-xl backdrop-blur-sm">
                           <FaUser size={24} className="text-black" />
                         </div>
                         <div className="flex-1">
@@ -501,7 +501,7 @@ function DriverDocument() {
                       </div>
                     </div>
                     <div className="p-6">
-                      <p className="text-sm text-gray-600 mb-3 flex items-center gap-2">
+                      <p className="text-sm text-secondary mb-3 flex items-center gap-2">
                         <span className="font-semibold">📞</span> {driver.phone}
                       </p>
                       <span className={`inline-block px-4 py-1.5 rounded-full text-xs font-semibold capitalize ${driver.status?.toLowerCase() === 'active'
@@ -524,16 +524,16 @@ function DriverDocument() {
         <div className="space-y-6">
           <button
             onClick={handleBackToDrivers}
-            className="flex items-center gap-2 !mb-3 px-5 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-all shadow-md"
+            className="flex items-center gap-2 !mb-3 px-5 py-3 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-all shadow-md"
           >
             <FaArrowLeft /> Back to Drivers
           </button>
 
           {/* Driver Info Card */}
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
+          <div className="bg-card rounded-2xl shadow-lg overflow-hidden border border-theme">
             <div className="bg-gradient-to-r from-[#9793E4] via-[#8783D4] to-[#7773C4] p-6 text-white">
               <div className="flex items-center gap-4">
-                <div className="p-4 bg-white text-black bg-opacity-20 rounded-xl backdrop-blur-sm">
+                <div className="p-4 bg-card text-black bg-opacity-20 rounded-xl backdrop-blur-sm">
                   <FaUser size={32} />
                 </div>
                 <div className="flex-1">
@@ -541,7 +541,7 @@ function DriverDocument() {
                   <p className="text-sm opacity-90 mt-1">{selectedDriver.email}</p>
                   <p className="text-sm opacity-90">{selectedDriver.phone}</p>
                 </div>
-                <span className="px-4 py-1.5 bg-white text-black bg-opacity-20 rounded-full text-sm font-semibold capitalize backdrop-blur-sm">
+                <span className="px-4 py-1.5 bg-card text-black bg-opacity-20 rounded-full text-sm font-semibold capitalize backdrop-blur-sm">
                   {selectedDriver.status}
                 </span>
               </div>
@@ -549,10 +549,10 @@ function DriverDocument() {
           </div>
 
           {/* Documents Section */}
-          <div className="bg-white shadow-lg rounded-2xl overflow-hidden border border-gray-200">
+          <div className="bg-card shadow-lg rounded-2xl overflow-hidden border border-theme">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2 text-xl">
+                <h3 className="font-bold text-primary flex items-center gap-2 text-xl">
                   <FaFileAlt className="text-[#9793E4]" />
                   Documents ({driverDocuments.length})
                 </h3>
@@ -567,41 +567,41 @@ function DriverDocument() {
               {loading ? (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-[#9793E4] mx-auto mb-4"></div>
-                  <p className="text-gray-500">Loading documents...</p>
+                  <p className="text-secondary">Loading documents...</p>
                 </div>
               ) : driverDocuments.length === 0 ? (
-                <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl">
+                <div className="text-center py-12 text-secondary bg-card rounded-xl">
                   <FaFileAlt size={48} className="mx-auto mb-3 opacity-30" />
                   <p className="text-base font-medium">No documents uploaded yet</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                <div className="overflow-x-auto rounded-lg border border-theme">
                   <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-card">
                       <tr>
-                        <th className="p-4 text-left text-sm font-semibold text-gray-700">Type</th>
-                        <th className="p-4 text-left text-sm font-semibold text-gray-700">Number</th>
-                        <th className="p-4 text-left text-sm font-semibold text-gray-700">Issued</th>
-                        <th className="p-4 text-left text-sm font-semibold text-gray-700">Expiry</th>
-                        <th className="p-4 text-left text-sm font-semibold text-gray-700">Status</th>
-                        <th className="p-4 text-left text-sm font-semibold text-gray-700">Actions</th>
+                        <th className="p-4 text-left text-sm font-semibold text-primary">Type</th>
+                        <th className="p-4 text-left text-sm font-semibold text-primary">Number</th>
+                        <th className="p-4 text-left text-sm font-semibold text-primary">Issued</th>
+                        <th className="p-4 text-left text-sm font-semibold text-primary">Expiry</th>
+                        <th className="p-4 text-left text-sm font-semibold text-primary">Status</th>
+                        <th className="p-4 text-left text-sm font-semibold text-primary">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {driverDocuments.map((doc, index) => (
                         <tr
                           key={doc._id}
-                          className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                            } border-t hover:bg-gray-100 transition-colors`}
+                          className={`${index % 2 === 0 ? "bg-card" : "bg-card"
+                            } border-t hover:bg-[rgba(255,255,255,0.03)] transition-colors`}
                         >
                           <td className="p-4">
-                            <span className="font-semibold text-gray-800 capitalize">{doc.documentType}</span>
+                            <span className="font-semibold text-primary capitalize">{doc.documentType}</span>
                           </td>
                           <td className="p-4">
-                            <span className="font-mono bg-gray-100 px-2 py-1 rounded text-sm">{doc.documentNumber}</span>
+                            <span className="font-mono bg-card px-2 py-1 rounded text-sm">{doc.documentNumber}</span>
                           </td>
-                          <td className="p-4 text-sm text-gray-600">{formatDate(doc.issuedAt)}</td>
-                          <td className="p-4 text-sm text-gray-600">{formatDate(doc.expiryDate)}</td>
+                          <td className="p-4 text-sm text-secondary">{formatDate(doc.issuedAt)}</td>
+                          <td className="p-4 text-sm text-secondary">{formatDate(doc.expiryDate)}</td>
                           <td className="p-4">
                             {doc.status && (
                               <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(doc.status)}`}>
@@ -619,7 +619,7 @@ function DriverDocument() {
                                 <FaEdit size={16} />
                               </button>
                               <button
-                                className="p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-all border border-red-200"
+                                className="p-2.5 text-[#A855F7] hover:bg-red-50 rounded-lg transition-all border border-red-200"
                                 onClick={() => handleDeleteDocument(doc._id)}
                                 title="Delete Document"
                               >

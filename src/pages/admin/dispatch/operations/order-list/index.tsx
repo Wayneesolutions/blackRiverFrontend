@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle, File, Download } from "lucide-react";
+import { Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle, File, Download, ChevronDown } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import NewOrderSidebar from "./NewOrderSidebar";
@@ -12,9 +12,8 @@ import { createPortal } from "react-dom";
 import { socketService } from "../../../../../services/socketService";
 
 // Color constants
-const PRIMARY_GRADIENT = 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)';
-const PRIMARY_COLOR = '#016ab2';
-const PRIMARY_LIGHT_BG = 'rgba(66, 174, 236, 0.1)';
+const PRIMARY_GRADIENT = 'linear-gradient(90deg, #0ea5c0 0%, #1e3a8a 100%)';
+const PRIMARY_COLOR = '#0ea5c0';
 
 
 interface Place {
@@ -40,8 +39,8 @@ interface ToastNotification {
   driverName?: string;
 }
 
-const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick }: { 
-  notification: ToastNotification; 
+const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick }: {
+  notification: ToastNotification;
   onClose: (id: number) => void;
   onChatClick?: (orderId: string) => void;
   onDocumentClick?: (orderId: string) => void;
@@ -82,7 +81,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
     return (
       <div
         onClick={handleClick}
-        className="fixed top-4 right-4 w-[400px] bg-white rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-gray-100 overflow-hidden"
+        className="fixed top-4 right-4 w-[400px] bg-card rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-theme overflow-hidden"
       >
         <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-100" style={{ width: `${progress}%` }}></div>
         <div className="p-5">
@@ -95,15 +94,15 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-bold text-gray-900 text-base">
+                <h4 className="font-bold text-primary text-base">
                   📄 Documents Uploaded
                 </h4>
               </div>
-              <p className="text-gray-700 text-sm leading-relaxed mb-2">
+              <p className="text-primary text-sm leading-relaxed mb-2">
                 <strong>{notification.driverName || 'Driver'}</strong> has uploaded POD and Manifest documents
               </p>
               <div className="flex items-center gap-2 mb-3">
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] text-xs font-semibold rounded-full">
                   <FaTruck className="w-3 h-3" />
                   Order #{notification.orderNumber}
                 </span>
@@ -114,7 +113,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
                   <span>Click to view documents</span>
                 </div>
                 <div className="flex-1"></div>
-                <span className="text-gray-400 text-xs">Just now</span>
+                <span className="text-secondary text-xs">Just now</span>
               </div>
             </div>
             <button
@@ -122,7 +121,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
                 e.stopPropagation();
                 onClose(notification.id);
               }}
-              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:hover:bg-[rgba(255,255,255,0.05)] flex items-center justify-center text-secondary hover:text-secondary transition-all"
             >
               <X size={18} />
             </button>
@@ -137,7 +136,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
     return (
       <div
         onClick={handleClick}
-        className="fixed top-4 right-4 w-[400px] bg-white rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-gray-100 overflow-hidden"
+        className="fixed top-4 right-4 w-[400px] bg-card rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-theme overflow-hidden"
       >
         <div className="h-1 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-100" style={{ width: `${progress}%` }}></div>
         <div className="p-5">
@@ -150,24 +149,24 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-bold text-gray-900 text-base">
+                <h4 className="font-bold text-primary text-base">
                   {notification.driverName || 'Driver'}
                 </h4>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] text-xs font-semibold rounded-full">
                   <FaTruck className="w-3 h-3" />
                   {notification.orderNumber}
                 </span>
               </div>
-              <p className="text-gray-700 text-sm leading-relaxed line-clamp-2 mb-3">
+              <p className="text-primary text-sm leading-relaxed line-clamp-2 mb-3">
                 {notification.message}
               </p>
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-blue-600 text-xs font-semibold">
+                <div className="flex items-center gap-2 text-[#00D1FF] text-xs font-semibold">
                   <MessageCircle className="w-4 h-4" />
                   <span>Click to reply</span>
                 </div>
                 <div className="flex-1"></div>
-                <span className="text-gray-400 text-xs">Just now</span>
+                <span className="text-secondary text-xs">Just now</span>
               </div>
             </div>
             <button
@@ -175,7 +174,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
                 e.stopPropagation();
                 onClose(notification.id);
               }}
-              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:hover:bg-[rgba(255,255,255,0.05)] flex items-center justify-center text-secondary hover:text-secondary transition-all"
             >
               <X size={18} />
             </button>
@@ -195,11 +194,11 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
   };
 
   const bgColors = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    warning: 'bg-yellow-50 border-yellow-200',
-    chat: 'bg-blue-50 border-blue-200',
-    document_upload: 'bg-green-50 border-green-200',
+    success: 'bg-card border-green-500',
+    error: 'bg-card border-red-500',
+    warning: 'bg-card border-yellow-500',
+    chat: 'bg-card border-blue-500',
+    document_upload: 'bg-card border-green-500',
   };
 
   return (
@@ -207,10 +206,10 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -302,6 +301,10 @@ const OrderList = () => {
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
   const [selectedOrderForDocuments, setSelectedOrderForDocuments] = useState<Order | null>(null);
 
+  // Bulk selection
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+  const [bulkApproveLoading, setBulkApproveLoading] = useState(false);
+
   // Navigation
   const navigate = useNavigate();
   const location = useLocation();
@@ -312,6 +315,9 @@ const OrderList = () => {
 
   // Places state for search dropdowns
   const [, setPlaces] = useState<Place[]>([]);
+
+  // Load Board filter state (must be declared before the fetchOrders useEffect that depends on it)
+  const [loadBoard, setLoadBoard] = useState("LOAD BOARD");
 
   const [, setPickupLocationDropdownOpen] = useState(false);
 
@@ -339,7 +345,7 @@ const OrderList = () => {
       if (showChat && chatOrderId === orderId) {
         return; // Chat already open, no need to do anything
       }
-      
+
       // Open chat (URL will be updated by useEffect only if needed)
       setChatOrderId(order.id);
       setChatOrderNumber(order.orderNo);
@@ -361,7 +367,7 @@ const OrderList = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const orderIdFromQuery = searchParams.get('orderId');
-    
+
     if (orderIdFromQuery && orders.length > 0) {
       const order = orders.find(o => o.id === orderIdFromQuery);
       if (order) {
@@ -376,11 +382,11 @@ const OrderList = () => {
 
   // Update URL only when chat state changes (not on every render to prevent blinking)
   const prevChatStateRef = useRef({ showChat: false, chatOrderId: null as string | null });
-  
+
   useEffect(() => {
     const prevState = prevChatStateRef.current;
     const currentState = { showChat, chatOrderId };
-    
+
     // Only update URL if state actually changed
     if (prevState.showChat !== currentState.showChat || prevState.chatOrderId !== currentState.chatOrderId) {
       if (showChat && chatOrderId) {
@@ -388,7 +394,7 @@ const OrderList = () => {
         if (!prevState.showChat || prevState.chatOrderId !== chatOrderId) {
           const currentParams = new URLSearchParams(location.search);
           const currentOrderId = currentParams.get('orderId');
-          
+
           // Only navigate if URL doesn't already have the correct orderId
           if (currentOrderId !== chatOrderId) {
             navigate(`${location.pathname}?orderId=${encodeURIComponent(chatOrderId)}`, { replace: true });
@@ -401,7 +407,7 @@ const OrderList = () => {
           navigate(location.pathname, { replace: true });
         }
       }
-      
+
       prevChatStateRef.current = currentState;
     }
   }, [showChat, chatOrderId, navigate, location.pathname, location.search]);
@@ -423,11 +429,11 @@ const OrderList = () => {
   const ordersRef = useRef(orders);
   const showChatRef = useRef(showChat);
   const chatOrderIdRef = useRef(chatOrderId);
-  
+
   useEffect(() => {
     ordersRef.current = orders;
   }, [orders]);
-  
+
   useEffect(() => {
     showChatRef.current = showChat;
     chatOrderIdRef.current = chatOrderId;
@@ -437,12 +443,12 @@ const OrderList = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const currentUserId = localStorage.getItem('userId');
-    
+
     if (!token) {
       console.log('⚠️ No token found for socket connection');
       return;
     }
-    
+
     if (orders.length === 0) {
       console.log('⏳ Waiting for orders to load...');
       return;
@@ -455,9 +461,9 @@ const OrderList = () => {
       .connect(token)
       .then(async () => {
         if (!isMounted) return;
-        
+
         console.log('✅ Socket connected for order chat notifications');
-        
+
         // Wait for socket to be authenticated
         let retries = 0;
         while (!socketService.getIsAuthenticated() && retries < 20 && isMounted) {
@@ -477,11 +483,11 @@ const OrderList = () => {
         // Join all order chat rooms to receive messages
         const ordersToJoin = ordersRef.current;
         console.log(`🔌 Joining ${ordersToJoin.length} order chat rooms...`);
-        
+
         let joinedCount = 0;
         for (const order of ordersToJoin) {
           if (!isMounted) break;
-          
+
           try {
             await socketService.joinTripChat(order.id);
             joinedCount++;
@@ -493,10 +499,10 @@ const OrderList = () => {
           }
         }
         console.log(`✅ Successfully joined ${joinedCount}/${ordersToJoin.length} order chat rooms`);
-        
+
         messageHandler = (message: any) => {
           if (!isMounted) return;
-          
+
           console.log('📨 New message received:', {
             messageId: message._id,
             orderId: message.orderId,
@@ -505,13 +511,13 @@ const OrderList = () => {
             senderName: message.senderId?.name,
             message: message.message?.substring(0, 50)
           });
-          
+
           // Only show notification if message is NOT from current user
           const senderId = message.senderId?._id?.toString() || message.senderId?._id || message.senderId;
           const currentUserIdStr = currentUserId?.toString() || currentUserId;
-          
+
           console.log('🔍 Checking sender:', { senderId, currentUserIdStr, areEqual: senderId === currentUserIdStr });
-          
+
           if (senderId === currentUserIdStr) {
             console.log('⚠️ Message is from current user, skipping notification');
             return; // Don't show notification for own messages
@@ -525,11 +531,11 @@ const OrderList = () => {
           }
 
           console.log('🔍 Looking for order:', messageOrderId);
-          
+
           // Use ref to get latest orders
           const currentOrders = ordersRef.current;
           const order = currentOrders.find(o => o.id === messageOrderId);
-          
+
           if (!order) {
             console.log('⚠️ Order not found in current orders list:', messageOrderId, 'Total orders:', currentOrders.length);
             return;
@@ -540,7 +546,7 @@ const OrderList = () => {
           // Use refs to check current chat state
           const currentShowChat = showChatRef.current;
           const currentChatOrderId = chatOrderIdRef.current;
-          
+
           // Don't show popup if chat is already open for this order
           if (currentShowChat && currentChatOrderId === messageOrderId) {
             console.log('ℹ️ Chat already open for this order, just updating unread count');
@@ -554,13 +560,13 @@ const OrderList = () => {
 
           // Show popup notification
           const driverName = message.senderId?.name || message.senderName || 'Driver';
-          console.log('📢 Showing popup notification for:', { 
-            orderId: messageOrderId, 
-            orderNumber: order.orderNo, 
+          console.log('📢 Showing popup notification for:', {
+            orderId: messageOrderId,
+            orderNumber: order.orderNo,
             driverName,
             message: message.message?.substring(0, 50)
           });
-          
+
           addNotification('chat', message.message || 'New message', {
             orderId: messageOrderId,
             orderNumber: order.orderNo,
@@ -703,7 +709,7 @@ const OrderList = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, [userInfo?.company]);
+  }, [userInfo?.company, loadBoard]);
 
   // Fetch unread message counts for all orders
   useEffect(() => {
@@ -808,6 +814,13 @@ const OrderList = () => {
     return '';
   };
 
+  // Maps the Load Board dropdown's display value to the value the backend's
+  // loadBoard switch actually matches (dispatcher/order?loadBoard=...)
+  const LOAD_BOARD_PARAM: Record<string, string> = {
+    'HISTORICAL LOAD BOARD': 'HISTORICAL',
+    'CITY LOAD BOARD': 'CITY',
+  };
+
   const fetchOrders = async () => {
     setLoading(true);
     try {
@@ -815,13 +828,14 @@ const OrderList = () => {
         page: currentPage,
         limit: itemsPerPage,
         status: orderStatus || undefined,
-        orderType: orderType || undefined
+        orderType: orderType || undefined,
+        loadBoard: loadBoard !== 'LOAD BOARD' ? (LOAD_BOARD_PARAM[loadBoard] || loadBoard) : undefined
       });
 
       if (response?.success && response?.data) {
         console.log('📋 Raw orders from backend:', response.data);
         console.log('📎 First order attachments:', response.data[0]?.attachments);
-        
+
         const formattedOrders = response.data.map((order: any) => ({
           id: order._id,
           orderNo: order.orderNumber || order._id,
@@ -869,6 +883,10 @@ const OrderList = () => {
           // Document fields
           attachments: order.attachments || [],
           documentVerification: order.documentVerification || null,
+          documentsApproved: order.documentsApproved || false,
+          documentsApprovedBy: order.documentsApprovedBy,
+          documentsApprovedAt: order.documentsApprovedAt,
+          approvedWithoutDocuments: order.approvedWithoutDocuments || false,
           // Driver acceptance
           driverAcceptanceStatus: order.driverAcceptanceStatus || 'pending',
           driverRejectionReason: order.driverRejectionReason || '',
@@ -888,8 +906,6 @@ const OrderList = () => {
     }
   };
 
-  // Load Board filter states
-  const [loadBoard, setLoadBoard] = useState("LOAD BOARD");
   const [dispatcher, setDispatcher] = useState("");
 
   // Filter states (keeping for backward compatibility)
@@ -913,6 +929,7 @@ const OrderList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // Load Board view filtering/sorting now happens server-side (dispatcher/order?loadBoard=...)
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
       const matchesOrderNo = !orderNo || order.orderNo.toLowerCase().includes(orderNo.toLowerCase());
@@ -1008,20 +1025,20 @@ const OrderList = () => {
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case "quoted":
-        return "bg-orange-100 text-orange-800";
+        return "bg-[var(--accent-yellow)]/10 text-[var(--accent-yellow)]";
       case "confirmed":
-        return "bg-green-100 text-green-800";
+        return "bg-[var(--accent-green)]/10 text-[var(--accent-green)]";
       case "in_progress":
       case "in-progress":
       case "in-delivery":
         return "text-white";
       case "pending_review":
       case "verification_pending":
-        return "bg-amber-100 text-amber-800";
+        return "bg-[var(--accent-orange)]/10 text-[var(--accent-orange)]";
       case "completed":
-        return "bg-gray-100 text-gray-800";
+        return "bg-white/5 text-primary";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-white/5 text-primary";
     }
   };
 
@@ -1116,9 +1133,9 @@ const OrderList = () => {
 
 
   return (
-    <div className="p-6 bg-[#EDF8FF] min-h-screen">
+    <div className="p-6 bg-main min-h-screen">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Order List</h1>
+        <h1 className="text-2xl font-bold text-[var(--accent-navyblue)]">Order List</h1>
         <button
           onClick={handleCreateOrder}
           style={{ background: PRIMARY_GRADIENT }}
@@ -1133,8 +1150,8 @@ const OrderList = () => {
       <div className="mb-4 flex items-center gap-4">
         <select
           value={loadBoard}
-          onChange={(e) => setLoadBoard(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded text-sm bg-white font-medium text-gray-800"
+          onChange={(e) => { setLoadBoard(e.target.value); setCurrentPage(1); }}
+          className="px-4 py-2 border border-theme rounded text-sm bg-card font-medium text-primary"
         >
           <option value="LOAD BOARD">LOAD BOARD</option>
           <option value="CITY LOAD BOARD">CITY LOAD BOARD</option>
@@ -1146,7 +1163,7 @@ const OrderList = () => {
         <select
           value={dispatcher}
           onChange={(e) => setDispatcher(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded text-sm bg-white font-medium text-gray-800"
+          className="px-4 py-2 border border-theme rounded text-sm bg-card font-medium text-primary"
         >
           <option value="">DISPATCHER</option>
           <option value="all">All Dispatchers</option>
@@ -1155,12 +1172,14 @@ const OrderList = () => {
       </div>
 
       {/* Top Filter Bar */}
-      <div style={{ backgroundColor: PRIMARY_LIGHT_BG }} className="p-3 rounded-lg mb-4 flex flex-wrap gap-3">
+      <div
+        className="p-3 rounded-lg mb-4 flex flex-wrap gap-3 bg-card border border-theme"
+      >
 
         <select
           value={createdDate}
           onChange={(e) => setCreatedDate(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white"
+          className="px-3 py-1.5 border border-theme rounded text-sm bg-card"
         >
           <option value="">Created Date</option>
           <option value="today">Today</option>
@@ -1170,7 +1189,7 @@ const OrderList = () => {
         <select
           value={byDays}
           onChange={(e) => setByDays(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white"
+          className="px-3 py-1.5 border border-theme rounded text-sm bg-card"
         >
           <option value="">By Days</option>
           <option value="7">Last 7 Days</option>
@@ -1180,7 +1199,7 @@ const OrderList = () => {
         <select
           value={orderStatus}
           onChange={(e) => setOrderStatus(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white"
+          className="px-3 py-1.5 border border-theme rounded text-sm bg-card"
         >
           <option value="">By Order Status</option>
           <option value="QUOTED">Quoted</option>
@@ -1192,7 +1211,7 @@ const OrderList = () => {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white"
+          className="px-3 py-1.5 border border border-theme rounded text-sm bg-card"
         >
           <option value="">By Sort</option>
           <option value="date-asc">Date (Ascending)</option>
@@ -1204,18 +1223,95 @@ const OrderList = () => {
 
 
 
+      {/* Analytics Cards */}
+      {(() => {
+        const total = orders.length;
+        const docsApproved = orders.filter(o => (o as any).documentsApproved).length;
+        const pendingReview = orders.filter(o => {
+          const s = (o.status || '').toLowerCase();
+          return s === 'pending_review' || s === 'verification_pending';
+        }).length;
+        const approvalRate = total > 0 ? Math.round((docsApproved / total) * 100) : 0;
+        return (
+          <div className="grid grid-cols-4 gap-4 mb-4">
+            <div className="bg-card border border-theme rounded-lg p-4">
+              <div className="text-xs text-secondary font-medium uppercase mb-1">Total Orders</div>
+              <div className="text-2xl font-bold text-primary">{total}</div>
+            </div>
+            <div className="bg-card border border-theme rounded-lg p-4">
+              <div className="text-xs text-secondary font-medium uppercase mb-1">Docs Approved</div>
+              <div className="text-2xl font-bold text-green-500">{docsApproved}</div>
+            </div>
+            <div className="bg-card border border-theme rounded-lg p-4">
+              <div className="text-xs text-secondary font-medium uppercase mb-1">Pending Review</div>
+              <div className="text-2xl font-bold text-orange-400">{pendingReview}</div>
+            </div>
+            <div className="bg-card border border-theme rounded-lg p-4">
+              <div className="text-xs text-secondary font-medium uppercase mb-1">Approval Rate</div>
+              <div className="text-2xl font-bold text-[var(--accent-blue)]">{approvalRate}%</div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Orders Table */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-card rounded-lg shadow-md overflow-hidden">
         {/* Top Scrollbar - Only visible horizontal scrollbar */}
+        {/* Bulk approve toolbar */}
+        {selectedOrderIds.size > 0 && (
+          <div className="flex items-center gap-3 px-4 py-2 border-b border-theme" style={{ background: 'var(--bg-card)' }}>
+            <span className="text-sm font-medium text-primary">{selectedOrderIds.size} order(s) selected</span>
+            <button
+              disabled={bulkApproveLoading}
+              onClick={async () => {
+                if (!window.confirm(`Approve documents for ${selectedOrderIds.size} selected order(s)?`)) return;
+                setBulkApproveLoading(true);
+                let successCount = 0;
+                let failCount = 0;
+                const failMessages: string[] = [];
+                for (const orderId of Array.from(selectedOrderIds)) {
+                  try {
+                    const res = await approveOrderDocuments(orderId, false);
+                    if (res?.success) successCount++;
+                    else { failCount++; if (res?.message) failMessages.push(res.message); }
+                  } catch (err: any) {
+                    failCount++;
+                    const msg = err?.message || err?.error || 'Unknown error';
+                    if (msg && !failMessages.includes(msg)) failMessages.push(msg);
+                  }
+                }
+                setBulkApproveLoading(false);
+                setSelectedOrderIds(new Set());
+                if (successCount > 0 && failCount === 0) {
+                  addNotification('success', `${successCount} order(s) approved successfully.`);
+                } else if (successCount > 0 && failCount > 0) {
+                  addNotification('warning', `${successCount} approved, ${failCount} failed: ${failMessages[0] || 'Unknown error'}`);
+                } else {
+                  addNotification('error', failMessages[0] || 'Failed to approve selected orders.');
+                }
+                fetchOrders();
+              }}
+              className="px-3 py-1.5 text-sm bg-green-600 !text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+            >
+              {bulkApproveLoading ? 'Approving...' : 'Bulk Approve Documents'}
+            </button>
+            <button
+              onClick={() => setSelectedOrderIds(new Set())}
+              className="px-3 py-1.5 text-sm bg-red-500 !text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+            >
+              Clear Selection
+            </button>
+          </div>
+        )}
         <style>{`
           .top-scrollbar-container::-webkit-scrollbar {
             height: 8px;
           }
           .top-scrollbar-container::-webkit-scrollbar-track {
-            background: #f7fafc;
+            background: var(--bg-card);
           }
           .top-scrollbar-container::-webkit-scrollbar-thumb {
-            background: #cbd5e0;
+            background: rgba(255,255,255,0.1);
             border-radius: 4px;
           }
           .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
@@ -1236,7 +1332,7 @@ const OrderList = () => {
             maxHeight: '20px',
             marginBottom: '2px',
             scrollbarWidth: 'thin',
-            scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+            scrollbarColor: '#224c75 #111c24' /* Firefox */
           }}
         >
           <div className="top-scroll-content" style={{ height: '1px' }}></div>
@@ -1247,103 +1343,114 @@ const OrderList = () => {
           className="overflow-x-auto table-container-hidden-scrollbar"
         >
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-card border-b border-theme">
               <tr>
-
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase w-10">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded accent-blue-600"
+                    checked={paginatedOrders.length > 0 && paginatedOrders.every(o => selectedOrderIds.has(o.id))}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedOrderIds(new Set(paginatedOrders.map(o => o.id)));
+                      else setSelectedOrderIds(new Set());
+                    }}
+                    title="Select all"
+                  />
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Load #
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Order #
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Rate
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Payment
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Customer
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Shipper City
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Shipper State
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Ship Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Time
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Receiver City
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Receiver State
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Receive Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Time
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Truck
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Trailer
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Driver/Carrier
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Co-Driver
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Booked
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Entry
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Temp.
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Hazmat
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Dispatcher
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Driver
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Driver Response
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Carrier
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                   Documents
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-card">
               {loading ? (
                 <tr>
-                  <td colSpan={26} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={26} className="px-6 py-12 text-center text-secondary">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: PRIMARY_COLOR }}></div>
                     <p className="mt-2">Loading orders...</p>
                   </td>
                 </tr>
               ) : paginatedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={26} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={26} className="px-6 py-12 text-center text-secondary">
                     <p className="text-lg font-medium">No orders found</p>
                     <p className="text-sm">Create a new order to get started</p>
                   </td>
@@ -1359,7 +1466,7 @@ const OrderList = () => {
                   const receiveDateTime = formatDateAndTime(order.deliveryDate || '');
 
 
-                 
+
 
                   // Get load number
                   const loadNumber = getLoadNumber(order);
@@ -1423,7 +1530,7 @@ const OrderList = () => {
                   return (
                     <tr
                       key={order.id}
-                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      className={`hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors ${selectedOrderIds.has(order.id) ? 'bg-blue-50/20' : ''}`}
                       onClick={async () => {
                         // Open sidebar in edit mode
                         try {
@@ -1440,151 +1547,183 @@ const OrderList = () => {
                         }
                       }}
                     >
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap w-10" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded accent-blue-600"
+                          checked={selectedOrderIds.has(order.id)}
+                          onChange={(e) => {
+                            const next = new Set(selectedOrderIds);
+                            if (e.target.checked) next.add(order.id);
+                            else next.delete(order.id);
+                            setSelectedOrderIds(next);
+                          }}
+                        />
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {loadNumber}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {orderNumber}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {rate}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <select
-                          value={order.status || 'quoted'}
-                          onChange={async (e) => {
-                            e.stopPropagation();
-                            const newStatus = e.target.value;
-                            const previousStatus = order.status || 'quoted';
-                            
-                            try {
-                              const res = await updateOrder(order.id, { status: newStatus });
-                              if (res?.success) {
-                                addNotification('success', 'Order status updated');
-                                fetchOrders();
-                              } else {
-                                addNotification('error', res?.message || 'Failed to update status');
-                                // Revert dropdown to previous status if update failed
+                        <div className="relative inline-flex items-center">
+                          <select
+                            value={order.status || 'quoted'}
+                            onChange={async (e) => {
+                              e.stopPropagation();
+                              const newStatus = e.target.value;
+                              const previousStatus = order.status || 'quoted';
+                              try {
+                                const res = await updateOrder(order.id, { status: newStatus });
+                                if (res?.success) {
+                                  addNotification('success', 'Order status updated');
+                                  fetchOrders();
+                                } else {
+                                  addNotification('error', res?.message || 'Failed to update status');
+                                  e.target.value = previousStatus;
+                                }
+                              } catch (err: any) {
+                                console.error('Error updating status:', err);
+                                addNotification('error', err?.response?.data?.message || err?.message || 'Error updating status');
                                 e.target.value = previousStatus;
                               }
-                            } catch (err: any) {
-                              console.error('Error updating status:', err);
-                              addNotification('error', err?.response?.data?.message || err?.message || 'Error updating status');
-                              // Revert dropdown to previous status on error
-                              e.target.value = previousStatus;
-                            }
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${order.status?.toLowerCase() === 'quoted' ? 'bg-orange-100 text-orange-800 ring-orange-600/20' :
-                            order.status?.toLowerCase() === 'planned' ? 'bg-blue-100 text-blue-800 ring-blue-600/20' :
-                              order.status?.toLowerCase() === 'completed' ? 'bg-gray-100 text-gray-800 ring-gray-600/20' :
-                                order.status?.toLowerCase() === 'delivered' ? 'bg-purple-100 text-purple-800 ring-purple-600/20' :
-                                  order.status?.toLowerCase() === 'in-delivery' ? 'bg-yellow-100 text-yellow-800 ring-yellow-600/20' :
-                                    order.status?.toLowerCase() === 'pending_review' || order.status?.toLowerCase() === 'verification_pending' ? 'bg-amber-100 text-amber-800 ring-amber-600/20' :
-                                      order.status?.toLowerCase() === 'canceled' ? 'bg-red-100 text-red-800 ring-red-600/20' :
-                                        'bg-gray-100 text-gray-800 ring-gray-500/10'
-                            }`}
-                        >
-                          <option value="planned">Planned</option>
-                          <option value="quoted">Quoted</option>
-                          <option value="in-delivery">In Delivery</option>
-                          <option value="delivered">Delivered</option>
-                          <option value="pending_review">Pending Review</option>
-                          <option value="verification_pending">Verification Pending</option>
-                          <option value="completed">Completed</option>
-                          <option value="canceled">Canceled</option>
-                        </select>
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className={`appearance-none text-xs font-semibold rounded-full pl-3 pr-7 py-1.5 border cursor-pointer outline-none focus:ring-2 focus:ring-[var(--accent-blue)] transition-colors bg-card
+                              ${order.status?.toLowerCase() === 'quoted' ? 'text-yellow-400 border-yellow-400/40 bg-yellow-400/10' :
+                                order.status?.toLowerCase() === 'planned' ? 'text-blue-400 border-blue-400/40 bg-blue-400/10' :
+                                  order.status?.toLowerCase() === 'completed' ? 'text-green-400 border-green-400/40 bg-green-400/10' :
+                                    order.status?.toLowerCase() === 'delivered' ? 'text-purple-400 border-purple-400/40 bg-purple-400/10' :
+                                      order.status?.toLowerCase() === 'in-delivery' ? 'text-[var(--accent-blue)] border-[var(--accent-blue)]/40 bg-[var(--accent-blue)]/10' :
+                                        order.status?.toLowerCase() === 'pending_review' || order.status?.toLowerCase() === 'verification_pending'
+                                          ? 'text-orange-400 border-orange-400/40 bg-orange-400/10' :
+                                          order.status?.toLowerCase() === 'canceled'
+                                            ? 'text-red-400 border-red-400/40 bg-red-400/10' :
+                                            'text-primary border-theme'
+                              }`}
+                          >
+                            <option value="planned" className="bg-card text-primary">Planned</option>
+                            <option value="quoted" className="bg-card text-primary">Quoted</option>
+                            <option value="in-delivery" className="bg-card text-primary">In Delivery</option>
+                            <option value="delivered" className="bg-card text-primary">Delivered</option>
+                            <option value="pending_review" className="bg-card text-primary">Pending Review</option>
+                            <option value="verification_pending" className="bg-card text-primary">Verification Pending</option>
+                            <option value="completed" className="bg-card text-primary">Completed</option>
+                            <option value="canceled" className="bg-card text-red-400">Canceled</option>
+                          </select>
+                          <ChevronDown className={`pointer-events-none absolute right-2 w-3 h-3 opacity-60
+                            ${order.status?.toLowerCase() === 'quoted' ? 'text-yellow-400' :
+                              order.status?.toLowerCase() === 'planned' ? 'text-blue-400' :
+                                order.status?.toLowerCase() === 'completed' ? 'text-green-400' :
+                                  order.status?.toLowerCase() === 'canceled' ? 'text-red-400' :
+                                    'text-primary'
+                            }`} />
+                        </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <select
-                          value={order.accountingStatus || 'pending'}
-                          onChange={async (e) => {
-                            e.stopPropagation();
-                            const newStatus = e.target.value;
-                            try {
-                              const res = await updateOrder(order.id, { accountingStatus: newStatus });
-                              if (res?.success) {
-                                addNotification('success', 'Payment status updated');
-                                fetchOrders();
-                              } else {
-                                addNotification('error', 'Failed to update payment status');
+                        <div className="relative inline-flex items-center">
+                          <select
+                            value={order.accountingStatus || 'pending'}
+                            onChange={async (e) => {
+                              e.stopPropagation();
+                              const newStatus = e.target.value;
+                              try {
+                                const res = await updateOrder(order.id, { accountingStatus: newStatus });
+                                if (res?.success) {
+                                  addNotification('success', 'Payment status updated');
+                                  fetchOrders();
+                                } else {
+                                  addNotification('error', 'Failed to update payment status');
+                                }
+                              } catch (err) {
+                                console.error('Error updating payment status:', err);
+                                addNotification('error', 'Error updating payment status');
                               }
-                            } catch (err) {
-                              console.error('Error updating payment status:', err);
-                              addNotification('error', 'Error updating payment status');
-                            }
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${(order.accountingStatus || 'pending') === 'paid' ? 'bg-green-100 text-green-800 ring-green-600/20' :
-                              (order.accountingStatus || 'pending') === 'unpaid' ? 'bg-red-100 text-red-800 ring-red-600/20' :
-                                'bg-yellow-100 text-yellow-800 ring-yellow-600/20'
-                            }`}
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="paid">Paid</option>
-                          <option value="unpaid">Unpaid</option>
-                        </select>
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className={`appearance-none text-xs font-semibold rounded-full pl-3 pr-7 py-1.5 border cursor-pointer outline-none focus:ring-2 focus:ring-[var(--accent-blue)] transition-colors bg-card
+                              ${(order.accountingStatus || 'pending') === 'paid'
+                                ? 'text-green-400 border-green-400/40 bg-green-400/10'
+                                : (order.accountingStatus || 'pending') === 'unpaid'
+                                  ? 'text-red-400 border-red-400/40 bg-red-400/10'
+                                  : 'text-orange-400 border-orange-400/40 bg-orange-400/10'
+                              }`}
+                          >
+                            <option value="pending" className="bg-card text-primary">Pending</option>
+                            <option value="paid" className="bg-card text-primary">Paid</option>
+                            <option value="unpaid" className="bg-card text-primary">Unpaid</option>
+                          </select>
+                          <ChevronDown className={`pointer-events-none absolute right-2 w-3 h-3 opacity-60
+                            ${(order.accountingStatus || 'pending') === 'paid' ? 'text-green-400' :
+                              (order.accountingStatus || 'pending') === 'unpaid' ? 'text-red-400' :
+                                'text-orange-400'
+                            }`} />
+                        </div>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {truncateText(order.customerName || '-', 15)}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {shipperCity || '-'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {shipperState || '-'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {shipDateTime.date || '-'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {shipDateTime.time || '-'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {receiverCity || '-'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {receiverState || '-'}
                       </td>
-                      <td className={`px-4 py-4 whitespace-nowrap text-sm ${receiveDateTime.isFuture ? 'text-green-600' : 'text-gray-900'}`}>
+                      <td className={`px-4 py-4 whitespace-nowrap text-sm ${receiveDateTime.isFuture ? 'text-green-600' : 'text-primary'}`}>
                         {receiveDateTime.date || '-'}
                       </td>
-                      <td className={`px-4 py-4 whitespace-nowrap text-sm ${receiveDateTime.isFuture ? 'text-green-600' : 'text-gray-900'}`}>
+                      <td className={`px-4 py-4 whitespace-nowrap text-sm ${receiveDateTime.isFuture ? 'text-green-600' : 'text-primary'}`}>
                         {receiveDateTime.time || '-'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {truckDisplay}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {trailerDisplay}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {driverDisplay}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {coDriverDisplay}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {displayBooked}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {displayEntry}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {displayTemp}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {displayHazmat}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {dispatcherName}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {driverDisplay}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         {(order as any).driverAcceptanceStatus === 'accepted' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700" title="Driver accepted this assignment">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-[var(--accent-green)]/10 text-[var(--accent-green)]" title="Driver accepted this assignment">
                             <FaCheckCircle size={10} /> Accepted
                           </span>
                         ) : (order as any).driverAcceptanceStatus === 'rejected' ? (
@@ -1602,16 +1741,16 @@ const OrderList = () => {
                           <span className="text-gray-400 text-xs">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {carrierName}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         {(() => {
                           // Get actual attachment count from order
                           const attachmentCount = order.attachments?.length || 0;
-                          
+
                           console.log(`📎 Order ${order.orderNo} - Attachments:`, order.attachments, 'Count:', attachmentCount);
-                          
+
                           return (
                             <button
                               onClick={async (e) => {
@@ -1634,11 +1773,11 @@ const OrderList = () => {
                                   addNotification('error', 'Error loading documents');
                                 }
                               }}
-                              className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-blue-50 border border-gray-300 rounded transition-colors cursor-pointer"
+                              className="flex items-center justify-center gap-2 px-3 py-2 bg-card hover:bg-blue-50 border border-theme rounded transition-colors cursor-pointer"
                               title={`Click to view ${attachmentCount} document${attachmentCount !== 1 ? 's' : ''}`}
                             >
-                              <File className={attachmentCount > 0 ? "text-blue-600" : "text-gray-400"} size={16} />
-                              <span className={`text-sm font-semibold ${attachmentCount > 0 ? 'text-blue-800' : 'text-gray-400'}`}>
+                              <File className={attachmentCount > 0 ? "text-[#00D1FF]" : "text-secondary"} size={16} />
+                              <span className={`text-sm font-semibold ${attachmentCount > 0 ? 'text-blue-800' : 'text-secondary'}`}>
                                 {attachmentCount}
                               </span>
                             </button>
@@ -1654,15 +1793,15 @@ const OrderList = () => {
         </div>
 
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-          <div className="text-sm text-gray-700">
+        <div className="px-6 py-4 border-t border-theme flex items-center justify-between">
+          <div className="text-sm text-primary">
             Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredOrders.length)} of {filteredOrders.length} entries
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              className="px-3 py-1 border border-theme rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.03)]"
             >
               Previous
             </button>
@@ -1670,7 +1809,7 @@ const OrderList = () => {
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              className="px-3 py-1 border border-theme rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.03)]"
             >
               Next
             </button>
@@ -1680,7 +1819,7 @@ const OrderList = () => {
                 setItemsPerPage(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="px-2 py-1 border border-gray-300 rounded text-sm"
+              className="px-2 py-1 border border-theme rounded text-sm"
             >
               <option value={10}>10</option>
               <option value={25}>25</option>
@@ -1694,59 +1833,59 @@ const OrderList = () => {
       {/* Documents Modal */}
       {showDocumentsModal && selectedOrderForDocuments && (
         <div className="fixed inset-0 z-[10002] bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
-            <div className="flex-shrink-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-xl">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+            <div className="flex-shrink-0 bg-card border-b px-6 py-4 flex items-center justify-between rounded-t-xl">
               <div>
-                <h3 className="text-xl font-bold text-gray-800">Order Documents</h3>
-                <p className="text-sm text-gray-600 mt-1">Order: {selectedOrderForDocuments.orderNo || selectedOrderForDocuments.custOrderNo || 'N/A'}</p>
+                <h3 className="text-xl font-bold text-primary">Order Documents</h3>
+                <p className="text-sm text-secondary mt-1">Order: {selectedOrderForDocuments.orderNo || selectedOrderForDocuments.custOrderNo || 'N/A'}</p>
               </div>
               <button
                 onClick={() => {
                   setShowDocumentsModal(false);
                   setSelectedOrderForDocuments(null);
                 }}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-secondary" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
               {/* Document Requirements Status */}
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="text-xs font-semibold text-gray-700 mb-2">Required Documents:</div>
+              <div className="mb-4 p-3 bg-card rounded-lg border border-theme">
+                <div className="text-xs font-semibold text-primary mb-2">Required Documents:</div>
                 {(() => {
                   const orderData = selectedOrderForDocuments as any;
                   const attachments = orderData?.attachments || [];
-                  
+
                   console.log('📋 Modal - Order Data:', orderData);
                   console.log('📎 Modal - Attachments:', attachments);
                   console.log('📎 Modal - Attachments length:', attachments.length);
-                  
+
                   // Check for POD
-                  const hasPOD = attachments.some((att: any) => 
-                    att.type === 'pod' || 
+                  const hasPOD = attachments.some((att: any) =>
+                    att.type === 'pod' ||
                     att.type === 'proof_of_delivery' ||
                     att.name?.toLowerCase().includes('pod')
                   );
-                  
+
                   // Check for Manifest
-                  const hasManifest = attachments.some((att: any) => 
-                    att.type === 'border_manifest' || 
+                  const hasManifest = attachments.some((att: any) =>
+                    att.type === 'border_manifest' ||
                     att.type === 'manifest' ||
                     att.type === 'stamped_manifest' ||
                     att.name?.toLowerCase().includes('manifest')
                   );
-                  
+
                   console.log('✅ Has POD:', hasPOD);
                   console.log('✅ Has Manifest:', hasManifest);
-                  
+
                   return (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
                         {hasPOD ? (
                           <FaCheckCircle className="text-green-600" size={14} />
                         ) : (
-                          <FaTimes className="text-red-600" size={14} />
+                          <FaTimes className="text-[#A855F7]" size={14} />
                         )}
                         <span className={hasPOD ? 'text-green-800' : 'text-red-800'}>
                           POD (Proof of Delivery) - {hasPOD ? 'Uploaded' : 'Missing'}
@@ -1756,7 +1895,7 @@ const OrderList = () => {
                         {hasManifest ? (
                           <FaCheckCircle className="text-green-600" size={14} />
                         ) : (
-                          <FaTimes className="text-red-600" size={14} />
+                          <FaTimes className="text-[#A855F7]" size={14} />
                         )}
                         <span className={hasManifest ? 'text-green-800' : 'text-red-800'}>
                           Border Manifest - {hasManifest ? 'Uploaded' : 'Missing'}
@@ -1769,14 +1908,14 @@ const OrderList = () => {
 
               {/* Documents List */}
               <div>
-                <div className="text-sm font-semibold text-gray-700 mb-3">Uploaded Documents:</div>
+                <div className="text-sm font-semibold text-primary mb-3">Uploaded Documents:</div>
                 {(() => {
                   const orderData = selectedOrderForDocuments as any;
                   const attachments = orderData?.attachments || [];
-                  
+
                   console.log('📄 Uploaded Documents Section - Attachments:', attachments);
                   console.log('📄 Uploaded Documents Section - Count:', attachments.length);
-                  
+
                   if (attachments.length > 0) {
                     console.log('✅ Showing attachments list');
                     return (
@@ -1786,10 +1925,10 @@ const OrderList = () => {
                           const docType = attachment.type || 'other';
                           const docName = attachment.name || 'Document';
                           const docUrl = attachment.url;
-                          
+
                           let displayName = docName;
                           let typeLabel = docType.toUpperCase();
-                          
+
                           if (docType === 'pod' || docType === 'proof_of_delivery') {
                             displayName = 'Proof of Delivery (POD)';
                             typeLabel = 'POD';
@@ -1797,20 +1936,20 @@ const OrderList = () => {
                             displayName = 'Border Manifest';
                             typeLabel = 'Manifest';
                           }
-                          
+
                           return (
-                            <div key={attachment.id || index} className="p-3 bg-white border border-gray-200 rounded-lg">
+                            <div key={attachment.id || index} className="p-3 bg-card border border-theme rounded-lg">
                               <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-start gap-3 flex-1 min-w-0">
-                                  <File className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                  <File className="w-4 h-4 text-secondary mt-0.5 flex-shrink-0" />
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                      <span className="font-medium text-sm text-gray-900">{displayName}</span>
-                                      <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium">{typeLabel}</span>
+                                      <span className="font-medium text-sm text-primary">{displayName}</span>
+                                      <span className="px-2 py-0.5 bg-card text-primary rounded text-xs font-medium">{typeLabel}</span>
                                     </div>
-                                    <div className="text-xs text-gray-500 mt-1">{docName}</div>
+                                    <div className="text-xs text-secondary mt-1">{docName}</div>
                                     {attachment.uploadedAt && (
-                                      <div className="text-xs text-gray-400 mt-1">
+                                      <div className="text-xs text-secondary mt-1">
                                         Uploaded: {new Date(attachment.uploadedAt).toLocaleString()}
                                       </div>
                                     )}
@@ -1826,7 +1965,7 @@ const OrderList = () => {
                                       alert('Document URL not available');
                                     }
                                   }}
-                                  className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 flex-shrink-0"
+                                  className="px-3 py-1.5 text-xs font-medium text-[#00D1FF] hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 flex-shrink-0"
                                   title="View Document in New Tab"
                                 >
                                   <Download className="w-3 h-3" />
@@ -1840,8 +1979,8 @@ const OrderList = () => {
                     );
                   }
                   return (
-                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center text-gray-500">
-                      <File className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                    <div className="p-4 bg-card border border-theme rounded-lg text-center text-secondary">
+                      <File className="w-6 h-6 mx-auto mb-2 text-secondary" />
                       <p className="text-sm">No documents uploaded</p>
                     </div>
                   );
@@ -1854,7 +1993,7 @@ const OrderList = () => {
                 const isNotCompleted = orderData?.status !== 'completed';
                 const isNotApproved = !orderData?.documentsApproved;
                 const shouldShow = isNotCompleted && isNotApproved;
-                
+
                 if (!shouldShow) {
                   // Show approval status if approved
                   if (orderData?.documentsApproved) {
@@ -1879,13 +2018,13 @@ const OrderList = () => {
                   }
                   return null;
                 }
-                
+
                 const attachments = orderData?.attachments || [];
                 const hasDocuments = attachments.length > 0;
-                
+
                 return (
-                  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="text-sm font-semibold text-gray-700 mb-3">Document Approval</div>
+                  <div className="mt-4 p-4 bg-card border border-yellow-200 rounded-lg">
+                    <div className="text-sm font-semibold text-primary mb-3">Document Approval</div>
                     <button
                       onClick={async () => {
                         if (!orderData?._id) return;
@@ -1909,11 +2048,10 @@ const OrderList = () => {
                         }
                       }}
                       disabled={!hasDocuments}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
-                        hasDocuments
-                          ? 'bg-green-600 !text-white hover:bg-green-700 hover:shadow-md cursor-pointer'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${hasDocuments
+                        ? 'bg-green-600 !text-white hover:bg-green-700 hover:shadow-md cursor-pointer'
+                        : 'bg-gray-300 text-secondary cursor-not-allowed'
+                        }`}
                       title={!hasDocuments ? 'No documents to approve' : 'Approve Documents'}
                     >
                       Approve Documents
@@ -1922,7 +2060,7 @@ const OrderList = () => {
                 );
               })()}
             </div>
-            <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end border-t rounded-b-xl">
+            <div className="flex-shrink-0 bg-card px-6 py-4 flex justify-end border-t rounded-b-xl">
               <button
                 onClick={() => {
                   setShowDocumentsModal(false);
@@ -1976,18 +2114,18 @@ const OrderList = () => {
 
           {/* Sidebar Panel */}
           <div
-            className={`fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0`}
+            className={`fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0`}
           >
             <div className="p-6">
               {/* Header */}
-              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
+              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                <h2 className="text-2xl font-bold text-primary">Order Details</h2>
                 <button
                   onClick={() => {
                     setShowOrderDetails(false);
                     setTimeout(() => setSelectedOrder(null), 300);
                   }}
-                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                 >
                   <X size={24} />
                 </button>
@@ -2022,50 +2160,50 @@ const OrderList = () => {
                 </div>
 
                 {/* Order Information */}
-                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                  <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                    <Package size={20} className="text-blue-600" />
+                <div className="bg-card p-6 rounded-lg border border-theme">
+                  <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                    <Package size={20} className="text-[#00D1FF]" />
                     Order Information
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Order Number</p>
-                      <p className="font-medium text-gray-900">{selectedOrder.orderNo}</p>
+                      <p className="text-sm text-secondary mb-1">Order Number</p>
+                      <p className="font-medium text-primary">{selectedOrder.orderNo}</p>
                     </div>
                     {selectedOrder.custOrderNo && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Customer Order Number</p>
-                        <p className="font-medium text-gray-900">{selectedOrder.custOrderNo}</p>
+                        <p className="text-sm text-secondary mb-1">Customer Order Number</p>
+                        <p className="font-medium text-primary">{selectedOrder.custOrderNo}</p>
                       </div>
                     )}
                     {selectedOrder.orderDate && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Order Date</p>
-                        <p className="font-medium text-gray-900">{selectedOrder.orderDate}</p>
+                        <p className="text-sm text-secondary mb-1">Order Date</p>
+                        <p className="font-medium text-primary">{selectedOrder.orderDate}</p>
                       </div>
                     )}
                     {selectedOrder.orderType && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Order Type</p>
-                        <p className="font-medium text-gray-900">{selectedOrder.orderType}</p>
+                        <p className="text-sm text-secondary mb-1">Order Type</p>
+                        <p className="font-medium text-primary">{selectedOrder.orderType}</p>
                       </div>
                     )}
                     {selectedOrder.totalItems !== undefined && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Total Items</p>
-                        <p className="font-medium text-gray-900">{selectedOrder.totalItems}</p>
+                        <p className="text-sm text-secondary mb-1">Total Items</p>
+                        <p className="font-medium text-primary">{selectedOrder.totalItems}</p>
                       </div>
                     )}
                     {selectedOrder.companyName && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Company Name</p>
-                        <p className="font-medium text-gray-900">{selectedOrder.companyName}</p>
+                        <p className="text-sm text-secondary mb-1">Company Name</p>
+                        <p className="font-medium text-primary">{selectedOrder.companyName}</p>
                       </div>
                     )}
                     {selectedOrder.customerName && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Customer Name</p>
-                        <p className="font-medium text-gray-900">{selectedOrder.customerName}</p>
+                        <p className="text-sm text-secondary mb-1">Customer Name</p>
+                        <p className="font-medium text-primary">{selectedOrder.customerName}</p>
                       </div>
                     )}
                   </div>
@@ -2074,13 +2212,13 @@ const OrderList = () => {
                 {/* Financial Details */}
                 {selectedOrder.totalAmount && (
                   <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                      <DollarSign size={20} className="text-blue-600" />
+                    <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                      <DollarSign size={20} className="text-[#00D1FF]" />
                       Financial Details
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-600 mb-1">Total Amount</p>
+                        <p className="text-sm text-secondary mb-1">Total Amount</p>
                         <p className="font-bold text-2xl text-blue-700">
                           {selectedOrder.currency || 'CAD'} {selectedOrder.totalAmount}
                         </p>
@@ -2091,31 +2229,31 @@ const OrderList = () => {
 
                 {/* Pickup Information */}
                 {(selectedOrder.pickupDate || selectedOrder.pickupLocation || selectedOrder.pickupRefNo) && (
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                      <Route size={20} className="text-blue-600" />
+                  <div className="bg-card p-6 rounded-lg border border-theme">
+                    <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                      <Route size={20} className="text-[#00D1FF]" />
                       Pickup Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {selectedOrder.pickupDate && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Pickup Date</p>
-                          <p className="font-medium text-gray-900">{selectedOrder.pickupDate}</p>
+                          <p className="text-sm text-secondary mb-1">Pickup Date</p>
+                          <p className="font-medium text-primary">{selectedOrder.pickupDate}</p>
                         </div>
                       )}
                       {selectedOrder.pickupLocation && (
                         <div className="md:col-span-2">
-                          <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
-                            <Route size={14} className="text-blue-600" />
+                          <p className="text-sm text-secondary mb-1 flex items-center gap-1">
+                            <Route size={14} className="text-[#00D1FF]" />
                             Pickup Location
                           </p>
-                          <p className="font-medium text-gray-900">{selectedOrder.pickupLocation}</p>
+                          <p className="font-medium text-primary">{selectedOrder.pickupLocation}</p>
                         </div>
                       )}
                       {selectedOrder.pickupRefNo && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Reference Number</p>
-                          <p className="font-medium text-gray-900">{selectedOrder.pickupRefNo}</p>
+                          <p className="text-sm text-secondary mb-1">Reference Number</p>
+                          <p className="font-medium text-primary">{selectedOrder.pickupRefNo}</p>
                         </div>
                       )}
                     </div>
@@ -2124,31 +2262,31 @@ const OrderList = () => {
 
                 {/* Delivery Information */}
                 {(selectedOrder.deliveryDate || selectedOrder.deliveryLocation || selectedOrder.deliveryRefNo) && (
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                  <div className="bg-card p-6 rounded-lg border border-theme">
+                    <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
                       <Route size={20} className="text-green-600" />
                       Delivery Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {selectedOrder.deliveryDate && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Delivery Date</p>
-                          <p className="font-medium text-gray-900">{selectedOrder.deliveryDate}</p>
+                          <p className="text-sm text-secondary mb-1">Delivery Date</p>
+                          <p className="font-medium text-primary">{selectedOrder.deliveryDate}</p>
                         </div>
                       )}
                       {selectedOrder.deliveryLocation && (
                         <div className="md:col-span-2">
-                          <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+                          <p className="text-sm text-secondary mb-1 flex items-center gap-1">
                             <Route size={14} className="text-green-600" />
                             Delivery Location
                           </p>
-                          <p className="font-medium text-gray-900">{selectedOrder.deliveryLocation}</p>
+                          <p className="font-medium text-primary">{selectedOrder.deliveryLocation}</p>
                         </div>
                       )}
                       {selectedOrder.deliveryRefNo && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Reference Number</p>
-                          <p className="font-medium text-gray-900">{selectedOrder.deliveryRefNo}</p>
+                          <p className="text-sm text-secondary mb-1">Reference Number</p>
+                          <p className="font-medium text-primary">{selectedOrder.deliveryRefNo}</p>
                         </div>
                       )}
                     </div>
@@ -2157,28 +2295,28 @@ const OrderList = () => {
 
                 {/* Driver & Vehicle Information */}
                 {(selectedOrder.driver || selectedOrder.truckNo || selectedOrder.trailerNo) && (
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                      <Truck size={20} className="text-blue-600" />
+                  <div className="bg-card p-6 rounded-lg border border-theme">
+                    <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                      <Truck size={20} className="text-[#00D1FF]" />
                       Driver & Vehicle Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {selectedOrder.driver && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Driver</p>
-                          <p className="font-medium text-gray-900">{selectedOrder.driver}</p>
+                          <p className="text-sm text-secondary mb-1">Driver</p>
+                          <p className="font-medium text-primary">{selectedOrder.driver}</p>
                         </div>
                       )}
                       {selectedOrder.truckNo && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Truck Number</p>
-                          <p className="font-medium text-gray-900">{selectedOrder.truckNo}</p>
+                          <p className="text-sm text-secondary mb-1">Truck Number</p>
+                          <p className="font-medium text-primary">{selectedOrder.truckNo}</p>
                         </div>
                       )}
                       {selectedOrder.trailerNo && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Trailer Number</p>
-                          <p className="font-medium text-gray-900">{selectedOrder.trailerNo}</p>
+                          <p className="text-sm text-secondary mb-1">Trailer Number</p>
+                          <p className="font-medium text-primary">{selectedOrder.trailerNo}</p>
                         </div>
                       )}
                     </div>
@@ -2186,13 +2324,13 @@ const OrderList = () => {
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                   <button
                     onClick={() => {
                       setShowOrderDetails(false);
                       setTimeout(() => setSelectedOrder(null), 300);
                     }}
-                    className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                    className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
                   >
                     Close
                   </button>
@@ -2223,7 +2361,7 @@ const OrderList = () => {
               onClick={() => setSidebarOpen(false)}
             />
             <div
-              className="fixed top-0 right-0 h-screen w-full max-w-5xl bg-white"
+              className="fixed top-0 right-0 h-screen w-full max-w-5xl bg-card"
               style={{ zIndex: 100000 }}
             >
               <NewOrderSidebar
@@ -2256,7 +2394,7 @@ const OrderList = () => {
               }}
             />
             <div
-              className="fixed top-0 right-0 h-screen w-full max-w-3xl bg-white shadow-2xl"
+              className="fixed top-0 right-0 h-screen w-full max-w-3xl bg-card shadow-2xl"
               style={{ zIndex: 100000 }}
             >
               <OrderChat

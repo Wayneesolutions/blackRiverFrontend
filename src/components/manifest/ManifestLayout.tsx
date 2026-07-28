@@ -11,7 +11,7 @@ function ManifestLayout({ basePath = "/admin/manifest" }: ManifestLayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex h-screen bg-[#EDF8FF]">
+    <div className="flex h-screen bg-main">
       <div className="flex-shrink-0 h-screen overflow-hidden">
         <ManifestSidebar isCollapsed={isSidebarCollapsed} basePath={basePath} />
       </div>

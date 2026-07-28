@@ -121,6 +121,8 @@ class SocketService {
         console.log("✅ [FRONTEND] User role:", data.role);
         console.log("✅ [FRONTEND] User company ID:", data.companyId);
         this.isAuthenticated = true;
+        // Signal GlobalCallHandler to attach its listeners now
+        window.dispatchEvent(new Event("socket-ready"));
         resolve();
       });
 
@@ -512,6 +514,7 @@ sendIceCandidate(data: { to: string; candidate: any }) {
       }
     }
   }
+
 }
 
 // Export singleton instance

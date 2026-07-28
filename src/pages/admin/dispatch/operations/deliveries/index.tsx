@@ -134,7 +134,7 @@ const DeliveriesPage = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+    <div className="min-h-screen" >
       <div className="relative w-full mx-auto">
      
 
@@ -145,39 +145,39 @@ const DeliveriesPage = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 
-                <h1 className="text-xl font-bold text-black">Deliveries</h1>
+                <h1 className="text-xl font-bold text-[var(--accent-navyblue)]">Deliveries</h1>
               </div>
-              <div className="text-black/90 text-sm">
+              <div className="text-[var(--accent-navyblue)] text-sm">
                 Total: {deliveries.length} deliveries
               </div>
             </div>
           </div>
 
           {/* Filters and Search */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 mb-4 p-4">
+          <div className="bg-card rounded-lg shadow-sm border border-theme mb-4 p-4">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
                 <input
                   type="text"
                   placeholder="Search deliveries..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                 />
               </div>
               <div className="md:w-48">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                  className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                 >
                   <option value="all">All Status</option>
                   <option value="scheduled">Scheduled</option>
                   <option value="in transit">In Transit</option>
                   <option value="completed">Completed</option>
                 </select>
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs text-secondary mt-1">
                   Showing deliveries for today
                 </div>
               </div>
@@ -185,110 +185,110 @@ const DeliveriesPage = () => {
           </div>
 
           {/* Deliveries Table */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+          <div className="bg-card rounded-lg shadow-sm border border-theme">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-card border-b border-theme">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Order Number
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Customer
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Delivery Location
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Delivery Date & Time
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Driver
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Truck
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Items
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--accent-navyblue)] uppercase tracking-wider">
                       Status
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme">
                   {loading ? (
                     <tr>
                       <td colSpan={8} className="px-6 py-8 text-center">
                         <div className="flex items-center justify-center">
-                          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-                          <span className="ml-2 text-gray-500">Loading deliveries...</span>
+                          <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-navyblue)]" />
+                          <span className="ml-2 text-secondary">Loading deliveries...</span>
                         </div>
                       </td>
                     </tr>
                   ) : filteredDeliveries.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={8} className="px-6 py-8 text-center text-secondary">
                         No deliveries found for today
                       </td>
                     </tr>
                   ) : (
                     filteredDeliveries.map((delivery) => (
-                      <tr key={delivery.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={delivery.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                         <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900">{delivery.orderNumber || 'N/A'}</div>
+                          <div className="text-sm font-medium text-primary">{delivery.orderNumber || 'N/A'}</div>
                           {delivery.customerOrderNo && (
-                            <div className="text-xs text-gray-500">Cust: {delivery.customerOrderNo}</div>
+                            <div className="text-xs text-secondary">Cust: {delivery.customerOrderNo}</div>
                           )}
                           {delivery.tripNo && (
-                            <div className="text-xs text-blue-600">Trip: {delivery.tripNo}</div>
+                            <div className="text-xs text-[var(--accent-navyblue)]">Trip: {delivery.tripNo}</div>
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">{delivery.customerName || 'N/A'}</div>
+                          <div className="text-sm text-primary">{delivery.customerName || 'N/A'}</div>
                           {delivery.receiver?.name && delivery.receiver.name !== delivery.customerName && (
-                            <div className="text-xs text-gray-500">Receiver: {delivery.receiver.name}</div>
+                            <div className="text-xs text-secondary">Receiver: {delivery.receiver.name}</div>
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center text-sm text-gray-900">
-                            <MapPin className="w-4 h-4 mr-1 text-gray-400" />
+                          <div className="flex items-center text-sm text-primary">
+                            <MapPin className="w-4 h-4 mr-1 text-secondary" />
                             {delivery.deliveryLocation}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center text-sm text-gray-900">
-                            <Calendar className="w-4 h-4 mr-1 text-gray-400" />
+                          <div className="flex items-center text-sm text-primary">
+                            <Calendar className="w-4 h-4 mr-1 text-secondary" />
                             <div>
                               <div>{formatDate(delivery.deliveryDate)}</div>
-                              <div className="text-xs text-gray-500">{delivery.deliveryTime}</div>
+                              <div className="text-xs text-secondary">{delivery.deliveryTime}</div>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center text-sm text-gray-900">
-                            <User className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                          <div className="flex items-center text-sm text-primary">
+                            <User className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
                             <div>
                               <div>{delivery.driverName || 'Not assigned'}</div>
                               {delivery.coDriver?.name && (
-                                <div className="text-xs text-gray-500">Co: {delivery.coDriver.name}</div>
+                                <div className="text-xs text-secondary">Co: {delivery.coDriver.name}</div>
                               )}
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center text-sm text-gray-900">
-                            <Truck className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                          <div className="flex items-center text-sm text-primary">
+                            <Truck className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
                             <div>
                               <div>{delivery.truckPlate || 'Not assigned'}</div>
                               {delivery.trailer?.licensePlate && (
-                                <div className="text-xs text-gray-500">Trailer: {delivery.trailer.licensePlate}</div>
+                                <div className="text-xs text-secondary">Trailer: {delivery.trailer.licensePlate}</div>
                               )}
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{delivery.items}</div>
+                          <div className="text-sm text-primary">{delivery.items}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getStatusBadge(delivery.status)}

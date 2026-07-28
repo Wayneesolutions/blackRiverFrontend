@@ -9,7 +9,7 @@ import { FaTruck } from "react-icons/fa";        // Drivers
 import { FaIdCard } from "react-icons/fa";       // Driver Portfolio
 import { FaFolderOpen } from "react-icons/fa";   // Company Documents
 import { FaUsers } from "react-icons/fa";        // Customers
-import { FaFlask } from "react-icons/fa";        // Drug Test
+
 import { FaGraduationCap } from "react-icons/fa"; // Training & Test Management
 import { FileText } from "lucide-react";         // ELD Documents
 import { Truck, Package } from "lucide-react"; // Trucks and Trailers
@@ -68,11 +68,11 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     icon: <FaGraduationCap />,
     label: "Driver Training Center",
   },
-  {
-    key: "/admin/Management/drug-test",
-    icon: <FaFlask />,
-    label: "Drug Test",
-  },
+  // {
+  //   key: "/admin/Management/drug-test",
+  //   icon: <FaFlask />,
+  //   label: "Drug Test",
+  // },
   {
     key: "/admin/Management/eld-documents",
     icon: <FileText className="w-5 h-5" />,

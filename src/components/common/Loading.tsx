@@ -1,11 +1,25 @@
-
 function Loading() {
   return (
-    <div className="flex justify-center items-center h-screen flex-col">
-      <div className="text-lg font-semibold mb-2 animate-pulse">Loading...</div>
-      <div className="w-10 h-10 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+    <div className="flex flex-col items-center justify-center h-screen bg-main">
+
+      {/* Spinner */}
+      <div className="
+        w-12 h-12 
+        border-4 
+        border-[var(--accent-blue)] 
+        border-t-transparent 
+        rounded-full 
+        animate-spin
+        shadow-[0_0_20px_var(--accent-blue)]
+      " />
+
+      {/* Text */}
+      <div className="mt-4 text-sm font-medium text-secondary animate-pulse">
+        Loading...
+      </div>
+
     </div>
-  )
+  );
 }
 
-export default Loading
+export default Loading;

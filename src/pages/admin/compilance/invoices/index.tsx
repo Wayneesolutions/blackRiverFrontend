@@ -11,11 +11,11 @@ import { FaFileInvoiceDollar, FaClipboardList, FaTools, FaExclamationCircle } fr
 import { getComplianceInvoices, deleteComplianceInvoice } from "../../../../axios/api/admin";
 
 const StatCard = ({ title, value, subtitle, icon: Icon, bgColor, iconColor }: any) => (
-  <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-start justify-between">
+  <div className="bg-card rounded-xl p-4 border border-theme shadow-sm flex items-start justify-between">
     <div>
-      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{title}</p>
-      <h3 className="text-2xl font-bold text-gray-900 mt-1">{value}</h3>
-      <p className="text-xs text-gray-400 mt-1">{subtitle}</p>
+      <p className="text-xs font-medium text-secondary uppercase tracking-wide">{title}</p>
+      <h3 className="text-2xl font-bold text-primary mt-1">{value}</h3>
+      <p className="text-xs text-secondary mt-1">{subtitle}</p>
     </div>
     <div className={`p-3 rounded-lg ${bgColor}`}>
       <Icon className={`w-5 h-5 ${iconColor}`} />
@@ -293,11 +293,11 @@ const ComplianceInvoices = () => {
           odometer: invoice.odometer ? invoice.odometer.toLocaleString() : "N/A",
           parts: invoice.parts && invoice.parts.length > 0
             ? invoice.parts.map((part: any) => {
-                const partName = part.partName || part.name || part.partNumber || 'Part';
-                const quantity = part.quantity || 1;
-                const cost = part.cost || 0;
-                return `${partName}${quantity > 1 ? ` (Qty: ${quantity})` : ''}${cost > 0 ? ` ($${cost.toFixed(2)})` : ''}`;
-              }).join(", ")
+              const partName = part.partName || part.name || part.partNumber || 'Part';
+              const quantity = part.quantity || 1;
+              const cost = part.cost || 0;
+              return `${partName}${quantity > 1 ? ` (Qty: ${quantity})` : ''}${cost > 0 ? ` ($${cost.toFixed(2)})` : ''}`;
+            }).join(", ")
             : "No parts listed",
           serviceProvider: invoice.serviceProvider || "N/A",
           location: invoice.location || "N/A",
@@ -347,7 +347,7 @@ const ComplianceInvoices = () => {
     try {
       const invoiceType = invoiceToDelete.type || 'general';
       const response = await deleteComplianceInvoice(invoiceToDelete.id, invoiceType);
-      
+
       if (response?.success) {
         setShowDeleteModal(false);
         setInvoiceToDelete(null);
@@ -405,7 +405,7 @@ const ComplianceInvoices = () => {
   };
 
   return (
-    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
+    <div className="min-h-screen pb-10" >
       <div className="relative w-full mx-auto p-2">
         {/* Header Section - Always visible */}
         <div className="relative px-4 pt-3 pb-6" style={{ backgroundColor: '#EDF8FF', position: 'relative' }}>
@@ -420,7 +420,7 @@ const ComplianceInvoices = () => {
               <button
                 onClick={handleExport}
                 disabled={exporting}
-                className="flex items-center gap-2 px-4 py-2 bg-white text-[#0ea3d8] rounded-lg hover:bg-white/90 shadow-sm transition-all font-bold text-sm"
+                className="flex items-center gap-2 px-4 py-2 bg-card text-[rgba(0,209,255,0.15)] rounded-lg hover:bg-card/90 shadow-sm transition-all font-bold text-sm"
               >
                 <Download className="w-4 h-4" />
                 {exporting ? "Exporting..." : "Export to Excel"}
@@ -429,27 +429,27 @@ const ComplianceInvoices = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 -mt-2 mb-4">
-            <StatCard title="Total Invoices" value={summary.total} subtitle="All time" icon={FaClipboardList} bgColor="bg-blue-50" iconColor="text-blue-600" />
+            <StatCard title="Total Invoices" value={summary.total} subtitle="All time" icon={FaClipboardList} bgColor="bg-card" iconColor="text-[#00D1FF]" />
             <StatCard title="Total Parts Spend" value={`$${summary.totalPartsSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} subtitle="Parts & Materials" icon={FaFileInvoiceDollar} bgColor="bg-green-50" iconColor="text-green-600" />
-            <StatCard title="Total Amount (with GST)" value={`$${summary.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} subtitle="Including all taxes" icon={FaFileInvoiceDollar} bgColor="bg-purple-50" iconColor="text-purple-600" />
-            <StatCard title="Follow-up Required" value={summary.followUps} subtitle="Pending inspections" icon={FaTools} bgColor="bg-orange-50" iconColor="text-orange-600" />
+            <StatCard title="Total Amount (with GST)" value={`$${summary.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} subtitle="Including all taxes" icon={FaFileInvoiceDollar} bgColor="bg-card" iconColor="text-purple-600" />
+            <StatCard title="Follow-up Required" value={summary.followUps} subtitle="Pending inspections" icon={FaTools} bgColor="bg-card" iconColor="text-[#F59E0B]" />
           </div>
 
           {/* Filters */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 mb-4">
-            <div className="flex items-center gap-2 text-gray-700 font-semibold mb-3 text-sm">
-              <Filter className="w-4 h-4 text-blue-600" />
+          <div className="bg-card rounded-xl shadow-lg border border-theme p-4 mb-4">
+            <div className="flex items-center gap-2 text-primary font-semibold mb-3 text-sm">
+              <Filter className="w-4 h-4 text-[#00D1FF]" />
               Filter Invoices
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <label className="text-xs font-semibold text-secondary uppercase tracking-wide">
                   Trucks (Unit Number)
                 </label>
                 <select
                   value={truckFilter}
                   onChange={(event) => setTruckFilter(event.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 w-full rounded-lg border border-theme px-3 py-1.5 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   {uniqueTrucks.map((truck) => (
                     <option key={truck} value={truck}>
@@ -459,13 +459,13 @@ const ComplianceInvoices = () => {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <label className="text-xs font-semibold text-secondary uppercase tracking-wide">
                   Drivers
                 </label>
                 <select
                   value={driverFilter}
                   onChange={(event) => setDriverFilter(event.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 w-full rounded-lg border border-theme px-3 py-1.5 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   {uniqueDrivers.map((driver) => (
                     <option key={driver} value={driver}>
@@ -475,13 +475,13 @@ const ComplianceInvoices = () => {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <label className="text-xs font-semibold text-secondary uppercase tracking-wide">
                   Mechanics
                 </label>
                 <select
                   value={mechanicFilter}
                   onChange={(event) => setMechanicFilter(event.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 w-full rounded-lg border border-theme px-3 py-1.5 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   {uniqueMechanics.map((mechanic) => (
                     <option key={mechanic} value={mechanic}>
@@ -491,11 +491,11 @@ const ComplianceInvoices = () => {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <label className="text-xs font-semibold text-secondary uppercase tracking-wide">
                   Quick Search
                 </label>
-                <div className="mt-1 flex items-center rounded-lg border border-gray-200 px-3 py-1.5 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-                  <Search className="w-3.5 h-3.5 text-gray-400" />
+                <div className="mt-1 flex items-center rounded-lg border border-theme px-3 py-1.5 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+                  <Search className="w-3.5 h-3.5 text-secondary" />
                   <input
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
@@ -508,7 +508,7 @@ const ComplianceInvoices = () => {
             <div className="flex flex-wrap gap-3 mt-3">
               <button
                 onClick={resetFilters}
-                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
+                className="rounded-lg border border-theme px-3 py-1.5 text-xs font-medium text-primary transition hover:bg-[rgba(255,255,255,0.03)]"
               >
                 Reset Filters
               </button>
@@ -516,7 +516,7 @@ const ComplianceInvoices = () => {
           </div>
 
           {/* Table */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
+          <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden mb-6">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
             <style>{`
               .top-scrollbar-container::-webkit-scrollbar {
@@ -557,8 +557,8 @@ const ComplianceInvoices = () => {
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
-              <table className="w-full divide-y divide-gray-200" style={{ minWidth: '1400px' }}>
-                <thead className="bg-gray-50">
+              <table className="w-full divide-y divide-theme" style={{ minWidth: '1400px' }}>
+                <thead className="bg-card">
                   <tr>
                     {[
                       "Service Date",
@@ -577,57 +577,57 @@ const ComplianceInvoices = () => {
                     ].map((header) => (
                       <th
                         key={header}
-                        className="px-6 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600"
+                        className="px-6 py-2 text-left text-xs font-semibold uppercase tracking-wider text-secondary"
                       >
                         {header}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-theme">
                   {filteredInvoices.map((invoice) => (
                     <tr
                       key={invoice.id}
-                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                       onClick={() => {
                         setSelectedInvoice(invoice);
                         setShowInvoiceDetails(true);
                       }}
                     >
-                      <td className="px-6 py-2 text-xs font-semibold text-gray-900">
+                      <td className="px-6 py-2 text-xs font-semibold text-primary">
                         {invoice.serviceDate ? new Date(invoice.serviceDate).toLocaleDateString() : '—'}
                       </td>
-                      <td className="px-6 py-2 text-xs text-gray-900">
+                      <td className="px-6 py-2 text-xs text-primary">
                         <div className="font-semibold">{invoice.unitNumber && invoice.unitNumber !== 'N/A' ? invoice.unitNumber : '—'}</div>
                         {invoice.makeModel && invoice.makeModel !== 'N/A' && (
-                          <div className="text-[10px] text-gray-500">{invoice.makeModel}</div>
+                          <div className="text-[10px] text-secondary">{invoice.makeModel}</div>
                         )}
                         {invoice.vinOrPlate && invoice.vinOrPlate !== 'N/A' && (
-                          <div className="text-[10px] text-gray-400">{invoice.vinOrPlate}</div>
+                          <div className="text-[10px] text-secondary">{invoice.vinOrPlate}</div>
                         )}
                       </td>
-                      <td className="px-6 py-2 text-xs text-gray-900">
-                        <span className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                      <td className="px-6 py-2 text-xs text-primary">
+                        <span className="inline-flex items-center rounded-full border border-blue-100 bg-card px-2 py-0.5 text-[10px] font-semibold text-blue-700">
                           {invoice.serviceProvider && invoice.serviceProvider !== 'N/A' ? invoice.serviceProvider : '—'}
                         </span>
                         {invoice.location && invoice.location !== 'N/A' && (
-                          <div className="text-[10px] text-gray-500 mt-0.5">{invoice.location}</div>
+                          <div className="text-[10px] text-secondary mt-0.5">{invoice.location}</div>
                         )}
                       </td>
-                      <td className="px-6 py-2 text-xs text-gray-900">
+                      <td className="px-6 py-2 text-xs text-primary">
                         {invoice.customer && invoice.customer !== 'N/A' ? invoice.customer : '—'}
                       </td>
-                      <td className="px-6 py-2 text-xs text-gray-700">
-                        <div className="font-medium text-gray-900">{invoice.description || '—'}</div>
+                      <td className="px-6 py-2 text-xs text-primary">
+                        <div className="font-medium text-primary">{invoice.description || '—'}</div>
                       </td>
-                      <td className="px-6 py-2 text-xs text-gray-900">
+                      <td className="px-6 py-2 text-xs text-primary">
                         <div className="font-semibold">{invoice.serviceCategory && invoice.serviceCategory !== 'N/A' ? invoice.serviceCategory : '—'}</div>
-                        <div className="text-[10px] text-gray-400 mt-0.5">Captured via fleet log</div>
+                        <div className="text-[10px] text-secondary mt-0.5">Captured via fleet log</div>
                       </td>
-                      <td className="px-6 py-2 text-xs text-gray-900">
+                      <td className="px-6 py-2 text-xs text-primary">
                         {invoice.odometer && invoice.odometer > 0 ? `${invoice.odometer.toLocaleString()} km` : "—"}
                       </td>
-                      <td className="px-6 py-2 text-xs text-gray-900">
+                      <td className="px-6 py-2 text-xs text-primary">
                         {invoice.parts && invoice.parts.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
                             {invoice.parts.map((part, idx) => {
@@ -637,7 +637,7 @@ const ComplianceInvoices = () => {
                               return (
                                 <span
                                   key={`${invoice.id}-${partName}-${idx}`}
-                                  className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-700"
+                                  className="rounded-full bg-card px-1.5 py-0.5 text-[10px] font-medium text-primary"
                                   title={cost > 0 ? `${partName} (Qty: ${quantity}) - $${cost.toFixed(2)}` : `${partName} (Qty: ${quantity})`}
                                 >
                                   {partName} {quantity > 1 ? `(Qty: ${quantity})` : ''} {cost > 0 ? `$${cost.toFixed(2)}` : ''}
@@ -646,28 +646,28 @@ const ComplianceInvoices = () => {
                             })}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-[10px]">No parts listed</span>
+                          <span className="text-secondary text-[10px]">No parts listed</span>
                         )}
                       </td>
-                      <td className="px-6 py-2 text-xs font-semibold text-gray-900">
+                      <td className="px-6 py-2 text-xs font-semibold text-primary">
                         {invoice.invoiceNumber && invoice.invoiceNumber !== 'N/A' ? invoice.invoiceNumber : '—'}
                       </td>
-                      <td className="px-6 py-2 text-xs text-gray-900">
+                      <td className="px-6 py-2 text-xs text-primary">
                         {invoice.location && invoice.location !== 'N/A' ? (
                           <div className="font-semibold">{invoice.location}</div>
                         ) : invoice.notes ? (
                           <div className="font-semibold">{invoice.notes}</div>
                         ) : (
-                          <div className="font-semibold text-gray-400">—</div>
+                          <div className="font-semibold text-secondary">—</div>
                         )}
                       </td>
-                      <td className="px-6 py-2 text-xs text-gray-900">
+                      <td className="px-6 py-2 text-xs text-primary">
                         <div className="font-semibold">
                           {invoice.totalAmount && invoice.totalAmount > 0 ? (
                             <>
                               ${invoice.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               {invoice.taxes && invoice.taxes.length > 0 && (
-                                <div className="text-[10px] text-gray-500 mt-0.5">
+                                <div className="text-[10px] text-secondary mt-0.5">
                                   {invoice.amount && invoice.amount > 0 && (
                                     <>Subtotal: ${invoice.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<br /></>
                                   )}
@@ -698,7 +698,7 @@ const ComplianceInvoices = () => {
                       <td className="px-6 py-2 text-xs" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => handleDeleteInvoice(invoice)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
                           title="Delete Service"
                         >
                           <Trash2 size={14} />
@@ -708,14 +708,14 @@ const ComplianceInvoices = () => {
                   ))}
                   {loading && (
                     <tr>
-                      <td className="px-6 py-8 text-center text-xs text-gray-500" colSpan={13}>
+                      <td className="px-6 py-8 text-center text-xs text-secondary" colSpan={13}>
                         Loading invoices...
                       </td>
                     </tr>
                   )}
                   {!loading && filteredInvoices.length === 0 && (
                     <tr>
-                      <td className="px-6 py-8 text-center text-xs text-gray-500" colSpan={13}>
+                      <td className="px-6 py-8 text-center text-xs text-secondary" colSpan={13}>
                         No invoices found. {total > 0 ? 'Try adjusting your filters.' : 'No invoices have been created yet.'}
                       </td>
                     </tr>
@@ -739,20 +739,20 @@ const ComplianceInvoices = () => {
               {/* Sidebar Panel */}
               <div
                 className="fixed inset-y-0 right-0 w-full md:w-2/3 lg:w-1/2
-    bg-white shadow-2xl overflow-y-auto
+    bg-card shadow-2xl overflow-y-auto
     z-[1001]
     transform transition-transform duration-300 translate-x-0"
               >
                 <div className="p-6">
                   {/* Header */}
-                  <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                    <h2 className="text-2xl font-bold text-gray-900">Invoice Details</h2>
+                  <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                    <h2 className="text-2xl font-bold text-primary">Invoice Details</h2>
                     <button
                       onClick={() => {
                         setShowInvoiceDetails(false);
                         setTimeout(() => setSelectedInvoice(null), 300);
                       }}
-                      className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                      className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                     >
                       <X size={24} />
                     </button>
@@ -778,16 +778,16 @@ const ComplianceInvoices = () => {
                     </div>
 
                     {/* Invoice Information */}
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                      <h4 className="font-semibold text-gray-900 mb-4 text-lg">Invoice Information</h4>
+                    <div className="bg-card p-6 rounded-lg border border-theme">
+                      <h4 className="font-semibold text-primary mb-4 text-lg">Invoice Information</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Invoice Number</p>
-                          <p className="font-medium text-gray-900">{selectedInvoice.invoiceNumber || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Invoice Number</p>
+                          <p className="font-medium text-primary">{selectedInvoice.invoiceNumber || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Service Date</p>
-                          <p className="font-medium text-gray-900">
+                          <p className="text-sm text-secondary mb-1">Service Date</p>
+                          <p className="font-medium text-primary">
                             {selectedInvoice.serviceDate ? new Date(selectedInvoice.serviceDate).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'long',
@@ -796,41 +796,41 @@ const ComplianceInvoices = () => {
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Unit Number</p>
-                          <p className="font-medium text-gray-900">{selectedInvoice.unitNumber || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Unit Number</p>
+                          <p className="font-medium text-primary">{selectedInvoice.unitNumber || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Make / Model</p>
-                          <p className="font-medium text-gray-900">{selectedInvoice.makeModel || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Make / Model</p>
+                          <p className="font-medium text-primary">{selectedInvoice.makeModel || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">VIN / License Plate</p>
-                          <p className="font-medium text-gray-900">{selectedInvoice.vinOrPlate || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">VIN / License Plate</p>
+                          <p className="font-medium text-primary">{selectedInvoice.vinOrPlate || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Odometer</p>
-                          <p className="font-medium text-gray-900">
+                          <p className="text-sm text-secondary mb-1">Odometer</p>
+                          <p className="font-medium text-primary">
                             {selectedInvoice.odometer ? `${selectedInvoice.odometer.toLocaleString()} km` : "—"}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Service Provider</p>
-                          <p className="font-medium text-gray-900">{selectedInvoice.serviceProvider || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Service Provider</p>
+                          <p className="font-medium text-primary">{selectedInvoice.serviceProvider || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Driver</p>
-                          <p className="font-medium text-gray-900">{selectedInvoice.driver || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Driver</p>
+                          <p className="font-medium text-primary">{selectedInvoice.driver || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Service Category</p>
-                          <p className="font-medium text-gray-900">{selectedInvoice.serviceCategory || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Service Category</p>
+                          <p className="font-medium text-primary">{selectedInvoice.serviceCategory || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Location</p>
-                          <p className="font-medium text-gray-900">{selectedInvoice.location || "—"}</p>
+                          <p className="text-sm text-secondary mb-1">Location</p>
+                          <p className="font-medium text-primary">{selectedInvoice.location || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Inspection Status</p>
+                          <p className="text-sm text-secondary mb-1">Inspection Status</p>
                           <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${selectedInvoice.passedInspection
                             ? 'bg-green-100 text-green-800'
                             : 'bg-amber-100 text-amber-800'
@@ -843,33 +843,33 @@ const ComplianceInvoices = () => {
 
                     {/* Description */}
                     {selectedInvoice.description && (
-                      <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                        <h4 className="font-semibold text-gray-900 mb-2 text-lg">Description</h4>
-                        <p className="text-sm text-gray-700">{selectedInvoice.description}</p>
+                      <div className="bg-card p-6 rounded-lg border border-theme">
+                        <h4 className="font-semibold text-primary mb-2 text-lg">Description</h4>
+                        <p className="text-sm text-primary">{selectedInvoice.description}</p>
                       </div>
                     )}
 
                     {/* Parts */}
                     {selectedInvoice.parts && selectedInvoice.parts.length > 0 && (
-                      <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                        <h4 className="font-semibold text-gray-900 mb-4 text-lg">Parts Used</h4>
+                      <div className="bg-card p-6 rounded-lg border border-theme">
+                        <h4 className="font-semibold text-primary mb-4 text-lg">Parts Used</h4>
                         <div className="space-y-3">
                           {selectedInvoice.parts.map((part, idx) => {
                             const partName = part.partName || part.name || part.partNumber || 'Part';
                             const quantity = part.quantity || 1;
                             const cost = part.cost || 0;
                             return (
-                              <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
+                              <div key={idx} className="bg-card rounded-lg p-4 border border-theme">
                                 <div className="flex justify-between items-start">
                                   <div>
-                                    <div className="font-medium text-gray-900">{partName}</div>
+                                    <div className="font-medium text-primary">{partName}</div>
                                     {quantity > 1 && (
-                                      <div className="text-sm text-gray-500 mt-1">Quantity: {quantity}</div>
+                                      <div className="text-sm text-secondary mt-1">Quantity: {quantity}</div>
                                     )}
                                   </div>
                                   <div className="text-right">
                                     {cost > 0 && (
-                                      <div className="font-medium text-gray-900">
+                                      <div className="font-medium text-primary">
                                         ${cost.toFixed(2)}
                                       </div>
                                     )}
@@ -879,10 +879,10 @@ const ComplianceInvoices = () => {
                             );
                           })}
                         </div>
-                        <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="mt-4 pt-4 border-t border-theme">
                           <div className="flex justify-between text-sm">
-                            <span className="font-semibold text-gray-900">Total Parts Cost:</span>
-                            <span className="font-bold text-gray-900">
+                            <span className="font-semibold text-primary">Total Parts Cost:</span>
+                            <span className="font-bold text-primary">
                               ${selectedInvoice.parts.reduce((sum, part) => sum + (Number(part.cost) || 0), 0).toFixed(2)}
                             </span>
                           </div>
@@ -892,20 +892,20 @@ const ComplianceInvoices = () => {
 
                     {/* Notes */}
                     {selectedInvoice.notes && (
-                      <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                        <h4 className="font-semibold text-gray-900 mb-2 text-lg">Notes</h4>
-                        <p className="text-sm text-gray-700">{selectedInvoice.notes}</p>
+                      <div className="bg-card p-6 rounded-lg border border-theme">
+                        <h4 className="font-semibold text-primary mb-2 text-lg">Notes</h4>
+                        <p className="text-sm text-primary">{selectedInvoice.notes}</p>
                       </div>
                     )}
 
                     {/* Action Buttons */}
-                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                    <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                       <button
                         onClick={() => {
                           setShowInvoiceDetails(false);
                           setTimeout(() => setSelectedInvoice(null), 300);
                         }}
-                        className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                        className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
                       >
                         Close
                       </button>
@@ -919,27 +919,27 @@ const ComplianceInvoices = () => {
           {/* Delete Confirmation Modal */}
           {showDeleteModal && invoiceToDelete && (
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[1002] flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+              <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md">
                 <div className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 bg-red-100 rounded-full">
-                      <FaExclamationCircle className="text-red-600" size={24} />
+                      <FaExclamationCircle className="text-[#A855F7]" size={24} />
                     </div>
-                    <h3 className="text-lg font-bold text-gray-800">Delete Service</h3>
+                    <h3 className="text-lg font-bold text-primary">Delete Service</h3>
                   </div>
-                  
-                  <p className="text-gray-600 mb-6">
+
+                  <p className="text-secondary mb-6">
                     Are you sure you want to delete this service record? This action cannot be undone.
                   </p>
 
-                  <div className="bg-gray-50 p-3 rounded-lg mb-6">
-                    <p className="text-sm text-gray-700">
+                  <div className="bg-card p-3 rounded-lg mb-6">
+                    <p className="text-sm text-primary">
                       <span className="font-semibold">Unit:</span> {invoiceToDelete.unitNumber}
                     </p>
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm text-primary">
                       <span className="font-semibold">Service:</span> {invoiceToDelete.serviceCategory}
                     </p>
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm text-primary">
                       <span className="font-semibold">Date:</span> {invoiceToDelete.serviceDate ? new Date(invoiceToDelete.serviceDate).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
@@ -950,7 +950,7 @@ const ComplianceInvoices = () => {
                         setShowDeleteModal(false);
                         setInvoiceToDelete(null);
                       }}
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+                      className="px-4 py-2 bg-card text-primary rounded-lg hover:bg-gray-200 font-medium transition-colors"
                     >
                       Cancel
                     </button>
@@ -969,25 +969,25 @@ const ComplianceInvoices = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-200 rounded-b-lg shadow-sm">
-              <div className="text-xs text-gray-700">
+            <div className="flex items-center justify-between px-6 py-4 bg-card border-t border-theme rounded-b-lg shadow-sm">
+              <div className="text-xs text-primary">
                 Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, total)} of {total} invoices
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1 || loading}
-                  className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1.5 text-xs font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
-                <span className="px-3 py-1.5 text-xs font-medium text-gray-700">
+                <span className="px-3 py-1.5 text-xs font-medium text-primary">
                   Page {currentPage} of {totalPages}
                 </span>
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages || loading}
-                  className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1.5 text-xs font-medium text-primary bg-card border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>

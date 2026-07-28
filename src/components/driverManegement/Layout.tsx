@@ -21,7 +21,7 @@ function Layout() {
     console.log("showExpiringToast", showExpiringToast)
 
     return (
-        <div className="flex h-screen bg-[#eeeeee]">
+        <div className="flex h-screen bg-main">
             {/* Sidebar with independent scroll */}
             <div className="flex-shrink-0 h-screen overflow-hidden">
                 <Sidebar
@@ -36,7 +36,7 @@ function Layout() {
                     <Header onToggleSidebar={toggleSidebar} />
                 </div>
 
-                <main className="flex-1 overflow-y-auto bg-[#EDF8FF]">
+                <main className="flex-1 overflow-y-auto bg-main">
                     <Outlet />
                 </main>
             </div>

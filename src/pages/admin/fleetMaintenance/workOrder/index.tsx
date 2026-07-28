@@ -119,7 +119,7 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 
     const bgColors = {
         success: 'bg-green-50 border-green-200',
-        error: 'bg-red-50 border-red-200',
+        error: 'bg-card border-red-200',
         info: 'bg-[#9793E4]/10 border-[#9793E4]/30'
     };
 
@@ -136,10 +136,10 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
             <div className="flex-shrink-0 mt-0.5">
                 {icons[notification.type]}
             </div>
-            <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+            <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
             <button
                 onClick={() => onClose(notification.id)}
-                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
             >
                 <FaTimes size={16} />
             </button>
@@ -304,7 +304,7 @@ function WorkOrdersPage() {
 
         fetchAllWorkOrders();
         fetchMechanics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userInfoReady, userInfo]);
 
     const getStatusColor = (status: string): string => {
@@ -316,7 +316,7 @@ function WorkOrdersPage() {
             case 'completed':
                 return 'bg-green-100 text-green-700 border border-green-200';
             default:
-                return 'bg-gray-100 text-gray-700 border border-gray-200';
+                return 'bg-card text-primary border border-theme';
         }
     };
 
@@ -424,7 +424,7 @@ function WorkOrdersPage() {
         }
         if (formData.estimatedTime !== undefined) data.estimatedTime = formData.estimatedTime;
         if (formData.repairUpdate) data.repairUpdate = formData.repairUpdate;
-        
+
         // Add Excel Maintenance Log fields
         if (formData.unitNumber !== undefined) data.unitNumber = formData.unitNumber;
         if (formData.completionDate !== undefined && formData.completionDate !== '') {
@@ -435,7 +435,7 @@ function WorkOrdersPage() {
         }
         if (formData.partsUsed !== undefined) {
             // Convert comma-separated string to array if needed
-            data.partsUsed = typeof formData.partsUsed === 'string' 
+            data.partsUsed = typeof formData.partsUsed === 'string'
                 ? formData.partsUsed.split(',').map(p => p.trim()).filter(Boolean)
                 : formData.partsUsed;
         }
@@ -565,17 +565,17 @@ function WorkOrdersPage() {
 
     if (loading) {
         return (
-            <div className="p-6 min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="p-6 min-h-screen bg-card flex items-center justify-center">
                 <div className="text-center">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                    <p className="mt-4 text-gray-600">Loading work orders...</p>
+                    <p className="mt-4 text-secondary">Loading work orders...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="p-6 min-h-screen bg-gray-50">
+        <div className="p-6 min-h-screen bg-card">
             {/* Notifications Container */}
             <div className="fixed top-4 right-4 z-[200] space-y-3 max-w-md">
                 {notifications.map(notification => (
@@ -597,37 +597,37 @@ function WorkOrdersPage() {
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Work Orders</h1>
-                    <p className="text-gray-600 mt-1">Manage vehicle maintenance and repair work orders</p>
+                    <h1 className="text-3xl font-bold text-primary">Work Orders</h1>
+                    <p className="text-secondary mt-1">Manage vehicle maintenance and repair work orders</p>
                 </div>
                 <button
-                   onClick={() => setShowCreateModal(true)}
+                    onClick={() => setShowCreateModal(true)}
                     className="flex items-center gap-2 px-5 py-3 bg-[#9793E4] !text-white rounded-lg hover:bg-[#8783D4] shadow-lg hover:shadow-xl transition-all font-medium"
-                   
+
                 >
                     <FaPlus /> Create Work Order
                 </button>
             </div>
 
             {/* Filters and Search */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+            <div className="bg-card rounded-lg shadow-sm border border-theme p-4 mb-6">
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1 relative">
-                        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={18} />
                         <input
                             type="text"
                             placeholder="Search by issue, vehicle, or plate number..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 pr-4 py-2.5 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                            className="pl-10 pr-4 py-2.5 w-full border border-theme rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                         />
                     </div>
                     <div className="relative">
-                        <FaFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        <FaFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={18} />
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent appearance-none bg-white transition-all"
+                            className="pl-10 pr-8 py-2.5 border border-theme rounded-lg focus:ring-2 focus:ring-[#9793E4] focus:border-transparent appearance-none bg-card transition-all"
                         >
                             <option value="all">All Status</option>
                             <option value="open">Open</option>
@@ -642,13 +642,13 @@ function WorkOrdersPage() {
             {loading ? (
                 <div className="text-center py-16">
                     <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#9793E4] mx-auto mb-4"></div>
-                    <p className="text-gray-500 text-lg">Loading work orders...</p>
+                    <p className="text-secondary text-lg">Loading work orders...</p>
                 </div>
             ) : filteredWorkOrders.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                <div className="bg-card rounded-lg shadow-sm border border-theme p-12 text-center">
                     <FaWrench className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">No Work Orders Found</h3>
-                    <p className="text-gray-500 mb-4">
+                    <h3 className="text-xl font-semibold text-primary mb-2">No Work Orders Found</h3>
+                    <p className="text-secondary mb-4">
                         {searchTerm || statusFilter !== 'all'
                             ? 'No work orders match your current filters.'
                             : 'Get started by creating your first work order.'}
@@ -664,51 +664,51 @@ function WorkOrdersPage() {
                     )}
                 </div>
             ) : (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-card">
                                 <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Work Order ID</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Unit/Vehicle</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Issue</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Assigned Mechanic</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Estimated Cost</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Completion Date</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Odometer (km)</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Parts Used</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Service Provider</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Invoice Ref</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider">Work Order ID</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider">Unit/Vehicle</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider">Issue</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider">Description</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider">Assigned Mechanic</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider">Estimated Cost</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider">Completion Date</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider">Odometer (km)</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider">Parts Used</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider">Service Provider</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider">Invoice Ref</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider">Status</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-secondary uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="divide-y divide-theme">
                                 {filteredWorkOrders.map((order) => (
-                                    <tr key={order._id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                    <tr key={order._id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-primary">
                                             WO-{order._id.slice(-4).toUpperCase()}
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap">
                                             <div>
-                                                <div className="text-sm font-semibold text-gray-900">
+                                                <div className="text-sm font-semibold text-primary">
                                                     {order.unitNumber || order.vehicleId?.internalId || 'N/A'}
                                                 </div>
-                                                <div className="text-xs text-gray-500">{order.vehicleId?.plateNumber || ''}</div>
+                                                <div className="text-xs text-secondary">{order.vehicleId?.plateNumber || ''}</div>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4 text-sm font-medium text-gray-900 max-w-xs">
+                                        <td className="px-4 py-4 text-sm font-medium text-primary max-w-xs">
                                             <div className="truncate" title={order.issue || 'N/A'}>
                                                 {order.issue || 'N/A'}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-gray-600 max-w-xs">
+                                        <td className="px-4 py-4 text-sm text-secondary max-w-xs">
                                             <div className="truncate" title={order.description || 'N/A'}>
                                                 {order.description || 'N/A'}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
                                             {order.mechanicType === 'external' ? (
                                                 <div className="flex items-center gap-1">
                                                     <span className="inline-flex items-center text-xs font-semibold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">Ext</span>
@@ -718,32 +718,32 @@ function WorkOrdersPage() {
                                                 order.assignedMechanic || 'N/A'
                                             )}
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
                                             {order.estimatedCost ? `$${order.estimatedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
                                             {order.completionDate ? formatDate(order.completionDate) : order.createdAt ? formatDate(order.createdAt) : 'N/A'}
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
-                                            {order.odometerReading 
-                                                ? order.odometerReading.toLocaleString() 
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
+                                            {order.odometerReading
+                                                ? order.odometerReading.toLocaleString()
                                                 : 'N/A'}
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-gray-600 max-w-xs">
+                                        <td className="px-4 py-4 text-sm text-secondary max-w-xs">
                                             <div className="truncate" title={
-                                                order.partsUsed 
+                                                order.partsUsed
                                                     ? (Array.isArray(order.partsUsed) ? order.partsUsed.join(', ') : order.partsUsed)
                                                     : 'N/A'
                                             }>
-                                                {order.partsUsed 
+                                                {order.partsUsed
                                                     ? (Array.isArray(order.partsUsed) ? order.partsUsed.join(', ') : order.partsUsed)
                                                     : 'N/A'}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
                                             {order.serviceProvider || 'N/A'}
                                         </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
                                             <div className="truncate max-w-24" title={order.invoiceReference || 'N/A'}>
                                                 {order.invoiceReference || 'N/A'}
                                             </div>
@@ -764,14 +764,14 @@ function WorkOrdersPage() {
                                                 </button>
                                                 <button
                                                     onClick={() => openUpdateModal(order)}
-                                                    className="p-2.5 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all border border-yellow-200"
+                                                    className="p-2.5 text-[#00FFA3] hover:bg-yellow-50 rounded-lg transition-all border border-yellow-200"
                                                     title="Edit"
                                                 >
                                                     <FaEdit size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteWorkOrder(order._id)}
-                                                    className="p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-all border border-red-200"
+                                                    className="p-2.5 text-[#A855F7] hover:bg-red-50 rounded-lg transition-all border border-red-200"
                                                     title="Delete"
                                                 >
                                                     <FaTrash size={16} />
@@ -789,16 +789,16 @@ function WorkOrdersPage() {
             {/* Create Modal */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex justify-end">
-                    <div className="bg-white w-full max-w-md h-full shadow-2xl overflow-y-auto">
-                        <div className="sticky top-0 bg-white border-b px-6 py-4 z-10">
+                    <div className="bg-card w-full max-w-md h-full shadow-2xl overflow-y-auto">
+                        <div className="sticky top-0 bg-card border-b px-6 py-4 z-10">
                             <div className="flex justify-between items-center">
-                                <h2 className="text-xl font-bold text-gray-800">Create Work Order</h2>
+                                <h2 className="text-xl font-bold text-primary">Create Work Order</h2>
                                 <button
                                     onClick={() => setShowCreateModal(false)}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                                     disabled={submitting}
                                 >
-                                    <FaTimes className="text-gray-500" size={20} />
+                                    <FaTimes className="text-secondary" size={20} />
                                 </button>
                             </div>
                         </div>
@@ -806,13 +806,13 @@ function WorkOrdersPage() {
                         <div className="p-6">
                             <form onSubmit={handleCreateSubmit} className="space-y-5">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    <label className="block text-sm font-semibold text-primary mb-2">
                                         Vehicle <span className="text-red-500">*</span>
                                     </label>
                                     <select
                                         defaultValue={createFormRef.current.vehicleId}
                                         onChange={(e) => createFormRef.current.vehicleId = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         required
                                     >
                                         <option value="">Select Vehicle</option>
@@ -825,66 +825,66 @@ function WorkOrdersPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    <label className="block text-sm font-semibold text-primary mb-2">
                                         Issue <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="text"
                                         defaultValue={createFormRef.current.issue}
                                         onChange={(e) => createFormRef.current.issue = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., Oil Change, Brake Inspection"
                                         required
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    <label className="block text-sm font-semibold text-primary mb-2">
                                         Description
                                     </label>
                                     <textarea
                                         defaultValue={createFormRef.current.description}
                                         onChange={(e) => createFormRef.current.description = e.target.value}
                                         rows={3}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="Detailed description of the issue..."
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    <label className="block text-sm font-semibold text-primary mb-2">
                                         Unit Number
                                     </label>
                                     <input
                                         type="text"
                                         defaultValue={createFormRef.current.unitNumber}
                                         onChange={(e) => createFormRef.current.unitNumber = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., 1001, 1002"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    <label className="block text-sm font-semibold text-primary mb-2">
                                         Completion Date (Service Date)
                                     </label>
                                     <input
                                         type="date"
                                         defaultValue={createFormRef.current.completionDate}
                                         onChange={(e) => createFormRef.current.completionDate = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    <label className="block text-sm font-semibold text-primary mb-2">
                                         Odometer Reading (km)
                                     </label>
                                     <input
                                         type="number"
                                         defaultValue={createFormRef.current.odometerReading}
                                         onChange={(e) => createFormRef.current.odometerReading = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., 150000"
                                         min="0"
                                         step="1"
@@ -892,34 +892,34 @@ function WorkOrdersPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    <label className="block text-sm font-semibold text-primary mb-2">
                                         Parts Used (comma-separated)
                                     </label>
                                     <input
                                         type="text"
                                         defaultValue={createFormRef.current.partsUsed}
                                         onChange={(e) => createFormRef.current.partsUsed = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., Oil Filter, Brake Pads, Air Filter"
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">Parts will be updated in Spare Parts Inventory</p>
+                                    <p className="text-xs text-secondary mt-1">Parts will be updated in Spare Parts Inventory</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Assigned Mechanic</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Assigned Mechanic</label>
                                     {/* Toggle */}
-                                    <div className="flex rounded-lg border border-gray-300 overflow-hidden mb-3 w-fit">
+                                    <div className="flex rounded-lg border border-theme overflow-hidden mb-3 w-fit">
                                         <button
                                             type="button"
                                             onClick={() => setCreateMechanicType('internal')}
-                                            className={`px-4 py-2 text-sm font-medium transition-colors ${createMechanicType === 'internal' ? 'bg-[#9793E4] !text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                                            className={`px-4 py-2 text-sm font-medium transition-colors ${createMechanicType === 'internal' ? 'bg-[#9793E4] !text-white' : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
                                         >
                                             Internal Mechanic
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setCreateMechanicType('external')}
-                                            className={`px-4 py-2 text-sm font-medium border-l border-gray-300 transition-colors ${createMechanicType === 'external' ? 'bg-[#9793E4] !text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                                            className={`px-4 py-2 text-sm font-medium border-l border-theme transition-colors ${createMechanicType === 'external' ? 'bg-[#9793E4] !text-white' : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
                                         >
                                             External Mechanic
                                         </button>
@@ -929,7 +929,7 @@ function WorkOrdersPage() {
                                         <select
                                             defaultValue={createFormRef.current.assignedMechanic}
                                             onChange={(e) => createFormRef.current.assignedMechanic = e.target.value}
-                                            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                            className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                             disabled={loadingMechanics}
                                         >
                                             <option value="">{loadingMechanics ? 'Loading mechanics...' : 'Select Mechanic'}</option>
@@ -940,44 +940,44 @@ function WorkOrdersPage() {
                                             ))}
                                         </select>
                                     ) : (
-                                        <div className="grid grid-cols-2 gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                                        <div className="grid grid-cols-2 gap-3 p-4 bg-card border border-orange-200 rounded-lg">
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-600 mb-1">Name *</label>
+                                                <label className="block text-xs font-medium text-secondary mb-1">Name *</label>
                                                 <input
                                                     type="text"
                                                     defaultValue={createFormRef.current.externalMechanicName}
                                                     onChange={(e) => createFormRef.current.externalMechanicName = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="Mechanic / Shop name"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-600 mb-1">Company</label>
+                                                <label className="block text-xs font-medium text-secondary mb-1">Company</label>
                                                 <input
                                                     type="text"
                                                     defaultValue={createFormRef.current.externalMechanicCompany}
                                                     onChange={(e) => createFormRef.current.externalMechanicCompany = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="Company / Shop"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                                                <label className="block text-xs font-medium text-secondary mb-1">Phone</label>
                                                 <input
                                                     type="tel"
                                                     defaultValue={createFormRef.current.externalMechanicPhone}
                                                     onChange={(e) => createFormRef.current.externalMechanicPhone = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="+1 (555) 000-0000"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                                                <label className="block text-xs font-medium text-secondary mb-1">Email</label>
                                                 <input
                                                     type="email"
                                                     defaultValue={createFormRef.current.externalMechanicEmail}
                                                     onChange={(e) => createFormRef.current.externalMechanicEmail = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="email@shop.com"
                                                 />
                                             </div>
@@ -986,20 +986,20 @@ function WorkOrdersPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    <label className="block text-sm font-semibold text-primary mb-2">
                                         Invoice Reference/Number
                                     </label>
                                     <input
                                         type="text"
                                         defaultValue={createFormRef.current.invoiceReference}
                                         onChange={(e) => createFormRef.current.invoiceReference = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., INV-2024-001"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    <label className="block text-sm font-semibold text-primary mb-2">
                                         Estimated Cost ($)
                                     </label>
                                     <input
@@ -1007,13 +1007,13 @@ function WorkOrdersPage() {
                                         step="0.01"
                                         defaultValue={createFormRef.current.estimatedCost}
                                         onChange={(e) => createFormRef.current.estimatedCost = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="0.00"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    <label className="block text-sm font-semibold text-primary mb-2">
                                         Estimated Time
                                     </label>
                                     <input
@@ -1021,15 +1021,15 @@ function WorkOrdersPage() {
                                         placeholder="e.g., 2 hours, 1 day"
                                         defaultValue={createFormRef.current.estimatedTime}
                                         onChange={(e) => createFormRef.current.estimatedTime = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     />
                                 </div>
 
-                                <div className="flex gap-3 pt-4 sticky bottom-0 bg-white border-t -mx-6 px-6 py-4">
+                                <div className="flex gap-3 pt-4 sticky bottom-0 bg-card border-t -mx-6 px-6 py-4">
                                     <button
                                         type="button"
                                         onClick={() => setShowCreateModal(false)}
-                                        className="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 px-4 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                                        className="flex-1 bg-card border border-theme text-primary py-2.5 px-4 rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                                         disabled={submitting}
                                     >
                                         Cancel
@@ -1051,16 +1051,16 @@ function WorkOrdersPage() {
             {/* Update Modal */}
             {showUpdateModal && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex justify-end">
-                    <div className="bg-white w-full max-w-md h-full shadow-2xl overflow-y-auto">
-                        <div className="sticky top-0 bg-white border-b px-6 py-4 z-10">
+                    <div className="bg-card w-full max-w-md h-full shadow-2xl overflow-y-auto">
+                        <div className="sticky top-0 bg-card border-b px-6 py-4 z-10">
                             <div className="flex justify-between items-center">
-                                <h2 className="text-xl font-bold text-gray-800">Update Work Order</h2>
+                                <h2 className="text-xl font-bold text-primary">Update Work Order</h2>
                                 <button
                                     onClick={() => setShowUpdateModal(false)}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                                     disabled={submitting}
                                 >
-                                    <FaTimes className="text-gray-500" size={20} />
+                                    <FaTimes className="text-secondary" size={20} />
                                 </button>
                             </div>
                         </div>
@@ -1068,36 +1068,36 @@ function WorkOrdersPage() {
                         <div className="p-6">
                             <form onSubmit={handleUpdateSubmit} className="space-y-5">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Vehicle</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Vehicle</label>
                                     <select
                                         value={selectedWorkOrder?.vehicleId?._id || ''}
-                                        className="w-full border border-gray-300 rounded-lg p-3 bg-gray-50 cursor-not-allowed"
+                                        className="w-full border border-theme rounded-lg p-3 bg-card cursor-not-allowed"
                                         disabled
                                     >
                                         <option value={selectedWorkOrder?.vehicleId?._id}>
                                             {selectedWorkOrder?.vehicleId?.internalId} - {selectedWorkOrder?.vehicleId?.plateNumber}
                                         </option>
                                     </select>
-                                    <p className="text-xs text-gray-500 mt-1">Vehicle cannot be changed after creation</p>
+                                    <p className="text-xs text-secondary mt-1">Vehicle cannot be changed after creation</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Issue</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Issue</label>
                                     <input
                                         type="text"
                                         value={selectedWorkOrder?.issue || ''}
-                                        className="w-full border border-gray-300 rounded-lg p-3 bg-gray-50 cursor-not-allowed"
+                                        className="w-full border border-theme rounded-lg p-3 bg-card cursor-not-allowed"
                                         disabled
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">Issue cannot be changed after creation</p>
+                                    <p className="text-xs text-secondary mt-1">Issue cannot be changed after creation</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Status</label>
                                     <select
                                         defaultValue={updateFormRef.current.status}
                                         onChange={(e) => updateFormRef.current.status = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     >
                                         <option value="">Keep current status</option>
                                         <option value="open">Open</option>
@@ -1107,30 +1107,30 @@ function WorkOrdersPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Description</label>
                                     <textarea
                                         defaultValue={updateFormRef.current.description}
                                         onChange={(e) => updateFormRef.current.description = e.target.value}
                                         rows={3}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Assigned Mechanic</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Assigned Mechanic</label>
                                     {/* Toggle */}
-                                    <div className="flex rounded-lg border border-gray-300 overflow-hidden mb-3 w-fit">
+                                    <div className="flex rounded-lg border border-theme overflow-hidden mb-3 w-fit">
                                         <button
                                             type="button"
                                             onClick={() => setUpdateMechanicType('internal')}
-                                            className={`px-4 py-2 text-sm font-medium transition-colors ${updateMechanicType === 'internal' ? 'bg-[#9793E4] !text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                                            className={`px-4 py-2 text-sm font-medium transition-colors ${updateMechanicType === 'internal' ? 'bg-[#9793E4] !text-white' : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
                                         >
                                             Internal Mechanic
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setUpdateMechanicType('external')}
-                                            className={`px-4 py-2 text-sm font-medium border-l border-gray-300 transition-colors ${updateMechanicType === 'external' ? 'bg-[#9793E4] !text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                                            className={`px-4 py-2 text-sm font-medium border-l border-theme transition-colors ${updateMechanicType === 'external' ? 'bg-[#9793E4] !text-white' : 'bg-card text-secondary hover:bg-[rgba(255,255,255,0.03)]'}`}
                                         >
                                             External Mechanic
                                         </button>
@@ -1140,7 +1140,7 @@ function WorkOrdersPage() {
                                         <select
                                             defaultValue={updateFormRef.current.assignedMechanic}
                                             onChange={(e) => updateFormRef.current.assignedMechanic = e.target.value}
-                                            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                            className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                             disabled={loadingMechanics}
                                         >
                                             <option value="">Keep current mechanic</option>
@@ -1151,44 +1151,44 @@ function WorkOrdersPage() {
                                             ))}
                                         </select>
                                     ) : (
-                                        <div className="grid grid-cols-2 gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                                        <div className="grid grid-cols-2 gap-3 p-4 bg-card border border-orange-200 rounded-lg">
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-600 mb-1">Name *</label>
+                                                <label className="block text-xs font-medium text-secondary mb-1">Name *</label>
                                                 <input
                                                     type="text"
                                                     defaultValue={updateFormRef.current.externalMechanicName}
                                                     onChange={(e) => updateFormRef.current.externalMechanicName = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="Mechanic / Shop name"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-600 mb-1">Company</label>
+                                                <label className="block text-xs font-medium text-secondary mb-1">Company</label>
                                                 <input
                                                     type="text"
                                                     defaultValue={updateFormRef.current.externalMechanicCompany}
                                                     onChange={(e) => updateFormRef.current.externalMechanicCompany = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="Company / Shop"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                                                <label className="block text-xs font-medium text-secondary mb-1">Phone</label>
                                                 <input
                                                     type="tel"
                                                     defaultValue={updateFormRef.current.externalMechanicPhone}
                                                     onChange={(e) => updateFormRef.current.externalMechanicPhone = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="+1 (555) 000-0000"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                                                <label className="block text-xs font-medium text-secondary mb-1">Email</label>
                                                 <input
                                                     type="email"
                                                     defaultValue={updateFormRef.current.externalMechanicEmail}
                                                     onChange={(e) => updateFormRef.current.externalMechanicEmail = e.target.value}
-                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    className="w-full border border-theme rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                                     placeholder="email@shop.com"
                                                 />
                                             </div>
@@ -1197,54 +1197,54 @@ function WorkOrdersPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Estimated Cost ($)</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Estimated Cost ($)</label>
                                     <input
                                         type="number"
                                         step="0.01"
                                         defaultValue={updateFormRef.current.estimatedCost}
                                         onChange={(e) => updateFormRef.current.estimatedCost = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Estimated Time</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Estimated Time</label>
                                     <input
                                         type="text"
                                         defaultValue={updateFormRef.current.estimatedTime}
                                         onChange={(e) => updateFormRef.current.estimatedTime = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Unit Number</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Unit Number</label>
                                     <input
                                         type="text"
                                         defaultValue={updateFormRef.current.unitNumber}
                                         onChange={(e) => updateFormRef.current.unitNumber = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., 1001, 1002"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Completion Date (Service Date)</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Completion Date (Service Date)</label>
                                     <input
                                         type="date"
                                         defaultValue={updateFormRef.current.completionDate}
                                         onChange={(e) => updateFormRef.current.completionDate = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Odometer Reading (km)</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Odometer Reading (km)</label>
                                     <input
                                         type="number"
                                         defaultValue={updateFormRef.current.odometerReading}
                                         onChange={(e) => updateFormRef.current.odometerReading = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., 150000"
                                         min="0"
                                         step="1"
@@ -1252,54 +1252,54 @@ function WorkOrdersPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Parts Used (comma-separated)</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Parts Used (comma-separated)</label>
                                     <input
                                         type="text"
                                         defaultValue={updateFormRef.current.partsUsed}
                                         onChange={(e) => updateFormRef.current.partsUsed = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., Oil Filter, Brake Pads, Air Filter"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Service Provider/Shop</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Service Provider/Shop</label>
                                     <input
                                         type="text"
                                         defaultValue={updateFormRef.current.serviceProvider}
                                         onChange={(e) => updateFormRef.current.serviceProvider = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., ABC Auto Shop, Internal Shop"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Invoice Reference/Number</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Invoice Reference/Number</label>
                                     <input
                                         type="text"
                                         defaultValue={updateFormRef.current.invoiceReference}
                                         onChange={(e) => updateFormRef.current.invoiceReference = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                         placeholder="e.g., INV-2024-001"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Add Repair Update</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Add Repair Update</label>
                                     <textarea
                                         defaultValue={updateFormRef.current.repairUpdate}
                                         onChange={(e) => updateFormRef.current.repairUpdate = e.target.value}
                                         placeholder="Add a note about the repair progress..."
                                         rows={2}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                        className="w-full border border-theme rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
                                     />
                                 </div>
 
-                                <div className="flex gap-3 pt-4 sticky bottom-0 bg-white border-t -mx-6 px-6 py-4">
+                                <div className="flex gap-3 pt-4 sticky bottom-0 bg-card border-t -mx-6 px-6 py-4">
                                     <button
                                         type="button"
                                         onClick={() => setShowUpdateModal(false)}
-                                        className="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 px-4 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                                        className="flex-1 bg-card border border-theme text-primary py-2.5 px-4 rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                                         disabled={submitting}
                                     >
                                         Cancel
@@ -1321,15 +1321,15 @@ function WorkOrdersPage() {
             {/* Details Modal */}
             {showDetailsModal && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <div className="sticky top-0 bg-white border-b px-6 py-4 rounded-t-2xl z-10">
+                    <div className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="sticky top-0 bg-card border-b px-6 py-4 rounded-t-2xl z-10">
                             <div className="flex justify-between items-center">
-                                <h2 className="text-xl font-bold text-gray-800">Work Order Details</h2>
+                                <h2 className="text-xl font-bold text-primary">Work Order Details</h2>
                                 <button
                                     onClick={() => setShowDetailsModal(false)}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-full transition-colors"
                                 >
-                                    <FaTimes className="text-gray-500" size={20} />
+                                    <FaTimes className="text-secondary" size={20} />
                                 </button>
                             </div>
                         </div>
@@ -1345,7 +1345,7 @@ function WorkOrdersPage() {
                                         <div>
                                             <label className="text-sm opacity-80">Status</label>
                                             <div className="mt-1">
-                                                <span className="px-3 py-1 bg-white bg-opacity-20 rounded-full text-black text-sm font-semibold capitalize backdrop-blur-sm inline-block">
+                                                <span className="px-3 py-1 bg-card bg-opacity-20 rounded-full text-black text-sm font-semibold capitalize backdrop-blur-sm inline-block">
                                                     {selectedWorkOrder.status}
                                                 </span>
                                             </div>
@@ -1353,155 +1353,155 @@ function WorkOrdersPage() {
                                     </div>
                                 </div>
 
-                                <div className="border border-gray-200 rounded-xl p-5">
-                                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2 text-lg">
+                                <div className="border border-theme rounded-xl p-5">
+                                    <h3 className="font-bold text-primary mb-4 flex items-center gap-2 text-lg">
                                         <FaWrench className="text-[#9793E4]" />
                                         Vehicle Information
                                     </h3>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div>
-                                            <span className="text-gray-500 font-medium">Internal ID:</span>
-                                            <p className="font-semibold text-gray-900">{selectedWorkOrder.vehicleId?.internalId || 'N/A'}</p>
+                                            <span className="text-secondary font-medium">Internal ID:</span>
+                                            <p className="font-semibold text-primary">{selectedWorkOrder.vehicleId?.internalId || 'N/A'}</p>
                                         </div>
                                         <div>
-                                            <span className="text-gray-500 font-medium">Plate Number:</span>
-                                            <p className="font-semibold text-gray-900">{selectedWorkOrder.vehicleId?.plateNumber || 'N/A'}</p>
+                                            <span className="text-secondary font-medium">Plate Number:</span>
+                                            <p className="font-semibold text-primary">{selectedWorkOrder.vehicleId?.plateNumber || 'N/A'}</p>
                                         </div>
                                         <div className="col-span-2">
-                                            <span className="text-gray-500 font-medium">Make & Model:</span>
-                                            <p className="font-semibold text-gray-900">
+                                            <span className="text-secondary font-medium">Make & Model:</span>
+                                            <p className="font-semibold text-primary">
                                                 {selectedWorkOrder.vehicleId?.make} {selectedWorkOrder.vehicleId?.model}
                                             </p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="border border-gray-200 rounded-xl p-5">
-                                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2 text-lg">
+                                <div className="border border-theme rounded-xl p-5">
+                                    <h3 className="font-bold text-primary mb-4 flex items-center gap-2 text-lg">
                                         <FaFileAlt className="text-[#9793E4]" />
                                         Work Details
                                     </h3>
                                     <div className="space-y-3">
                                         <div>
-                                            <span className="text-gray-500 font-medium">Issue:</span>
-                                            <p className="font-semibold text-gray-900">{selectedWorkOrder.issue}</p>
+                                            <span className="text-secondary font-medium">Issue:</span>
+                                            <p className="font-semibold text-primary">{selectedWorkOrder.issue}</p>
                                         </div>
                                         <div>
-                                            <span className="text-gray-500 font-medium">Description:</span>
-                                            <p className="text-gray-700">{selectedWorkOrder.description || 'No description provided'}</p>
+                                            <span className="text-secondary font-medium">Description:</span>
+                                            <p className="text-primary">{selectedWorkOrder.description || 'No description provided'}</p>
                                         </div>
                                         <div className="grid grid-cols-3 gap-4 text-sm pt-2">
                                             <div>
-                                                <span className="text-gray-500 font-medium flex items-center gap-1">
+                                                <span className="text-secondary font-medium flex items-center gap-1">
                                                     <FaUser className="text-[#9793E4]" size={14} />
                                                     Mechanic:
                                                 </span>
                                                 {selectedWorkOrder.mechanicType === 'external' ? (
                                                     <div>
                                                         <span className="inline-flex items-center text-xs font-semibold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 mb-1">External</span>
-                                                        <p className="font-semibold text-gray-900">{selectedWorkOrder.externalMechanicName || 'N/A'}</p>
-                                                        {selectedWorkOrder.externalMechanicCompany && <p className="text-xs text-gray-500">{selectedWorkOrder.externalMechanicCompany}</p>}
-                                                        {selectedWorkOrder.externalMechanicPhone && <p className="text-xs text-gray-500">{selectedWorkOrder.externalMechanicPhone}</p>}
-                                                        {selectedWorkOrder.externalMechanicEmail && <p className="text-xs text-gray-500">{selectedWorkOrder.externalMechanicEmail}</p>}
+                                                        <p className="font-semibold text-primary">{selectedWorkOrder.externalMechanicName || 'N/A'}</p>
+                                                        {selectedWorkOrder.externalMechanicCompany && <p className="text-xs text-secondary">{selectedWorkOrder.externalMechanicCompany}</p>}
+                                                        {selectedWorkOrder.externalMechanicPhone && <p className="text-xs text-secondary">{selectedWorkOrder.externalMechanicPhone}</p>}
+                                                        {selectedWorkOrder.externalMechanicEmail && <p className="text-xs text-secondary">{selectedWorkOrder.externalMechanicEmail}</p>}
                                                     </div>
                                                 ) : (
-                                                    <p className="font-semibold text-gray-900">{selectedWorkOrder.assignedMechanic || 'Unassigned'}</p>
+                                                    <p className="font-semibold text-primary">{selectedWorkOrder.assignedMechanic || 'Unassigned'}</p>
                                                 )}
                                             </div>
                                             <div>
-                                                <span className="text-gray-500 font-medium flex items-center gap-1">
+                                                <span className="text-secondary font-medium flex items-center gap-1">
                                                     <FaDollarSign className="text-[#9793E4]" size={14} />
                                                     Cost:
                                                 </span>
-                                                <p className="font-semibold text-gray-900">${selectedWorkOrder.estimatedCost || 0}</p>
+                                                <p className="font-semibold text-primary">${selectedWorkOrder.estimatedCost || 0}</p>
                                             </div>
                                             <div>
-                                                <span className="text-gray-500 font-medium flex items-center gap-1">
+                                                <span className="text-secondary font-medium flex items-center gap-1">
                                                     <FaClock className="text-[#9793E4]" size={14} />
                                                     Time:
                                                 </span>
-                                                <p className="font-semibold text-gray-900">{selectedWorkOrder.estimatedTime || 'Not specified'}</p>
+                                                <p className="font-semibold text-primary">{selectedWorkOrder.estimatedTime || 'Not specified'}</p>
                                             </div>
                                         </div>
                                         <div>
-                                            <span className="text-gray-500 font-medium flex items-center gap-1">
+                                            <span className="text-secondary font-medium flex items-center gap-1">
                                                 <FaCalendar className="text-[#9793E4]" size={14} />
                                                 Created:
                                             </span>
-                                            <p className="font-semibold text-gray-900">{formatDateTime(selectedWorkOrder.createdAt)}</p>
+                                            <p className="font-semibold text-primary">{formatDateTime(selectedWorkOrder.createdAt)}</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="border border-gray-200 rounded-xl p-5">
-                                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2 text-lg">
+                                <div className="border border-theme rounded-xl p-5">
+                                    <h3 className="font-bold text-primary mb-4 flex items-center gap-2 text-lg">
                                         <FaFileAlt className="text-[#9793E4]" />
                                         Maintenance Log Details
                                     </h3>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div>
-                                            <span className="text-gray-500 font-medium">Unit Number:</span>
-                                            <p className="font-semibold text-gray-900">{selectedWorkOrder.unitNumber || 'N/A'}</p>
+                                            <span className="text-secondary font-medium">Unit Number:</span>
+                                            <p className="font-semibold text-primary">{selectedWorkOrder.unitNumber || 'N/A'}</p>
                                         </div>
                                         <div>
-                                            <span className="text-gray-500 font-medium flex items-center gap-1">
+                                            <span className="text-secondary font-medium flex items-center gap-1">
                                                 <FaCalendar className="text-[#9793E4]" size={14} />
                                                 Completion Date:
                                             </span>
-                                            <p className="font-semibold text-gray-900">
+                                            <p className="font-semibold text-primary">
                                                 {selectedWorkOrder.completionDate ? formatDate(selectedWorkOrder.completionDate) : 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <span className="text-gray-500 font-medium">Odometer Reading:</span>
-                                            <p className="font-semibold text-gray-900">
+                                            <span className="text-secondary font-medium">Odometer Reading:</span>
+                                            <p className="font-semibold text-primary">
                                                 {selectedWorkOrder.odometerReading ? `${selectedWorkOrder.odometerReading.toLocaleString()} km` : 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <span className="text-gray-500 font-medium">Service Provider:</span>
-                                            <p className="font-semibold text-gray-900">{selectedWorkOrder.serviceProvider || 'N/A'}</p>
+                                            <span className="text-secondary font-medium">Service Provider:</span>
+                                            <p className="font-semibold text-primary">{selectedWorkOrder.serviceProvider || 'N/A'}</p>
                                         </div>
                                         <div className="col-span-2">
-                                            <span className="text-gray-500 font-medium">Parts Used:</span>
-                                            <p className="font-semibold text-gray-900">
-                                                {selectedWorkOrder.partsUsed && Array.isArray(selectedWorkOrder.partsUsed) 
-                                                    ? selectedWorkOrder.partsUsed.join(', ') 
+                                            <span className="text-secondary font-medium">Parts Used:</span>
+                                            <p className="font-semibold text-primary">
+                                                {selectedWorkOrder.partsUsed && Array.isArray(selectedWorkOrder.partsUsed)
+                                                    ? selectedWorkOrder.partsUsed.join(', ')
                                                     : (selectedWorkOrder.partsUsed || 'N/A')}
                                             </p>
                                         </div>
                                         <div className="col-span-2">
-                                            <span className="text-gray-500 font-medium">Invoice Reference:</span>
-                                            <p className="font-semibold text-gray-900">{selectedWorkOrder.invoiceReference || 'N/A'}</p>
+                                            <span className="text-secondary font-medium">Invoice Reference:</span>
+                                            <p className="font-semibold text-primary">{selectedWorkOrder.invoiceReference || 'N/A'}</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="border border-gray-200 rounded-xl p-5">
-                                    <h3 className="font-bold text-gray-800 mb-4 text-lg">Repair Updates</h3>
+                                <div className="border border-theme rounded-xl p-5">
+                                    <h3 className="font-bold text-primary mb-4 text-lg">Repair Updates</h3>
                                     {selectedWorkOrder.repairUpdates && selectedWorkOrder.repairUpdates.length > 0 ? (
                                         <div className="space-y-3">
                                             {selectedWorkOrder.repairUpdates.map((update: RepairUpdate, index: number) => (
-                                                <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                                <div key={index} className="bg-card rounded-lg p-4 border border-theme">
                                                     <div className="flex justify-between items-start mb-2">
-                                                        <span className="text-sm font-semibold text-gray-700">Update #{index + 1}</span>
-                                                        <span className="text-xs text-gray-500">
+                                                        <span className="text-sm font-semibold text-primary">Update #{index + 1}</span>
+                                                        <span className="text-xs text-secondary">
                                                             {formatDateTime(update.time)}
                                                         </span>
                                                     </div>
-                                                    <p className="text-sm text-gray-700">{update.note}</p>
+                                                    <p className="text-sm text-primary">{update.note}</p>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : (
-                                        <p className="text-gray-500 italic text-center py-4">No repair updates yet</p>
+                                        <p className="text-secondary italic text-center py-4">No repair updates yet</p>
                                     )}
                                 </div>
 
                                 <div className="flex justify-end pt-2">
                                     <button
                                         onClick={() => setShowDetailsModal(false)}
-                                        className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                                        className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                                     >
                                         Close
                                     </button>
@@ -1515,24 +1515,24 @@ function WorkOrdersPage() {
             {/* Delete Confirmation Modal */}
             {deleteConfirmation.show && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative">
-                        <div className="bg-red-50 border-b border-red-100 px-6 py-4 flex items-center gap-3 rounded-t-2xl">
+                    <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md relative">
+                        <div className="bg-card border-b border-red-100 px-6 py-4 flex items-center gap-3 rounded-t-2xl">
                             <div className="p-2 bg-red-100 rounded-full">
-                                <FaTrash className="text-red-600" size={20} />
+                                <FaTrash className="text-[#A855F7]" size={20} />
                             </div>
                             <h3 className="text-xl font-bold text-red-900">Delete Work Order</h3>
                         </div>
 
                         <div className="p-6">
-                            <p className="text-gray-700 text-base">
+                            <p className="text-primary text-base">
                                 Are you sure you want to delete this work order? This action cannot be undone.
                             </p>
                         </div>
 
-                        <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
+                        <div className="bg-card px-6 py-4 flex justify-end gap-3 border-t rounded-b-2xl">
                             <button
                                 type="button"
-                                className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                                className="px-6 py-2.5 bg-card border border-theme text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                                 onClick={cancelDelete}
                             >
                                 Cancel

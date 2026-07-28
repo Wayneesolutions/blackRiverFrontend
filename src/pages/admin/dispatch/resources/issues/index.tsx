@@ -61,7 +61,7 @@ const Issues: React.FC = () => {
     total: 0,
     limit: 10
   });
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -157,20 +157,20 @@ const Issues: React.FC = () => {
   // Get priority color
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'text-red-600 bg-red-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
+      case 'high': return 'text-[#A855F7] bg-red-100';
+      case 'medium': return 'text-[#00FFA3] bg-yellow-100';
       case 'low': return 'text-green-600 bg-green-100';
-      default: return 'text-gray-600 bg-gray-100';
+      default: return 'text-secondary bg-card';
     }
   };
 
   // Get status color
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open': return 'text-red-600 bg-red-100';
-      case 'in-progress': return 'text-blue-600 bg-blue-100';
+      case 'open': return 'text-[#A855F7] bg-red-100';
+      case 'in-progress': return 'text-[#00D1FF] bg-blue-100';
       case 'closed': return 'text-green-600 bg-green-100';
-      default: return 'text-gray-600 bg-gray-100';
+      default: return 'text-secondary bg-card';
     }
   };
 
@@ -179,9 +179,9 @@ const Issues: React.FC = () => {
     switch (type) {
       case 'maintanance': return <MdWarning className="text-orange-500" />;
       case 'operational': return <MdError className="text-red-500" />;
-      case 'accident': return <MdError className="text-red-600" />;
+      case 'accident': return <MdError className="text-[#A855F7]" />;
       case 'compilance': return <MdInfo className="text-blue-500" />;
-      default: return <MdWarning className="text-gray-500" />;
+      default: return <MdWarning className="text-secondary" />;
     }
   };
 
@@ -238,8 +238,8 @@ const Issues: React.FC = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -262,19 +262,19 @@ const Issues: React.FC = () => {
   }, [issues, searchQuery]);
 
   return (
-    <div className="flex h-screen bg-[#EDF8FF] overflow-hidden">
+    <div className="flex h-screen bg-main overflow-hidden">
       {/* Main Content */}
       <div className={`flex-1 flex flex-col transition-all duration-300 ${showNewIssueSidebar ? 'mr-96' : ''} overflow-hidden`}>
         <div className="flex-1 overflow-y-auto p-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Issues Management</h1>
-              <p className="text-gray-600">Manage and track fleet issues</p>
+              <h1 className="text-2xl font-bold text-headings">Issues Management</h1>
+              <p className="text-secondary">Manage and track fleet issues</p>
             </div>
             <button
               onClick={() => setShowNewIssueSidebar(true)}
-              style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+              style={{ background: 'var(--accent-navyblue)' }}
               className="flex items-center gap-2 !text-white px-4 py-2 rounded-lg transition-colors shadow-sm hover:shadow-md"
             >
               <MdAdd className="text-xl" />
@@ -283,22 +283,22 @@ const Issues: React.FC = () => {
           </div>
 
           {/* Search and Filters */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="bg-card rounded-lg shadow-sm border border-theme p-4 mb-6">
             <div className="flex gap-4 items-center">
               <div className="flex-1 relative">
-                <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
                 <input
                   type="text"
                   placeholder="Search issues by type, category, priority, status..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <button
                 onClick={handleSearch}
-                className="flex items-center gap-2 bg-blue-600 !text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-2 bg-[var(--accent-navyblue)] !text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <MdSearch />
                 Search
@@ -318,41 +318,41 @@ const Issues: React.FC = () => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Issues</p>
-                  <p className="text-2xl font-bold text-gray-900">{pagination.total}</p>
+                  <p className="text-sm text-secondary">Total Issues</p>
+                  <p className="text-2xl font-bold text-headings">{pagination.total}</p>
                 </div>
-                <MdWarning className="text-2xl text-gray-400" />
+                <MdWarning className="text-2xl text-secondary" />
               </div>
             </div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Open Issues</p>
-                  <p className="text-2xl font-bold text-red-600">
+                  <p className="text-sm text-secondary">Open Issues</p>
+                  <p className="text-2xl font-bold text-[#A855F7]">
                     {issues.filter(i => i.status === 'open').length}
                   </p>
                 </div>
                 <MdError className="text-2xl text-red-400" />
               </div>
             </div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">In Progress</p>
-                  <p className="text-2xl font-bold text-blue-600">
+                  <p className="text-sm text-secondary">In Progress</p>
+                  <p className="text-2xl font-bold text-[#00D1FF]">
                     {issues.filter(i => i.status === 'in-progress').length}
                   </p>
                 </div>
                 <MdInfo className="text-2xl text-blue-400" />
               </div>
             </div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Closed Issues</p>
+                  <p className="text-sm text-secondary">Closed Issues</p>
                   <p className="text-2xl font-bold text-green-600">
                     {issues.filter(i => i.status === 'closed').length}
                   </p>
@@ -363,88 +363,66 @@ const Issues: React.FC = () => {
           </div>
 
           {/* Issues Table */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="w-full bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
-            <style>{`
-              .top-scrollbar-container::-webkit-scrollbar {
-                height: 8px;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-track {
-                background: #f7fafc;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-thumb {
-                background: #cbd5e0;
-                border-radius: 4px;
-              }
-              .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                background: #a0aec0;
-              }
-              .table-container-hidden-scrollbar {
-                scrollbar-width: none; /* Firefox */
-                -ms-overflow-style: none; /* IE and Edge */
-              }
-              .table-container-hidden-scrollbar::-webkit-scrollbar {
-                display: none; /* Chrome, Safari, Opera */
-              }
-            `}</style>
-            <div 
+
+            <div
               ref={topScrollRef}
               className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-              style={{ 
+              style={{
                 maxHeight: '20px',
                 marginBottom: '2px',
-                scrollbarWidth: 'thin',
-                scrollbarColor: '#cbd5e0 #f7fafc' /* Firefox */
+
               }}
             >
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
             </div>
             {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-            <div 
+            <div
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
-              <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: '1000px' }}>
-                <thead className="bg-gray-50">
+              <table className="w-full divide-theme">
+                <thead className="bg-card">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                       Issue Details
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                       Type & Category
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                       Priority
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                       Vehicle
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-headings uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-theme divide-white/5">
                   {loading ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                      <td colSpan={5} className="px-6 py-4 text-center text-secondary">
                         Loading issues...
                       </td>
                     </tr>
                   ) : issues.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                      <td colSpan={5} className="px-6 py-4 text-center text-secondary">
                         No issues found
                       </td>
                     </tr>
                   ) : (
                     issues.map((issue) => (
-                      <tr 
-                        key={issue._id} 
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      <tr
+                        key={issue._id}
+                        className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedIssue(issue);
                           setShowIssueDetails(true);
@@ -454,37 +432,51 @@ const Issues: React.FC = () => {
                           <div className="flex items-center gap-3">
                             {getIssueTypeIcon(issue.issueType)}
                             <div>
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className="text-sm font-medium text-headings">
                                 {issue.issueType.charAt(0).toUpperCase() + issue.issueType.slice(1)}
                               </div>
-                              <div className="text-sm text-gray-500 truncate max-w-xs">
+                              <div className="text-sm text-secondary truncate max-w-xs">
                                 {issue.issueReport}
                               </div>
-                              <div className="text-xs text-gray-400">
+                              <div className="text-xs text-secondary">
                                 {new Date(issue.createdAt).toLocaleDateString()}
                               </div>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-headings">
                             {issue.issueCategory.replace('-', ' ').charAt(0).toUpperCase() +
                               issue.issueCategory.replace('-', ' ').slice(1)}
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(issue.priority)}`}>
+                          <span
+                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${issue.priority === 'high'
+                              ? 'bg-[rgba(239,68,68,0.15)] text-[#F87171]'
+                              : issue.priority === 'medium'
+                                ? 'bg-[rgba(245,158,11,0.15)] text-[#FBBF24]'
+                                : 'bg-[rgba(34,197,94,0.15)] text-[#4ADE80]'
+                              }`}
+                          >
                             {issue.priority.charAt(0).toUpperCase() + issue.priority.slice(1)}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(issue.status)}`}>
+                          <span
+                            className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${issue.status === 'open'
+                              ? 'bg-[rgba(168,85,247,0.15)] text-[#C084FC]'
+                              : issue.status === 'in-progress'
+                                ? 'bg-[rgba(34,197,94,0.15)] text-[#4ADE80]'
+                                : 'bg-[rgba(255,255,255,0.08)] text-secondary'
+                              }`}
+                          >
                             {issue.status.replace('-', ' ').charAt(0).toUpperCase() +
                               issue.status.replace('-', ' ').slice(1)}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-headings">
                             {issue.vehicle && typeof issue.vehicle === 'object' ? (
                               (() => {
                                 const make = issue.vehicle.make || '';
@@ -500,24 +492,28 @@ const Issues: React.FC = () => {
                         </td>
                         <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
-                         
+
+                            {/* Edit */}
                             <button
                               onClick={() => {
                                 setEditingIssue(issue);
                                 setShowNewIssueSidebar(true);
                               }}
-                              className="text-green-600 hover:text-green-800 p-1"
+                              className="p-2 text-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.08)] rounded-lg transition-all duration-200"
                               title="Edit Issue"
                             >
                               <MdEdit />
                             </button>
+
+                            {/* Delete */}
                             <button
                               onClick={() => handleDelete(issue._id)}
-                              className="text-red-600 hover:text-red-800 p-1"
+                              className="p-2 text-red-400 hover:bg-[rgba(239,68,68,0.1)] rounded-lg transition-all duration-200"
                               title="Delete Issue"
                             >
                               <MdDelete />
                             </button>
+
                           </div>
                         </td>
                       </tr>
@@ -529,26 +525,26 @@ const Issues: React.FC = () => {
 
             {/* Pagination */}
             {pagination.pages > 1 && (
-              <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200">
+              <div className="bg-card px-4 py-3 flex items-center justify-between border-t border-theme">
                 <div className="flex-1 flex justify-between sm:hidden">
                   <button
                     onClick={() => fetchIssues(pagination.current - 1)}
                     disabled={pagination.current === 1}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                    className="relative inline-flex items-center px-4 py-2 border border-theme text-sm font-medium rounded-md text-headings bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => fetchIssues(pagination.current + 1)}
                     disabled={pagination.current === pagination.pages}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-theme text-sm font-medium rounded-md text-headings bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
                   >
                     Next
                   </button>
                 </div>
                 <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm text-headings">
                       Showing{' '}
                       <span className="font-medium">{(pagination.current - 1) * pagination.limit + 1}</span>
                       {' '}to{' '}
@@ -565,7 +561,7 @@ const Issues: React.FC = () => {
                       <button
                         onClick={() => fetchIssues(pagination.current - 1)}
                         disabled={pagination.current === 1}
-                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-theme bg-card text-sm font-medium text-secondary hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
                       >
                         Previous
                       </button>
@@ -574,8 +570,8 @@ const Issues: React.FC = () => {
                           key={page}
                           onClick={() => fetchIssues(page)}
                           className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${page === pagination.current
-                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                            ? 'z-10 bg-card border-blue-500 text-[#00D1FF]'
+                            : 'bg-card border-theme text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                             }`}
                         >
                           {page}
@@ -584,7 +580,7 @@ const Issues: React.FC = () => {
                       <button
                         onClick={() => fetchIssues(pagination.current + 1)}
                         disabled={pagination.current === pagination.pages}
-                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-theme bg-card text-sm font-medium text-secondary hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50"
                       >
                         Next
                       </button>
@@ -639,18 +635,18 @@ const Issues: React.FC = () => {
 
           {/* Sidebar Panel */}
           <div
-            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
           >
             <div className="p-6">
               {/* Header */}
-              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">Issue Details</h2>
+              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                <h2 className="text-2xl font-bold text-headings">Issue Details</h2>
                 <button
                   onClick={() => {
                     setShowIssueDetails(false);
                     setTimeout(() => setSelectedIssue(null), 300);
                   }}
-                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-[rgba(255,255,255,0.03)] transition-all"
                 >
                   <MdClose size={24} />
                 </button>
@@ -658,7 +654,7 @@ const Issues: React.FC = () => {
 
               <div className="space-y-6">
                 {/* Issue Header */}
-                <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                <div className="text-white p-6 rounded-lg">
                   <div className="flex items-center gap-4">
                     <div className="flex-shrink-0">
                       {getIssueTypeIcon(selectedIssue.issueType)}
@@ -678,44 +674,44 @@ const Issues: React.FC = () => {
                 </div>
 
                 {/* Issue Information */}
-                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                  <h4 className="font-semibold text-gray-900 mb-4 text-lg">Issue Information</h4>
+                <div className="bg-card p-6 rounded-lg border border-theme">
+                  <h4 className="font-semibold text-headings mb-4 text-lg">Issue Information</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Issue Type</p>
-                      <p className="font-medium text-gray-900">
+                      <p className="text-sm text-secondary mb-1">Issue Type</p>
+                      <p className="font-medium text-headings">
                         {selectedIssue.issueType.charAt(0).toUpperCase() + selectedIssue.issueType.slice(1)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Category</p>
-                      <p className="font-medium text-gray-900">
+                      <p className="text-sm text-secondary mb-1">Category</p>
+                      <p className="font-medium text-headings">
                         {selectedIssue.issueCategory.replace('-', ' ').charAt(0).toUpperCase() + selectedIssue.issueCategory.replace('-', ' ').slice(1)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Priority</p>
+                      <p className="text-sm text-secondary mb-1">Priority</p>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(selectedIssue.priority)}`}>
                         {selectedIssue.priority.charAt(0).toUpperCase() + selectedIssue.priority.slice(1)}
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Status</p>
+                      <p className="text-sm text-secondary mb-1">Status</p>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedIssue.status)}`}>
                         {selectedIssue.status.replace('-', ' ').charAt(0).toUpperCase() + selectedIssue.status.replace('-', ' ').slice(1)}
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Reported By</p>
-                      <p className="font-medium text-gray-900">{selectedIssue.reportedBy || "—"}</p>
+                      <p className="text-sm text-secondary mb-1">Reported By</p>
+                      <p className="font-medium text-headings">{selectedIssue.reportedBy || "—"}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Assigned To</p>
-                      <p className="font-medium text-gray-900">{selectedIssue.assignedTo || "—"}</p>
+                      <p className="text-sm text-secondary mb-1">Assigned To</p>
+                      <p className="font-medium text-headings">{selectedIssue.assignedTo || "—"}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Created Date</p>
-                      <p className="font-medium text-gray-900">
+                      <p className="text-sm text-secondary mb-1">Created Date</p>
+                      <p className="font-medium text-headings">
                         {new Date(selectedIssue.createdAt).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
@@ -725,18 +721,18 @@ const Issues: React.FC = () => {
                     </div>
                     {selectedIssue.address && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Address</p>
-                        <p className="font-medium text-gray-900">{selectedIssue.address}</p>
+                        <p className="text-sm text-secondary mb-1">Address</p>
+                        <p className="font-medium text-headings">{selectedIssue.address}</p>
                       </div>
                     )}
                   </div>
                   <div className="mt-4">
-                    <p className="text-sm text-gray-500 mb-1">Issue Report</p>
-                    <p className="font-medium text-gray-900">{selectedIssue.issueReport || "—"}</p>
+                    <p className="text-sm text-secondary mb-1">Issue Report</p>
+                    <p className="font-medium text-headings">{selectedIssue.issueReport || "—"}</p>
                   </div>
                   {selectedIssue.issueTags && selectedIssue.issueTags.length > 0 && (
                     <div className="mt-4">
-                      <p className="text-sm text-gray-500 mb-2">Tags</p>
+                      <p className="text-sm text-secondary mb-2">Tags</p>
                       <div className="flex flex-wrap gap-2">
                         {selectedIssue.issueTags.map((tag, idx) => (
                           <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
@@ -750,27 +746,27 @@ const Issues: React.FC = () => {
 
                 {/* Vehicle Information */}
                 {selectedIssue.vehicle && (
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg">Vehicle Information</h4>
+                  <div className="bg-card p-6 rounded-lg border border-theme">
+                    <h4 className="font-semibold text-headings mb-4 text-lg">Vehicle Information</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {selectedIssue.vehicle && typeof selectedIssue.vehicle === 'object' ? (
                         <>
                           {selectedIssue.vehicle.make && (
                             <div>
-                              <p className="text-sm text-gray-500 mb-1">Make</p>
-                              <p className="font-medium text-gray-900">{selectedIssue.vehicle.make}</p>
+                              <p className="text-sm text-secondary mb-1">Make</p>
+                              <p className="font-medium text-headings">{selectedIssue.vehicle.make}</p>
                             </div>
                           )}
                           {selectedIssue.vehicle.model && (
                             <div>
-                              <p className="text-sm text-gray-500 mb-1">Model</p>
-                              <p className="font-medium text-gray-900">{selectedIssue.vehicle.model}</p>
+                              <p className="text-sm text-secondary mb-1">Model</p>
+                              <p className="font-medium text-headings">{selectedIssue.vehicle.model}</p>
                             </div>
                           )}
                           {(selectedIssue.vehicle.plateNumber || selectedIssue.vehicle.internalId) && (
                             <div>
-                              <p className="text-sm text-gray-500 mb-1">Plate / ID</p>
-                              <p className="font-medium text-gray-900">
+                              <p className="text-sm text-secondary mb-1">Plate / ID</p>
+                              <p className="font-medium text-headings">
                                 {selectedIssue.vehicle.plateNumber || selectedIssue.vehicle.internalId}
                               </p>
                             </div>
@@ -778,8 +774,8 @@ const Issues: React.FC = () => {
                         </>
                       ) : (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Vehicle ID</p>
-                          <p className="font-medium text-gray-900">{selectedIssue.vehicle}</p>
+                          <p className="text-sm text-secondary mb-1">Vehicle ID</p>
+                          <p className="font-medium text-headings">{selectedIssue.vehicle}</p>
                         </div>
                       )}
                     </div>
@@ -787,13 +783,13 @@ const Issues: React.FC = () => {
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                   <button
                     onClick={() => {
                       setShowIssueDetails(false);
                       setTimeout(() => setSelectedIssue(null), 300);
                     }}
-                    className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                    className="px-6 py-2.5 bg-gray-200 text-headings font-medium rounded-lg hover:bg-gray-300 transition-all"
                   >
                     Close
                   </button>
