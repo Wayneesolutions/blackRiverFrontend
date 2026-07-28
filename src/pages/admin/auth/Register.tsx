@@ -6,7 +6,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { message } from 'antd';
 import { setUserCredentials } from "../../../redux/slices/userSlice";
 import { useDispatch } from "react-redux";
-import Logo from "../../../assets/FleetGo.png"
 import { PublicHeader } from "../../../components/auth/PublicHeader";
 import { PublicFooter } from "../../../components/auth/PublicFooter";
 
