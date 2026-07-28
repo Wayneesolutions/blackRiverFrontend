@@ -1097,9 +1097,10 @@ export const getOrderSuggestions = async (field: string, value: string, customer
     return { success: false, data: [] };
   }
 }
-export const importDriversFromFile = async (file: File) => {
+export const importDriversFromFile = async (file: File, fieldMap: Record<string, string> = {}) => {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('fieldMap', JSON.stringify(fieldMap));
   try {
     const res: AxiosResponse = await apiClient.post('dispatcher/driver/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
@@ -1110,9 +1111,10 @@ export const importDriversFromFile = async (file: File) => {
   }
 };
 
-export const importVehiclesFromFile = async (file: File) => {
+export const importVehiclesFromFile = async (file: File, fieldMap: Record<string, string> = {}) => {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('fieldMap', JSON.stringify(fieldMap));
   try {
     const res: AxiosResponse = await apiClient.post('dispatcher/vehicle/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
@@ -1123,9 +1125,10 @@ export const importVehiclesFromFile = async (file: File) => {
   }
 };
 
-export const importTrailersFromFile = async (file: File) => {
+export const importTrailersFromFile = async (file: File, fieldMap: Record<string, string> = {}) => {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('fieldMap', JSON.stringify(fieldMap));
   try {
     const res: AxiosResponse = await apiClient.post('dispatcher/trailer/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }

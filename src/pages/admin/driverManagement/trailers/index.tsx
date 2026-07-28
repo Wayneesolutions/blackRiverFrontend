@@ -1453,8 +1453,8 @@ const TrailersPage: React.FC = () => {
                                 <Plus className="w-5 h-5" />
                             </button>
                             <ImportButton
-                              onImport={async (file) => {
-                                const res = await importTrailersFromFile(file);
+                              onImport={async (file, fieldMap) => {
+                                const res = await importTrailersFromFile(file, fieldMap);
                                 return res;
                               }}
                               templateFileName="trailers_template.csv"
@@ -1574,7 +1574,7 @@ const TrailersPage: React.FC = () => {
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent bg-card"
                             >
                                 <option value="">Select</option>
                                 <option value="trailerNumber">Trailer #</option>
@@ -1588,7 +1588,7 @@ const TrailersPage: React.FC = () => {
                             <select
                                 value={complianceStatus}
                                 onChange={(e) => setComplianceStatus(e.target.value)}
-                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent bg-card"
                             >
                                 <option value="All">All</option>
                                 <option value="Compliant">Compliant</option>
@@ -1602,7 +1602,7 @@ const TrailersPage: React.FC = () => {
                             <select
                                 value={operatingStatus}
                                 onChange={(e) => setOperatingStatus(e.target.value)}
-                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
+                                                                className="px-3 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent bg-card"
                             >
                                 <option value="Active">Active</option>
                                 <option value="All">All</option>

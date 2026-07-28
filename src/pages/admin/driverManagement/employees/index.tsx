@@ -1176,7 +1176,7 @@ const EmployeesPage = () => {
                 <FileDown className="w-5 h-5" />
               </button>
               <ImportButton
-                onImport={async (file) => { const res = await importEmployeesFromFile(file); fetchEmployees(); return res; }}
+                onImport={async (file, fieldMap) => { const res = await importEmployeesFromFile(file, fieldMap); fetchEmployees(); return res; }}
                 templateFileName="employees_template.csv"
                 templateColumns={[
                   { header: 'name', example: 'Jane Doe', required: true },

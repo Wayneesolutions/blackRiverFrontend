@@ -1702,8 +1702,8 @@ const Trucks: React.FC = () => {
                                 <Plus className="w-5 h-5" />
                             </button>
                             <ImportButton
-                              onImport={async (file) => {
-                                const res = await importVehiclesFromFile(file);
+                              onImport={async (file, fieldMap) => {
+                                const res = await importVehiclesFromFile(file, fieldMap);
                                 return res;
                               }}
                               templateFileName="trucks_template.csv"

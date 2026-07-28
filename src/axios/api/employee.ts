@@ -117,9 +117,10 @@ export const resetEmployeePassword = async (id: string, password: string) => {
   }
 };
 
-export const importEmployeesFromFile = async (file: File) => {
+export const importEmployeesFromFile = async (file: File, fieldMap: Record<string, string> = {}) => {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('fieldMap', JSON.stringify(fieldMap));
   try {
     const res: AxiosResponse = await apiClient.post('employee/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }

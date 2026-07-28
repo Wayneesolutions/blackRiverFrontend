@@ -3631,12 +3631,13 @@ const DriverManagement = () => {
                 <FileDown className="w-5 h-5" />
               </button>
               <ImportButton
-                onImport={async (file) => { const res = await importDriversFromFile(file); await fetchDrivers(); return res; }}
+                onImport={async (file, fieldMap) => { const res = await importDriversFromFile(file, fieldMap); await fetchDrivers(); return res; }}
                 templateFileName="drivers_template.csv"
                 templateColumns={[
-                  { header: 'first_name', example: 'John', required: true },
-                  { header: 'last_name', example: 'Smith', required: true },
-                  { header: 'email', example: 'john.smith@company.com', required: true },
+                  { header: 'first_name', example: 'John', required: false },
+                  { header: 'last_name', example: 'Smith', required: false },
+                  { header: 'name', example: 'John Smith', required: false },
+                  { header: 'email', example: 'john.smith@company.com', required: false },
                   { header: 'phone', example: '555-123-4567', required: false },
                   { header: 'country', example: 'Canada', required: false },
                   { header: 'driver_id', example: 'DRV-0001', required: false },
@@ -4037,7 +4038,16 @@ const DriverManagement = () => {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-primary">{driver.driverId}</td>
-                    <td className="px-4 py-3 text-sm text-primary">{driver.firstName}</td>
+                    <td className="px-4 py-3 text-sm text-primary">
+                      <div className="flex items-center gap-1.5">
+                        {driver.firstName}
+                        {driver.email?.endsWith('@logistiq.import') && (
+                          <span title="No email set — imported without email. Click to edit and add one." className="text-[10px] bg-amber-100 text-amber-700 border border-amber-200 rounded px-1 py-0.5 font-medium leading-none cursor-help">
+                            No email
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-sm text-primary">{driver.lastName}</td>
                     <td className="px-4 py-3 text-sm text-primary">{driver.driversLicence}</td>
                     <td className="px-4 py-3 text-sm text-primary">{driver.passport}</td>
