@@ -291,9 +291,20 @@ export default function ImportButton({
 
             <div className="overflow-y-auto flex-1 p-4 space-y-3">
               {(() => {
+                // A column is "potentially mappable" if its name partially overlaps with a known field
+                const isMappable = (h: FileHeader) => {
+                  const hn = h.normalized.replace(/_/g, '');
+                  return templateColumns.some(tc => {
+                    const fn = tc.header.replace(/_/g, '');
+                    return hn.includes(fn) || fn.includes(hn) || hn.length >= 3 && fn.includes(hn.slice(0, 3));
+                  });
+                };
+
                 const matchedHeaders = fileHeaders.filter(h => fieldMap[h.normalized]);
-                const unmatchedHeaders = fileHeaders.filter(h => !fieldMap[h.normalized]);
-                const visibleHeaders = showAllColumns ? fileHeaders : matchedHeaders;
+                const mappableUnmatched = fileHeaders.filter(h => !fieldMap[h.normalized] && isMappable(h));
+                const visibleHeaders = showAllColumns
+                  ? [...matchedHeaders, ...mappableUnmatched]
+                  : matchedHeaders;
 
                 return (
                   <>
@@ -301,14 +312,14 @@ export default function ImportButton({
                       <p className="text-xs text-secondary">
                         We auto-detected matches where possible. Adjust any that are wrong, then click Import.
                       </p>
-                      {unmatchedHeaders.length > 0 && (
+                      {mappableUnmatched.length > 0 && (
                         <button
                           onClick={() => setShowAllColumns(v => !v)}
                           className="text-xs text-[var(--accent-navyblue)] hover:underline flex-shrink-0 ml-3"
                         >
                           {showAllColumns
-                            ? `Hide ${unmatchedHeaders.length} unmatched`
-                            : `+ ${unmatchedHeaders.length} unmatched column${unmatchedHeaders.length !== 1 ? 's' : ''}`}
+                            ? `Hide ${mappableUnmatched.length} unmatched`
+                            : `+ ${mappableUnmatched.length} more column${mappableUnmatched.length !== 1 ? 's' : ''}`}
                         </button>
                       )}
                     </div>
