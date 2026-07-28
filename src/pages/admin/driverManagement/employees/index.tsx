@@ -1179,11 +1179,14 @@ const EmployeesPage = () => {
                 onImport={async (file, fieldMap) => { const res = await importEmployeesFromFile(file, fieldMap); fetchEmployees(); return res; }}
                 templateFileName="employees_template.csv"
                 templateColumns={[
-                  { header: 'name', example: 'Jane Doe', required: true },
+                  { header: 'first_name', example: 'Jane', required: false },
+                  { header: 'last_name', example: 'Doe', required: false },
+                  { header: 'name', example: 'Jane Doe', required: false },
                   { header: 'email', example: 'jane@example.com', required: true },
                   { header: 'role', example: 'dispatcher', required: true },
                   { header: 'phone', example: '555-987-6543', required: false },
                   { header: 'department', example: 'Operations', required: false },
+                  { header: 'employee_id', example: 'EMP-0001', required: false },
                 ]}
                 label="Import Employees"
               />
