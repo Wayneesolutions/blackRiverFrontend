@@ -132,6 +132,7 @@ export default function ImportButton({
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [fileHeaders, setFileHeaders] = useState<FileHeader[]>([]);
   const [fieldMap, setFieldMap] = useState<Record<string, string>>({});
+  const [showAllColumns, setShowAllColumns] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [showTemplate, setShowTemplate] = useState(false);
@@ -174,6 +175,7 @@ export default function ImportButton({
     setPendingFile(null);
     setFileHeaders([]);
     setFieldMap({});
+    setShowAllColumns(false);
     setResult(null);
     setHeaderError(null);
   };
@@ -288,50 +290,72 @@ export default function ImportButton({
             </div>
 
             <div className="overflow-y-auto flex-1 p-4 space-y-3">
-              <p className="text-xs text-secondary">
-                We auto-detected matches where possible. Adjust any that are wrong, then click Import.
-              </p>
-              <div className="overflow-x-auto rounded-lg border border-theme">
-                <table className="w-full text-sm">
-                  <thead className="bg-[rgba(255,255,255,0.04)]">
-                    <tr>
-                      <th className="text-left px-3 py-2 text-secondary font-medium text-xs w-1/3">Your Column</th>
-                      <th className="text-left px-3 py-2 text-secondary font-medium text-xs w-1/4">Sample Value</th>
-                      <th className="text-left px-3 py-2 text-secondary font-medium text-xs">Maps To</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-theme">
-                    {fileHeaders.map(h => (
-                      <tr key={h.normalized}>
-                        <td className="px-3 py-2 font-mono text-xs text-primary">{h.original}</td>
-                        <td className="px-3 py-2 text-xs text-secondary truncate max-w-[120px]">{h.sample || <span className="italic opacity-50">empty</span>}</td>
-                        <td className="px-3 py-2">
-                          <select
-                            value={fieldMap[h.normalized] || '__skip__'}
-                            onChange={e => {
-                              const val = e.target.value;
-                              setFieldMap(prev => {
-                                const next = { ...prev };
-                                if (val === '__skip__') delete next[h.normalized];
-                                else next[h.normalized] = val;
-                                return next;
-                              });
-                            }}
-                            className="w-full text-xs bg-card border border-theme rounded px-2 py-1.5 text-primary focus:outline-none focus:border-[var(--accent-navyblue)]"
-                          >
-                            <option value="__skip__">— Skip this column —</option>
-                            {templateColumns.map(tc => (
-                              <option key={tc.header} value={tc.header}>
-                                {tc.header}{tc.required ? ' *' : ''}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {(() => {
+                const matchedHeaders = fileHeaders.filter(h => fieldMap[h.normalized]);
+                const unmatchedHeaders = fileHeaders.filter(h => !fieldMap[h.normalized]);
+                const visibleHeaders = showAllColumns ? fileHeaders : matchedHeaders;
+
+                return (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-secondary">
+                        We auto-detected matches where possible. Adjust any that are wrong, then click Import.
+                      </p>
+                      {unmatchedHeaders.length > 0 && (
+                        <button
+                          onClick={() => setShowAllColumns(v => !v)}
+                          className="text-xs text-[var(--accent-navyblue)] hover:underline flex-shrink-0 ml-3"
+                        >
+                          {showAllColumns
+                            ? `Hide ${unmatchedHeaders.length} unmatched`
+                            : `+ ${unmatchedHeaders.length} unmatched column${unmatchedHeaders.length !== 1 ? 's' : ''}`}
+                        </button>
+                      )}
+                    </div>
+                    <div className="overflow-x-auto rounded-lg border border-theme">
+                      <table className="w-full text-sm">
+                        <thead className="bg-[rgba(255,255,255,0.04)]">
+                          <tr>
+                            <th className="text-left px-3 py-2 text-secondary font-medium text-xs w-1/3">Your Column</th>
+                            <th className="text-left px-3 py-2 text-secondary font-medium text-xs w-1/4">Sample Value</th>
+                            <th className="text-left px-3 py-2 text-secondary font-medium text-xs">Maps To</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-theme">
+                          {visibleHeaders.map(h => (
+                            <tr key={h.normalized}>
+                              <td className="px-3 py-2 font-mono text-xs text-primary">{h.original}</td>
+                              <td className="px-3 py-2 text-xs text-secondary truncate max-w-[120px]">{h.sample || <span className="italic opacity-50">empty</span>}</td>
+                              <td className="px-3 py-2">
+                                <select
+                                  value={fieldMap[h.normalized] || '__skip__'}
+                                  onChange={e => {
+                                    const val = e.target.value;
+                                    setFieldMap(prev => {
+                                      const next = { ...prev };
+                                      if (val === '__skip__') delete next[h.normalized];
+                                      else next[h.normalized] = val;
+                                      return next;
+                                    });
+                                  }}
+                                  className="w-full text-xs bg-card border border-theme rounded px-2 py-1.5 text-primary focus:outline-none focus:border-[var(--accent-navyblue)]"
+                                >
+                                  <option value="__skip__">— Skip this column —</option>
+                                  {templateColumns.map(tc => (
+                                    <option key={tc.header} value={tc.header}>
+                                      {tc.header}{tc.required ? ' *' : ''}
+                                    </option>
+                                  ))}
+                                </select>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                );
+              })()}
 
               {unmappedRequired.length > 0 && (
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
